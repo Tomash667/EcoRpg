@@ -1,0 +1,29 @@
+level/exp
+equipement
+combat
+locations
+s & l
+classes
+races
+
+investments:
++ mine
++ lumber mill
+
+skills:
++ management
++ mining
+
+technology
++ blast furnace
++ printing press
++ sewers
+
+races:
++ demons (export sex toys, lube, sex skill teachers)
+
+world:
++ regions
++ countries
++ continents
+
