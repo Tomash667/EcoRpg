@@ -1,5 +1,5 @@
-name
 s & l
+exit to main menu
 classes
 races
 rations
@@ -15,6 +15,9 @@ inventory max weight
 	horse
 	wagon
 	magic
+	
+ui:
++ multiple saves
 
 investments:
 + mine

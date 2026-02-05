@@ -7,6 +7,7 @@ public class Player
 {
     public List<ItemSlot> items = new();
     public Item weapon, armor;
+    public string name;
     public int level, exp, hp, hpMax, attack, defence, energy, gold;
 
     public int Attack

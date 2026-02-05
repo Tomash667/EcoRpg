@@ -21,7 +21,7 @@ public class Game : MonoBehaviour
 
     private void Awake()
     {
-        player = new();
+        player = new() { name = Global.playerName };
         location = "City";
         header = transform.Find("Header").GetComponent<TMP_Text>();
         text = transform.Find("Text").GetComponent<TMP_Text>();
@@ -216,7 +216,8 @@ public class Game : MonoBehaviour
     private void RefreshInventory()
     {
         TMP_Text charText = character.transform.Find("Text").GetComponent<TMP_Text>();
-        charText.text = $"Level: {player.level} ({player.ExpP}%)\n" +
+        charText.text = $"{player.name}\n" +
+            $"Level: {player.level} ({player.ExpP}%)\n" +
             $"Attack: {player.Attack}\n" +
             $"Defence: {player.Defence}";
 
