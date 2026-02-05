@@ -4643,6 +4643,7 @@ GameObject:
   - component: {fileID: 1380054792}
   - component: {fileID: 1380054791}
   - component: {fileID: 1380054795}
+  - component: {fileID: 1380054796}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -4755,10 +4756,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2981dd936ec0b754d8e4964f9d70eca4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  itemEntryPrefab: {fileID: 2579810614886435678, guid: 1e7d6d85b98bb324b882676534c862ec, type: 3}
-  lineSeparatorPrefab: {fileID: 2275101242891038866, guid: e842a63905d6cea4c808270fb33cd9c3, type: 3}
   player:
     items: []
+    name: 
     level: 1
     exp: 0
     hp: 100
@@ -4770,6 +4770,20 @@ MonoBehaviour:
   location: 
   day: 0
   hour: 0
+--- !u!114 &1380054796
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1380054790}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 40a6108539ddbdd419272d1e8e86d845, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  itemEntryPrefab: {fileID: 2579810614886435678, guid: 1e7d6d85b98bb324b882676534c862ec, type: 3}
+  lineSeparatorPrefab: {fileID: 2275101242891038866, guid: e842a63905d6cea4c808270fb33cd9c3, type: 3}
 --- !u!1 &1489989481
 GameObject:
   m_ObjectHideFlags: 0

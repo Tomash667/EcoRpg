@@ -1,13 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 [Serializable]
-public class Player
+public class Player : ISerializationCallbackReceiver
 {
     public List<ItemSlot> items = new();
     public Item weapon, armor;
-    public string name;
+    public string name, weaponName, armorName;
     public int level, exp, hp, hpMax, attack, defence, energy, gold;
 
     public int Attack
@@ -76,5 +77,19 @@ public class Player
         --itemSlot.count;
         if (itemSlot.count == 0)
             items.Remove(itemSlot);
+    }
+
+    public void OnBeforeSerialize()
+    {
+        weaponName = weapon?.name;
+        armorName = armor?.name;
+    }
+
+    public void OnAfterDeserialize()
+    {
+        if (!string.IsNullOrEmpty(weaponName))
+            weapon = Item.Get(weaponName);
+        if (!string.IsNullOrEmpty(armorName))
+            armor = Item.Get(armorName);
     }
 }

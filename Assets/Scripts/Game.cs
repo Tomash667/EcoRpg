@@ -1,34 +1,38 @@
+using System.IO;
 using TMPro;
 using UnityEditor;
 using UnityEngine;
 
 public class Game : MonoBehaviour
 {
-    public GameObject itemEntryPrefab, lineSeparatorPrefab;
     public Player player;
     public string location;
     public int day, hour;
 
-    private GameObject shop, character, currentDialog, prevDialog;
+    private GameUI ui;
+    private GameObject shop, character;
     private TMP_Text header, text;
     private string lastAction;
 
-#if UNITY_EDITOR
-    private const KeyCode escKey = KeyCode.Q;
-#else
-    private const KeyCode escKey = KeyCode.Escape;
-#endif
-
     private void Awake()
     {
-        player = new() { name = Global.playerName };
-        location = "City";
+        ui = GetComponent<GameUI>();
         header = transform.Find("Header").GetComponent<TMP_Text>();
         text = transform.Find("Text").GetComponent<TMP_Text>();
         shop = transform.Find("Shop").gameObject;
         character = transform.Find("Character").gameObject;
-        day = 1;
-        hour = 8;
+        if (Global.loadGame)
+        {
+            Global.loadGame = false;
+            LoadGame();
+        }
+        else
+        {
+            player = new() { name = Global.playerName };
+            location = "City";
+            day = 1;
+            hour = 8;
+        }
         UpdateText();
     }
 
@@ -39,12 +43,7 @@ public class Game : MonoBehaviour
             EditorApplication.isPlaying = false;
 #endif
 
-        if (currentDialog != null)
-        {
-            if (Input.GetKeyDown(escKey))
-                ClosePanel();
-        }
-        else
+        if (!ui.HasDialog)
         {
             if (Input.GetKeyDown(KeyCode.C))
                 Character();
@@ -62,6 +61,11 @@ public class Game : MonoBehaviour
                     Shop();
             }
         }
+    }
+
+    private void OnApplicationQuit()
+    {
+        SaveGame();
     }
 
     public void Explore()
@@ -161,15 +165,13 @@ public class Game : MonoBehaviour
     {
         RefreshShopItems();
         RefreshPlayerItems();
-        shop.SetActive(true);
-        currentDialog = shop;
+        ui.ShowDialog(shop);
     }
 
     public void Character()
     {
         RefreshInventory();
-        character.SetActive(true);
-        currentDialog = character;
+        ui.ShowDialog(character);
     }
 
     private void RefreshShopItems()
@@ -179,7 +181,7 @@ public class Game : MonoBehaviour
             Destroy(child.gameObject);
         foreach (Item item in Item.items)
         {
-            ItemEntry itemEntry = Instantiate(itemEntryPrefab, content).GetComponent<ItemEntry>();
+            ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
             itemEntry.Init(item.ToString(false), "Buy", () =>
             {
                 if (player.gold >= item.value)
@@ -190,7 +192,7 @@ public class Game : MonoBehaviour
                     UpdateText();
                 }
                 else
-                    ShowDialog($"You need {item.value} gold to buy {item.name}.");
+                    ui.ShowDialog($"You need {item.value} gold to buy {item.name}.");
             });
         }
     }
@@ -202,7 +204,7 @@ public class Game : MonoBehaviour
             Destroy(child.gameObject);
         foreach (ItemSlot itemSlot in player.items)
         {
-            ItemEntry itemEntry = Instantiate(itemEntryPrefab, content).GetComponent<ItemEntry>();
+            ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
             itemEntry.Init(itemSlot.ToString(true), "Sell", () =>
             {
                 player.gold += itemSlot.item.value / 2;
@@ -227,7 +229,7 @@ public class Game : MonoBehaviour
 
         if (player.weapon != null)
         {
-            ItemEntry itemEntry = Instantiate(itemEntryPrefab, content).GetComponent<ItemEntry>();
+            ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
             itemEntry.Init(player.weapon.ToString(true), "Unequip", () =>
             {
                 player.AddItem(player.weapon);
@@ -238,7 +240,7 @@ public class Game : MonoBehaviour
 
         if (player.armor != null)
         {
-            ItemEntry itemEntry = Instantiate(itemEntryPrefab, content).GetComponent<ItemEntry>();
+            ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
             itemEntry.Init(player.armor.ToString(true), "Unequip", () =>
             {
                 player.AddItem(player.armor);
@@ -248,11 +250,11 @@ public class Game : MonoBehaviour
         }
 
         if (player.weapon != null || player.armor != null)
-            Instantiate(lineSeparatorPrefab, content);
+            Instantiate(ui.lineSeparatorPrefab, content);
 
         foreach (ItemSlot itemSlot in player.items)
         {
-            ItemEntry itemEntry = Instantiate(itemEntryPrefab, content).GetComponent<ItemEntry>();
+            ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
             itemEntry.Init(itemSlot.ToString(true), "Equip", () =>
             {
                 if (itemSlot.item.type == Item.Type.Weapon)
@@ -271,18 +273,6 @@ public class Game : MonoBehaviour
                 RefreshInventory();
             });
         }
-    }
-
-    public void ClosePanel()
-    {
-        currentDialog.SetActive(false);
-        if (prevDialog != null)
-        {
-            currentDialog = prevDialog;
-            prevDialog = null;
-        }
-        else
-            currentDialog = null;
     }
 
     private void UpdateText()
@@ -377,11 +367,15 @@ public class Game : MonoBehaviour
         };
     }
 
-    private void ShowDialog(string text)
+    private void SaveGame()
     {
-        prevDialog = currentDialog;
-        currentDialog = transform.Find("DialogPanel").gameObject;
-        currentDialog.transform.Find("OkDialog").GetChild(0).GetComponent<TMP_Text>().text = text;
-        currentDialog.SetActive(true);
+        string json = JsonUtility.ToJson(this);
+        File.WriteAllText(Global.SavePath, json);
+    }
+
+    private void LoadGame()
+    {
+        string json = File.ReadAllText(Global.SavePath);
+        JsonUtility.FromJsonOverwrite(json, this);
     }
 }

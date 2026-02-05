@@ -1,4 +1,6 @@
 using System;
+using System.Linq;
+using UnityEngine;
 
 public class Item
 {
@@ -15,6 +17,11 @@ public class Item
     public string ToString(bool sellPrice)
     {
         return $"{name.ToUpper1()} ({power} {(type == Type.Weapon ? "attack" : "defence")}, {(sellPrice ? value / 2 : value)} gold)";
+    }
+
+    public static Item Get(string name)
+    {
+        return items.First(x => x.name == name);
     }
 
     public static readonly Item[] items = new Item[]
@@ -65,10 +72,21 @@ public class Item
 }
 
 [Serializable]
-public class ItemSlot
+public class ItemSlot : ISerializationCallbackReceiver
 {
     public Item item;
+    public string name;
     public int count;
+
+    public void OnBeforeSerialize()
+    {
+        name = item.name;
+    }
+
+    public void OnAfterDeserialize()
+    {
+        item = Item.Get(name);
+    }
 
     public string ToString(bool sellPrice)
     {

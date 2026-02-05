@@ -1,21 +1,19 @@
+using System.IO;
 using TMPro;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class Menu : MonoBehaviour
 {
     private GameObject dialogPanel;
 
-#if UNITY_EDITOR
-    private const KeyCode escKey = KeyCode.Q;
-#else
-    private const KeyCode escKey = KeyCode.Escape;
-#endif
-
     private void Awake()
     {
         dialogPanel = transform.Find("DialogPanel").gameObject;
+        if (!File.Exists(Global.SavePath))
+            transform.Find("BtContinue").GetComponent<Button>().interactable = false;
     }
 
     private void Update()
@@ -29,7 +27,7 @@ public class Menu : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
                 NewGameOk();
-            if (Input.GetKeyDown(escKey))
+            if (Input.GetKeyDown(Global.escKey))
                 NewGameCancel();
         }
         else
@@ -45,7 +43,11 @@ public class Menu : MonoBehaviour
 
     public void Continue()
     {
-
+        if (File.Exists(Global.SavePath))
+        {
+            Global.loadGame = true;
+            SceneManager.LoadScene("Main");
+        }
     }
 
     public void NewGame()

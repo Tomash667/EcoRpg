@@ -1,4 +1,3 @@
-s & l
 exit to main menu
 classes
 races
