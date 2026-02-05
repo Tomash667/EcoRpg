@@ -4,16 +4,27 @@ using UnityEngine;
 
 public class Game : MonoBehaviour
 {
+    public GameObject itemEntryPrefab;
+
     private Player player;
-    private TMP_Text text;
+    private GameObject shop, currentDialog, prevDialog;
+    private TMP_Text header, text;
     private string location, lastAction;
     private int day, hour;
+
+#if UNITY_EDITOR
+    private const KeyCode escKey = KeyCode.Q;
+#else
+    private const KeyCode escKey = KeyCode.Escape;
+#endif
 
     private void Awake()
     {
         player = new();
         location = "City";
+        header = transform.Find("Header").GetComponent<TMP_Text>();
         text = transform.Find("Text").GetComponent<TMP_Text>();
+        shop = transform.Find("Shop").gameObject;
         day = 1;
         hour = 8;
         UpdateText();
@@ -26,14 +37,24 @@ public class Game : MonoBehaviour
             EditorApplication.isPlaying = false;
 #endif
 
-        if (Input.GetKeyDown(KeyCode.E))
-            Explore();
-        if (Input.GetKeyDown(KeyCode.W))
-            Work();
-        if (Input.GetKeyDown(KeyCode.R))
-            Rest();
-        if (Input.GetKeyDown(KeyCode.T))
-            Travel();
+        if (currentDialog != null)
+        {
+            if (Input.GetKeyDown(escKey))
+                ClosePanel();
+        }
+        else
+        {
+            if (Input.GetKeyDown(KeyCode.E))
+                Explore();
+            if (Input.GetKeyDown(KeyCode.W))
+                Work();
+            if (Input.GetKeyDown(KeyCode.R))
+                Rest();
+            if (Input.GetKeyDown(KeyCode.T))
+                Travel();
+            if (Input.GetKeyDown(KeyCode.S))
+                Shop();
+        }
     }
 
     public void Explore()
@@ -128,21 +149,82 @@ public class Game : MonoBehaviour
         UpdateText();
     }
 
+    public void Shop()
+    {
+        RefreshShopItems();
+        RefreshPlayerItems();
+        shop.SetActive(true);
+        currentDialog = shop;
+    }
+
+    private void RefreshShopItems()
+    {
+        Transform content = shop.transform.Find("ShopItems").Find("Viewport").Find("Content");
+        foreach (Transform child in content)
+            Destroy(child.gameObject);
+        foreach (Item item in Item.items)
+        {
+            ItemEntry itemEntry = Instantiate(itemEntryPrefab, content).GetComponent<ItemEntry>();
+            itemEntry.Init(item, () =>
+            {
+                if (player.gold >= item.value)
+                {
+                    player.AddItem(item);
+                    player.gold -= item.value;
+                    RefreshPlayerItems();
+                    UpdateText();
+                }
+                else
+                    ShowDialog($"You need {item.value} gold to buy {item.name}.");
+            });
+        }
+    }
+
+    private void RefreshPlayerItems()
+    {
+        Transform content = shop.transform.Find("PlayerItems").Find("Viewport").Find("Content");
+        foreach (Transform child in content)
+            Destroy(child.gameObject);
+        foreach (ItemSlot itemSlot in player.items)
+        {
+            ItemEntry itemEntry = Instantiate(itemEntryPrefab, content).GetComponent<ItemEntry>();
+            itemEntry.Init(itemSlot, () =>
+            {
+                player.gold += itemSlot.item.value / 2;
+                player.RemoveItem(itemSlot);
+                RefreshPlayerItems();
+                UpdateText();
+            });
+        }
+    }
+
+    public void ClosePanel()
+    {
+        currentDialog.SetActive(false);
+        if (prevDialog != null)
+        {
+            currentDialog = prevDialog;
+            prevDialog = null;
+        }
+        else
+            currentDialog = null;
+    }
+
     private void UpdateText()
     {
-        string str = $"{location}   Day: {day} {hour}:00\n" +
+        /*header.text = $"{location}   Day: {day} {hour}:00\n" +
             $"Level: {player.level} ({player.ExpP}%)\n" +
             $"Health: {player.hp}/{player.hpMax}   Energy: {player.energy}/100\n" +
             $"Attack: {player.attack}   Defence: {player.defence}\n" +
-            $"Gold: {player.gold}";
+            $"Gold: {player.gold}";*/
+        header.text = $"{location}   Day: {day} {hour}:00   Health: {player.hp}/{player.hpMax}   Energy: {player.energy}/100   Gold: {player.gold}";
         if (lastAction != null)
         {
-            str += "\n\n";
-            str += lastAction;
+            text.text = lastAction;
             lastAction = null;
         }
-
-        text.text = str;
+        else
+            text.text = string.Empty;
     }
 
     private bool Combat()
@@ -223,5 +305,13 @@ public class Game : MonoBehaviour
             9 => 1,
             _ => 0
         };
+    }
+
+    private void ShowDialog(string text)
+    {
+        prevDialog = currentDialog;
+        currentDialog = transform.Find("DialogPanel").gameObject;
+        currentDialog.transform.Find("OkDialog").GetChild(0).GetComponent<TMP_Text>().text = text;
+        currentDialog.SetActive(true);
     }
 }

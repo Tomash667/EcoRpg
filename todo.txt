@@ -1,3 +1,6 @@
+character screen, stats, equip unequip
+shop - show sell price
+
 level/exp
 equipement
 combat
@@ -6,6 +9,11 @@ s & l
 classes
 races
 rations
+potions
+skills
+
+shop - buy/sell multiple
+inventory - drop
 
 investments:
 + mine

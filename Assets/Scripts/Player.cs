@@ -1,5 +1,10 @@
+using System.Collections.Generic;
+using System.Linq;
+
 public class Player
 {
+    public readonly List<ItemSlot> items = new();
+    public Item weapon, armor;
     public int level, exp, hp, hpMax, attack, defence, energy, gold;
 
     public int ExpP
@@ -38,5 +43,21 @@ public class Player
         }
         else
             return false;
+    }
+
+    public void AddItem(Item item)
+    {
+        ItemSlot itemSlot = items.FirstOrDefault(x => x.item == item);
+        if (itemSlot != null)
+            itemSlot.count++;
+        else
+            items.Add(new() { item = item, count = 1 });
+    }
+
+    public void RemoveItem(ItemSlot itemSlot)
+    {
+        --itemSlot.count;
+        if (itemSlot.count == 0)
+            items.Remove(itemSlot);
     }
 }
