@@ -5,6 +5,7 @@ locations
 s & l
 classes
 races
+rations
 
 investments:
 + mine
@@ -27,3 +28,8 @@ world:
 + countries
 + continents
 
+events:
++ mine
+	good (mother lode, gems, new vein, good ore quality, technology/tools efficiency, veteran miner training)
+	neutral (surge of workers, royal inspection, ancient ruins)
+	bad (tunnel collapse, flooding, forged deed)
