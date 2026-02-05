@@ -46,7 +46,7 @@ public class Menu : MonoBehaviour
         if (File.Exists(Global.SavePath))
         {
             Global.loadGame = true;
-            SceneManager.LoadScene("Main");
+            SceneManager.LoadScene("Game");
         }
     }
 
@@ -73,7 +73,7 @@ public class Menu : MonoBehaviour
         if (name.Length > 0)
         {
             Global.playerName = name;
-            SceneManager.LoadScene("Main");
+            SceneManager.LoadScene("Game");
         }
     }
 

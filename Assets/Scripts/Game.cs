@@ -2,6 +2,7 @@ using System.IO;
 using TMPro;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class Game : MonoBehaviour
 {
@@ -377,5 +378,11 @@ public class Game : MonoBehaviour
     {
         string json = File.ReadAllText(Global.SavePath);
         JsonUtility.FromJsonOverwrite(json, this);
+    }
+
+    public void ExitToMenu()
+    {
+        SaveGame();
+        SceneManager.LoadScene("Menu");
     }
 }

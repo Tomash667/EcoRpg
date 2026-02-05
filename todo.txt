@@ -1,4 +1,3 @@
-exit to main menu
 classes
 races
 rations

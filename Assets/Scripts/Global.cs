@@ -8,7 +8,7 @@ public static class Global
     public const KeyCode escKey = KeyCode.Escape;
 #endif
 
-    public static  string SavePath => Application.persistentDataPath + "/save.json";
+    public static string SavePath => Application.persistentDataPath + "/save.json";
 
     public static string playerName;
     public static bool loadGame;
