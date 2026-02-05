@@ -1,19 +1,20 @@
-character screen, stats, equip unequip
-shop - show sell price
-
-level/exp
-equipement
-combat
-locations
+name
 s & l
 classes
 races
 rations
 potions
 skills
+more locations
 
 shop - buy/sell multiple
 inventory - drop
+
+inventory max weight
+	allies
+	horse
+	wagon
+	magic
 
 investments:
 + mine
@@ -22,6 +23,7 @@ investments:
 skills:
 + management
 + mining
++ haggle
 
 technology
 + blast furnace

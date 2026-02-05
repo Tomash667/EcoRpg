@@ -4,13 +4,14 @@ using UnityEngine;
 
 public class Game : MonoBehaviour
 {
-    public GameObject itemEntryPrefab;
+    public GameObject itemEntryPrefab, lineSeparatorPrefab;
+    public Player player;
+    public string location;
+    public int day, hour;
 
-    private Player player;
-    private GameObject shop, currentDialog, prevDialog;
+    private GameObject shop, character, currentDialog, prevDialog;
     private TMP_Text header, text;
-    private string location, lastAction;
-    private int day, hour;
+    private string lastAction;
 
 #if UNITY_EDITOR
     private const KeyCode escKey = KeyCode.Q;
@@ -25,6 +26,7 @@ public class Game : MonoBehaviour
         header = transform.Find("Header").GetComponent<TMP_Text>();
         text = transform.Find("Text").GetComponent<TMP_Text>();
         shop = transform.Find("Shop").gameObject;
+        character = transform.Find("Character").gameObject;
         day = 1;
         hour = 8;
         UpdateText();
@@ -44,16 +46,21 @@ public class Game : MonoBehaviour
         }
         else
         {
+            if (Input.GetKeyDown(KeyCode.C))
+                Character();
             if (Input.GetKeyDown(KeyCode.E))
                 Explore();
-            if (Input.GetKeyDown(KeyCode.W))
-                Work();
             if (Input.GetKeyDown(KeyCode.R))
                 Rest();
             if (Input.GetKeyDown(KeyCode.T))
                 Travel();
-            if (Input.GetKeyDown(KeyCode.S))
-                Shop();
+            if (location == "City")
+            {
+                if (Input.GetKeyDown(KeyCode.W))
+                    Work();
+                if (Input.GetKeyDown(KeyCode.S))
+                    Shop();
+            }
         }
     }
 
@@ -109,9 +116,7 @@ public class Game : MonoBehaviour
 
     public void Work()
     {
-        if (location != "City")
-            lastAction = "You can't work here.";
-        else if (hour > 16)
+        if (hour > 16)
             lastAction = "It's too late to work.";
         else if (player.energy < 50)
             lastAction = "You are too tired to work.";
@@ -144,6 +149,9 @@ public class Game : MonoBehaviour
                 lastAction = "You travel to city.";
                 location = "City";
             }
+            bool inCity = location == "City";
+            transform.Find("BtWork").gameObject.SetActive(inCity);
+            transform.Find("BtShop").gameObject.SetActive(inCity);
             AddHour();
         }
         UpdateText();
@@ -157,6 +165,13 @@ public class Game : MonoBehaviour
         currentDialog = shop;
     }
 
+    public void Character()
+    {
+        RefreshInventory();
+        character.SetActive(true);
+        currentDialog = character;
+    }
+
     private void RefreshShopItems()
     {
         Transform content = shop.transform.Find("ShopItems").Find("Viewport").Find("Content");
@@ -165,7 +180,7 @@ public class Game : MonoBehaviour
         foreach (Item item in Item.items)
         {
             ItemEntry itemEntry = Instantiate(itemEntryPrefab, content).GetComponent<ItemEntry>();
-            itemEntry.Init(item, () =>
+            itemEntry.Init(item.ToString(false), "Buy", () =>
             {
                 if (player.gold >= item.value)
                 {
@@ -188,12 +203,71 @@ public class Game : MonoBehaviour
         foreach (ItemSlot itemSlot in player.items)
         {
             ItemEntry itemEntry = Instantiate(itemEntryPrefab, content).GetComponent<ItemEntry>();
-            itemEntry.Init(itemSlot, () =>
+            itemEntry.Init(itemSlot.ToString(true), "Sell", () =>
             {
                 player.gold += itemSlot.item.value / 2;
                 player.RemoveItem(itemSlot);
                 RefreshPlayerItems();
                 UpdateText();
+            });
+        }
+    }
+
+    private void RefreshInventory()
+    {
+        TMP_Text charText = character.transform.Find("Text").GetComponent<TMP_Text>();
+        charText.text = $"Level: {player.level} ({player.ExpP}%)\n" +
+            $"Attack: {player.Attack}\n" +
+            $"Defence: {player.Defence}";
+
+        Transform content = character.transform.Find("PlayerItems").Find("Viewport").Find("Content");
+        foreach (Transform child in content)
+            Destroy(child.gameObject);
+
+        if (player.weapon != null)
+        {
+            ItemEntry itemEntry = Instantiate(itemEntryPrefab, content).GetComponent<ItemEntry>();
+            itemEntry.Init(player.weapon.ToString(true), "Unequip", () =>
+            {
+                player.AddItem(player.weapon);
+                player.weapon = null;
+                RefreshInventory();
+            });
+        }
+
+        if (player.armor != null)
+        {
+            ItemEntry itemEntry = Instantiate(itemEntryPrefab, content).GetComponent<ItemEntry>();
+            itemEntry.Init(player.armor.ToString(true), "Unequip", () =>
+            {
+                player.AddItem(player.armor);
+                player.armor = null;
+                RefreshInventory();
+            });
+        }
+
+        if (player.weapon != null || player.armor != null)
+            Instantiate(lineSeparatorPrefab, content);
+
+        foreach (ItemSlot itemSlot in player.items)
+        {
+            ItemEntry itemEntry = Instantiate(itemEntryPrefab, content).GetComponent<ItemEntry>();
+            itemEntry.Init(itemSlot.ToString(true), "Equip", () =>
+            {
+                if (itemSlot.item.type == Item.Type.Weapon)
+                {
+                    if (player.weapon != null)
+                        player.AddItem(player.weapon);
+                    player.weapon = itemSlot.item;
+                }
+                else
+                {
+                    if (player.armor != null)
+                        player.AddItem(player.armor);
+                    player.armor = itemSlot.item;
+                }
+                player.RemoveItem(itemSlot);
+                RefreshInventory();
             });
         }
     }
@@ -212,11 +286,6 @@ public class Game : MonoBehaviour
 
     private void UpdateText()
     {
-        /*header.text = $"{location}   Day: {day} {hour}:00\n" +
-            $"Level: {player.level} ({player.ExpP}%)\n" +
-            $"Health: {player.hp}/{player.hpMax}   Energy: {player.energy}/100\n" +
-            $"Attack: {player.attack}   Defence: {player.defence}\n" +
-            $"Gold: {player.gold}";*/
         header.text = $"{location}   Day: {day} {hour}:00   Health: {player.hp}/{player.hpMax}   Energy: {player.energy}/100   Gold: {player.gold}";
         if (lastAction != null)
         {
@@ -248,7 +317,7 @@ public class Game : MonoBehaviour
             // player attack
             if (Random.Range(0, 100) > 25)
             {
-                enemyHp -= player.attack - enemyDef;
+                enemyHp -= player.Attack - enemyDef;
                 if (enemyHp <= 0)
                     return true;
             }
@@ -256,7 +325,7 @@ public class Game : MonoBehaviour
             // enemy attack
             if (Random.Range(0, 100) > 75)
             {
-                player.hp -= Mathf.Max(enemyAttack - player.defence);
+                player.hp -= Mathf.Max(enemyAttack - player.Defence);
                 if (player.hp <= 0)
                 {
                     player.hp = 1;

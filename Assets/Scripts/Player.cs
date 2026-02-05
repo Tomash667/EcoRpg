@@ -1,19 +1,35 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
+[Serializable]
 public class Player
 {
-    public readonly List<ItemSlot> items = new();
+    public List<ItemSlot> items = new();
     public Item weapon, armor;
     public int level, exp, hp, hpMax, attack, defence, energy, gold;
 
-    public int ExpP
+    public int Attack
     {
         get
         {
-            return exp / 10;
+            int value = attack;
+            if (weapon != null)
+                value += weapon.power;
+            return value;
         }
     }
+    public int Defence
+    {
+        get
+        {
+            int value = defence;
+            if (armor != null)
+                value += armor.power;
+            return value;
+        }
+    }
+    public int ExpP => exp / 10;
 
     public Player()
     {

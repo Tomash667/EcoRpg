@@ -12,9 +12,9 @@ public class Item
     public Type type;
     public int power, value;
 
-    public override string ToString()
+    public string ToString(bool sellPrice)
     {
-        return $"{name.ToUpper1()} ({power} {(type == Type.Weapon ? "attack" : "defence")}, {value} gold)";
+        return $"{name.ToUpper1()} ({power} {(type == Type.Weapon ? "attack" : "defence")}, {(sellPrice ? value / 2 : value)} gold)";
     }
 
     public static readonly Item[] items = new Item[]
@@ -70,11 +70,11 @@ public class ItemSlot
     public Item item;
     public int count;
 
-    public override string ToString()
+    public string ToString(bool sellPrice)
     {
         if (count == 1)
-            return item.ToString();
+            return item.ToString(sellPrice);
         else
-            return $"{count}x {item}";
+            return $"{count}x {item.ToString(sellPrice)}";
     }
 }
