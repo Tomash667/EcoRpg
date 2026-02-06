@@ -7,7 +7,8 @@ public class Item
     public enum Type
     {
         Weapon,
-        Armor
+        Armor,
+        Other
     }
 
     public string name;
@@ -16,7 +17,13 @@ public class Item
 
     public string ToString(bool sellPrice)
     {
-        return $"{name.ToUpper1()} ({power} {(type == Type.Weapon ? "attack" : "defence")}, {(sellPrice ? value / 2 : value)} gold)";
+        int price = sellPrice ? value / 2 : value;
+        return type switch
+        {
+            Type.Weapon => $"{name.ToUpper1()} ({power} attack, {price} gold)",
+            Type.Armor => $"{name.ToUpper1()} ({power} defense, {price} gold)",
+            _ => $"{name.ToUpper1()} ({price} gold)"
+        };
     }
 
     public static Item Get(string name)
@@ -67,6 +74,12 @@ public class Item
             type = Type.Armor,
             power = 6,
             value = 400
+        },
+        new()
+        {
+            name = "rations",
+            type = Type.Other,
+            value = 5
         }
     };
 }

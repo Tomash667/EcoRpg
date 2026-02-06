@@ -9,7 +9,7 @@ public class Player : ISerializationCallbackReceiver
     public List<ItemSlot> items = new();
     public Item weapon, armor;
     public string name, weaponName, armorName;
-    public int level, exp, hp, hpMax, attack, defence, energy, gold;
+    public int level, exp, hp, hpMax, attack, defense, energy, gold;
 
     public int Attack
     {
@@ -21,11 +21,11 @@ public class Player : ISerializationCallbackReceiver
             return value;
         }
     }
-    public int Defence
+    public int Defense
     {
         get
         {
-            int value = defence;
+            int value = defense;
             if (armor != null)
                 value += armor.power;
             return value;
@@ -42,7 +42,7 @@ public class Player : ISerializationCallbackReceiver
         energy = 100;
         gold = 50;
         attack = 25;
-        defence = 5;
+        defense = 5;
     }
 
     public bool AddExp(int newExp)
@@ -56,26 +56,26 @@ public class Player : ISerializationCallbackReceiver
             hpMax += 20;
             hp = (int)(hpRatio * hpMax);
             attack += 5;
-            defence++;
+            defense++;
             return true;
         }
         else
             return false;
     }
 
-    public void AddItem(Item item)
+    public void AddItem(Item item, int count = 1)
     {
         ItemSlot itemSlot = items.FirstOrDefault(x => x.item == item);
         if (itemSlot != null)
-            itemSlot.count++;
+            itemSlot.count += count;
         else
-            items.Add(new() { item = item, count = 1 });
+            items.Add(new() { item = item, count = count });
     }
 
-    public void RemoveItem(ItemSlot itemSlot)
+    public void RemoveItem(ItemSlot itemSlot, int count = 1)
     {
-        --itemSlot.count;
-        if (itemSlot.count == 0)
+        itemSlot.count -= count;
+        if (itemSlot.count <= 0)
             items.Remove(itemSlot);
     }
 

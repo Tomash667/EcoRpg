@@ -1,21 +1,24 @@
-classes
-races
-rations
-potions
-skills
-more locations
-
-shop - buy/sell multiple
-inventory - drop
-
-inventory max weight
+hero:
++ ally
++ classes
++ races
++ potions
++ rations
++ skills
++ more locations
++ shop - buy/sell multiple
+	inventory - drop
++ inventory max weight
 	allies
 	horse
 	wagon
 	magic
++ cursed (bad luck, impotence, reduced stats)
 	
 ui:
 + multiple saves
++ load when running game scene directly
++ show last "turn" gold change
 
 investments:
 + mine
@@ -43,4 +46,4 @@ events:
 + mine
 	good (mother lode, gems, new vein, good ore quality, technology/tools efficiency, veteran miner training)
 	neutral (surge of workers, royal inspection, ancient ruins)
-	bad (tunnel collapse, flooding, forged deed)
+	bad (tunnel collapse, flooding, forged deed, cursed -> bad luck)

@@ -9,7 +9,12 @@ public class ItemEntry : MonoBehaviour
     {
         transform.GetChild(0).GetComponent<TMP_Text>().text = text;
         Button button = transform.GetChild(1).GetComponent<Button>();
-        button.onClick.AddListener(action);
-        button.transform.GetChild(0).GetComponent<TMP_Text>().text = buttonText;
+        if (buttonText == null)
+            button.gameObject.SetActive(false);
+        else
+        {
+            button.onClick.AddListener(action);
+            button.transform.GetChild(0).GetComponent<TMP_Text>().text = buttonText;
+        }
     }
 }

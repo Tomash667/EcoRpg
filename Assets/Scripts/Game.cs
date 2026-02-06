@@ -185,7 +185,29 @@ public class Game : MonoBehaviour
             ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
             itemEntry.Init(item.ToString(false), "Buy", () =>
             {
-                if (player.gold >= item.value)
+                if (Input.GetKey(KeyCode.LeftControl))
+                {
+                    ui.ShowInput($"How many {Utility.Plural(item.name)} to buy for {item.value} gold each?", count =>
+                    {
+                        if (count <= 0)
+                            return true;
+                        int price = count * item.value;
+                        if (player.gold >= price)
+                        {
+                            player.AddItem(item, count);
+                            player.gold -= price;
+                            RefreshPlayerItems();
+                            UpdateText();
+                            return true;
+                        }
+                        else
+                        {
+                            ui.ShowDialog($"You need {item.value} gold to buy {Utility.Plural(item.name, count)}.");
+                            return false;
+                        }
+                    });
+                }
+                else if (player.gold >= item.value)
                 {
                     player.AddItem(item);
                     player.gold -= item.value;
@@ -208,10 +230,34 @@ public class Game : MonoBehaviour
             ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
             itemEntry.Init(itemSlot.ToString(true), "Sell", () =>
             {
-                player.gold += itemSlot.item.value / 2;
-                player.RemoveItem(itemSlot);
-                RefreshPlayerItems();
-                UpdateText();
+                if (Input.GetKey(KeyCode.LeftShift))
+                {
+                    player.gold += itemSlot.item.value * itemSlot.count / 2;
+                    player.RemoveItem(itemSlot, itemSlot.count);
+                    RefreshPlayerItems();
+                    UpdateText();
+                }
+                else if (Input.GetKey(KeyCode.LeftControl))
+                {
+                    ui.ShowInput($"How many {Utility.Plural(itemSlot.item.name)} to sell for {itemSlot.item.value / 2} gold each?", count =>
+                    {
+                        if (count <= 0)
+                            return true;
+                        count = Mathf.Min(count, itemSlot.count);
+                        player.gold += itemSlot.item.value * count / 2;
+                        player.RemoveItem(itemSlot, count);
+                        RefreshPlayerItems();
+                        UpdateText();
+                        return true;
+                    });
+                }
+                else
+                {
+                    player.gold += itemSlot.item.value / 2;
+                    player.RemoveItem(itemSlot);
+                    RefreshPlayerItems();
+                    UpdateText();
+                }
             });
         }
     }
@@ -222,7 +268,7 @@ public class Game : MonoBehaviour
         charText.text = $"{player.name}\n" +
             $"Level: {player.level} ({player.ExpP}%)\n" +
             $"Attack: {player.Attack}\n" +
-            $"Defence: {player.Defence}";
+            $"Defense: {player.Defense}";
 
         Transform content = character.transform.Find("PlayerItems").Find("Viewport").Find("Content");
         foreach (Transform child in content)
@@ -256,23 +302,28 @@ public class Game : MonoBehaviour
         foreach (ItemSlot itemSlot in player.items)
         {
             ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
-            itemEntry.Init(itemSlot.ToString(true), "Equip", () =>
+            if (itemSlot.item.type == Item.Type.Weapon || itemSlot.item.type == Item.Type.Armor)
             {
-                if (itemSlot.item.type == Item.Type.Weapon)
+                itemEntry.Init(itemSlot.ToString(true), "Equip", () =>
                 {
-                    if (player.weapon != null)
-                        player.AddItem(player.weapon);
-                    player.weapon = itemSlot.item;
-                }
-                else
-                {
-                    if (player.armor != null)
-                        player.AddItem(player.armor);
-                    player.armor = itemSlot.item;
-                }
-                player.RemoveItem(itemSlot);
-                RefreshInventory();
-            });
+                    if (itemSlot.item.type == Item.Type.Weapon)
+                    {
+                        if (player.weapon != null)
+                            player.AddItem(player.weapon);
+                        player.weapon = itemSlot.item;
+                    }
+                    else
+                    {
+                        if (player.armor != null)
+                            player.AddItem(player.armor);
+                        player.armor = itemSlot.item;
+                    }
+                    player.RemoveItem(itemSlot);
+                    RefreshInventory();
+                });
+            }
+            else
+                itemEntry.Init(itemSlot.ToString(true), null, null);
         }
     }
 
@@ -317,7 +368,7 @@ public class Game : MonoBehaviour
             // enemy attack
             if (Random.Range(0, 100) > 75)
             {
-                player.hp -= Mathf.Max(enemyAttack - player.Defence);
+                player.hp -= Mathf.Max(enemyAttack - player.Defense);
                 if (player.hp <= 0)
                 {
                     player.hp = 1;
