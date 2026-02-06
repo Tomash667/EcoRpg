@@ -11,7 +11,7 @@ public class Item
         Other
     }
 
-    public string name;
+    public string name, desc;
     public Type type;
     public int power, value;
 
@@ -22,7 +22,7 @@ public class Item
         {
             Type.Weapon => $"{name.ToUpper1()} ({power} attack, {price} gold)",
             Type.Armor => $"{name.ToUpper1()} ({power} defense, {price} gold)",
-            _ => $"{name.ToUpper1()} ({price} gold)"
+            _ => $"{name.ToUpper1()} ({desc}, {price} gold)"
         };
     }
 
@@ -78,6 +78,7 @@ public class Item
         new()
         {
             name = "rations",
+            desc = "traveler's food",
             type = Type.Other,
             value = 5
         }

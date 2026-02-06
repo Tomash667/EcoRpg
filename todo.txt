@@ -3,7 +3,6 @@ hero:
 + classes
 + races
 + potions
-+ rations
 + skills
 + more locations
 + shop - buy/sell multiple
@@ -14,6 +13,9 @@ hero:
 	wagon
 	magic
 + cursed (bad luck, impotence, reduced stats)
++ hire npc for skills, not combat (like M&M)
++ camp gear
++ luxury
 	
 ui:
 + multiple saves

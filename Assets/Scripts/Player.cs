@@ -63,6 +63,11 @@ public class Player : ISerializationCallbackReceiver
             return false;
     }
 
+    public ItemSlot FindItem(string name)
+    {
+        return items.FirstOrDefault(x => x.item.name == name);
+    }
+
     public void AddItem(Item item, int count = 1)
     {
         ItemSlot itemSlot = items.FirstOrDefault(x => x.item == item);

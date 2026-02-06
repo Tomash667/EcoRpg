@@ -113,8 +113,19 @@ public class Game : MonoBehaviour
         }
         else
         {
-            player.energy = Mathf.Min(player.energy + 50, 100);
-            lastAction = $"You rest on {(location == "City" ? "street" : "grass")}. It's a new day.";
+            ItemSlot itemSlot = player.FindItem("rations");
+            if (itemSlot != null)
+            {
+                player.RemoveItem(itemSlot);
+                player.hp = player.hpMax;
+                player.energy = Mathf.Min(player.energy + 75, 100);
+                lastAction = $"You rest on {(location == "City" ? "street" : "grass")} and eat rations. It's a new day.";
+            }
+            else
+            {
+                player.energy = Mathf.Min(player.energy + 50, 100);
+                lastAction = $"You rest on {(location == "City" ? "street" : "grass")}. It's a new day.";
+            }
         }
         UpdateText();
     }
@@ -385,17 +396,29 @@ public class Game : MonoBehaviour
         {
             ++day;
             hour = 8;
+            lastAction += " It's a new day.";
             if (location == "City" && player.gold > 0)
             {
                 player.hp = player.hpMax;
                 player.energy = 100;
                 --player.gold;
-                lastAction += " It's a new day and you rest in inn (-1 gold).";
+                lastAction += " You rest in inn (-1 gold).";
             }
             else
             {
-                player.energy = Mathf.Min(player.energy + 50, 100);
-                lastAction += $" It's a new day and you rest on {(location == "City" ? "street" : "grass")}.";
+                ItemSlot itemSlot = player.FindItem("rations");
+                if (itemSlot != null)
+                {
+                    player.RemoveItem(itemSlot);
+                    player.hp = player.hpMax;
+                    player.energy = Mathf.Min(player.energy + 75, 100);
+                    lastAction = $" You rest on {(location == "City" ? "street" : "grass")} and eat rations.";
+                }
+                else
+                {
+                    player.energy = Mathf.Min(player.energy + 50, 100);
+                    lastAction = $" You rest on {(location == "City" ? "street" : "grass")}.";
+                }
             }
         }
     }
