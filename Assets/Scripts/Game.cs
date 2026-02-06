@@ -22,14 +22,16 @@ public class Game : MonoBehaviour
         text = transform.Find("Text").GetComponent<TMP_Text>();
         shop = transform.Find("Shop").gameObject;
         character = transform.Find("Character").gameObject;
-        if (Global.loadGame)
+
+        Global global = Global.Instance;
+        if (global.loadGame)
         {
-            Global.loadGame = false;
+            global.loadGame = false;
             LoadGame();
         }
         else
         {
-            player = new() { name = Global.playerName };
+            player = new() { name = global.playerName };
             location = "City";
             day = 1;
             hour = 8;

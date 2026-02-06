@@ -45,7 +45,7 @@ public class Menu : MonoBehaviour
     {
         if (File.Exists(Global.SavePath))
         {
-            Global.loadGame = true;
+            Global.Instance.loadGame = true;
             SceneManager.LoadScene("Game");
         }
     }
@@ -72,7 +72,9 @@ public class Menu : MonoBehaviour
         string name = dialogPanel.GetComponentInChildren<TMP_InputField>().text.Trim();
         if (name.Length > 0)
         {
-            Global.playerName = name;
+            Global global = Global.Instance;
+            global.playerName = name;
+            global.loadGame = false;
             SceneManager.LoadScene("Game");
         }
     }

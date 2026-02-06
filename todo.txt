@@ -4,8 +4,7 @@ hero:
 + races
 + skills
 + more locations
-+ shop - buy/sell multiple
-	inventory - drop
++ inventory - drop
 + inventory max weight
 	allies
 	horse
@@ -19,7 +18,6 @@ hero:
 	
 ui:
 + multiple saves
-+ load when running game scene directly
 + show last "turn" gold change
 
 investments:
