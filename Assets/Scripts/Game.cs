@@ -333,6 +333,16 @@ public class Game : MonoBehaviour
                     RefreshInventory();
                 });
             }
+            else if (itemSlot.item.type == Item.Type.Usable)
+            {
+                itemEntry.Init(itemSlot.ToString(true), "Use", () =>
+                {
+                    player.hp = Mathf.Min(player.hp + itemSlot.item.power, player.hpMax);
+                    player.RemoveItem(itemSlot);
+                    RefreshInventory();
+                    UpdateText();
+                });
+            }
             else
                 itemEntry.Init(itemSlot.ToString(true), null, null);
         }

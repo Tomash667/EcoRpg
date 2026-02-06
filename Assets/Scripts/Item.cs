@@ -8,6 +8,7 @@ public class Item
     {
         Weapon,
         Armor,
+        Usable,
         Other
     }
 
@@ -74,6 +75,14 @@ public class Item
             type = Type.Armor,
             power = 6,
             value = 400
+        },
+        new()
+        {
+            name = "potion",
+            desc = "100 heal",
+            type = Type.Usable,
+            power = 100,
+            value = 10
         },
         new()
         {

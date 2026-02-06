@@ -2,7 +2,6 @@ hero:
 + ally
 + classes
 + races
-+ potions
 + skills
 + more locations
 + shop - buy/sell multiple
@@ -16,6 +15,7 @@ hero:
 + hire npc for skills, not combat (like M&M)
 + camp gear
 + luxury
++ more weapons/armors/potions
 	
 ui:
 + multiple saves
