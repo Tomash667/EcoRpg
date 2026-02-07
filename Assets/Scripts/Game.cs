@@ -7,6 +7,7 @@ using UnityEngine.SceneManagement;
 public class Game : MonoBehaviour
 {
     public Player player;
+    public Hero ally;
     public string location;
     public int day, hour;
 
@@ -31,7 +32,8 @@ public class Game : MonoBehaviour
         }
         else
         {
-            player = new() { name = global.playerName };
+            player = new() { name = global.playerName, female = global.playerFemale };
+            player.Init();
             location = "City";
             day = 1;
             hour = 8;
@@ -278,7 +280,7 @@ public class Game : MonoBehaviour
     private void RefreshInventory()
     {
         TMP_Text charText = character.transform.Find("Text").GetComponent<TMP_Text>();
-        charText.text = $"{player.name}\n" +
+        charText.text = $"{player.GenderSign}{player.name}\n" +
             $"Level: {player.level} ({player.ExpP}%)\n" +
             $"Attack: {player.Attack}\n" +
             $"Defense: {player.Defense}";
@@ -378,25 +380,40 @@ public class Game : MonoBehaviour
             enemyDef = 3;
         }
 
+        bool playerTurn = true;
         while (true)
         {
-            // player attack
-            if (Random.Range(0, 100) > 25)
+            if (playerTurn)
             {
-                enemyHp -= player.Attack - enemyDef;
-                if (enemyHp <= 0)
-                    return true;
-            }
-
-            // enemy attack
-            if (Random.Range(0, 100) > 75)
-            {
-                player.hp -= Mathf.Max(enemyAttack - player.Defense);
-                if (player.hp <= 0)
+                // player attack
+                if (Random.Range(0, 100) > 25)
                 {
-                    player.hp = 1;
-                    return false;
+                    enemyHp -= player.Attack - enemyDef;
+                    if (enemyHp <= 0)
+                        return true;
                 }
+                playerTurn = false;
+            }
+            else
+            {
+                // enemy attack
+                if (Random.Range(0, 100) > 75)
+                {
+                    player.hp -= Mathf.Max(enemyAttack - player.Defense);
+                    if (player.hp <= 0)
+                    {
+                        ItemSlot potion = player.FindItem("potion");
+                        if (potion != null && player.hp + potion.item.power > 0)
+                        {
+                            player.hp = Mathf.Min(player.hp + potion.item.power, player.hpMax);
+                            player.RemoveItem(potion);
+                            continue; // use up player turn on purpose
+                        }
+                        player.hp = 1;
+                        return false;
+                    }
+                }
+                playerTurn = true;
             }
         }
     }

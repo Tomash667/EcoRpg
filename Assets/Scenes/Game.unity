@@ -1228,7 +1228,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Available items:'
+  m_text: 'Your items:'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -2424,7 +2424,7 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 510329780}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -2436,7 +2436,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -319.00006, y: 3.5222}
+  m_AnchoredPosition: {x: 320.99994, y: 3.5222073}
   m_SizeDelta: {x: 638, y: 519.8035}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &510329782
@@ -3668,7 +3668,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Your items:'
+  m_text: 'Available items:'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -5418,8 +5418,8 @@ RectTransform:
   m_Children:
   - {fileID: 229327642}
   - {fileID: 839110259}
-  - {fileID: 510329781}
   - {fileID: 1924647151}
+  - {fileID: 510329781}
   - {fileID: 38658371}
   m_Father: {fileID: 1380054794}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -5864,8 +5864,22 @@ MonoBehaviour:
     hpMax: 100
     attack: 25
     defense: 5
-    energy: 100
     gold: 5000
+    female: 0
+    energy: 100
+  ally:
+    items: []
+    name: 
+    weaponName: 
+    armorName: 
+    level: 0
+    exp: 0
+    hp: 0
+    hpMax: 0
+    attack: 0
+    defense: 0
+    gold: 0
+    female: 0
   location: 
   day: 0
   hour: 0
@@ -7434,7 +7448,7 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1924647150}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -7446,7 +7460,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 321, y: 3.5222}
+  m_AnchoredPosition: {x: -319.00006, y: 3.5222073}
   m_SizeDelta: {x: 638, y: 519.8035}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1924647152

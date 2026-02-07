@@ -1,5 +1,15 @@
-hero:
 + ally
+	recruit
+	combat
+	manage
+		view stats
+		give item
+		kick
+	get exp
+	get gold
+	buy items
+	
+hero:
 + classes
 + races
 + skills
@@ -15,6 +25,10 @@ hero:
 + camp gear
 + luxury
 + more weapons/armors/potions
++ interactive combat or idle?
++ player history
+	isekaied
++ currency 1 gold = 10 silver = 100 copper
 	
 ui:
 + multiple saves

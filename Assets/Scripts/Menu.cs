@@ -74,6 +74,7 @@ public class Menu : MonoBehaviour
         {
             Global global = Global.Instance;
             global.playerName = name;
+            global.playerFemale = dialogPanel.GetComponentInChildren<Toggle>().isOn;
             global.loadGame = false;
             SceneManager.LoadScene("Game");
         }

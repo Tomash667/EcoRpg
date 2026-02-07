@@ -26,7 +26,7 @@ public class GameUI : MonoBehaviour
             GameObject currentDialog = dialogs[^1];
             if (currentDialog == okDialog)
             {
-                if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
+                if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter) || Input.GetKeyDown(KeyCode.Space))
                     CloseDialog();
             }
             else if (currentDialog == inputDialog)
