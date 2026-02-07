@@ -3,7 +3,6 @@
 	manage
 		give item
 		give gold
-		kick
 	get exp
 	get gold
 	buy items

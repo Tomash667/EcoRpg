@@ -9,13 +9,15 @@ public class GameUI : MonoBehaviour
 
     private readonly List<GameObject> dialogs = new();
     private Func<int, bool> inputFunc;
-    private GameObject okDialog, inputDialog;
+    private Action confirmAction;
+    private GameObject okDialog, confirmDialog, inputDialog;
 
     public bool HasDialog => dialogs.Count > 0;
 
     private void Awake()
     {
         okDialog = transform.Find("OkDialog").gameObject;
+        confirmDialog = transform.Find("ConfirmDialog").gameObject;
         inputDialog = transform.Find("InputDialog").gameObject;
     }
 
@@ -29,7 +31,7 @@ public class GameUI : MonoBehaviour
                 if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter) || Input.GetKeyDown(KeyCode.Space))
                     CloseDialog();
             }
-            else if (currentDialog == inputDialog)
+            else if (currentDialog == confirmDialog || currentDialog == inputDialog)
             {
                 if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
                     ConfirmDialog();
@@ -42,11 +44,10 @@ public class GameUI : MonoBehaviour
 
     public void ShowDialog(string text)
     {
-        GameObject dialog = transform.Find("OkDialog").gameObject;
-        dialog.transform.GetChild(0).GetChild(0).GetComponent<TMP_Text>().text = text;
-        dialog.transform.SetAsLastSibling();
-        dialog.SetActive(true);
-        dialogs.Add(dialog);
+        okDialog.transform.GetChild(0).GetChild(0).GetComponent<TMP_Text>().text = text;
+        okDialog.transform.SetAsLastSibling();
+        okDialog.SetActive(true);
+        dialogs.Add(okDialog);
     }
 
     public void ShowDialog(GameObject dialog)
@@ -58,23 +59,39 @@ public class GameUI : MonoBehaviour
     public void ShowInput(string text, Func<int, bool> func)
     {
         inputFunc = func;
-        GameObject dialog = transform.Find("InputDialog").gameObject;
-        dialog.transform.GetChild(0).GetChild(0).GetComponent<TMP_Text>().text = text;
-        TMP_InputField input = dialog.transform.GetChild(0).GetChild(1).GetComponent<TMP_InputField>();
+        inputDialog.transform.GetChild(0).GetChild(0).GetComponent<TMP_Text>().text = text;
+        TMP_InputField input = inputDialog.transform.GetChild(0).GetChild(1).GetComponent<TMP_InputField>();
         input.text = string.Empty;
-        dialog.transform.SetAsLastSibling();
-        dialog.SetActive(true);
+        inputDialog.transform.SetAsLastSibling();
+        inputDialog.SetActive(true);
         input.ActivateInputField();
-        dialogs.Add(dialog);
+        dialogs.Add(inputDialog);
+    }
+
+    public void ShowConfirm(string text, Action action)
+    {
+        confirmAction = action;
+        confirmDialog.transform.GetChild(0).GetChild(0).GetComponent<TMP_Text>().text = text;
+        confirmDialog.transform.SetAsLastSibling();
+        confirmDialog.SetActive(true);
+        dialogs.Add(confirmDialog);
     }
 
     public void ConfirmDialog()
     {
-        GameObject dialog = transform.Find("InputDialog").gameObject;
-        TMP_InputField input = dialog.transform.GetChild(0).GetChild(1).GetComponent<TMP_InputField>();
-        string text = input.text.Trim();
-        if (int.TryParse(text, out int value) && inputFunc(value))
+        GameObject currentDialog = dialogs[^1];
+        if (currentDialog == inputDialog)
+        {
+            TMP_InputField input = inputDialog.transform.GetChild(0).GetChild(1).GetComponent<TMP_InputField>();
+            string text = input.text.Trim();
+            if (int.TryParse(text, out int value) && inputFunc(value))
+                CloseDialog();
+        }
+        else
+        {
             CloseDialog();
+            confirmAction();
+        }
     }
 
     public void CloseDialog()

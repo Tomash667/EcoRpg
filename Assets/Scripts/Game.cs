@@ -552,7 +552,7 @@ public class Game : MonoBehaviour
 
     public void Recruit()
     {
-        if(ally != null)
+        if (ally != null)
             lastAction = $"You already have an ally, {ally.name}.";
         else
         {
@@ -563,5 +563,17 @@ public class Game : MonoBehaviour
             UpdateButtons();
         }
         UpdateText();
+    }
+
+    public void RemoveAlly()
+    {
+        ui.ShowConfirm($"Are you sure you want to remove {ally.name} from your team?", () =>
+        {
+            lastAction = $"{ally.name} is sad and leave.";
+            ally = null;
+            UpdateButtons();
+            UpdateText();
+            ui.CloseDialog();
+        });
     }
 }
