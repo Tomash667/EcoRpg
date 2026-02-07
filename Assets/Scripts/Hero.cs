@@ -65,8 +65,9 @@ public class Hero : ISerializationCallbackReceiver
         AddItem(Item.Get("rations"), 3);
     }
 
-    public bool AddExp(int newExp)
+    public bool AddExp(int enemyLevel, float mod)
     {
+        int newExp = (int)(GetExpReward(enemyLevel) * mod);
         exp += newExp;
         if (exp >= 1000)
         {
@@ -81,6 +82,25 @@ public class Hero : ISerializationCallbackReceiver
         }
         else
             return false;
+    }
+
+    private int GetExpReward(int enemyLevel)
+    {
+        return (level - enemyLevel) switch
+        {
+            -1 => 300,
+            0 => 250,
+            1 => 200,
+            2 => 150,
+            3 => 100,
+            4 => 50,
+            5 => 25,
+            6 => 10,
+            7 => 5,
+            8 => 2,
+            9 => 1,
+            _ => 0
+        };
     }
 
     public ItemSlot FindItem(string name)

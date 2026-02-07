@@ -1,8 +1,4 @@
 + ally
-	manage
-		give gold
-	get exp
-	get gold
 	buy items
 	
 hero:

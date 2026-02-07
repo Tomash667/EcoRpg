@@ -102,10 +102,25 @@ public class Game : MonoBehaviour
             if (Combat(enemy, count))
             {
                 int gold = enemy.gold * count;
-                player.gold += gold;
-                lastAction += $" You win ({gold} gold found).";
-                if (player.AddExp(GetExpReward(enemy.level) * count))
-                    lastAction += $" You are now level {player.level}.";
+                if (ally == null)
+                {
+                    player.gold += gold;
+                    lastAction += $" You win ({gold} gold found).";
+                    if (player.AddExp(enemy.level, count))
+                        lastAction += $" You are now level {player.level}.";
+                }
+                else
+                {
+                    int allyGold = gold / 2;
+                    ally.gold += allyGold;
+                    gold -= allyGold;
+                    player.gold += gold;
+                    lastAction += $" You win ({gold} gold found).";
+                    if (player.AddExp(enemy.level, 0.5f * count))
+                        lastAction += $" You are now level {player.level}.";
+                    if (ally.AddExp(enemy.level, 0.5f * count))
+                        lastAction += $" {ally.name} is now level {ally.level}.";
+                }
             }
             else
                 lastAction += " You run away defeated.";
@@ -645,24 +660,6 @@ public class Game : MonoBehaviour
         return removed;
     }
 
-    private int GetExpReward(int enemyLevel)
-    {
-        return (player.level - enemyLevel) switch
-        {
-            0 => 250,
-            1 => 200,
-            2 => 150,
-            3 => 100,
-            4 => 50,
-            5 => 25,
-            6 => 10,
-            7 => 5,
-            8 => 2,
-            9 => 1,
-            _ => 0
-        };
-    }
-
     private void SaveGame()
     {
         string json = JsonUtility.ToJson(this);
@@ -731,5 +728,20 @@ public class Game : MonoBehaviour
         ui.ShowDialog(giveAllyItems);
         RefreshPlayerItems();
         RefreshAllyItems(giveAllyItems);
+    }
+
+    public void GiveAllyGold()
+    {
+        ui.ShowInput($"How much gold give to {ally.name}?", count =>
+        {
+            count = Mathf.Min(count, player.gold);
+            if (count <= 0)
+                return true;
+            player.gold -= count;
+            ally.gold += count;
+            RefreshAllyScreen();
+            UpdateText();
+            return true;
+        });
     }
 }
