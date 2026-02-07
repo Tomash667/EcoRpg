@@ -1,6 +1,5 @@
 + ally
 	manage
-		give item
 		give gold
 	get exp
 	get gold

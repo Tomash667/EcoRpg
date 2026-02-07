@@ -131,4 +131,34 @@ public class Hero : ISerializationCallbackReceiver
         if (!string.IsNullOrEmpty(armorName))
             armor = Item.Get(armorName);
     }
+
+    public bool WillTakeItem(Item item)
+    {
+        return item.type switch
+        {
+            Item.Type.Weapon => weapon == null || weapon.power < item.power,
+            Item.Type.Armor => armor == null || armor.power < item.power,
+            _ => true
+        };
+    }
+
+    public void GiveItem(Item item, int count = 1)
+    {
+        switch(item.type)
+        {
+        case Item.Type.Weapon:
+            if (weapon != null)
+                gold += weapon.value / 2;
+            weapon = item;
+            break;
+        case Item.Type.Armor:
+            if (armor != null)
+                gold += armor.value / 2;
+            armor = item;
+            break;
+        default:
+            AddItem(item, count);
+            break;
+        }
+    }
 }

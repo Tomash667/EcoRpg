@@ -15,7 +15,7 @@ public class Game : MonoBehaviour
     public int day, hour;
 
     private GameUI ui;
-    private GameObject shop, character, allyScreen;
+    private GameObject shop, character, allyScreen, giveAllyItems, activeInventory;
     private TMP_Text text;
     private string lastAction;
 
@@ -26,6 +26,7 @@ public class Game : MonoBehaviour
         shop = transform.Find("Shop").gameObject;
         character = transform.Find("Character").gameObject;
         allyScreen = transform.Find("Ally").gameObject;
+        giveAllyItems = transform.Find("GiveItems").gameObject;
 
         Global global = Global.Instance;
         if (global.loadGame)
@@ -172,6 +173,7 @@ public class Game : MonoBehaviour
 
     public void Shop()
     {
+        activeInventory = shop;
         RefreshShopItems();
         RefreshPlayerItems();
         ui.ShowDialog(shop);
@@ -179,13 +181,14 @@ public class Game : MonoBehaviour
 
     public void Character()
     {
-        RefreshInventory();
+        activeInventory = character;
+        RefreshPlayerScreen();
         ui.ShowDialog(character);
     }
 
     public void Ally()
     {
-        RefreshAllyInventory();
+        RefreshAllyScreen();
         ui.ShowDialog(allyScreen);
     }
 
@@ -236,78 +239,40 @@ public class Game : MonoBehaviour
 
     private void RefreshPlayerItems()
     {
-        Transform content = shop.transform.Find("PlayerItems").Find("Viewport").Find("Content");
-        foreach (Transform child in content)
-            Destroy(child.gameObject);
-        foreach (ItemSlot itemSlot in player.items)
-        {
-            ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
-            itemEntry.Init(itemSlot.ToString(true), "Sell", () =>
-            {
-                if (Input.GetKey(KeyCode.LeftShift))
-                {
-                    player.gold += itemSlot.item.value * itemSlot.count / 2;
-                    player.RemoveItem(itemSlot, itemSlot.count);
-                    RefreshPlayerItems();
-                    UpdateText();
-                }
-                else if (Input.GetKey(KeyCode.LeftControl))
-                {
-                    ui.ShowInput($"How many {Utility.Plural(itemSlot.item.name)} to sell for {itemSlot.item.value / 2} gold each?", count =>
-                    {
-                        if (count <= 0)
-                            return true;
-                        count = Mathf.Min(count, itemSlot.count);
-                        player.gold += itemSlot.item.value * count / 2;
-                        player.RemoveItem(itemSlot, count);
-                        RefreshPlayerItems();
-                        UpdateText();
-                        return true;
-                    });
-                }
-                else
-                {
-                    player.gold += itemSlot.item.value / 2;
-                    player.RemoveItem(itemSlot);
-                    RefreshPlayerItems();
-                    UpdateText();
-                }
-            });
-        }
-    }
-
-    private void RefreshInventory()
-    {
-        TMP_Text charText = character.transform.Find("Text").GetComponent<TMP_Text>();
-        charText.text = $"{player.GenderSign}{player.name}\n" +
-            $"Level: {player.level} ({player.ExpP}%)\n" +
-            $"Attack: {player.Attack}\n" +
-            $"Defense: {player.Defense}";
-
-        Transform content = character.transform.Find("PlayerItems").Find("Viewport").Find("Content");
+        Transform content = activeInventory.transform.Find("PlayerItems").Find("Viewport").Find("Content");
         foreach (Transform child in content)
             Destroy(child.gameObject);
 
         if (player.weapon != null)
         {
             ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
-            itemEntry.Init(player.weapon.ToString(true), "Unequip", () =>
+            if (activeInventory == character)
             {
-                player.AddItem(player.weapon);
-                player.weapon = null;
-                RefreshInventory();
-            });
+                itemEntry.Init(player.weapon.ToString(true), "Unequip", () =>
+                {
+                    player.AddItem(player.weapon);
+                    player.weapon = null;
+                    RefreshPlayerScreen();
+                });
+            }
+            else
+                itemEntry.Init(player.weapon.ToString(true));
         }
 
         if (player.armor != null)
         {
             ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
-            itemEntry.Init(player.armor.ToString(true), "Unequip", () =>
+            if (activeInventory == character)
             {
-                player.AddItem(player.armor);
-                player.armor = null;
-                RefreshInventory();
-            });
+                itemEntry.Init(player.armor.ToString(true), "Unequip", () =>
+                {
+                    player.AddItem(player.armor);
+                    player.armor = null;
+                    RefreshPlayerScreen();
+                });
+            }
+            else
+                itemEntry.Init(player.armor.ToString(true));
         }
 
         if (player.weapon != null || player.armor != null)
@@ -316,42 +281,129 @@ public class Game : MonoBehaviour
         foreach (ItemSlot itemSlot in player.items)
         {
             ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
-            if (itemSlot.item.type == Item.Type.Weapon || itemSlot.item.type == Item.Type.Armor)
+            if (activeInventory == character)
             {
-                itemEntry.Init(itemSlot.ToString(true), "Equip", () =>
+                if (itemSlot.item.type == Item.Type.Weapon || itemSlot.item.type == Item.Type.Armor)
                 {
-                    if (itemSlot.item.type == Item.Type.Weapon)
+                    itemEntry.Init(itemSlot.ToString(true), "Equip", () =>
                     {
-                        if (player.weapon != null)
-                            player.AddItem(player.weapon);
-                        player.weapon = itemSlot.item;
+                        if (itemSlot.item.type == Item.Type.Weapon)
+                        {
+                            if (player.weapon != null)
+                                player.AddItem(player.weapon);
+                            player.weapon = itemSlot.item;
+                        }
+                        else
+                        {
+                            if (player.armor != null)
+                                player.AddItem(player.armor);
+                            player.armor = itemSlot.item;
+                        }
+                        player.RemoveItem(itemSlot);
+                        RefreshPlayerScreen();
+                    });
+                }
+                else if (itemSlot.item.type == Item.Type.Usable)
+                {
+                    itemEntry.Init(itemSlot.ToString(true), "Use", () =>
+                    {
+                        player.hp = Mathf.Min(player.hp + itemSlot.item.power, player.hpMax);
+                        player.RemoveItem(itemSlot);
+                        RefreshPlayerScreen();
+                        UpdateText();
+                    });
+                }
+                else
+                    itemEntry.Init(itemSlot.ToString(true));
+            }
+            else if (activeInventory == shop)
+            {
+                itemEntry.Init(itemSlot.ToString(true), "Sell", () =>
+                {
+                    if (Input.GetKey(KeyCode.LeftShift))
+                    {
+                        player.gold += itemSlot.item.value * itemSlot.count / 2;
+                        player.RemoveItem(itemSlot, itemSlot.count);
+                        RefreshPlayerItems();
+                        UpdateText();
+                    }
+                    else if (Input.GetKey(KeyCode.LeftControl))
+                    {
+                        ui.ShowInput($"How many {Utility.Plural(itemSlot.item.name)} to sell for {itemSlot.item.value / 2} gold each?", count =>
+                        {
+                            if (count <= 0)
+                                return true;
+                            count = Mathf.Min(count, itemSlot.count);
+                            player.gold += itemSlot.item.value * count / 2;
+                            player.RemoveItem(itemSlot, count);
+                            RefreshPlayerItems();
+                            UpdateText();
+                            return true;
+                        });
                     }
                     else
                     {
-                        if (player.armor != null)
-                            player.AddItem(player.armor);
-                        player.armor = itemSlot.item;
+                        player.gold += itemSlot.item.value / 2;
+                        player.RemoveItem(itemSlot);
+                        RefreshPlayerItems();
+                        UpdateText();
                     }
-                    player.RemoveItem(itemSlot);
-                    RefreshInventory();
-                });
-            }
-            else if (itemSlot.item.type == Item.Type.Usable)
-            {
-                itemEntry.Init(itemSlot.ToString(true), "Use", () =>
-                {
-                    player.hp = Mathf.Min(player.hp + itemSlot.item.power, player.hpMax);
-                    player.RemoveItem(itemSlot);
-                    RefreshInventory();
-                    UpdateText();
                 });
             }
             else
-                itemEntry.Init(itemSlot.ToString(true));
+            {
+                if (ally.WillTakeItem(itemSlot.item))
+                {
+                    itemEntry.Init(itemSlot.ToString(true), "Give", () =>
+                    {
+                        if (itemSlot.item.type == Item.Type.Weapon || itemSlot.item.type == Item.Type.Armor || !(Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.LeftControl)))
+                        {
+                            ally.GiveItem(itemSlot.item);
+                            player.RemoveItem(itemSlot);
+                            RefreshPlayerItems();
+                            RefreshAllyScreen();
+                        }
+                        else if (Input.GetKey(KeyCode.LeftShift))
+                        {
+                            ally.GiveItem(itemSlot.item, itemSlot.count);
+                            player.RemoveItem(itemSlot, itemSlot.count);
+                            RefreshPlayerItems();
+                            RefreshAllyScreen();
+                        }
+                        else
+                        {
+                            ui.ShowInput($"How many {Utility.Plural(itemSlot.item.name)} give to {ally.name}?", count =>
+                            {
+                                if (count <= 0)
+                                    return true;
+                                count = Mathf.Min(count, itemSlot.count);
+                                ally.GiveItem(itemSlot.item, count);
+                                player.RemoveItem(itemSlot, count);
+                                RefreshPlayerItems();
+                                RefreshAllyScreen();
+                                return true;
+                            });
+                        }
+                    });
+                }
+                else
+                    itemEntry.Init(itemSlot.ToString(true));
+            }
         }
     }
 
-    private void RefreshAllyInventory()
+    private void RefreshPlayerScreen()
+    {
+        TMP_Text charText = character.transform.Find("Text").GetComponent<TMP_Text>();
+        charText.text = $"{player.GenderSign}{player.name}\n" +
+            $"Level: {player.level} ({player.ExpP}%)\n" +
+            $"Attack: {player.Attack}\n" +
+            $"Defense: {player.Defense}";
+
+        RefreshPlayerItems();
+    }
+
+    private void RefreshAllyScreen()
     {
         TMP_Text charText = allyScreen.transform.Find("Text").GetComponent<TMP_Text>();
         charText.text = $"{ally.GenderSign}{ally.name}\n" +
@@ -360,7 +412,14 @@ public class Game : MonoBehaviour
             $"Defense: {ally.Defense}\n" +
             $"Gold: {ally.gold}";
 
-        Transform content = allyScreen.transform.Find("AllyItems").Find("Viewport").Find("Content");
+        RefreshAllyItems(allyScreen);
+        if (activeInventory == giveAllyItems)
+            RefreshAllyItems(giveAllyItems);
+    }
+
+    private void RefreshAllyItems(GameObject dialog)
+    {
+        Transform content = dialog.transform.Find("AllyItems").Find("Viewport").Find("Content");
         foreach (Transform child in content)
             Destroy(child.gameObject);
 
@@ -664,5 +723,13 @@ public class Game : MonoBehaviour
             UpdateText();
             ui.CloseDialog();
         });
+    }
+
+    public void GiveAllyItems()
+    {
+        activeInventory = giveAllyItems;
+        ui.ShowDialog(giveAllyItems);
+        RefreshPlayerItems();
+        RefreshAllyItems(giveAllyItems);
     }
 }
