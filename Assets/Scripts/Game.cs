@@ -118,31 +118,9 @@ public class Game : MonoBehaviour
 
     public void Rest()
     {
-        ++day;
-        hour = 8;
-        if (location == "City" && player.gold > 0)
-        {
-            player.hp = player.hpMax;
-            player.energy = 100;
-            --player.gold;
-            lastAction = "You rest in inn (-1 gold). It's a new day.";
-        }
-        else
-        {
-            ItemSlot itemSlot = player.FindItem("rations");
-            if (itemSlot != null)
-            {
-                player.RemoveItem(itemSlot);
-                player.hp = player.hpMax;
-                player.energy = Mathf.Min(player.energy + 75, 100);
-                lastAction = $"You rest on {(location == "City" ? "street" : "grass")} and eat rations. It's a new day.";
-            }
-            else
-            {
-                player.energy = Mathf.Min(player.energy + 50, 100);
-                lastAction = $"You rest on {(location == "City" ? "street" : "grass")}. It's a new day.";
-            }
-        }
+        lastAction = string.Empty;
+        OnRest();
+        lastAction += " It's a new day.";
         UpdateText();
     }
 
@@ -159,6 +137,11 @@ public class Game : MonoBehaviour
             player.hp = player.hpMax;
             player.energy = 100;
             player.gold += 19;
+            if (ally != null)
+            {
+                ally.hp = ally.hpMax;
+                ally.gold += 19;
+            }
             lastAction = "You earned 20 gold from working. It's a new day and you rest in inn (-1 gold).";
         }
         UpdateText();
@@ -505,33 +488,102 @@ public class Game : MonoBehaviour
         ++hour;
         if (hour == 24)
         {
-            ++day;
-            hour = 8;
-            lastAction += " It's a new day.";
-            if (location == "City" && player.gold > 0)
+            lastAction += " It's a new day. ";
+            OnRest();
+        }
+    }
+
+    private void OnRest()
+    {
+        ++day;
+        hour = 8;
+        if (location == "City" && player.gold > 0)
+        {
+            player.hp = player.hpMax;
+            player.energy = 100;
+            --player.gold;
+            if (ally != null)
             {
-                player.hp = player.hpMax;
-                player.energy = 100;
-                --player.gold;
-                lastAction += " You rest in inn (-1 gold).";
+                ally.hp = ally.hpMax;
+                --ally.gold;
             }
-            else
+            lastAction += "You rest in inn (-1 gold).";
+        }
+        else
+        {
+            Item rations = Item.Get("rations");
+            int count = 1;
+            if (ally != null)
+                ++count;
+            int eaten = RemoveTeamItem(rations, count);
+            if (eaten > 0)
             {
-                ItemSlot itemSlot = player.FindItem("rations");
-                if (itemSlot != null)
+                if (eaten == count)
                 {
-                    player.RemoveItem(itemSlot);
                     player.hp = player.hpMax;
                     player.energy = Mathf.Min(player.energy + 75, 100);
-                    lastAction = $" You rest on {(location == "City" ? "street" : "grass")} and eat rations.";
+                    if (ally != null)
+                        ally.hp = ally.hpMax;
                 }
                 else
                 {
-                    player.energy = Mathf.Min(player.energy + 50, 100);
-                    lastAction = $" You rest on {(location == "City" ? "street" : "grass")}.";
+                    player.hp = Mathf.Min(player.hp + player.hpMax / 2, player.hpMax);
+                    player.energy = Mathf.Min(player.energy + 62, 100);
+                    if (ally != null)
+                        ally.hp = Mathf.Min(ally.hp + ally.hpMax / 2, ally.hpMax);
                 }
+                lastAction = $"You rest on {(location == "City" ? "street" : "grass")} and eat rations.";
+            }
+            else
+            {
+                player.energy = Mathf.Min(player.energy + 50, 100);
+                lastAction = $"You rest on {(location == "City" ? "street" : "grass")}.";
             }
         }
+    }
+
+    private int RemoveTeamItem(Item item, int count)
+    {
+        List<Hero> heroes = new() { player };
+        if (ally != null)
+            heroes.Add(ally);
+        int removed = 0;
+
+        // Cache counts so we don't call CountItem repeatedly
+        Dictionary<Hero, int> counts = new();
+        foreach (var hero in heroes)
+            counts[hero] = hero.CountItem(item);
+
+        while (count > 0)
+        {
+            // Heroes that still have items
+            var available = counts
+                .Where(kv => kv.Value > 0)
+                .Select(kv => kv.Key)
+                .ToList();
+
+            if (available.Count == 0)
+                break; // nothing left to remove
+
+            int perHero = Mathf.Max(1, count / available.Count);
+
+            foreach (var hero in available)
+            {
+                if (count <= 0)
+                    break;
+
+                int canRemove = Mathf.Min(perHero, counts[hero], count);
+
+                for (int i = 0; i < canRemove; i++)
+                    hero.RemoveItem(item);
+
+                counts[hero] -= canRemove;
+                count -= canRemove;
+                removed += canRemove;
+            }
+        }
+
+        return removed;
     }
 
     private int GetExpReward(int enemyLevel)

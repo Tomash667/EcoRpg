@@ -88,6 +88,12 @@ public class Hero : ISerializationCallbackReceiver
         return items.FirstOrDefault(x => x.item.name == name);
     }
 
+    public int CountItem(Item item)
+    {
+        ItemSlot itemSlot = items.FirstOrDefault(x => x.item == item);
+        return itemSlot?.count ?? 0;
+    }
+
     public void AddItem(Item item, int count = 1)
     {
         ItemSlot itemSlot = items.FirstOrDefault(x => x.item == item);
@@ -99,6 +105,14 @@ public class Hero : ISerializationCallbackReceiver
 
     public void RemoveItem(ItemSlot itemSlot, int count = 1)
     {
+        itemSlot.count -= count;
+        if (itemSlot.count <= 0)
+            items.Remove(itemSlot);
+    }
+
+    public void RemoveItem(Item item, int count = 1)
+    {
+        ItemSlot itemSlot = items.FirstOrDefault(x => x.item == item);
         itemSlot.count -= count;
         if (itemSlot.count <= 0)
             items.Remove(itemSlot);
