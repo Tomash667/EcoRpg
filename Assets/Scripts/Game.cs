@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using TMPro;
 using UnityEditor;
 using UnityEngine;
@@ -88,17 +90,24 @@ public class Game : MonoBehaviour
         player.energy -= 10;
         if (Random.Range(0, 10) > 3)
         {
-            lastAction = location == "City" ? "You explore city and fight with bandits." : "You explore forest and fight with orcs.";
-            if (Combat())
+            Enemy enemy = Enemy.enemies[location == "City" ? 0 : 1];
+            int count = (Utility.Rand % 4) switch
             {
-                int gold = location == "City" ? 15 : 30;
+                1 or 2 => 2,
+                3 => 3,
+                _ => 1,
+            };
+            lastAction = $"You explore {location.ToLower()} and {Utility.PluralText(enemy.name, count)} attack you.";
+            if (Combat(enemy, count))
+            {
+                int gold = enemy.gold * count;
                 player.gold += gold;
                 lastAction += $" You win ({gold} gold found).";
-                if (player.AddExp(GetExpReward()))
+                if (player.AddExp(GetExpReward(enemy.level) * count))
                     lastAction += $" You are now level {player.level}.";
             }
             else
-                lastAction += " You run away.";
+                lastAction += " You run away defeated.";
         }
         else
             lastAction = $"You explore {location.ToLower()} but find nothing interesting.";
@@ -408,57 +417,86 @@ public class Game : MonoBehaviour
         text.text = str;
     }
 
-    private bool Combat()
+    private bool Combat(Enemy enemy, int enemyCount)
     {
-        int enemyHp, enemyAttack, enemyDef;
-        if (location == "City")
+        List<int> order = new() { -1 };
+        List<int> enemyHp = new();
+        player.wasteTurn = false;
+        if (ally != null)
         {
-            enemyHp = 50;
-            enemyAttack = 12;
-            enemyDef = 2;
+            order.Add(-2);
+            ally.wasteTurn = false;
         }
-        else
+        for (int i = 0; i < enemyCount; ++i)
         {
-            enemyHp = 75;
-            enemyAttack = 18;
-            enemyDef = 3;
+            order.Add(i);
+            enemyHp.Add(enemy.hp);
         }
+        order.Shuffle();
+        int index = 0;
 
-        bool playerTurn = true;
         while (true)
         {
-            if (playerTurn)
+            int unitIndex = order[index];
+            if (unitIndex < 0)
             {
-                // player attack
-                if (Random.Range(0, 100) > 25)
+                Hero hero = unitIndex == -1 ? player : ally;
+                if (hero.wasteTurn)
+                    hero.wasteTurn = false;
+                else if (hero.hp > 0)
                 {
-                    enemyHp -= player.Attack - enemyDef;
-                    if (enemyHp <= 0)
-                        return true;
-                }
-                playerTurn = false;
-            }
-            else
-            {
-                // enemy attack
-                if (Random.Range(0, 100) > 75)
-                {
-                    player.hp -= Mathf.Max(enemyAttack - player.Defense);
-                    if (player.hp <= 0)
+                    int enemyIndex = enemyHp.Select((hp, index) => (hp, index)).RandomItem(x => x.hp > 0).index;
+                    if (Random.Range(0, 100) > 25)
                     {
-                        ItemSlot potion = player.FindItem("potion");
-                        if (potion != null && player.hp + potion.item.power > 0)
-                        {
-                            player.hp = Mathf.Min(player.hp + potion.item.power, player.hpMax);
-                            player.RemoveItem(potion);
-                            continue; // use up player turn on purpose
-                        }
-                        player.hp = 1;
-                        return false;
+                        enemyHp[enemyIndex] -= hero.Attack - enemy.def;
+                        if (enemyHp.All(x => x <= 0))
+                            return true;
                     }
                 }
-                playerTurn = true;
             }
+            else if (enemyHp[unitIndex] > 0)
+            {
+                Hero hero;
+                if (player.hp > 0)
+                {
+                    if (ally != null && ally.hp > 0)
+                        hero = Utility.Rand % 2 == 0 ? player : ally;
+                    else
+                        hero = player;
+                }
+                else if (ally != null && ally.hp > 0)
+                    hero = ally;
+                else
+                    hero = null; // no one to attack?
+
+                if (hero != null && Random.Range(0, 100) > 75)
+                {
+                    hero.hp -= Mathf.Max(enemy.attack - hero.Defense);
+                    if (hero.hp <= 0)
+                    {
+                        ItemSlot potion = hero.FindItem("potion");
+                        if (potion != null && hero.hp + potion.item.power > 0 && !hero.wasteTurn)
+                        {
+                            // hero use potion and waste turn
+                            hero.hp = Mathf.Min(hero.hp + potion.item.power, hero.hpMax);
+                            hero.RemoveItem(potion);
+                            hero.wasteTurn = true;
+                        }
+                        else if (player.hp <= 0 && (ally == null || ally.hp <= 0))
+                        {
+                            // lost
+                            player.hp = 1;
+                            if (ally != null)
+                                ally.hp = 1;
+                            return false;
+                        }
+                    }
+                }
+            }
+
+            ++index;
+            if (index == order.Count)
+                index = 0;
         }
     }
 
@@ -496,9 +534,8 @@ public class Game : MonoBehaviour
         }
     }
 
-    private int GetExpReward()
+    private int GetExpReward(int enemyLevel)
     {
-        int enemyLevel = location == "City" ? 0 : 1;
         return (player.level - enemyLevel) switch
         {
             0 => 250,

@@ -1,5 +1,4 @@
 + ally
-	combat
 	manage
 		give item
 		give gold
@@ -29,6 +28,7 @@ hero:
 + currency 1 gold = 10 silver = 100 copper
 + more allies
 + ally relationship
++ combat speed/accuracy
 	
 ui:
 + multiple saves

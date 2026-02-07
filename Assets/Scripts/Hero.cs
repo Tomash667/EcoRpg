@@ -12,6 +12,9 @@ public class Hero : ISerializationCallbackReceiver
     public int level, exp, hp, hpMax, attack, defense, gold;
     public bool female;
 
+    [NonSerialized]
+    public bool wasteTurn;
+
     public int Attack
     {
         get
