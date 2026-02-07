@@ -1,9 +1,8 @@
 + ally
-	recruit
 	combat
 	manage
-		view stats
 		give item
+		give gold
 		kick
 	get exp
 	get gold
@@ -29,6 +28,8 @@ hero:
 + player history
 	isekaied
 + currency 1 gold = 10 silver = 100 copper
++ more allies
++ ally relationship
 	
 ui:
 + multiple saves

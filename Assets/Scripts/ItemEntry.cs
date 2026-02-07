@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 public class ItemEntry : MonoBehaviour
 {
-    public void Init(string text, string buttonText, UnityAction action)
+    public void Init(string text, string buttonText = null, UnityAction action = null)
     {
         transform.GetChild(0).GetComponent<TMP_Text>().text = text;
         Button button = transform.GetChild(1).GetComponent<Button>();

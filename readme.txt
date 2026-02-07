@@ -2,6 +2,7 @@ EcoRpg v0
 (Economic, not ecologic)
 
 Shortcuts:
+A - manage ally
 C - character screen
 E - explore
 R - rest

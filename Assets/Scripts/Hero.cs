@@ -33,10 +33,24 @@ public class Hero : ISerializationCallbackReceiver
         }
     }
     public int ExpP => exp / 10;
+    public int HpP
+    {
+        get
+        {
+            int result = Mathf.FloorToInt(100f * hp / hpMax);
+            if (result < 0)
+                result = 0;
+            else if (result == 0 && hp > 0)
+                result = 1;
+            return result;
+        }
+    }
     public char GenderSign => female ? '♀' : '♂';
 
     public void Init()
     {
+        female = Utility.Rand % 2 == 0;
+        name = (female ? Names.femaleNames : Names.maleNames).RandomItem();
         level = 1;
         hpMax = 100;
         hp = hpMax;

@@ -1,5 +1,9 @@
+using UnityEngine;
+
 public static class Utility
 {
+    public static int Rand => Random.Range(0, int.MaxValue);
+
     public static string Plural(string word)
     {
         if (word == "rations")

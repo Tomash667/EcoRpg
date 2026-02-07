@@ -7,22 +7,23 @@ using UnityEngine.SceneManagement;
 public class Game : MonoBehaviour
 {
     public Player player;
+    [SerializeReference]
     public Hero ally;
     public string location;
     public int day, hour;
 
     private GameUI ui;
-    private GameObject shop, character;
-    private TMP_Text header, text;
+    private GameObject shop, character, allyScreen;
+    private TMP_Text text;
     private string lastAction;
 
     private void Awake()
     {
         ui = GetComponent<GameUI>();
-        header = transform.Find("Header").GetComponent<TMP_Text>();
         text = transform.Find("Text").GetComponent<TMP_Text>();
         shop = transform.Find("Shop").gameObject;
         character = transform.Find("Character").gameObject;
+        allyScreen = transform.Find("Ally").gameObject;
 
         Global global = Global.Instance;
         if (global.loadGame)
@@ -50,6 +51,8 @@ public class Game : MonoBehaviour
 
         if (!ui.HasDialog)
         {
+            if (ally != null && Input.GetKeyDown(KeyCode.A))
+                Ally();
             if (Input.GetKeyDown(KeyCode.C))
                 Character();
             if (Input.GetKeyDown(KeyCode.E))
@@ -169,9 +172,7 @@ public class Game : MonoBehaviour
                 lastAction = "You travel to city.";
                 location = "City";
             }
-            bool inCity = location == "City";
-            transform.Find("BtWork").gameObject.SetActive(inCity);
-            transform.Find("BtShop").gameObject.SetActive(inCity);
+            UpdateButtons();
             AddHour();
         }
         UpdateText();
@@ -188,6 +189,12 @@ public class Game : MonoBehaviour
     {
         RefreshInventory();
         ui.ShowDialog(character);
+    }
+
+    public void Ally()
+    {
+        RefreshAllyInventory();
+        ui.ShowDialog(allyScreen);
     }
 
     private void RefreshShopItems()
@@ -348,20 +355,57 @@ public class Game : MonoBehaviour
                 });
             }
             else
-                itemEntry.Init(itemSlot.ToString(true), null, null);
+                itemEntry.Init(itemSlot.ToString(true));
+        }
+    }
+
+    private void RefreshAllyInventory()
+    {
+        TMP_Text charText = allyScreen.transform.Find("Text").GetComponent<TMP_Text>();
+        charText.text = $"{ally.GenderSign}{ally.name}\n" +
+            $"Level: {ally.level} ({ally.ExpP}%)\n" +
+            $"Attack: {ally.Attack}\n" +
+            $"Defense: {ally.Defense}\n" +
+            $"Gold: {ally.gold}";
+
+        Transform content = allyScreen.transform.Find("AllyItems").Find("Viewport").Find("Content");
+        foreach (Transform child in content)
+            Destroy(child.gameObject);
+
+        if (ally.weapon != null)
+        {
+            ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
+            itemEntry.Init(ally.weapon.ToString(true));
+        }
+
+        if (ally.armor != null)
+        {
+            ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
+            itemEntry.Init(ally.armor.ToString(true));
+        }
+
+        if (ally.weapon != null || ally.armor != null)
+            Instantiate(ui.lineSeparatorPrefab, content);
+
+        foreach (ItemSlot itemSlot in ally.items)
+        {
+            ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
+            itemEntry.Init(itemSlot.ToString(true));
         }
     }
 
     private void UpdateText()
     {
-        header.text = $"{location}   Day: {day} {hour}:00   Health: {player.hp}/{player.hpMax}   Energy: {player.energy}/100   Gold: {player.gold}";
+        string str = $"{location}   Day: {day} {hour}:00   Health: {player.hp}/{player.hpMax}   Energy: {player.energy}/100   Gold: {player.gold}";
+        if (ally != null)
+            str += $"\n{ally.name} ({ally.HpP}%)";
         if (lastAction != null)
         {
-            text.text = lastAction;
+            str += "\n\n";
+            str += lastAction;
             lastAction = null;
         }
-        else
-            text.text = string.Empty;
+        text.text = str;
     }
 
     private bool Combat()
@@ -481,11 +525,43 @@ public class Game : MonoBehaviour
     {
         string json = File.ReadAllText(Global.SavePath);
         JsonUtility.FromJsonOverwrite(json, this);
+        UpdateButtons();
     }
 
     public void ExitToMenu()
     {
         SaveGame();
         SceneManager.LoadScene("Menu");
+    }
+
+    private void UpdateButtons()
+    {
+        bool inCity = location == "City";
+        transform.Find("BtWork").gameObject.SetActive(inCity);
+        transform.Find("BtShop").gameObject.SetActive(inCity);
+        transform.Find("BtRecruit").gameObject.SetActive(inCity);
+        GameObject btAlly = transform.Find("BtAlly").gameObject;
+        if (ally == null)
+            btAlly.SetActive(false);
+        else
+        {
+            btAlly.GetComponentInChildren<TMP_Text>().text = ally.name;
+            btAlly.SetActive(true);
+        }
+    }
+
+    public void Recruit()
+    {
+        if(ally != null)
+            lastAction = $"You already have an ally, {ally.name}.";
+        else
+        {
+            ally = new Hero();
+            ally.Init();
+            lastAction = $"You recruit {ally.name} to your team.";
+            AddHour();
+            UpdateButtons();
+        }
+        UpdateText();
     }
 }
