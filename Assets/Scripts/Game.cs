@@ -11,11 +11,14 @@ public class Game : MonoBehaviour
     public Player player;
     [SerializeReference]
     public Hero ally;
+    public List<Quest> availableQuests;
+    [SerializeReference]
+    public Quest activeQuest;
     public string location;
     public int day, hour;
 
     private GameUI ui;
-    private GameObject shop, character, allyScreen, giveAllyItems, activeInventory, properiesScreen;
+    private GameObject shop, character, allyScreen, giveAllyItems, activeInventory, properiesScreen, guild;
     private TMP_Text text;
     private string lastAction;
 
@@ -28,6 +31,7 @@ public class Game : MonoBehaviour
         allyScreen = transform.Find("Ally").gameObject;
         giveAllyItems = transform.Find("GiveItems").gameObject;
         properiesScreen = transform.Find("Properties").gameObject;
+        guild = transform.Find("Guild").gameObject;
 
         Global global = Global.Instance;
         if (global.loadGame)
@@ -104,11 +108,14 @@ public class Game : MonoBehaviour
             lastAction = $"You explore {location.ToLower()} and {Utility.PluralText(enemy.name, count)} attack you.";
             if (Combat(enemy, count))
             {
+                if (activeQuest != null && activeQuest.enemy == enemy)
+                    activeQuest.count += count;
+
                 int gold = enemy.gold * count;
+                lastAction += $" You win ({gold} gold found).";
                 if (ally == null)
                 {
                     player.gold += gold;
-                    lastAction += $" You win ({gold} gold found).";
                     if (player.AddExp(enemy.level, count))
                         lastAction += $" You are now level {player.level}.";
                 }
@@ -118,7 +125,6 @@ public class Game : MonoBehaviour
                     ally.gold += allyGold;
                     gold -= allyGold;
                     player.gold += gold;
-                    lastAction += $" You win ({gold} gold found).";
                     if (player.AddExp(enemy.level, 0.5f * count))
                         lastAction += $" You are now level {player.level}.";
                     if (ally.AddExp(enemy.level, 0.5f * count))
@@ -469,12 +475,16 @@ public class Game : MonoBehaviour
 
     private void UpdateText()
     {
-        string str = $"{location}   Day: {day} {hour}:00   Health: {player.hp}/{player.hpMax}   Energy: {player.energy}/100   Gold: {player.gold}";
+        string str = $"{location}   Day: {day} {hour}:00   Health: {player.hp}/{player.hpMax}   Energy: {player.energy}/100   Gold: {player.gold}\n";
         if (ally != null)
-            str += $"\n{ally.name} ({ally.HpP}%)";
+            str += $"{ally.name} ({ally.HpP}%)   ";
+        if (activeQuest != null)
+            str += $"Quest: {activeQuest.Text}\n";
+        else
+            str += '\n';
         if (lastAction != null)
         {
-            str += "\n\n";
+            str += '\n';
             str += lastAction;
             lastAction = null;
         }
@@ -698,8 +708,9 @@ public class Game : MonoBehaviour
     private void UpdateButtons()
     {
         bool inCity = location == "City";
-        transform.Find("BtWork").gameObject.SetActive(inCity);
         transform.Find("BtShop").gameObject.SetActive(inCity);
+        transform.Find("BtGuild").gameObject.SetActive(inCity);
+        transform.Find("BtWork").gameObject.SetActive(inCity);
         transform.Find("BtRecruit").gameObject.SetActive(inCity);
         transform.Find("BtProperties").gameObject.SetActive(inCity);
         GameObject btAlly = transform.Find("BtAlly").gameObject;
@@ -813,6 +824,63 @@ public class Game : MonoBehaviour
                     UpdateText();
                 }
             });
+        }
+    }
+
+    public void Guild()
+    {
+        UpdateGuild();
+        ui.ShowDialog(guild);
+    }
+
+    private void UpdateGuild()
+    {
+        string guildText = string.Empty;
+        if (activeQuest != null && activeQuest.count >= activeQuest.max)
+        {
+            int reward = activeQuest.Reward;
+            guildText = $"You received {reward} gold for quest '{activeQuest.Title}'.\n\n";
+            if (ally != null)
+            {
+                int allyReward = reward / 2;
+                ally.gold += allyReward;
+                ally.BuyItems();
+                reward -= allyReward;
+            }
+            player.gold += reward;
+            activeQuest = null;
+            UpdateText();
+        }
+
+        guildText += $"Current quest: {(activeQuest != null ? activeQuest.Text : "none")}";
+        guild.transform.Find("Text").GetComponent<TMP_Text>().text = guildText;
+
+        availableQuests ??= new();
+        while (availableQuests.Count < 3)
+        {
+            Quest quest = new() { enemy = Enemy.enemies.RandomItem(), max = Utility.Random(2, 3) };
+            availableQuests.Add(quest);
+        }
+
+        Transform content = guild.transform.Find("List").Find("Viewport").Find("Content");
+        foreach (Transform child in content)
+            Destroy(child.gameObject);
+
+        foreach (Quest quest in availableQuests)
+        {
+            ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
+            if (activeQuest == null)
+            {
+                itemEntry.Init(quest.TitleReward, "Pick", () =>
+                {
+                    activeQuest = quest;
+                    availableQuests.Remove(quest);
+                    UpdateText();
+                    UpdateGuild();
+                });
+            }
+            else
+                itemEntry.Init(quest.TitleReward);
         }
     }
 }

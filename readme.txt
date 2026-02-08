@@ -5,6 +5,7 @@ Shortcuts:
 A - manage ally
 C - character screen
 E - explore
+G - guild
 P - properties
 R - rest
 T - travel

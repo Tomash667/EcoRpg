@@ -1,5 +1,3 @@
-using UnityEngine;
-
 public static class Utility
 {
     private static readonly string[] counter = new string[]
@@ -10,7 +8,12 @@ public static class Utility
         "four"
     };
 
-    public static int Rand => Random.Range(0, int.MaxValue);
+    public static int Rand => UnityEngine.Random.Range(0, int.MaxValue);
+
+    public static int Random(int a, int b)
+    {
+        return UnityEngine.Random.Range(a, b + 1);
+    }
 
     public static string Plural(string word)
     {

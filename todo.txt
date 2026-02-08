@@ -1,5 +1,4 @@
 hero:
-+ quests
 + classes
 + races
 + skills
@@ -22,6 +21,10 @@ hero:
 + more allies
 + ally relationship
 + combat speed/accuracy
++ guild
+	rank
+	register
++ more quest types
 	
 ui:
 + multiple saves

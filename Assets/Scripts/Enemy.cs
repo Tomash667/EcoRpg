@@ -1,7 +1,14 @@
+using System.Linq;
+
 public class Enemy
 {
     public string name;
     public int level, hp, attack, def, gold;
+
+    public static Enemy Get(string name)
+    {
+        return enemies.First(x => x.name == name);
+    }
 
     public static Enemy[] enemies = new Enemy[]
     {
