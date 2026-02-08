@@ -5,6 +5,7 @@ using TMPro;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class Game : MonoBehaviour
 {
@@ -18,7 +19,7 @@ public class Game : MonoBehaviour
     public int day, hour;
 
     private GameUI ui;
-    private GameObject shop, character, allyScreen, giveAllyItems, activeInventory, properiesScreen, guild;
+    private GameObject shop, character, allyScreen, giveAllyItems, activeInventory, properiesScreen, guilScreend, travelScreen;
     private TMP_Text text;
     private string lastAction;
 
@@ -31,7 +32,8 @@ public class Game : MonoBehaviour
         allyScreen = transform.Find("Ally").gameObject;
         giveAllyItems = transform.Find("GiveItems").gameObject;
         properiesScreen = transform.Find("Properties").gameObject;
-        guild = transform.Find("Guild").gameObject;
+        guilScreend = transform.Find("Guild").gameObject;
+        travelScreen = transform.Find("Travel").gameObject;
 
         Global global = Global.Instance;
         if (global.loadGame)
@@ -57,7 +59,19 @@ public class Game : MonoBehaviour
             EditorApplication.isPlaying = false;
 #endif
 
-        if (!ui.HasDialog)
+        if (ui.HasDialog)
+        {
+            if (ui.CurrentDialog == travelScreen)
+            {
+                if (Input.GetKeyDown(KeyCode.Alpha1) && location != "City")
+                    Travel("City");
+                if (Input.GetKeyDown(KeyCode.Alpha2) && location != "Forest")
+                    Travel("Forest");
+                if (Input.GetKeyDown(KeyCode.Alpha3) && location != "Mountains")
+                    Travel("Mountains");
+            }
+        }
+        else
         {
             if (ally != null && Input.GetKeyDown(KeyCode.A))
                 Ally();
@@ -71,6 +85,8 @@ public class Game : MonoBehaviour
                 Travel();
             if (location == "City")
             {
+                if (Input.GetKeyDown(KeyCode.G))
+                    Guild();
                 if (Input.GetKeyDown(KeyCode.P))
                     ManageProperties();
                 if (Input.GetKeyDown(KeyCode.W))
@@ -98,7 +114,7 @@ public class Game : MonoBehaviour
         player.energy -= 10;
         if (Random.Range(0, 10) > 3)
         {
-            Enemy enemy = Enemy.enemies[location == "City" ? 0 : 1];
+            Enemy enemy = Enemy.enemies.First(x => x.location == location);
             int count = (Utility.Rand % 4) switch
             {
                 1 or 2 => 2,
@@ -178,25 +194,29 @@ public class Game : MonoBehaviour
     public void Travel()
     {
         if (player.energy < 10)
-            lastAction = "You are too tired to travel.";
-        else
         {
-            player.energy -= 10;
-            if (location == "City")
-            {
-                lastAction = "You travel to forest.";
-                location = "Forest";
-            }
-            else
-            {
-                lastAction = "You travel to city.";
-                location = "City";
-                ally?.BuyItems();
-            }
-            UpdateButtons();
-            AddHour();
+            lastAction = "You are too tired to travel.";
+            UpdateText();
+            return;
         }
+
+        travelScreen.transform.Find("City").GetComponent<Button>().interactable = location != "City";
+        travelScreen.transform.Find("Forest").GetComponent<Button>().interactable = location != "Forest";
+        travelScreen.transform.Find("Mountains").GetComponent<Button>().interactable = location != "Mountains";
+        ui.ShowDialog(travelScreen);
+    }
+
+    public void Travel(string where)
+    {
+        player.energy -= 10;
+        lastAction = $"You travel to {where.ToLower()}.";
+        location = where;
+        if (location == "City" && ally != null)
+            ally.BuyItems();
+        UpdateButtons();
+        AddHour();
         UpdateText();
+        ui.CloseDialog();
     }
 
     public void Shop()
@@ -830,7 +850,7 @@ public class Game : MonoBehaviour
     public void Guild()
     {
         UpdateGuild();
-        ui.ShowDialog(guild);
+        ui.ShowDialog(guilScreend);
     }
 
     private void UpdateGuild()
@@ -853,7 +873,7 @@ public class Game : MonoBehaviour
         }
 
         guildText += $"Current quest: {(activeQuest != null ? activeQuest.Text : "none")}";
-        guild.transform.Find("Text").GetComponent<TMP_Text>().text = guildText;
+        guilScreend.transform.Find("Text").GetComponent<TMP_Text>().text = guildText;
 
         availableQuests ??= new();
         while (availableQuests.Count < 3)
@@ -862,7 +882,7 @@ public class Game : MonoBehaviour
             availableQuests.Add(quest);
         }
 
-        Transform content = guild.transform.Find("List").Find("Viewport").Find("Content");
+        Transform content = guilScreend.transform.Find("List").Find("Viewport").Find("Content");
         foreach (Transform child in content)
             Destroy(child.gameObject);
 

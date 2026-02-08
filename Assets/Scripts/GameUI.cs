@@ -13,6 +13,7 @@ public class GameUI : MonoBehaviour
     private GameObject okDialog, confirmDialog, inputDialog;
 
     public bool HasDialog => dialogs.Count > 0;
+    public GameObject CurrentDialog => dialogs.Count > 0 ? dialogs[^1] : null;
 
     private void Awake()
     {
