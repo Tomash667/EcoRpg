@@ -5,6 +5,7 @@ Shortcuts:
 A - manage ally
 C - character screen
 E - explore
+P - properties
 R - rest
 T - travel
 S - shop

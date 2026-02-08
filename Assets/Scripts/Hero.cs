@@ -138,13 +138,13 @@ public class Hero : ISerializationCallbackReceiver
             items.Remove(itemSlot);
     }
 
-    public void OnBeforeSerialize()
+    public virtual void OnBeforeSerialize()
     {
         weaponName = weapon?.name;
         armorName = armor?.name;
     }
 
-    public void OnAfterDeserialize()
+    public virtual void OnAfterDeserialize()
     {
         if (!string.IsNullOrEmpty(weaponName))
             weapon = Item.Get(weaponName);

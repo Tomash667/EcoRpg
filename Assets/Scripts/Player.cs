@@ -1,12 +1,18 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 [Serializable]
 public class Player : Hero
 {
+    [NonSerialized]
+    public List<Property> properties;
+    public List<string> savedProperties;
     public int energy;
 
     public new void Init()
     {
+        properties = new();
         level = 1;
         exp = 0;
         hpMax = 100;
@@ -15,5 +21,17 @@ public class Player : Hero
         gold = 50;
         attack = 25;
         defense = 5;
+    }
+
+    public override void OnBeforeSerialize()
+    {
+        base.OnBeforeSerialize();
+        savedProperties = properties.Select(x => x.name).ToList();
+    }
+
+    public override void OnAfterDeserialize()
+    {
+        base.OnAfterDeserialize();
+        properties = savedProperties.Select(x => Property.Get(x)).ToList();
     }
 }

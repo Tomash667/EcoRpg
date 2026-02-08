@@ -28,8 +28,8 @@ ui:
 + show last "turn" gold change
 
 investments:
-+ mine
-+ lumber mill
++ manage mine/sawmill
++ don't earn gold until returned to city
 
 skills:
 + management

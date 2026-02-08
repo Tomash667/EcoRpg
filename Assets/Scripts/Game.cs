@@ -15,7 +15,7 @@ public class Game : MonoBehaviour
     public int day, hour;
 
     private GameUI ui;
-    private GameObject shop, character, allyScreen, giveAllyItems, activeInventory;
+    private GameObject shop, character, allyScreen, giveAllyItems, activeInventory, properiesScreen;
     private TMP_Text text;
     private string lastAction;
 
@@ -27,6 +27,7 @@ public class Game : MonoBehaviour
         character = transform.Find("Character").gameObject;
         allyScreen = transform.Find("Ally").gameObject;
         giveAllyItems = transform.Find("GiveItems").gameObject;
+        properiesScreen = transform.Find("Properties").gameObject;
 
         Global global = Global.Instance;
         if (global.loadGame)
@@ -66,6 +67,8 @@ public class Game : MonoBehaviour
                 Travel();
             if (location == "City")
             {
+                if (Input.GetKeyDown(KeyCode.P))
+                    ManageProperties();
                 if (Input.GetKeyDown(KeyCode.W))
                     Work();
                 if (Input.GetKeyDown(KeyCode.S))
@@ -575,7 +578,15 @@ public class Game : MonoBehaviour
     {
         ++day;
         hour = 8;
-        if (location == "City" && player.gold > 0)
+        if (location == "City" && player.properties.Any(x => x.name == "House"))
+        {
+            player.hp = player.hpMax;
+            player.energy = 100;
+            if (ally != null)
+                ally.hp = ally.hpMax;
+            lastAction += "You rest in your house.";
+        }
+        else if (location == "City" && player.gold > 0)
         {
             player.hp = player.hpMax;
             player.energy = 100;
@@ -618,6 +629,7 @@ public class Game : MonoBehaviour
                 lastAction = $"You rest on {(location == "City" ? "street" : "grass")}.";
             }
         }
+        player.gold += player.properties.Sum(x => x.income);
     }
 
     private int RemoveTeamItem(Item item, int count)
@@ -689,6 +701,7 @@ public class Game : MonoBehaviour
         transform.Find("BtWork").gameObject.SetActive(inCity);
         transform.Find("BtShop").gameObject.SetActive(inCity);
         transform.Find("BtRecruit").gameObject.SetActive(inCity);
+        transform.Find("BtProperties").gameObject.SetActive(inCity);
         GameObject btAlly = transform.Find("BtAlly").gameObject;
         if (ally == null)
             btAlly.SetActive(false);
@@ -749,5 +762,57 @@ public class Game : MonoBehaviour
             UpdateText();
             return true;
         });
+    }
+
+    public void ManageProperties()
+    {
+        UpdateProperties();
+        ui.ShowDialog(properiesScreen);
+    }
+
+    private void UpdateProperties()
+    {
+        Transform content = properiesScreen.transform.Find("List").Find("Viewport").Find("Content");
+        foreach (Transform child in content)
+            Destroy(child.gameObject);
+
+        Property[] propertiesToBuy = Property.properties.Except(player.properties).ToArray();
+
+        // player properties
+        if (player.properties.Count > 0)
+        {
+            foreach (Property property in player.properties.OrderBy(x => x.value))
+            {
+                ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
+                itemEntry.Init(property.ToString(true), "Sell", () =>
+                {
+                    player.gold += property.value / 2;
+                    player.properties.Remove(property);
+                    UpdateProperties();
+                    UpdateText();
+                });
+            }
+
+            if (propertiesToBuy.Length > 0)
+                Instantiate(ui.lineSeparatorPrefab, content);
+        }
+
+        // available properties
+        foreach (Property property in propertiesToBuy)
+        {
+            ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
+            itemEntry.Init(property.ToString(false), "Buy", () =>
+            {
+                if (player.gold < property.value)
+                    ui.ShowDialog($"You need {property.value} gold to buy {property.name}.");
+                else
+                {
+                    player.gold -= property.value;
+                    player.properties.Add(property);
+                    UpdateProperties();
+                    UpdateText();
+                }
+            });
+        }
     }
 }
