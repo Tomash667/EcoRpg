@@ -1,7 +1,5 @@
-+ ally
-	buy items
-	
 hero:
++ quests
 + classes
 + races
 + skills

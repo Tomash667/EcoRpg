@@ -120,6 +120,8 @@ public class Game : MonoBehaviour
                         lastAction += $" You are now level {player.level}.";
                     if (ally.AddExp(enemy.level, 0.5f * count))
                         lastAction += $" {ally.name} is now level {ally.level}.";
+                    if (location == "City")
+                        ally.BuyItems();
                 }
             }
             else
@@ -157,6 +159,7 @@ public class Game : MonoBehaviour
             {
                 ally.hp = ally.hpMax;
                 ally.gold += 19;
+                ally.BuyItems();
             }
             lastAction = "You earned 20 gold from working. It's a new day and you rest in inn (-1 gold).";
         }
@@ -179,6 +182,7 @@ public class Game : MonoBehaviour
             {
                 lastAction = "You travel to city.";
                 location = "City";
+                ally?.BuyItems();
             }
             UpdateButtons();
             AddHour();
@@ -739,6 +743,8 @@ public class Game : MonoBehaviour
                 return true;
             player.gold -= count;
             ally.gold += count;
+            if (location == "City")
+                ally.BuyItems();
             RefreshAllyScreen();
             UpdateText();
             return true;

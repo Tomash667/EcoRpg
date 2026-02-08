@@ -12,9 +12,11 @@ public class Item
         Other
     }
 
+    public const int MaxLevel = 3;
+
     public string name, desc;
     public Type type;
-    public int power, value;
+    public int level, power, value;
 
     public string ToString(bool sellPrice)
     {
@@ -38,6 +40,7 @@ public class Item
         {
             name = "club",
             type = Type.Weapon,
+            level = 1,
             power = 5,
             value = 25
         },
@@ -45,6 +48,7 @@ public class Item
         {
             name = "axe",
             type = Type.Weapon,
+            level = 2,
             power = 10,
             value = 100
         },
@@ -52,6 +56,7 @@ public class Item
         {
             name = "sword",
             type = Type.Weapon,
+            level = 3,
             power = 15,
             value = 400
         },
@@ -59,6 +64,7 @@ public class Item
         {
             name = "leather armor",
             type = Type.Armor,
+            level = 1,
             power = 2,
             value = 25
         },
@@ -66,6 +72,7 @@ public class Item
         {
             name = "chainmail",
             type = Type.Armor,
+            level = 2,
             power = 4,
             value = 100
         },
@@ -73,6 +80,7 @@ public class Item
         {
             name = "plate armor",
             type = Type.Armor,
+            level = 3,
             power = 6,
             value = 400
         },
