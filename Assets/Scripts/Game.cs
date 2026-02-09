@@ -334,9 +334,38 @@ public class Game : MonoBehaviour
             ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
             if (activeInventory == character)
             {
+                void Drop()
+                {
+                    if (Input.GetKey(KeyCode.LeftShift))
+                    {
+                        player.RemoveItem(itemSlot, itemSlot.count);
+                        RefreshPlayerItems();
+                        UpdateText();
+                    }
+                    else if (Input.GetKey(KeyCode.LeftControl))
+                    {
+                        ui.ShowInput($"How many {Utility.Plural(itemSlot.item.name)} to drop away?", count =>
+                        {
+                            if (count <= 0)
+                                return true;
+                            count = Mathf.Min(count, itemSlot.count);
+                            player.RemoveItem(itemSlot, count);
+                            RefreshPlayerItems();
+                            UpdateText();
+                            return true;
+                        });
+                    }
+                    else
+                    {
+                        player.RemoveItem(itemSlot);
+                        RefreshPlayerItems();
+                        UpdateText();
+                    }
+                }
+
                 if (itemSlot.item.type == Item.Type.Weapon || itemSlot.item.type == Item.Type.Armor)
                 {
-                    itemEntry.Init(itemSlot.ToString(true), "Equip", () =>
+                    itemEntry.Init2(itemSlot.ToString(true), "Equip", () =>
                     {
                         if (itemSlot.item.type == Item.Type.Weapon)
                         {
@@ -352,20 +381,20 @@ public class Game : MonoBehaviour
                         }
                         player.RemoveItem(itemSlot);
                         RefreshPlayerScreen();
-                    });
+                    }, "Drop", Drop);
                 }
                 else if (itemSlot.item.type == Item.Type.Usable)
                 {
-                    itemEntry.Init(itemSlot.ToString(true), "Use", () =>
+                    itemEntry.Init2(itemSlot.ToString(true), "Use", () =>
                     {
                         player.hp = Mathf.Min(player.hp + itemSlot.item.power, player.hpMax);
                         player.RemoveItem(itemSlot);
                         RefreshPlayerScreen();
                         UpdateText();
-                    });
+                    }, "Drop", Drop);
                 }
                 else
-                    itemEntry.Init(itemSlot.ToString(true));
+                    itemEntry.Init2(itemSlot.ToString(true), null, null, "Drop", Drop);
             }
             else if (activeInventory == shop)
             {

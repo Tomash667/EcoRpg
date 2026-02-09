@@ -3,7 +3,6 @@ hero:
 + races
 + skills
 + more locations
-+ inventory - drop
 + inventory max weight
 	allies
 	horse
