@@ -140,7 +140,7 @@ public class Game : MonoBehaviour
                     int allyGold = gold / 2;
                     ally.gold += allyGold;
                     gold -= allyGold;
-                    player.gold += gold;
+                    player.AddGold(gold);
                     if (player.AddExp(enemy.level, 0.5f * count))
                         lastAction += $" You are now level {player.level}.";
                     if (ally.AddExp(enemy.level, 0.5f * count))
@@ -175,18 +175,13 @@ public class Game : MonoBehaviour
             lastAction = "You are too tired to work.";
         else
         {
-            ++day;
-            hour = 8;
-            player.hp = player.hpMax;
-            player.energy = 100;
-            player.gold += 19;
+            player.AddGold(20);
             if (ally != null)
-            {
-                ally.hp = ally.hpMax;
-                ally.gold += 19;
-                ally.BuyItems();
-            }
-            lastAction = "You earned 20 gold from working. It's a new day and you rest in inn (-1 gold).";
+                ally.gold += 20;
+            lastAction = "You earned 20 gold from working. ";
+            OnRest();
+            ally?.BuyItems();
+            lastAction += " It's a new day.";
         }
         UpdateText();
     }
@@ -211,8 +206,16 @@ public class Game : MonoBehaviour
         player.energy -= 10;
         lastAction = $"You travel to {where.ToLower()}.";
         location = where;
-        if (location == "City" && ally != null)
-            ally.BuyItems();
+        if (location == "City")
+        {
+            if (player.goldWaiting != 0)
+            {
+                lastAction += $" You receive {player.goldWaiting} gold from your properties.";
+                player.AddGold(player.goldWaiting);
+                player.goldWaiting = 0;
+            }
+            ally?.BuyItems();
+        }
         UpdateButtons();
         AddHour();
         UpdateText();
@@ -260,7 +263,7 @@ public class Game : MonoBehaviour
                         if (player.gold >= price)
                         {
                             player.AddItem(item, count);
-                            player.gold -= price;
+                            player.AddGold(-price);
                             RefreshPlayerItems();
                             UpdateText();
                             return true;
@@ -275,7 +278,7 @@ public class Game : MonoBehaviour
                 else if (player.gold >= item.value)
                 {
                     player.AddItem(item);
-                    player.gold -= item.value;
+                    player.AddGold(-item.value);
                     RefreshPlayerItems();
                     UpdateText();
                 }
@@ -370,7 +373,7 @@ public class Game : MonoBehaviour
                 {
                     if (Input.GetKey(KeyCode.LeftShift))
                     {
-                        player.gold += itemSlot.item.value * itemSlot.count / 2;
+                        player.AddGold(itemSlot.item.value * itemSlot.count / 2);
                         player.RemoveItem(itemSlot, itemSlot.count);
                         RefreshPlayerItems();
                         UpdateText();
@@ -382,7 +385,7 @@ public class Game : MonoBehaviour
                             if (count <= 0)
                                 return true;
                             count = Mathf.Min(count, itemSlot.count);
-                            player.gold += itemSlot.item.value * count / 2;
+                            player.AddGold(itemSlot.item.value * count / 2);
                             player.RemoveItem(itemSlot, count);
                             RefreshPlayerItems();
                             UpdateText();
@@ -391,7 +394,7 @@ public class Game : MonoBehaviour
                     }
                     else
                     {
-                        player.gold += itemSlot.item.value / 2;
+                        player.AddGold(itemSlot.item.value / 2);
                         player.RemoveItem(itemSlot);
                         RefreshPlayerItems();
                         UpdateText();
@@ -495,7 +498,13 @@ public class Game : MonoBehaviour
 
     private void UpdateText()
     {
-        string str = $"{location}   Day: {day} {hour}:00   Health: {player.hp}/{player.hpMax}   Energy: {player.energy}/100   Gold: {player.gold}\n";
+        string str = $"{location}   Day: {day} {hour}:00   Health: {player.hp}/{player.hpMax}   Energy: {player.energy}/100   Gold: {player.gold}";
+        if (player.goldReceived != 0)
+        {
+            str += $"({player.goldReceived:+0;-0})";
+            player.goldReceived = 0;
+        }
+        str += '\n';
         if (ally != null)
             str += $"{ally.name} ({ally.HpP}%)   ";
         if (activeQuest != null)
@@ -620,7 +629,7 @@ public class Game : MonoBehaviour
         {
             player.hp = player.hpMax;
             player.energy = 100;
-            --player.gold;
+            player.AddGold(-1);
             if (ally != null)
             {
                 ally.hp = ally.hpMax;
@@ -659,7 +668,18 @@ public class Game : MonoBehaviour
                 lastAction = $"You rest on {(location == "City" ? "street" : "grass")}.";
             }
         }
-        player.gold += player.properties.Sum(x => x.income);
+
+        int income = player.properties.Sum(x => x.income);
+        if (income > 0)
+        {
+            if (location == "City")
+            {
+                lastAction += $" You receive {income} gold from your properties.";
+                player.AddGold(income);
+            }
+            else
+                player.goldWaiting += income;
+        }
     }
 
     private int RemoveTeamItem(Item item, int count)
@@ -785,7 +805,7 @@ public class Game : MonoBehaviour
             count = Mathf.Min(count, player.gold);
             if (count <= 0)
                 return true;
-            player.gold -= count;
+            player.AddGold(-count);
             ally.gold += count;
             if (location == "City")
                 ally.BuyItems();
@@ -817,7 +837,7 @@ public class Game : MonoBehaviour
                 ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
                 itemEntry.Init(property.ToString(true), "Sell", () =>
                 {
-                    player.gold += property.value / 2;
+                    player.AddGold(property.value / 2);
                     player.properties.Remove(property);
                     UpdateProperties();
                     UpdateText();
@@ -838,7 +858,7 @@ public class Game : MonoBehaviour
                     ui.ShowDialog($"You need {property.value} gold to buy {property.name}.");
                 else
                 {
-                    player.gold -= property.value;
+                    player.AddGold(-property.value);
                     player.properties.Add(property);
                     UpdateProperties();
                     UpdateText();
@@ -867,7 +887,7 @@ public class Game : MonoBehaviour
                 ally.BuyItems();
                 reward -= allyReward;
             }
-            player.gold += reward;
+            player.AddGold(reward);
             activeQuest = null;
             UpdateText();
         }

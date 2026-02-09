@@ -28,11 +28,9 @@ hero:
 	
 ui:
 + multiple saves
-+ show last "turn" gold change
 
 investments:
 + manage mine/sawmill
-+ don't earn gold until returned to city
 
 skills:
 + management
@@ -48,6 +46,7 @@ races:
 + demons (export sex toys, lube, sex skill teachers)
 
 world:
++ king -> duke -> baron -> village elder
 + regions
 + countries
 + continents

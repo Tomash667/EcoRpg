@@ -8,7 +8,9 @@ public class Player : Hero
     [NonSerialized]
     public List<Property> properties;
     public List<string> savedProperties;
-    public int energy;
+    public int goldWaiting, energy;
+    [NonSerialized]
+    public int goldReceived;
 
     public new void Init()
     {
@@ -21,6 +23,12 @@ public class Player : Hero
         gold = 50;
         attack = 25;
         defense = 5;
+    }
+
+    public void AddGold(int value)
+    {
+        gold += value;
+        goldReceived += value;
     }
 
     public override void OnBeforeSerialize()
