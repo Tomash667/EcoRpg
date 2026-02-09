@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 public static class Utility
 {
     private static readonly string[] counter = new string[]
@@ -6,6 +8,12 @@ public static class Utility
         "two",
         "three",
         "four"
+    };
+
+    private static readonly Dictionary<string, string> plurals = new()
+    {
+        ["elf"] = "elves",
+        ["rations"] = "rations"
     };
 
     public static int Rand => UnityEngine.Random.Range(0, int.MaxValue);
@@ -17,8 +25,10 @@ public static class Utility
 
     public static string Plural(string word)
     {
-        if (word == "rations")
-            return word;
+        if (plurals.TryGetValue(word, out string plural))
+            return plural;
+        if (word.EndsWith('s'))
+            return word + "es";
         return word + 's';
     }
 

@@ -108,6 +108,11 @@ public class Hero : ISerializationCallbackReceiver
         return items.FirstOrDefault(x => x.item.name == name);
     }
 
+    public bool HaveItem(string name)
+    {
+        return FindItem(name) != null;
+    }
+
     public int CountItem(Item item)
     {
         ItemSlot itemSlot = items.FirstOrDefault(x => x.item == item);

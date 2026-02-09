@@ -98,6 +98,13 @@ public class Item
             desc = "traveler's food",
             type = Type.Other,
             value = 5
+        },
+        new()
+        {
+            name = "tent",
+            desc = "better rest outside",
+            type = Type.Other,
+            value = 100
         }
     };
 }

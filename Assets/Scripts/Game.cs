@@ -114,7 +114,7 @@ public class Game : MonoBehaviour
         player.energy -= 10;
         if (Random.Range(0, 10) > 3)
         {
-            Enemy enemy = Enemy.enemies.First(x => x.location == location);
+            Enemy enemy = Enemy.enemies.RandomItem(x => x.location == location);
             int count = (Utility.Rand % 4) switch
             {
                 1 or 2 => 2,
@@ -639,6 +639,19 @@ public class Game : MonoBehaviour
         }
         else
         {
+            string where;
+            int energy;
+            if (player.HaveItem("tent"))
+            {
+                where = "in tent";
+                energy = 75;
+            }
+            else
+            {
+                where = $"on {(location == "City" ? "street" : "grass")}";
+                energy = 50;
+            }
+
             Item rations = Item.Get("rations");
             int count = 1;
             if (ally != null)
@@ -648,25 +661,23 @@ public class Game : MonoBehaviour
             {
                 if (eaten == count)
                 {
+                    energy += 25;
                     player.hp = player.hpMax;
-                    player.energy = Mathf.Min(player.energy + 75, 100);
                     if (ally != null)
                         ally.hp = ally.hpMax;
                 }
                 else
                 {
+                    energy += 12;
                     player.hp = Mathf.Min(player.hp + player.hpMax / 2, player.hpMax);
-                    player.energy = Mathf.Min(player.energy + 62, 100);
                     if (ally != null)
                         ally.hp = Mathf.Min(ally.hp + ally.hpMax / 2, ally.hpMax);
                 }
-                lastAction = $"You rest on {(location == "City" ? "street" : "grass")} and eat rations.";
+                lastAction = $"You rest {where} and eat rations.";
             }
             else
-            {
-                player.energy = Mathf.Min(player.energy + 50, 100);
-                lastAction = $"You rest on {(location == "City" ? "street" : "grass")}.";
-            }
+                lastAction = $"You rest {where}.";
+            player.energy = Mathf.Min(player.energy + energy, 100);
         }
 
         int income = player.properties.Sum(x => x.income);

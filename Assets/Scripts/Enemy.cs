@@ -34,6 +34,16 @@ public class Enemy
         },
         new()
         {
+            name = "elf",
+            location = "Forest",
+            level = 1,
+            hp = 75,
+            attack = 18,
+            def = 3,
+            gold = 30
+        },
+        new()
+        {
             name = "minotaur",
             location = "Mountains",
             level = 2,
