@@ -86,9 +86,11 @@ public class Hero : ISerializationCallbackReceiver
 
     private int GetExpReward(int enemyLevel)
     {
-        return (level - enemyLevel) switch
+        int dif = level - enemyLevel;
+        if (dif < 0)
+            return 250 - dif * 50;
+        return dif switch
         {
-            -1 => 300,
             0 => 250,
             1 => 200,
             2 => 150,

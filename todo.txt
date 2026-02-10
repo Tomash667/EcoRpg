@@ -22,10 +22,14 @@ hero:
 + guild
 	rank
 	register
-+ more quest types
 + spotted enemy
-+ capture bandits leader in forest
-+ clear sewers
++ quests
+	tiers: some easy, some medium, some hard
+	refresh over time
+	clear sawmill/mine
+	capture bandits leader in forest
+	more types
+	more active
 	
 ui:
 + multiple saves

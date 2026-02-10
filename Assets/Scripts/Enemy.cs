@@ -6,6 +6,7 @@ public class Enemy
     public string name, location;
     public Vector2Int gold;
     public int level, hp, attack, def;
+    public bool quest = true;
 
     public static Enemy Get(string name)
     {
@@ -23,6 +24,16 @@ public class Enemy
             attack = 12,
             def = 2,
             gold = new(10, 15)
+        },
+        new()
+        {
+            name = "giant rat",
+            location = "Sewers",
+            level = 0,
+            hp = 50,
+            attack = 12,
+            def = 2,
+            quest = false
         },
         new()
         {

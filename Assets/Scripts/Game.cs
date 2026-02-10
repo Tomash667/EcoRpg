@@ -23,6 +23,8 @@ public class Game : MonoBehaviour
     private TMP_Text text;
     private string lastAction;
 
+    private readonly string[] allLocations = new[] { "City", "Forest", "Mountains", "Dungeon", "Sewers" };
+
     private void Awake()
     {
         ui = GetComponent<GameUI>();
@@ -113,8 +115,11 @@ public class Game : MonoBehaviour
             return;
         }
 
+        int chance = 3;
+        if (location == "Sewers" && !(activeQuest != null && activeQuest.type == Quest.Type.Clear && activeQuest.location == location && activeQuest.count < activeQuest.max))
+            chance = 10;
         player.energy -= 10;
-        if (Random.Range(0, 10) > 3)
+        if (Random.Range(0, 10) > chance)
         {
             Enemy enemy = Enemy.enemies.RandomItem(x => x.location == location);
             int count = (Utility.Rand % 4) switch
@@ -126,8 +131,19 @@ public class Game : MonoBehaviour
             lastAction = $"You explore {location.ToLower()} and {Utility.PluralText(enemy.name, count)} attack you.";
             if (Combat(enemy, count))
             {
-                if (activeQuest != null && activeQuest.enemy == enemy)
-                    activeQuest.count += count;
+                if (activeQuest != null)
+                {
+                    if (activeQuest.type == Quest.Type.Defeat)
+                    {
+                        if (activeQuest.enemy == enemy)
+                            activeQuest.count += count;
+                    }
+                    else if (activeQuest.type == Quest.Type.Clear)
+                    {
+                        if (activeQuest.location == location)
+                            activeQuest.count += count;
+                    }
+                }
 
                 int gold = 0;
                 for (int i = 0; i < count; ++i)
@@ -136,7 +152,7 @@ public class Game : MonoBehaviour
                 lastAction += $" You win ({gold} gold found).";
                 if (ally == null)
                 {
-                    player.gold += gold;
+                    player.AddGold(gold);
                     if (player.AddExp(enemy.level, count))
                         lastAction += $" You are now level {player.level}.";
                 }
@@ -180,13 +196,13 @@ public class Game : MonoBehaviour
             lastAction = "You are too tired to work.";
         else
         {
+            player.energy -= 50;
             player.AddGold(20);
             if (ally != null)
                 ally.gold += 20;
             lastAction = "You earned 20 gold from working. ";
-            OnRest();
+            AddHour(8);
             ally?.BuyItems();
-            lastAction += " It's a new day.";
         }
         UpdateText();
     }
@@ -200,10 +216,9 @@ public class Game : MonoBehaviour
             return;
         }
 
-        travelScreen.transform.Find("City").GetComponent<Button>().interactable = location != "City";
-        travelScreen.transform.Find("Forest").GetComponent<Button>().interactable = location != "Forest";
-        travelScreen.transform.Find("Mountains").GetComponent<Button>().interactable = location != "Mountains";
-        travelScreen.transform.Find("Dungeon").GetComponent<Button>().interactable = location != "Dungeon";
+        foreach (string loc in allLocations)
+            travelScreen.transform.Find(loc).GetComponent<Button>().interactable = location != loc;
+
         ui.ShowDialog(travelScreen);
     }
 
@@ -638,10 +653,10 @@ public class Game : MonoBehaviour
         }
     }
 
-    private void AddHour()
+    private void AddHour(int count = 1)
     {
-        ++hour;
-        if (hour == 24)
+        hour += count;
+        if (hour >= 24)
         {
             lastAction += " It's a new day. ";
             OnRest();
@@ -683,7 +698,12 @@ public class Game : MonoBehaviour
             }
             else
             {
-                where = $"on {(location == "City" ? "street" : "grass")}";
+                if (location == "City")
+                    where = "on street";
+                else if (location == "Forest")
+                    where = "on grass";
+                else
+                    where = "on ground";
                 energy = 50;
             }
 
@@ -944,8 +964,22 @@ public class Game : MonoBehaviour
         availableQuests ??= new();
         while (availableQuests.Count < 3)
         {
-            Quest quest = new() { enemy = Enemy.enemies.RandomItem(), max = Utility.Random(2, 3) };
-            availableQuests.Add(quest);
+            Quest quest = new();
+            if (Utility.Rand % 4 == 0)
+            {
+                quest.type = Quest.Type.Clear;
+                quest.location = "Sewers";
+                quest.max = 10;
+            }
+            else
+            {
+                quest.type = Quest.Type.Defeat;
+                quest.enemy = Enemy.enemies.RandomItem(x => x.quest);
+                quest.max = Utility.Random(2, 3);
+            }
+
+            if (availableQuests.All(x => !x.IsSimilar(quest)) && (activeQuest == null || !activeQuest.IsSimilar(quest)))
+                availableQuests.Add(quest);
         }
 
         Transform content = guilScreend.transform.Find("List").Find("Viewport").Find("Content");

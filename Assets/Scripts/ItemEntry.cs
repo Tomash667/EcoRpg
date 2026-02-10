@@ -19,8 +19,8 @@ public class ItemEntry : MonoBehaviour
         }
 
         Button button2 = transform.GetChild(2).GetComponent<Button>();
-            button2.gameObject.SetActive(false);
-            ((RectTransform)button.transform).sizeDelta = new(100, 42);
+        button2.gameObject.SetActive(false);
+        ((RectTransform)button.transform).sizeDelta = new(100, 42);
     }
 
     public void Init2(string text, string buttonText = null, UnityAction action = null, string buttonText2 = null, UnityAction action2 = null)
