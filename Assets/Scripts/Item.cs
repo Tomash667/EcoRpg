@@ -12,7 +12,7 @@ public class Item
         Other
     }
 
-    public const int MaxLevel = 3;
+    public const int MaxLevel = 4;
 
     public string name, desc;
     public Type type;
@@ -62,6 +62,14 @@ public class Item
         },
         new()
         {
+            name = "two handed sword",
+            type = Type.Weapon,
+            level = 4,
+            power = 20,
+            value = 1500
+        },
+        new()
+        {
             name = "leather armor",
             type = Type.Armor,
             level = 1,
@@ -78,11 +86,19 @@ public class Item
         },
         new()
         {
-            name = "plate armor",
+            name = "breastplate",
             type = Type.Armor,
             level = 3,
             power = 6,
             value = 400
+        },
+        new()
+        {
+            name = "plate armor",
+            type = Type.Armor,
+            level = 4,
+            power = 8,
+            value = 1500
         },
         new()
         {

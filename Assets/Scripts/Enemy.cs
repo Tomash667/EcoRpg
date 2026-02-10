@@ -1,9 +1,11 @@
 using System.Linq;
+using UnityEngine;
 
 public class Enemy
 {
     public string name, location;
-    public int level, hp, attack, def, gold;
+    public Vector2Int gold;
+    public int level, hp, attack, def;
 
     public static Enemy Get(string name)
     {
@@ -20,7 +22,7 @@ public class Enemy
             hp = 50,
             attack = 12,
             def = 2,
-            gold = 15
+            gold = new(10, 15)
         },
         new()
         {
@@ -30,7 +32,7 @@ public class Enemy
             hp = 75,
             attack = 18,
             def = 3,
-            gold = 30
+            gold = new(20, 30)
         },
         new()
         {
@@ -40,7 +42,7 @@ public class Enemy
             hp = 75,
             attack = 18,
             def = 3,
-            gold = 30
+            gold = new(20, 30)
         },
         new()
         {
@@ -50,7 +52,17 @@ public class Enemy
             hp = 100,
             attack = 25,
             def = 5,
-            gold = 50
+            gold = new(30, 45)
+        },
+        new()
+        {
+            name = "demon",
+            location = "Dungeon",
+            level = 3,
+            hp = 125,
+            attack = 31,
+            def = 6,
+            gold = new(40, 60)
         }
     };
 }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 public static class Extensions
 {
@@ -18,6 +19,11 @@ public static class Extensions
     {
         T[] filteredItems = items.Where(pred).ToArray();
         return filteredItems[Utility.Rand % filteredItems.Length];
+    }
+
+    public static int Random(this Vector2Int range)
+    {
+        return Utility.Random(range.x, range.y);
     }
 
     public static void Shuffle<T>(this IList<T> list)

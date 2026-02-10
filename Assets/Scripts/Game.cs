@@ -69,6 +69,8 @@ public class Game : MonoBehaviour
                     Travel("Forest");
                 if (Input.GetKeyDown(KeyCode.Alpha3) && location != "Mountains")
                     Travel("Mountains");
+                if (Input.GetKeyDown(KeyCode.Alpha4) && location != "Dungeon")
+                    Travel("Dungeon");
             }
         }
         else
@@ -127,7 +129,10 @@ public class Game : MonoBehaviour
                 if (activeQuest != null && activeQuest.enemy == enemy)
                     activeQuest.count += count;
 
-                int gold = enemy.gold * count;
+                int gold = 0;
+                for (int i = 0; i < count; ++i)
+                    gold += enemy.gold.Random();
+
                 lastAction += $" You win ({gold} gold found).";
                 if (ally == null)
                 {
@@ -198,6 +203,7 @@ public class Game : MonoBehaviour
         travelScreen.transform.Find("City").GetComponent<Button>().interactable = location != "City";
         travelScreen.transform.Find("Forest").GetComponent<Button>().interactable = location != "Forest";
         travelScreen.transform.Find("Mountains").GetComponent<Button>().interactable = location != "Mountains";
+        travelScreen.transform.Find("Dungeon").GetComponent<Button>().interactable = location != "Dungeon";
         ui.ShowDialog(travelScreen);
     }
 
