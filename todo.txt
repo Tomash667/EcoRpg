@@ -1,3 +1,5 @@
+- domain reload -> dialogs don't close
+
 hero:
 + classes
 + races
@@ -30,6 +32,9 @@ hero:
 	capture bandits leader in forest
 	more types
 	more active
+	finish quest to gather herbs if you already have them (button?)
+* forage -> enemies
+* more alchemy recipes
 	
 ui:
 + multiple saves
@@ -41,6 +46,10 @@ skills:
 + management
 + mining
 + haggle
++ forage
++ alchemy
+	portable item
+	house alchemy lab bonus
 
 technology
 + blast furnace

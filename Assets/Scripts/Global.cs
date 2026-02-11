@@ -35,6 +35,7 @@ public class Global : MonoBehaviour
 
     private static Global instance;
 
+    public Player player;
     public string playerName;
     public bool loadGame, playerFemale;
 }

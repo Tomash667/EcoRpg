@@ -17,6 +17,7 @@ public class Item
     public string name, desc;
     public Type type;
     public int level, power, value;
+    public bool shop = true;
 
     public string ToString(bool sellPrice)
     {
@@ -99,6 +100,15 @@ public class Item
             level = 4,
             power = 8,
             value = 1500
+        },
+        new()
+        {
+            name = "herb",
+            desc = "25 heal",
+            type = Type.Usable,
+            power = 25,
+            value = 5,
+            shop = false
         },
         new()
         {

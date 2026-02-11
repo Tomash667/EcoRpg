@@ -7,12 +7,14 @@ public class Quest : ISerializationCallbackReceiver
     public enum Type
     {
         Defeat,
-        Clear
+        Clear,
+        Gather
     }
 
     public Enemy enemy;
+    public Item item;
     public Type type;
-    public string enemyName, location;
+    public string enemyName, itemName, location;
     public int count, max;
 
     public int Reward
@@ -29,20 +31,26 @@ public class Quest : ISerializationCallbackReceiver
     {
         get
         {
-            if (type == Type.Defeat)
-                return $"Defeat {count}/{max} {Utility.Plural(enemy.name)}";
-            else
-                return $"Clear {location.ToLower()} ({Mathf.Min(100 * count / max, 100)}%)";
+            return type switch
+            {
+                Type.Defeat => $"Defeat {count}/{max} {Utility.Plural(enemy.name)}",
+                Type.Clear => $"Clear {location.ToLower()} ({Mathf.Min(100 * count / max, 100)}%)",
+                Type.Gather => $"Gather {Global.Instance.player.CountItem(item)}/{max} {Utility.Plural(item.name)}",
+                _ => string.Empty
+            };
         }
     }
     public string Title
     {
         get
         {
-            if (type == Type.Defeat)
-                return $"Defeat {Utility.Plural(enemy.name, max)}";
-            else
-                return $"Clear {location.ToLower()}";
+            return type switch
+            {
+                Type.Defeat => $"Defeat {Utility.Plural(enemy.name, max)}",
+                Type.Clear => $"Clear {location.ToLower()}",
+                Type.Gather => $"Gather {Utility.Plural(item.name, max)}",
+                _ => string.Empty
+            };
         }
     }
     public string TitleReward => $"{Title} ({Reward} gold)";
@@ -51,12 +59,16 @@ public class Quest : ISerializationCallbackReceiver
     {
         if (type == Type.Defeat)
             enemyName = enemy.name;
+        else if (type == Type.Gather)
+            itemName = item.name;
     }
 
     public void OnAfterDeserialize()
     {
         if (type == Type.Defeat)
             enemy = Enemy.Get(enemyName);
+        else if (type == Type.Gather)
+            item = Item.Get(itemName);
     }
 
     public bool IsSimilar(Quest quest)
@@ -64,9 +76,29 @@ public class Quest : ISerializationCallbackReceiver
         if (type != quest.type)
             return false;
 
-        if (type == Type.Defeat)
-            return enemy == quest.enemy;
+        return type switch
+        {
+            Type.Defeat => enemy == quest.enemy,
+            Type.Clear => location == quest.location,
+            Type.Gather => item == quest.item,
+            _ => false
+        };
+    }
+
+    public bool IsDone()
+    {
+        if (type == Type.Gather)
+        {
+            Player player = Global.Instance.player;
+            if (player.CountItem(item) >= max)
+            {
+                player.RemoveItem(item, max);
+                return true;
+            }
+            else
+                return false;
+        }
         else
-            return location == quest.location;
+            return count >= max;
     }
 }

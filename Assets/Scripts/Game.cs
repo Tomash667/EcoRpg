@@ -51,6 +51,7 @@ public class Game : MonoBehaviour
             day = 1;
             hour = 8;
         }
+        global.player = player;
         UpdateText();
     }
 
@@ -98,6 +99,11 @@ public class Game : MonoBehaviour
                 if (Input.GetKeyDown(KeyCode.S))
                     Shop();
             }
+            else if (location == "Forest")
+            {
+                if (Input.GetKeyDown(KeyCode.F))
+                    Forage();
+            }
         }
     }
 
@@ -119,7 +125,9 @@ public class Game : MonoBehaviour
         if (location == "Sewers" && !(activeQuest != null && activeQuest.type == Quest.Type.Clear && activeQuest.location == location && activeQuest.count < activeQuest.max))
             chance = 10;
         player.energy -= 10;
-        if (Random.Range(0, 10) > chance)
+
+        int c = Random.Range(0, 10);
+        if (c > chance)
         {
             Enemy enemy = Enemy.enemies.RandomItem(x => x.location == location);
             int count = (Utility.Rand % 4) switch
@@ -172,6 +180,19 @@ public class Game : MonoBehaviour
             }
             else
                 lastAction += " You run away defeated.";
+        }
+        else if (c == 0 && location == "Forest")
+        {
+            // 1-3 herbs (~1.5)
+            int count = (Utility.Rand % 4) switch
+            {
+                1 or 2 => 2,
+                3 => 3,
+                _ => 1,
+            };
+            Item herb = Item.Get("herb");
+            player.AddItem(herb, count);
+            lastAction = $"You explore {location.ToLower()} and find {Utility.Plural(herb.name, count)}.";
         }
         else
             lastAction = $"You explore {location.ToLower()} but find nothing interesting.";
@@ -269,7 +290,7 @@ public class Game : MonoBehaviour
         Transform content = shop.transform.Find("ShopItems").Find("Viewport").Find("Content");
         foreach (Transform child in content)
             Destroy(child.gameObject);
-        foreach (Item item in Item.items)
+        foreach (Item item in Item.items.Where(x => x.shop))
         {
             ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
             itemEntry.Init(item.ToString(false), "Buy", () =>
@@ -819,6 +840,9 @@ public class Game : MonoBehaviour
         transform.Find("BtWork").gameObject.SetActive(inCity);
         transform.Find("BtRecruit").gameObject.SetActive(inCity);
         transform.Find("BtProperties").gameObject.SetActive(inCity);
+
+        transform.Find("BtForage").gameObject.SetActive(location == "Forest");
+
         GameObject btAlly = transform.Find("BtAlly").gameObject;
         if (ally == null)
             btAlly.SetActive(false);
@@ -935,17 +959,11 @@ public class Game : MonoBehaviour
 
     public void Guild()
     {
-        UpdateGuild();
-        ui.ShowDialog(guilScreend);
-    }
-
-    private void UpdateGuild()
-    {
-        string guildText = string.Empty;
-        if (activeQuest != null && activeQuest.count >= activeQuest.max)
+        bool doneQuest = false;
+        if (activeQuest != null && activeQuest.IsDone())
         {
             int reward = activeQuest.Reward;
-            guildText = $"You received {reward} gold for quest '{activeQuest.Title}'.\n\n";
+            lastAction = $"You received {reward} gold for quest '{activeQuest.Title}'.";
             if (ally != null)
             {
                 int allyReward = reward / 2;
@@ -955,8 +973,27 @@ public class Game : MonoBehaviour
             }
             player.AddGold(reward);
             activeQuest = null;
-            UpdateText();
+            doneQuest = true;
         }
+        else
+            lastAction = null;
+
+        UpdateGuild();
+        if (doneQuest)
+            UpdateText();
+        ui.ShowDialog(guilScreend);
+    }
+
+    private void UpdateGuild()
+    {
+        string guildText;
+        if (lastAction != null)
+        {
+            guildText = lastAction;
+            guildText += "\n\n";
+        }
+        else
+            guildText = string.Empty;
 
         guildText += $"Current quest: {(activeQuest != null ? activeQuest.Text : "none")}";
         guilScreend.transform.Find("Text").GetComponent<TMP_Text>().text = guildText;
@@ -965,17 +1002,24 @@ public class Game : MonoBehaviour
         while (availableQuests.Count < 3)
         {
             Quest quest = new();
-            if (Utility.Rand % 4 == 0)
+            int c = Utility.Rand % 5;
+            switch (c)
             {
+            case 0:
                 quest.type = Quest.Type.Clear;
                 quest.location = "Sewers";
                 quest.max = 10;
-            }
-            else
-            {
+                break;
+            case 1:
+                quest.type = Quest.Type.Gather;
+                quest.item = Item.Get("herb");
+                quest.max = 20;
+                break;
+            default:
                 quest.type = Quest.Type.Defeat;
                 quest.enemy = Enemy.enemies.RandomItem(x => x.quest);
                 quest.max = Utility.Random(2, 3);
+                break;
             }
 
             if (availableQuests.All(x => !x.IsSimilar(quest)) && (activeQuest == null || !activeQuest.IsSimilar(quest)))
@@ -1002,5 +1046,52 @@ public class Game : MonoBehaviour
             else
                 itemEntry.Init(quest.TitleReward);
         }
+    }
+
+    public void Forage()
+    {
+        if (player.energy < 10)
+        {
+            lastAction = "You are too tired to explore.";
+            UpdateText();
+            return;
+        }
+
+        // 1-4 herbs (~3.16)
+        int count = (Utility.Rand % 6) switch
+        {
+            1 or 2 => 2,
+            3 or 4 => 3,
+            5 => 4,
+            _ => 1,
+        };
+        Item herb = Item.Get("herb");
+        player.energy -= 10;
+        player.AddItem(herb, count);
+        lastAction = $"You forage in {location.ToLower()} and find {Utility.Plural(herb.name, count)}.";
+        AddHour();
+        UpdateText();
+    }
+
+    public void Craft()
+    {
+        Item herb = Item.Get("herb");
+        int herbCount = player.CountItem(herb);
+        ui.ShowInput($"How many potions do you want to craft? You have {Utility.Plural(herb.name, herbCount)} (2 herbs = 1 potion)", count =>
+        {
+            if (count <= 0)
+                return true;
+            if (count * 2 > herbCount)
+            {
+                ui.ShowDialog($"You don't have {Utility.Plural(herb.name, count * 2)}.");
+                return false;
+            }
+            Item potion = Item.Get("potion");
+            player.RemoveItem(herb, count * 2);
+            player.AddItem(potion, count);
+            lastAction = $"You created {Utility.Plural(potion.name, count)}.";
+            UpdateGuild();
+            return true;
+        });
     }
 }
