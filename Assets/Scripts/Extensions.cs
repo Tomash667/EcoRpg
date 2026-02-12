@@ -36,4 +36,12 @@ public static class Extensions
             (list[n], list[k]) = (list[k], list[n]);
         }
     }
+
+    public static GameObject FindGameObject(this Transform transform, string name)
+    {
+        Transform result = transform.Find(name);
+        if (result != null)
+            return result.gameObject;
+        return null;
+    }
 }

@@ -34,12 +34,12 @@ public class Player : Hero
     public override void OnBeforeSerialize()
     {
         base.OnBeforeSerialize();
-        savedProperties = properties.Select(x => x.name).ToList();
+        savedProperties = properties?.Select(x => x.name).ToList();
     }
 
     public override void OnAfterDeserialize()
     {
         base.OnAfterDeserialize();
-        properties = savedProperties.Select(x => Property.Get(x)).ToList();
+        properties = savedProperties?.Select(x => Property.Get(x)).ToList();
     }
 }

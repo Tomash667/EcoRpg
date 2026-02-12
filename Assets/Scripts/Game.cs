@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using TMPro;
 using UnityEditor;
@@ -287,7 +286,7 @@ public class Game : MonoBehaviour
 
     private void RefreshShopItems()
     {
-        Transform content = shop.transform.Find("ShopItems").Find("Viewport").Find("Content");
+        Transform content = shop.transform.Find("ShopItems/Viewport/Content");
         foreach (Transform child in content)
             Destroy(child.gameObject);
         foreach (Item item in Item.items.Where(x => x.shop))
@@ -332,7 +331,7 @@ public class Game : MonoBehaviour
 
     private void RefreshPlayerItems()
     {
-        Transform content = activeInventory.transform.Find("PlayerItems").Find("Viewport").Find("Content");
+        Transform content = activeInventory.transform.Find("PlayerItems/Viewport/Content");
         foreach (Transform child in content)
             Destroy(child.gameObject);
 
@@ -541,7 +540,7 @@ public class Game : MonoBehaviour
 
     private void RefreshAllyItems(GameObject dialog)
     {
-        Transform content = dialog.transform.Find("AllyItems").Find("Viewport").Find("Content");
+        Transform content = dialog.transform.Find("AllyItems/Viewport/Content");
         foreach (Transform child in content)
             Destroy(child.gameObject);
 
@@ -816,12 +815,12 @@ public class Game : MonoBehaviour
     private void SaveGame()
     {
         string json = JsonUtility.ToJson(this);
-        File.WriteAllText(Global.SavePath, json);
+        Global.Instance.SaveGame($"{player.name}, Day {day}, Level {player.level}, Gold {player.gold}", json);
     }
 
     private void LoadGame()
     {
-        string json = File.ReadAllText(Global.SavePath);
+        string json = Global.Instance.GetSaveData();
         JsonUtility.FromJsonOverwrite(json, this);
         UpdateButtons();
     }
@@ -913,7 +912,7 @@ public class Game : MonoBehaviour
 
     private void UpdateProperties()
     {
-        Transform content = properiesScreen.transform.Find("List").Find("Viewport").Find("Content");
+        Transform content = properiesScreen.transform.Find("List/Viewport/Content");
         foreach (Transform child in content)
             Destroy(child.gameObject);
 
@@ -1026,7 +1025,7 @@ public class Game : MonoBehaviour
                 availableQuests.Add(quest);
         }
 
-        Transform content = guilScreend.transform.Find("List").Find("Viewport").Find("Content");
+        Transform content = guilScreend.transform.Find("List/Viewport/Content");
         foreach (Transform child in content)
             Destroy(child.gameObject);
 

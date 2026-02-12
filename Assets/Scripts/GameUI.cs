@@ -5,9 +5,15 @@ using UnityEngine;
 
 public class GameUI : MonoBehaviour
 {
+#if UNITY_EDITOR
+    public const KeyCode escKey = KeyCode.F1;
+#else
+    public const KeyCode escKey = KeyCode.Escape;
+#endif
+
     public GameObject itemEntryPrefab, lineSeparatorPrefab;
 
-    private readonly List<GameObject> dialogs = new();
+    private List<GameObject> dialogs;
     private Func<int, bool> inputFunc;
     private Action confirmAction;
     private GameObject okDialog, confirmDialog, inputDialog;
@@ -17,9 +23,10 @@ public class GameUI : MonoBehaviour
 
     private void Awake()
     {
+        dialogs = new();
         okDialog = transform.Find("OkDialog").gameObject;
-        confirmDialog = transform.Find("ConfirmDialog").gameObject;
-        inputDialog = transform.Find("InputDialog").gameObject;
+        confirmDialog = transform.FindGameObject("ConfirmDialog");
+        inputDialog = transform.FindGameObject("InputDialog");
     }
 
     private void Update()
@@ -38,7 +45,7 @@ public class GameUI : MonoBehaviour
                     ConfirmDialog();
             }
 
-            if (Input.GetKeyDown(Global.escKey))
+            if (Input.GetKeyDown(escKey))
                 CloseDialog();
         }
     }
