@@ -9,7 +9,7 @@ public class Hero : ISerializationCallbackReceiver
     public List<ItemSlot> items = new();
     public Item weapon, armor;
     public string name, weaponName, armorName;
-    public int level, exp, hp, hpMax, attack, defense, gold;
+    public int level, exp, hp, hpMax, attack, defense, dex, gold;
     public bool female;
 
     [NonSerialized]
@@ -59,6 +59,7 @@ public class Hero : ISerializationCallbackReceiver
         hp = hpMax;
         attack = 25;
         defense = 5;
+        dex = 10;
         weapon = Item.Get("club");
         armor = Item.Get("leather armor");
         AddItem(Item.Get("potion"));
@@ -78,6 +79,7 @@ public class Hero : ISerializationCallbackReceiver
             hp = (int)(hpRatio * hpMax);
             attack += 5;
             defense++;
+            dex += 2;
             return true;
         }
         else

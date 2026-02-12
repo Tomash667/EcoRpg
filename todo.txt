@@ -18,7 +18,6 @@ hero:
 + currency 1 gold = 10 silver = 100 copper
 + more allies
 + ally relationship
-+ combat speed/accuracy
 + guild
 	rank
 	register

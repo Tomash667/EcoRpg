@@ -23,6 +23,7 @@ public class Player : Hero
         gold = 50;
         attack = 25;
         defense = 5;
+        dex = 10;
     }
 
     public void AddGold(int value)

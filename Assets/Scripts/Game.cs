@@ -52,6 +52,7 @@ public class Game : MonoBehaviour
         }
         global.player = player;
         UpdateText();
+        UpdateButtons();
     }
 
     private void Update()
@@ -367,7 +368,7 @@ public class Game : MonoBehaviour
                 itemEntry.Init(player.armor.ToString(true));
         }
 
-        if (player.weapon != null || player.armor != null)
+        if ((player.weapon != null || player.armor != null) && player.items.Count > 0)
             Instantiate(ui.lineSeparatorPrefab, content);
 
         foreach (ItemSlot itemSlot in player.items)
@@ -556,7 +557,7 @@ public class Game : MonoBehaviour
             itemEntry.Init(ally.armor.ToString(true));
         }
 
-        if (ally.weapon != null || ally.armor != null)
+        if ((ally.weapon != null || ally.armor != null) && ally.items.Count > 0)
             Instantiate(ui.lineSeparatorPrefab, content);
 
         foreach (ItemSlot itemSlot in ally.items)
@@ -605,7 +606,18 @@ public class Game : MonoBehaviour
             order.Add(i);
             enemyHp.Add(enemy.hp);
         }
-        order.Shuffle();
+        order = order.Select(x =>
+        {
+            int dex;
+            if (x == -1)
+                dex = player.dex;
+            else if (x == -2)
+                dex = ally.dex;
+            else
+                dex = enemy.dex;
+            dex += Utility.Rand % 5;
+            return (x, dex);
+        }).OrderByDescending(x => x.dex).Select(x => x.x).ToList();
         int index = 0;
 
         while (true)
@@ -619,7 +631,7 @@ public class Game : MonoBehaviour
                 else if (hero.hp > 0)
                 {
                     int enemyIndex = enemyHp.Select((hp, index) => (hp, index)).RandomItem(x => x.hp > 0).index;
-                    if (Random.Range(0, 100) > 25)
+                    if (AttackChance(hero.dex, enemy.dex))
                     {
                         enemyHp[enemyIndex] -= hero.Attack - enemy.def;
                         if (enemyHp.All(x => x <= 0))
@@ -642,7 +654,7 @@ public class Game : MonoBehaviour
                 else
                     hero = null; // no one to attack?
 
-                if (hero != null && Random.Range(0, 100) > 75)
+                if (hero != null && AttackChance(enemy.dex, hero.dex))
                 {
                     hero.hp -= Mathf.Max(enemy.attack - hero.Defense);
                     if (hero.hp <= 0)
@@ -671,6 +683,14 @@ public class Game : MonoBehaviour
             if (index == order.Count)
                 index = 0;
         }
+    }
+
+    private bool AttackChance(int myDex, int targetDex)
+    {
+        int chance = 75 + (myDex - targetDex) * 5;
+        if (chance < 10)
+            chance = 10;
+        return Utility.Random(0, 100) < chance;
     }
 
     private void AddHour(int count = 1)
@@ -822,7 +842,6 @@ public class Game : MonoBehaviour
     {
         string json = Global.Instance.GetSaveData();
         JsonUtility.FromJsonOverwrite(json, this);
-        UpdateButtons();
     }
 
     public void ExitToMenu()
