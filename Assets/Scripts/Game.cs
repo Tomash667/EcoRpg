@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using TMPro;
 using UnityEditor;
 using UnityEngine;
@@ -8,9 +9,10 @@ using UnityEngine.UI;
 
 public class Game : MonoBehaviour
 {
+    private const int MaxAllies = 2;
+
     public Player player;
-    [SerializeReference]
-    public Hero ally;
+    public List<Hero> allies;
     public List<Quest> availableQuests;
     [SerializeReference]
     public Quest activeQuest;
@@ -20,9 +22,21 @@ public class Game : MonoBehaviour
     private GameUI ui;
     private GameObject shop, character, allyScreen, giveAllyItems, activeInventory, properiesScreen, guilScreend, travelScreen;
     private TMP_Text text;
+    private Hero activeAlly;
+    private readonly StringBuilder sb = new();
     private string lastAction;
 
     private readonly string[] allLocations = new[] { "City", "Forest", "Mountains", "Dungeon", "Sewers" };
+
+    private IEnumerable<Hero> Team
+    {
+        get
+        {
+            yield return player;
+            foreach (Hero ally in allies)
+                yield return ally;
+        }
+    }
 
     private void Awake()
     {
@@ -46,6 +60,7 @@ public class Game : MonoBehaviour
         {
             player = new() { name = global.playerName, female = global.playerFemale };
             player.Init();
+            allies = new();
             location = "City";
             day = 1;
             hour = 8;
@@ -78,8 +93,10 @@ public class Game : MonoBehaviour
         }
         else
         {
-            if (ally != null && Input.GetKeyDown(KeyCode.A))
-                Ally();
+            if (allies.Count >= 1 && Input.GetKeyDown(KeyCode.Alpha1))
+                Ally(0);
+            if (allies.Count >= 2 && Input.GetKeyDown(KeyCode.Alpha2))
+                Ally(1);
             if (Input.GetKeyDown(KeyCode.C))
                 Character();
             if (Input.GetKeyDown(KeyCode.E))
@@ -153,29 +170,25 @@ public class Game : MonoBehaviour
                     }
                 }
 
+                // gold
                 int gold = 0;
                 for (int i = 0; i < count; ++i)
                     gold += enemy.gold.Random();
-
                 lastAction += $" You win ({gold} gold found).";
-                if (ally == null)
-                {
-                    player.AddGold(gold);
-                    if (player.AddExp(enemy.level, count))
-                        lastAction += $" You are now level {player.level}.";
-                }
+                AddTeamGold(gold);
+
+                // exp
+                float ratio;
+                if (allies.Count == 0)
+                    ratio = 1f;
                 else
+                    ratio = 1f / (allies.Count + 1);
+                if (player.AddExp(enemy.level, ratio * count))
+                    lastAction += $" You are now level {player.level}.";
+                foreach (Hero ally in allies)
                 {
-                    int allyGold = gold / 2;
-                    ally.gold += allyGold;
-                    gold -= allyGold;
-                    player.AddGold(gold);
-                    if (player.AddExp(enemy.level, 0.5f * count))
-                        lastAction += $" You are now level {player.level}.";
-                    if (ally.AddExp(enemy.level, 0.5f * count))
+                    if (ally.AddExp(enemy.level, ratio * count))
                         lastAction += $" {ally.name} is now level {ally.level}.";
-                    if (location == "City")
-                        ally.BuyItems();
                 }
             }
             else
@@ -219,11 +232,12 @@ public class Game : MonoBehaviour
         {
             player.energy -= 50;
             player.AddGold(20);
-            if (ally != null)
+            foreach (Hero ally in allies)
                 ally.gold += 20;
             lastAction = "You earned 20 gold from working. ";
             AddHour(8);
-            ally?.BuyItems();
+            foreach (Hero ally in allies)
+                ally.BuyItems();
         }
         UpdateText();
     }
@@ -256,7 +270,9 @@ public class Game : MonoBehaviour
                 player.AddGold(player.goldWaiting);
                 player.goldWaiting = 0;
             }
-            ally?.BuyItems();
+
+            foreach (Hero ally in allies)
+                ally.BuyItems();
         }
         UpdateButtons();
         AddHour();
@@ -279,8 +295,9 @@ public class Game : MonoBehaviour
         ui.ShowDialog(character);
     }
 
-    public void Ally()
+    public void Ally(int index)
     {
+        activeAlly = allies[index];
         RefreshAllyScreen();
         ui.ShowDialog(allyScreen);
     }
@@ -474,32 +491,32 @@ public class Game : MonoBehaviour
             }
             else
             {
-                if (ally.WillTakeItem(itemSlot.item))
+                if (activeAlly.WillTakeItem(itemSlot.item))
                 {
                     itemEntry.Init(itemSlot.ToString(true), "Give", () =>
                     {
                         if (itemSlot.item.type == Item.Type.Weapon || itemSlot.item.type == Item.Type.Armor || !(Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.LeftControl)))
                         {
-                            ally.GiveItem(itemSlot.item);
+                            activeAlly.GiveItem(itemSlot.item);
                             player.RemoveItem(itemSlot);
                             RefreshPlayerItems();
                             RefreshAllyScreen();
                         }
                         else if (Input.GetKey(KeyCode.LeftShift))
                         {
-                            ally.GiveItem(itemSlot.item, itemSlot.count);
+                            activeAlly.GiveItem(itemSlot.item, itemSlot.count);
                             player.RemoveItem(itemSlot, itemSlot.count);
                             RefreshPlayerItems();
                             RefreshAllyScreen();
                         }
                         else
                         {
-                            ui.ShowInput($"How many {Utility.Plural(itemSlot.item.name)} give to {ally.name}?", count =>
+                            ui.ShowInput($"How many {Utility.Plural(itemSlot.item.name)} give to {activeAlly.name}?", count =>
                             {
                                 if (count <= 0)
                                     return true;
                                 count = Mathf.Min(count, itemSlot.count);
-                                ally.GiveItem(itemSlot.item, count);
+                                activeAlly.GiveItem(itemSlot.item, count);
                                 player.RemoveItem(itemSlot, count);
                                 RefreshPlayerItems();
                                 RefreshAllyScreen();
@@ -528,11 +545,11 @@ public class Game : MonoBehaviour
     private void RefreshAllyScreen()
     {
         TMP_Text charText = allyScreen.transform.Find("Text").GetComponent<TMP_Text>();
-        charText.text = $"{ally.GenderSign}{ally.name}\n" +
-            $"Level: {ally.level} ({ally.ExpP}%)\n" +
-            $"Attack: {ally.Attack}\n" +
-            $"Defense: {ally.Defense}\n" +
-            $"Gold: {ally.gold}";
+        charText.text = $"{activeAlly.GenderSign}{activeAlly.name}\n" +
+            $"Level: {activeAlly.level} ({activeAlly.ExpP}%)\n" +
+            $"Attack: {activeAlly.Attack}\n" +
+            $"Defense: {activeAlly.Defense}\n" +
+            $"Gold: {activeAlly.gold}";
 
         RefreshAllyItems(allyScreen);
         if (activeInventory == giveAllyItems)
@@ -545,22 +562,22 @@ public class Game : MonoBehaviour
         foreach (Transform child in content)
             Destroy(child.gameObject);
 
-        if (ally.weapon != null)
+        if (activeAlly.weapon != null)
         {
             ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
-            itemEntry.Init(ally.weapon.ToString(true));
+            itemEntry.Init(activeAlly.weapon.ToString(true));
         }
 
-        if (ally.armor != null)
+        if (activeAlly.armor != null)
         {
             ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
-            itemEntry.Init(ally.armor.ToString(true));
+            itemEntry.Init(activeAlly.armor.ToString(true));
         }
 
-        if ((ally.weapon != null || ally.armor != null) && ally.items.Count > 0)
+        if ((activeAlly.weapon != null || activeAlly.armor != null) && activeAlly.items.Count > 0)
             Instantiate(ui.lineSeparatorPrefab, content);
 
-        foreach (ItemSlot itemSlot in ally.items)
+        foreach (ItemSlot itemSlot in activeAlly.items)
         {
             ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
             itemEntry.Init(itemSlot.ToString(true));
@@ -569,26 +586,27 @@ public class Game : MonoBehaviour
 
     private void UpdateText()
     {
-        string str = $"{location}   Day: {day} {hour}:00   Health: {player.hp}/{player.hpMax}   Energy: {player.energy}/100   Gold: {player.gold}";
+        sb.Clear();
+        sb.Append($"{location}   Day: {day} {hour}:00   Health: {player.hp}/{player.hpMax}   Energy: {player.energy}/100   Gold: {player.gold}");
         if (player.goldReceived != 0)
         {
-            str += $"({player.goldReceived:+0;-0})";
+            sb.Append($"({player.goldReceived:+0;-0})");
             player.goldReceived = 0;
         }
-        str += '\n';
-        if (ally != null)
-            str += $"{ally.name} ({ally.HpP}%)   ";
+        sb.Append('\n');
+        foreach (Hero ally in allies)
+            sb.Append($"{ally.name} ({ally.HpP}%)   ");
         if (activeQuest != null)
-            str += $"Quest: {activeQuest.Text}\n";
+            sb.Append($"Quest: {activeQuest.Text}\n");
         else
-            str += '\n';
+            sb.Append('\n');
         if (lastAction != null)
         {
-            str += '\n';
-            str += lastAction;
+            sb.Append('\n');
+            sb.Append(lastAction);
             lastAction = null;
         }
-        text.text = str;
+        text.text = sb.ToString();
     }
 
     private bool Combat(Enemy enemy, int enemyCount)
@@ -596,10 +614,12 @@ public class Game : MonoBehaviour
         List<int> order = new() { -1 };
         List<int> enemyHp = new();
         player.wasteTurn = false;
-        if (ally != null)
+        int index = -2;
+        foreach (Hero ally in allies)
         {
-            order.Add(-2);
+            order.Add(index);
             ally.wasteTurn = false;
+            --index;
         }
         for (int i = 0; i < enemyCount; ++i)
         {
@@ -611,21 +631,21 @@ public class Game : MonoBehaviour
             int dex;
             if (x == -1)
                 dex = player.dex;
-            else if (x == -2)
-                dex = ally.dex;
+            else if (x < -1)
+                dex = allies[-x - 2].dex;
             else
                 dex = enemy.dex;
             dex += Utility.Rand % 5;
             return (x, dex);
         }).OrderByDescending(x => x.dex).Select(x => x.x).ToList();
-        int index = 0;
+        index = 0;
 
         while (true)
         {
             int unitIndex = order[index];
             if (unitIndex < 0)
             {
-                Hero hero = unitIndex == -1 ? player : ally;
+                Hero hero = unitIndex == -1 ? player : allies[-unitIndex - 2];
                 if (hero.wasteTurn)
                     hero.wasteTurn = false;
                 else if (hero.hp > 0)
@@ -641,20 +661,8 @@ public class Game : MonoBehaviour
             }
             else if (enemyHp[unitIndex] > 0)
             {
-                Hero hero;
-                if (player.hp > 0)
-                {
-                    if (ally != null && ally.hp > 0)
-                        hero = Utility.Rand % 2 == 0 ? player : ally;
-                    else
-                        hero = player;
-                }
-                else if (ally != null && ally.hp > 0)
-                    hero = ally;
-                else
-                    hero = null; // no one to attack?
-
-                if (hero != null && AttackChance(enemy.dex, hero.dex))
+                Hero hero = Team.RandomItem(x => x.hp > 0);
+                if (AttackChance(enemy.dex, hero.dex))
                 {
                     hero.hp -= Mathf.Max(enemy.attack - hero.Defense);
                     if (hero.hp <= 0)
@@ -667,11 +675,11 @@ public class Game : MonoBehaviour
                             hero.RemoveItem(potion);
                             hero.wasteTurn = true;
                         }
-                        else if (player.hp <= 0 && (ally == null || ally.hp <= 0))
+                        else if (Team.All(x => x.hp <= 0))
                         {
                             // lost
                             player.hp = 1;
-                            if (ally != null)
+                            foreach (Hero ally in allies)
                                 ally.hp = 1;
                             return false;
                         }
@@ -711,7 +719,7 @@ public class Game : MonoBehaviour
         {
             player.hp = player.hpMax;
             player.energy = 100;
-            if (ally != null)
+            foreach (Hero ally in allies)
                 ally.hp = ally.hpMax;
             lastAction += "You rest in your house.";
         }
@@ -720,7 +728,7 @@ public class Game : MonoBehaviour
             player.hp = player.hpMax;
             player.energy = 100;
             player.AddGold(-1);
-            if (ally != null)
+            foreach (Hero ally in allies)
             {
                 ally.hp = ally.hpMax;
                 --ally.gold;
@@ -748,9 +756,7 @@ public class Game : MonoBehaviour
             }
 
             Item rations = Item.Get("rations");
-            int count = 1;
-            if (ally != null)
-                ++count;
+            int count = 1 + allies.Count;
             int eaten = RemoveTeamItem(rations, count);
             if (eaten > 0)
             {
@@ -758,15 +764,16 @@ public class Game : MonoBehaviour
                 {
                     energy += 25;
                     player.hp = player.hpMax;
-                    if (ally != null)
+                    foreach (Hero ally in allies)
                         ally.hp = ally.hpMax;
                 }
                 else
                 {
-                    energy += 12;
-                    player.hp = Mathf.Min(player.hp + player.hpMax / 2, player.hpMax);
-                    if (ally != null)
-                        ally.hp = Mathf.Min(ally.hp + ally.hpMax / 2, ally.hpMax);
+                    float ratio = (float)eaten / count;
+                    energy += (int)(ratio * 25);
+                    player.hp = Mathf.Min(player.hp + (int)(ratio * player.hpMax), player.hpMax);
+                    foreach (Hero ally in allies)
+                        ally.hp = Mathf.Min(ally.hp + (int)(ratio * ally.hpMax), ally.hpMax);
                 }
                 lastAction = $"You rest {where} and eat rations.";
             }
@@ -790,14 +797,11 @@ public class Game : MonoBehaviour
 
     private int RemoveTeamItem(Item item, int count)
     {
-        List<Hero> heroes = new() { player };
-        if (ally != null)
-            heroes.Add(ally);
         int removed = 0;
 
         // Cache counts so we don't call CountItem repeatedly
         Dictionary<Hero, int> counts = new();
-        foreach (var hero in heroes)
+        foreach (Hero hero in Team)
             counts[hero] = hero.CountItem(item);
 
         while (count > 0)
@@ -862,24 +866,33 @@ public class Game : MonoBehaviour
         transform.Find("BtForage").gameObject.SetActive(location == "Forest");
 
         GameObject btAlly = transform.Find("BtAlly").gameObject;
-        if (ally == null)
+        if (allies.Count < 1)
             btAlly.SetActive(false);
         else
         {
-            btAlly.GetComponentInChildren<TMP_Text>().text = ally.name;
+            btAlly.GetComponentInChildren<TMP_Text>().text = allies[0].name;
+            btAlly.SetActive(true);
+        }
+        btAlly = transform.Find("BtAlly2").gameObject;
+        if (allies.Count < 2)
+            btAlly.SetActive(false);
+        else
+        {
+            btAlly.GetComponentInChildren<TMP_Text>().text = allies[1].name;
             btAlly.SetActive(true);
         }
     }
 
     public void Recruit()
     {
-        if (ally != null)
-            lastAction = $"You already have an ally, {ally.name}.";
+        if (allies.Count >= MaxAllies)
+            lastAction = "Your team is full.";
         else
         {
-            ally = new Hero();
+            Hero ally = new();
             ally.Init();
             lastAction = $"You recruit {ally.name} to your team.";
+            allies.Add(ally);
             AddHour();
             UpdateButtons();
         }
@@ -888,10 +901,10 @@ public class Game : MonoBehaviour
 
     public void RemoveAlly()
     {
-        ui.ShowConfirm($"Are you sure you want to remove {ally.name} from your team?", () =>
+        ui.ShowConfirm($"Are you sure you want to remove {activeAlly.name} from your team?", () =>
         {
-            lastAction = $"{ally.name} is sad and leave.";
-            ally = null;
+            lastAction = $"{activeAlly.name} is sad and leave.";
+            allies.Remove(activeAlly);
             UpdateButtons();
             UpdateText();
             ui.CloseDialog();
@@ -908,15 +921,15 @@ public class Game : MonoBehaviour
 
     public void GiveAllyGold()
     {
-        ui.ShowInput($"How much gold give to {ally.name}?", count =>
+        ui.ShowInput($"How much gold give to {activeAlly.name}?", count =>
         {
             count = Mathf.Min(count, player.gold);
             if (count <= 0)
                 return true;
             player.AddGold(-count);
-            ally.gold += count;
+            activeAlly.gold += count;
             if (location == "City")
-                ally.BuyItems();
+                activeAlly.BuyItems();
             RefreshAllyScreen();
             UpdateText();
             return true;
@@ -982,14 +995,7 @@ public class Game : MonoBehaviour
         {
             int reward = activeQuest.Reward;
             lastAction = $"You received {reward} gold for quest '{activeQuest.Title}'.";
-            if (ally != null)
-            {
-                int allyReward = reward / 2;
-                ally.gold += allyReward;
-                ally.BuyItems();
-                reward -= allyReward;
-            }
-            player.AddGold(reward);
+            AddTeamGold(reward);
             activeQuest = null;
             doneQuest = true;
         }
@@ -1111,5 +1117,28 @@ public class Game : MonoBehaviour
             UpdateGuild();
             return true;
         });
+    }
+
+    private void AddTeamGold(int gold)
+    {
+        if (gold <= 0)
+            return;
+
+        if (allies.Count == 0)
+        {
+            player.AddGold(gold);
+            return;
+        }
+
+        int share = gold / (allies.Count + 1);
+        foreach (Hero ally in allies)
+        {
+            ally.gold += share;
+            if (location == "City")
+                ally.BuyItems();
+        }
+
+        gold -= share * allies.Count;
+        player.AddGold(gold);
     }
 }

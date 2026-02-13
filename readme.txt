@@ -2,7 +2,7 @@ EcoRpg v0
 (Economic, not ecologic)
 
 Shortcuts:
-A - manage ally
+1-2 - manage ally
 C - character screen
 E - explore
 G - guild

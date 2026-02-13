@@ -15,9 +15,8 @@ hero:
 + interactive combat or idle?
 + player history
 	isekaied
+	noble
 + currency 1 gold = 10 silver = 100 copper
-+ more allies
-+ ally relationship
 + guild
 	rank
 	register
@@ -30,8 +29,14 @@ hero:
 	more types
 	more active
 	finish quest to gather herbs if you already have them (button?)
-* forage -> enemies
-* more alchemy recipes
++ forage -> enemies
++ more alchemy recipes
++ allies
+	choice
+	soft limit
+	recruit chance
+	better heroes
+	relationship
 
 ui:
 * text colors
