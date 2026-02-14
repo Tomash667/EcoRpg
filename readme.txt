@@ -1,6 +1,9 @@
 EcoRpg v0
 (Economic, not ecologic)
 
+Goal:
+Defeat dragon, get rich.
+
 Shortcuts:
 1-2 - manage ally
 C - character screen

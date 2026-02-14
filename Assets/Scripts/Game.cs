@@ -18,6 +18,7 @@ public class Game : MonoBehaviour
     public Quest activeQuest;
     public string location;
     public int day, hour;
+    public bool dragonDefeated;
 
     private GameUI ui;
     private GameObject shop, character, allyScreen, giveAllyItems, activeInventory, properiesScreen, guilScreend, travelScreen;
@@ -26,7 +27,7 @@ public class Game : MonoBehaviour
     private readonly StringBuilder sb = new();
     private string lastAction;
 
-    private readonly string[] allLocations = new[] { "City", "Forest", "Mountains", "Dungeon", "Sewers" };
+    private readonly string[] allLocations = new[] { "City", "Forest", "Mountains", "Dungeon", "Cave", "Sewers" };
 
     private IEnumerable<Hero> Team
     {
@@ -89,6 +90,8 @@ public class Game : MonoBehaviour
                     Travel("Mountains");
                 if (Input.GetKeyDown(KeyCode.Alpha4) && location != "Dungeon")
                     Travel("Dungeon");
+                if (Input.GetKeyDown(KeyCode.Alpha5) && location != "Cave")
+                    Travel("Cave");
             }
         }
         else
@@ -138,13 +141,15 @@ public class Game : MonoBehaviour
             return;
         }
 
-        int chance = 3;
+        int chance = 7;
         if (location == "Sewers" && !(activeQuest != null && activeQuest.type == Quest.Type.Clear && activeQuest.location == location && activeQuest.count < activeQuest.max))
-            chance = 10;
+            chance = 0;
+        if (location == "Cave" && dragonDefeated)
+            chance = 0;
         player.energy -= 10;
 
         int c = Random.Range(0, 10);
-        if (c > chance)
+        if (c < chance)
         {
             Enemy enemy = Enemy.enemies.RandomItem(x => x.location == location);
             int count = (Utility.Rand % 4) switch
@@ -153,6 +158,9 @@ public class Game : MonoBehaviour
                 3 => 3,
                 _ => 1,
             };
+            if (location == "Cave")
+                count = 1;
+
             lastAction = $"You explore {location.ToLower()} and {Utility.PluralText(enemy.name, count)} attack you.";
             if (Combat(enemy, count))
             {
@@ -169,6 +177,9 @@ public class Game : MonoBehaviour
                             activeQuest.count += count;
                     }
                 }
+
+                if (location == "Cave")
+                    dragonDefeated = true;
 
                 // gold
                 int gold = 0;

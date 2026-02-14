@@ -102,6 +102,18 @@ public class Enemy
             def = 5,
             dex = 13,
             gold = new(40, 60)
+        },
+        new()
+        {
+            name = "dragon",
+            location = "Cave",
+            level = 10,
+            hp = 250,
+            attack = 62,
+            def = 12,
+            dex = 24,
+            gold = new(10000, 10000),
+            quest = false
         }
     };
 }
