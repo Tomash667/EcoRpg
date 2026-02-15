@@ -8,6 +8,7 @@ public class Item
     {
         Weapon,
         Armor,
+        Shield,
         Usable,
         Other
     }
@@ -25,7 +26,7 @@ public class Item
         return type switch
         {
             Type.Weapon => $"{name.ToUpper1()} ({power} attack, {price} gold)",
-            Type.Armor => $"{name.ToUpper1()} ({power} defense, {price} gold)",
+            Type.Armor or Type.Shield => $"{name.ToUpper1()} ({power} defense, {price} gold)",
             _ => $"{name.ToUpper1()} ({desc}, {price} gold)"
         };
     }
@@ -99,6 +100,38 @@ public class Item
             type = Type.Armor,
             level = 4,
             power = 8,
+            value = 1500
+        },
+        new()
+        {
+            name = "wooden shield",
+            type = Type.Shield,
+            level = 1,
+            power = 1,
+            value = 25
+        },
+        new()
+        {
+            name = "iron shield",
+            type = Type.Shield,
+            level = 2,
+            power = 2,
+            value = 100
+        },
+        new()
+        {
+            name = "steel shield",
+            type = Type.Shield,
+            level = 3,
+            power = 3,
+            value = 400
+        },
+        new()
+        {
+            name = "magic shield",
+            type = Type.Shield,
+            level = 4,
+            power = 4,
             value = 1500
         },
         new()

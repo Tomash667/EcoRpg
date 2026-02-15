@@ -7,8 +7,8 @@ using UnityEngine;
 public class Hero : ISerializationCallbackReceiver
 {
     public List<ItemSlot> items = new();
-    public Item weapon, armor;
-    public string name, weaponName, armorName;
+    public Item weapon, armor, shield;
+    public string name, weaponName, armorName, shieldName;
     public int level, exp, hp, hpMax, attack, defense, dex, gold;
     public bool female;
 
@@ -32,6 +32,8 @@ public class Hero : ISerializationCallbackReceiver
             int value = defense;
             if (armor != null)
                 value += armor.power;
+            if (shield != null)
+                value += shield.power;
             return value;
         }
     }
@@ -151,6 +153,7 @@ public class Hero : ISerializationCallbackReceiver
     {
         weaponName = weapon?.name;
         armorName = armor?.name;
+        shieldName = shield?.name;
     }
 
     public virtual void OnAfterDeserialize()
@@ -159,6 +162,8 @@ public class Hero : ISerializationCallbackReceiver
             weapon = Item.Get(weaponName);
         if (!string.IsNullOrEmpty(armorName))
             armor = Item.Get(armorName);
+        if (!string.IsNullOrEmpty(shieldName))
+            shield = Item.Get(shieldName);
     }
 
     public bool WillTakeItem(Item item)
@@ -167,6 +172,7 @@ public class Hero : ISerializationCallbackReceiver
         {
             Item.Type.Weapon => weapon == null || weapon.power < item.power,
             Item.Type.Armor => armor == null || armor.power < item.power,
+            Item.Type.Shield => shield == null || shield.power < item.power,
             _ => true
         };
     }
@@ -184,6 +190,11 @@ public class Hero : ISerializationCallbackReceiver
             if (armor != null)
                 gold += armor.value / 2;
             armor = item;
+            break;
+        case Item.Type.Shield:
+            if (shield != null)
+                gold += shield.value / 2;
+            shield = item;
             break;
         default:
             AddItem(item, count);
@@ -213,60 +224,100 @@ public class Hero : ISerializationCallbackReceiver
             }
         }
 
-        // buy weapon/armor
-        int weaponLevel = weapon?.level ?? 0, armorLevel = armor?.level ?? 0;
-        bool boughtWeapon = false, boughtArmor = false;
-        while (weaponLevel < Item.MaxLevel || armorLevel < Item.MaxLevel)
+        // buy weapon/armor/shield
+        int weaponLevel = weapon?.level ?? 0, armorLevel = armor?.level ?? 0, shieldLevel = shield?.level ?? 0;
+        bool boughtWeapon = false, boughtArmor = false, boughtShield = false;
+        while (weaponLevel < Item.MaxLevel || armorLevel < Item.MaxLevel || shieldLevel < Item.MaxLevel)
         {
-            if (weaponLevel < armorLevel || (weaponLevel == armorLevel && Utility.Rand % 2 == 0))
+            int minLevel = Mathf.Min(weaponLevel, armorLevel, shieldLevel);
+            List<Item.Type> typesToBuy = new();
+            if (weaponLevel == minLevel)
+                typesToBuy.Add(Item.Type.Weapon);
+            if (armorLevel == minLevel)
+                typesToBuy.Add(Item.Type.Armor);
+            if (shieldLevel == minLevel)
+                typesToBuy.Add(Item.Type.Shield);
+
+            switch(typesToBuy.RandomItem())
             {
-                Item nextWeapon = Item.items.First(x => x.type == Item.Type.Weapon && x.level == weaponLevel + 1);
-
-                // include resell of old weapon
-                int tmpGold = gold;
-                if (weapon != null)
+            case Item.Type.Weapon:
                 {
-                    if (boughtWeapon)
-                        tmpGold += weapon.value;
+                    Item nextWeapon = Item.items.First(x => x.type == Item.Type.Weapon && x.level == weaponLevel + 1);
+
+                    // include resell of old weapon
+                    int tmpGold = gold;
+                    if (weapon != null)
+                    {
+                        if (boughtWeapon)
+                            tmpGold += weapon.value;
+                        else
+                            tmpGold += weapon.value / 2;
+                    }
+
+                    if (tmpGold >= nextWeapon.value)
+                    {
+                        // buy
+                        gold = tmpGold - nextWeapon.value;
+                        weapon = nextWeapon;
+                        ++weaponLevel;
+                        boughtWeapon = true;
+                    }
                     else
-                        tmpGold += weapon.value / 2;
+                        return; // can't afford
                 }
-
-                if (tmpGold >= nextWeapon.value)
+                break;
+            case Item.Type.Armor:
                 {
-                    // buy
-                    gold = tmpGold - nextWeapon.value;
-                    weapon = nextWeapon;
-                    ++weaponLevel;
-                    boughtWeapon = true;
-                }
-                else
-                    break; // can't afford
-            }
-            else
-            {
-                Item nextArmor = Item.items.First(x => x.type == Item.Type.Armor && x.level == armorLevel + 1);
+                    Item nextArmor = Item.items.First(x => x.type == Item.Type.Armor && x.level == armorLevel + 1);
 
-                // include resell of old armor
-                int tmpGold = gold;
-                if (armor != null)
-                {
-                    if (boughtArmor)
-                        tmpGold += armor.value;
+                    // include resell of old armor
+                    int tmpGold = gold;
+                    if (armor != null)
+                    {
+                        if (boughtArmor)
+                            tmpGold += armor.value;
+                        else
+                            tmpGold += armor.value / 2;
+                    }
+
+                    if (tmpGold >= nextArmor.value)
+                    {
+                        // buy
+                        gold = tmpGold - nextArmor.value;
+                        armor = nextArmor;
+                        ++armorLevel;
+                        boughtArmor = true;
+                    }
                     else
-                        tmpGold += armor.value / 2;
+                        return; // can't afford
                 }
-
-                if (tmpGold >= nextArmor.value)
+                break;
+            case Item.Type.Shield:
                 {
-                    // buy
-                    gold = tmpGold - nextArmor.value;
-                    armor = nextArmor;
-                    ++armorLevel;
-                    boughtArmor = true;
+                    Item nextShield = Item.items.First(x => x.type == Item.Type.Shield && x.level == shieldLevel + 1);
+
+                    // include resell of old shield
+                    int tmpGold = gold;
+                    if (shield != null)
+                    {
+                        if (boughtShield)
+                            tmpGold += shield.value;
+                        else
+                            tmpGold += shield.value / 2;
+                    }
+
+                    if (tmpGold >= nextShield.value)
+                    {
+                        // buy
+                        gold = tmpGold - nextShield.value;
+                        shield = nextShield;
+                        ++shieldLevel;
+                        boughtShield = true;
+                    }
+                    else
+                        return; // can't afford
                 }
-                else
-                    break; // can't afford
+                break;
             }
         }
     }

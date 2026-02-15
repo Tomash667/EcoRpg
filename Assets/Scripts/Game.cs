@@ -396,7 +396,23 @@ public class Game : MonoBehaviour
                 itemEntry.Init(player.armor.ToString(true));
         }
 
-        if ((player.weapon != null || player.armor != null) && player.items.Count > 0)
+        if (player.shield != null)
+        {
+            ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
+            if (activeInventory == character)
+            {
+                itemEntry.Init(player.shield.ToString(true), "Unequip", () =>
+                {
+                    player.AddItem(player.shield);
+                    player.shield = null;
+                    RefreshPlayerScreen();
+                });
+            }
+            else
+                itemEntry.Init(player.shield.ToString(true));
+        }
+
+        if ((player.weapon != null || player.armor != null || player.shield != null) && player.items.Count > 0)
             Instantiate(ui.lineSeparatorPrefab, content);
 
         foreach (ItemSlot itemSlot in player.items)
@@ -433,21 +449,27 @@ public class Game : MonoBehaviour
                     }
                 }
 
-                if (itemSlot.item.type == Item.Type.Weapon || itemSlot.item.type == Item.Type.Armor)
+                if (itemSlot.item.type == Item.Type.Weapon || itemSlot.item.type == Item.Type.Armor || itemSlot.item.type == Item.Type.Shield)
                 {
                     itemEntry.Init2(itemSlot.ToString(true), "Equip", () =>
                     {
-                        if (itemSlot.item.type == Item.Type.Weapon)
+                        switch(itemSlot.item.type)
                         {
+                        case Item.Type.Weapon:
                             if (player.weapon != null)
                                 player.AddItem(player.weapon);
                             player.weapon = itemSlot.item;
-                        }
-                        else
-                        {
+                            break;
+                        case Item.Type.Armor:
                             if (player.armor != null)
                                 player.AddItem(player.armor);
                             player.armor = itemSlot.item;
+                            break;
+                        case Item.Type.Shield:
+                            if (player.shield != null)
+                                player.AddItem(player.shield);
+                            player.shield = itemSlot.item;
+                            break;
                         }
                         player.RemoveItem(itemSlot);
                         RefreshPlayerScreen();
@@ -506,7 +528,8 @@ public class Game : MonoBehaviour
                 {
                     itemEntry.Init(itemSlot.ToString(true), "Give", () =>
                     {
-                        if (itemSlot.item.type == Item.Type.Weapon || itemSlot.item.type == Item.Type.Armor || !(Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.LeftControl)))
+                        if (itemSlot.item.type == Item.Type.Weapon || itemSlot.item.type == Item.Type.Armor || itemSlot.item.type == Item.Type.Shield
+                            || !(Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.LeftControl)))
                         {
                             activeAlly.GiveItem(itemSlot.item);
                             player.RemoveItem(itemSlot);
@@ -585,7 +608,13 @@ public class Game : MonoBehaviour
             itemEntry.Init(activeAlly.armor.ToString(true));
         }
 
-        if ((activeAlly.weapon != null || activeAlly.armor != null) && activeAlly.items.Count > 0)
+        if (activeAlly.shield != null)
+        {
+            ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
+            itemEntry.Init(activeAlly.shield.ToString(true));
+        }
+
+        if ((activeAlly.weapon != null || activeAlly.armor != null || activeAlly.shield != null) && activeAlly.items.Count > 0)
             Instantiate(ui.lineSeparatorPrefab, content);
 
         foreach (ItemSlot itemSlot in activeAlly.items)

@@ -16,9 +16,10 @@ hero:
 + player history
 	isekaied
 	noble
+	chosen hero summoned (potential, rewards, reputation)
 + currency 1 gold = 10 silver = 100 copper
 + guild
-	rank
+	rank (copper, silver, gold)
 	register
 + spotted enemy
 + quests
@@ -37,12 +38,19 @@ hero:
 	recruit chance
 	better heroes
 	relationship
+	leave and take from guild
+	sell old items in city
++ damage type
+	holy vs undead
++ adventurers potential (1-broken x0.25, 3-commoner x1, 5-adventurer x1.5, 7-hero x2.25, 10-chosen one x5)
+	soft skill cap
 
 ui:
 * text colors
 * images
 	
 investments:
++ cottage/big house/mansion
 + manage mine/sawmill
 
 skills:
@@ -68,6 +76,8 @@ world:
 + regions
 + countries
 + continents
++ buy region map
++ sell region map after 100% discovery
 
 events:
 + mine
