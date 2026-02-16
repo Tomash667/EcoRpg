@@ -35,7 +35,7 @@ public class Quest : ISerializationCallbackReceiver
             {
                 Type.Defeat => $"Defeat {count}/{max} {Utility.Plural(enemy.name)}",
                 Type.Clear => $"Clear {location.ToLower()} ({Mathf.Min(100 * count / max, 100)}%)",
-                Type.Gather => $"Gather {Global.Instance.player.CountItem(item)}/{max} {Utility.Plural(item.name)}",
+                Type.Gather => $"Gather {Global.Player.CountItem(item)}/{max} {Utility.Plural(item.name)}",
                 _ => string.Empty
             };
         }
@@ -89,7 +89,7 @@ public class Quest : ISerializationCallbackReceiver
     {
         if (type == Type.Gather)
         {
-            Player player = Global.Instance.player;
+            Player player = Global.Player;
             if (player.CountItem(item) >= max)
             {
                 player.RemoveItem(item, max);

@@ -39,7 +39,6 @@ hero:
 	better heroes
 	relationship
 	leave and take from guild
-	sell old items in city
 + damage type
 	holy vs undead
 + adventurers potential (1-broken x0.25, 3-commoner x1, 5-adventurer x1.5, 7-hero x2.25, 10-chosen one x5)

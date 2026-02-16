@@ -183,17 +183,32 @@ public class Hero : ISerializationCallbackReceiver
         {
         case Item.Type.Weapon:
             if (weapon != null)
-                gold += weapon.value / 2;
+            {
+                if (Global.Game.location == "City")
+                    gold += weapon.value / 2;
+                else
+                    AddItem(weapon);
+            }
             weapon = item;
             break;
         case Item.Type.Armor:
             if (armor != null)
-                gold += armor.value / 2;
+            {
+                if (Global.Game.location == "City")
+                    gold += armor.value / 2;
+                else
+                    AddItem(armor);
+            }
             armor = item;
             break;
         case Item.Type.Shield:
             if (shield != null)
-                gold += shield.value / 2;
+            {
+                if (Global.Game.location == "City")
+                    gold += shield.value / 2;
+                else
+                    AddItem(shield);
+            }
             shield = item;
             break;
         default:
@@ -204,6 +219,17 @@ public class Hero : ISerializationCallbackReceiver
 
     public void BuyItems()
     {
+        // sell old items
+        items.RemoveAll(x =>
+        {
+            if (x.item.type == Item.Type.Weapon || x.item.type == Item.Type.Armor || x.item.type == Item.Type.Shield)
+            {
+                gold += x.item.value * x.count / 2;
+                return true;
+            }
+            return false;
+        });
+
         // buy rations/potions
         Item rations = Item.Get("rations"), potion = Item.Get("potion");
         int rationsCount = CountItem(rations), potionsCount = CountItem(potion);
@@ -238,7 +264,7 @@ public class Hero : ISerializationCallbackReceiver
             if (shieldLevel == minLevel)
                 typesToBuy.Add(Item.Type.Shield);
 
-            switch(typesToBuy.RandomItem())
+            switch (typesToBuy.RandomItem())
             {
             case Item.Type.Weapon:
                 {

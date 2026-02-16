@@ -66,7 +66,7 @@ public class Game : MonoBehaviour
             day = 1;
             hour = 8;
         }
-        global.player = player;
+        global.game = this;
         UpdateText();
         UpdateButtons();
     }
@@ -453,7 +453,7 @@ public class Game : MonoBehaviour
                 {
                     itemEntry.Init2(itemSlot.ToString(true), "Equip", () =>
                     {
-                        switch(itemSlot.item.type)
+                        switch (itemSlot.item.type)
                         {
                         case Item.Type.Weapon:
                             if (player.weapon != null)
