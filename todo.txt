@@ -11,7 +11,7 @@ hero:
 + cursed (bad luck, impotence, reduced stats)
 + hire npc for skills, not combat (like M&M)
 + luxury
-+ more weapons/armors/potions
++ more weapons/armors/shields/potions
 + interactive combat or idle?
 + player history
 	isekaied
@@ -33,7 +33,6 @@ hero:
 + forage -> enemies
 + more alchemy recipes
 + allies
-	choice
 	soft limit
 	recruit chance
 	better heroes

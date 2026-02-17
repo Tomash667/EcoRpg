@@ -25,7 +25,9 @@ public class Game : MonoBehaviour
     private TMP_Text text;
     private Hero activeAlly;
     private readonly StringBuilder sb = new();
+    private System.Action<bool> choiceAction;
     private string lastAction;
+    private bool inChoice;
 
     private readonly string[] allLocations = new[] { "City", "Forest", "Mountains", "Dungeon", "Cave", "Sewers" };
 
@@ -93,6 +95,13 @@ public class Game : MonoBehaviour
                 if (Input.GetKeyDown(KeyCode.Alpha5) && location != "Cave")
                     Travel("Cave");
             }
+        }
+        else if (inChoice)
+        {
+            if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
+                PickChoice(true);
+            if (Input.GetKeyDown(GameUI.escKey))
+                PickChoice(false);
         }
         else
         {
@@ -922,15 +931,16 @@ public class Game : MonoBehaviour
     private void UpdateButtons()
     {
         bool inCity = location == "City";
-        transform.Find("BtShop").gameObject.SetActive(inCity);
-        transform.Find("BtGuild").gameObject.SetActive(inCity);
-        transform.Find("BtWork").gameObject.SetActive(inCity);
-        transform.Find("BtRecruit").gameObject.SetActive(inCity);
-        transform.Find("BtProperties").gameObject.SetActive(inCity);
+        Transform buttons = transform.Find("Buttons");
+        buttons.Find("BtShop").gameObject.SetActive(inCity);
+        buttons.Find("BtGuild").gameObject.SetActive(inCity);
+        buttons.Find("BtWork").gameObject.SetActive(inCity);
+        buttons.Find("BtRecruit").gameObject.SetActive(inCity);
+        buttons.Find("BtProperties").gameObject.SetActive(inCity);
 
-        transform.Find("BtForage").gameObject.SetActive(location == "Forest");
+        buttons.Find("BtForage").gameObject.SetActive(location == "Forest");
 
-        GameObject btAlly = transform.Find("BtAlly").gameObject;
+        GameObject btAlly = buttons.Find("BtAlly").gameObject;
         if (allies.Count < 1)
             btAlly.SetActive(false);
         else
@@ -938,7 +948,7 @@ public class Game : MonoBehaviour
             btAlly.GetComponentInChildren<TMP_Text>().text = allies[0].name;
             btAlly.SetActive(true);
         }
-        btAlly = transform.Find("BtAlly2").gameObject;
+        btAlly = buttons.Find("BtAlly2").gameObject;
         if (allies.Count < 2)
             btAlly.SetActive(false);
         else
@@ -951,17 +961,25 @@ public class Game : MonoBehaviour
     public void Recruit()
     {
         if (allies.Count >= MaxAllies)
-            lastAction = "Your team is full.";
-        else
         {
-            Hero ally = new();
-            ally.Init();
-            lastAction = $"You recruit {ally.name} to your team.";
-            allies.Add(ally);
-            AddHour();
-            UpdateButtons();
+            lastAction = "Your team is full.";
+            UpdateText();
+            return;
         }
-        UpdateText();
+
+        Hero hero = new();
+        hero.Init();
+        Choice($"You meet {hero.name} and talk with {hero.him} about adventurers. Do you want to recruit {hero.him}?", yes =>
+        {
+            if (yes)
+            {
+                lastAction = $"You recruit {hero.name} to your team.";
+                allies.Add(hero);
+                UpdateButtons();
+            }
+            AddHour();
+            UpdateText();
+        });
     }
 
     public void RemoveAlly()
@@ -1205,5 +1223,23 @@ public class Game : MonoBehaviour
 
         gold -= share * allies.Count;
         player.AddGold(gold);
+    }
+
+    public void Choice(string str, System.Action<bool> action)
+    {
+        choiceAction = action;
+        lastAction = str;
+        UpdateText();
+        transform.Find("Buttons").gameObject.SetActive(false);
+        transform.Find("ChoiceButtons").gameObject.SetActive(true);
+        inChoice = true;
+    }
+
+    public void PickChoice(bool choice)
+    {
+        inChoice = false;
+        transform.Find("Buttons").gameObject.SetActive(true);
+        transform.Find("ChoiceButtons").gameObject.SetActive(false);
+        choiceAction(choice);
     }
 }

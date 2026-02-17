@@ -52,6 +52,8 @@ public class Hero : ISerializationCallbackReceiver
     }
     public char GenderSign => female ? '♀' : '♂';
 
+    public string him => female ? "her" : "him";
+
     public void Init()
     {
         female = Utility.Rand % 2 == 0;
