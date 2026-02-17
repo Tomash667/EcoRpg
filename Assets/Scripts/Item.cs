@@ -164,6 +164,21 @@ public class Item
             desc = "better rest outside",
             type = Type.Other,
             value = 100
+        },
+        new()
+        {
+            name = "pickaxe",
+            desc = "miner's tool",
+            type = Type.Other,
+            value = 25
+        },
+        new()
+        {
+            name = "gold nugget",
+            desc = "treasure",
+            type = Type.Other,
+            value = 50,
+            shop = false
         }
     };
 }

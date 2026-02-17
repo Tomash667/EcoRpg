@@ -149,6 +149,12 @@ public class Game : MonoBehaviour
         player.energy -= 10;
 
         int c = Random.Range(0, 10);
+
+#if UNITY_EDITOR
+        if (Input.GetKey(KeyCode.Alpha9))
+            c = 9;
+#endif
+
         if (c < chance)
         {
             Enemy enemy = Enemy.enemies.RandomItem(x => x.location == location);
@@ -205,7 +211,7 @@ public class Game : MonoBehaviour
             else
                 lastAction += " You run away defeated.";
         }
-        else if (c == 0 && location == "Forest")
+        else if (c == 9 && location == "Forest")
         {
             // 1-3 herbs (~1.5)
             int count = (Utility.Rand % 4) switch
@@ -217,6 +223,25 @@ public class Game : MonoBehaviour
             Item herb = Item.Get("herb");
             player.AddItem(herb, count);
             lastAction = $"You explore {location.ToLower()} and find {Utility.Plural(herb.name, count)}.";
+        }
+        else if (c == 9 && location == "Mountains")
+        {
+            if (player.HaveItem("pickaxe"))
+            {
+                // 1-4 gold nuggets (~3.16)
+                int count = (Utility.Rand % 6) switch
+                {
+                    1 or 2 => 2,
+                    3 or 4 => 3,
+                    5 => 4,
+                    _ => 1,
+                };
+                Item nugget = Item.Get("gold nugget");
+                player.AddItem(nugget, count);
+                lastAction = $"You explore {location.ToLower()} and find small gold vein. You mine {Utility.Plural(nugget.name, count)}.";
+            }
+            else
+                lastAction = $"You explore {location.ToLower()} and find small gold vein but you don't have pickaxe...";
         }
         else
             lastAction = $"You explore {location.ToLower()} but find nothing interesting.";

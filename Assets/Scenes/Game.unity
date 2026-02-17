@@ -4959,11 +4959,11 @@ MonoBehaviour:
   m_Content: {fileID: 581306380}
   m_Horizontal: 1
   m_Vertical: 1
-  m_MovementType: 1
+  m_MovementType: 2
   m_Elasticity: 0.1
   m_Inertia: 1
   m_DecelerationRate: 0.135
-  m_ScrollSensitivity: 1
+  m_ScrollSensitivity: 10
   m_Viewport: {fileID: 1136141280}
   m_HorizontalScrollbar: {fileID: 1229134894}
   m_VerticalScrollbar: {fileID: 2090001294}
@@ -7734,11 +7734,11 @@ MonoBehaviour:
   m_Content: {fileID: 1393729052}
   m_Horizontal: 1
   m_Vertical: 1
-  m_MovementType: 1
+  m_MovementType: 2
   m_Elasticity: 0.1
   m_Inertia: 1
   m_DecelerationRate: 0.135
-  m_ScrollSensitivity: 1
+  m_ScrollSensitivity: 10
   m_Viewport: {fileID: 610834435}
   m_HorizontalScrollbar: {fileID: 156496947}
   m_VerticalScrollbar: {fileID: 421027938}
@@ -13197,6 +13197,7 @@ MonoBehaviour:
     name: 
     weaponName: 
     armorName: 
+    shieldName: 
     level: 1
     exp: 0
     hp: 100
@@ -13292,11 +13293,11 @@ MonoBehaviour:
   m_Content: {fileID: 1250981559}
   m_Horizontal: 1
   m_Vertical: 1
-  m_MovementType: 1
+  m_MovementType: 2
   m_Elasticity: 0.1
   m_Inertia: 1
   m_DecelerationRate: 0.135
-  m_ScrollSensitivity: 1
+  m_ScrollSensitivity: 10
   m_Viewport: {fileID: 1134599171}
   m_HorizontalScrollbar: {fileID: 1512438695}
   m_VerticalScrollbar: {fileID: 1077543926}
@@ -14036,11 +14037,11 @@ MonoBehaviour:
   m_Content: {fileID: 1964296165}
   m_Horizontal: 1
   m_Vertical: 1
-  m_MovementType: 1
+  m_MovementType: 2
   m_Elasticity: 0.1
   m_Inertia: 1
   m_DecelerationRate: 0.135
-  m_ScrollSensitivity: 1
+  m_ScrollSensitivity: 10
   m_Viewport: {fileID: 49795905}
   m_HorizontalScrollbar: {fileID: 568244032}
   m_VerticalScrollbar: {fileID: 17474205}
@@ -14145,11 +14146,11 @@ MonoBehaviour:
   m_Content: {fileID: 1101901916}
   m_Horizontal: 1
   m_Vertical: 1
-  m_MovementType: 1
+  m_MovementType: 2
   m_Elasticity: 0.1
   m_Inertia: 1
   m_DecelerationRate: 0.135
-  m_ScrollSensitivity: 1
+  m_ScrollSensitivity: 10
   m_Viewport: {fileID: 368986214}
   m_HorizontalScrollbar: {fileID: 1045699220}
   m_VerticalScrollbar: {fileID: 81750826}
@@ -14290,11 +14291,11 @@ MonoBehaviour:
   m_Content: {fileID: 485345043}
   m_Horizontal: 1
   m_Vertical: 1
-  m_MovementType: 1
+  m_MovementType: 2
   m_Elasticity: 0.1
   m_Inertia: 1
   m_DecelerationRate: 0.135
-  m_ScrollSensitivity: 1
+  m_ScrollSensitivity: 10
   m_Viewport: {fileID: 1513554329}
   m_HorizontalScrollbar: {fileID: 1725192221}
   m_VerticalScrollbar: {fileID: 1619220501}
@@ -18231,11 +18232,11 @@ MonoBehaviour:
   m_Content: {fileID: 482110679}
   m_Horizontal: 1
   m_Vertical: 1
-  m_MovementType: 1
+  m_MovementType: 2
   m_Elasticity: 0.1
   m_Inertia: 1
   m_DecelerationRate: 0.135
-  m_ScrollSensitivity: 1
+  m_ScrollSensitivity: 10
   m_Viewport: {fileID: 1369457045}
   m_HorizontalScrollbar: {fileID: 1776457616}
   m_VerticalScrollbar: {fileID: 1703019819}
@@ -18492,11 +18493,11 @@ MonoBehaviour:
   m_Content: {fileID: 1800490069}
   m_Horizontal: 1
   m_Vertical: 1
-  m_MovementType: 1
+  m_MovementType: 2
   m_Elasticity: 0.1
   m_Inertia: 1
   m_DecelerationRate: 0.135
-  m_ScrollSensitivity: 1
+  m_ScrollSensitivity: 10
   m_Viewport: {fileID: 1732427296}
   m_HorizontalScrollbar: {fileID: 388755396}
   m_VerticalScrollbar: {fileID: 415008598}
