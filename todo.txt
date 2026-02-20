@@ -1,3 +1,11 @@
+tiled map
+tiles: plains, forest, mountain
+locations: city (1), village (4), mine, sawmill
+cave, dungeon, sewers
+travel takes time -> eat supplies
+
+
+
 hero:
 + classes
 + races
@@ -21,7 +29,6 @@ hero:
 + guild
 	rank (copper, silver, gold)
 	register
-+ spotted enemy
 + quests
 	tiers: some easy, some medium, some hard
 	refresh over time
@@ -42,7 +49,17 @@ hero:
 	holy vs undead
 + adventurers potential (1-broken x0.25, 3-commoner x1, 5-adventurer x1.5, 7-hero x2.25, 10-chosen one x5)
 	soft skill cap
-
+* tavern -> celebrate finished quest
+	major kingdom quest -> feast
+	
+events:
++ spotted enemy
++ free person for hire (foreman, geomancer etc)
++ mine
+	good (mother lode, gems, new vein, good ore quality, technology/tools efficiency, veteran miner training)
+	neutral (surge of workers, royal inspection, ancient ruins)
+	bad (tunnel collapse, flooding, forged deed, cursed -> bad luck)
+	
 ui:
 * text colors
 * images
@@ -50,6 +67,15 @@ ui:
 investments:
 + cottage/big house/mansion
 + manage mine/sawmill
++ sawmill upgrades
+	make charcoal
+	river powered saw
+	replanting
++ mine upgrades
+	bloomery
+	blast furnace
+	engineer overseer
+	geomancer
 
 skills:
 + management
@@ -60,6 +86,8 @@ skills:
 	takes time
 	portable item
 	house alchemy lab bonus
++ crafting
+	dragon hide -> armor
 
 technology
 + blast furnace
@@ -70,15 +98,11 @@ races:
 + demons (export sex toys, lube, sex skill teachers)
 
 world:
++ 2d maps with tiles (plains, forest, mountains)
 + king -> duke -> baron -> village elder
 + regions
 + countries
 + continents
 + buy region map
 + sell region map after 100% discovery
-
-events:
-+ mine
-	good (mother lode, gems, new vein, good ore quality, technology/tools efficiency, veteran miner training)
-	neutral (surge of workers, royal inspection, ancient ruins)
-	bad (tunnel collapse, flooding, forged deed, cursed -> bad luck)
++ region statistics: safety, population

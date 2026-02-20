@@ -26,6 +26,20 @@ public static class Extensions
         return Utility.Random(range.x, range.y);
     }
 
+    public static T WeightedRandom<T>(this Dictionary<T, int> values)
+    {
+        int total = values.Values.Sum();
+        int c = Utility.Rand % total;
+        int k = 0;
+        foreach ((T t, int weight) in values)
+        {
+            k += weight;
+            if (c < k)
+                return t;
+        }
+        return values.First().Key;
+    }
+
     public static void Shuffle<T>(this IList<T> list)
     {
         int n = list.Count;
