@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 [Serializable]
@@ -83,6 +84,16 @@ public class World
         return x >= 0 && x < sizeX && y >= 0 && y < sizeY;
     }
 
+    public static int CalculateDistance(Vector2Int a, Vector2Int b)
+    {
+        Vector2Int dist = a - b;
+        int distX = Mathf.Abs(dist.x);
+        int distY = Mathf.Abs(dist.y);
+        int diagonalDist = Mathf.Min(distX, distY);
+        int straightDist = Mathf.Max(distX, distY) - diagonalDist;
+        return diagonalDist * 15 + straightDist * 10;
+    }
+
     private Vector2Int FindMatchingTile(Vector2Int startPos, Func<Vector2Int, bool> pred)
     {
         // bounds check for startPos
@@ -125,5 +136,96 @@ public class World
         }
 
         return new Vector2Int(-1, -1);
+    }
+
+    // Team move slower, need to forage for food
+    private int RationsToSpeed(int rations, int teamSize)
+    {
+        if (rations == 0)
+            return 5;
+        else if (rations < teamSize)
+            return 5 + (int)(5f * rations / teamSize);
+        else
+            return 10;
+    }
+
+    public int CalculateTravelDays(Vector2Int pt)
+    {
+        Game game = Global.Game;
+        int dist = CalculateDistance(currentPt, pt);
+        int rations = game.CountTeamItem(Item.Get("rations"));
+        int teamSize = game.Team.Count();
+        int speed = RationsToSpeed(rations, teamSize);
+        int days = 0, hour = game.hour;
+        int energy = game.player.energy;
+
+        void NextDay()
+        {
+            hour = 8;
+            ++days;
+            rations -= teamSize;
+            speed = RationsToSpeed(rations, teamSize);
+            energy = 100;
+        }
+
+        while (dist > 0)
+        {
+            int hours = 4;
+            if (dist == 5 && speed == 10)
+                hours = 2;
+
+            if (hour + hours >= 24 || energy < 10)
+                NextDay();
+
+            dist -= speed;
+            energy -= 10;
+            hour += hours;
+            if (hour == 24)
+                NextDay();
+        }
+
+        return days;
+    }
+
+    public void Travel(Vector2Int pt)
+    {
+        Game game = Global.Game;
+        Item rationsItem = Item.Get("rations");
+        int dist = CalculateDistance(currentPt, pt);
+        int rations = game.CountTeamItem(rationsItem);
+        int teamSize = game.Team.Count();
+        int speed = RationsToSpeed(rations, teamSize);
+
+        void NextDay()
+        {
+            game.hour = 8;
+            ++game.day;
+            game.OnNewDay();
+            game.RemoveTeamItem(rationsItem, teamSize);
+            rations -= teamSize;
+            speed = RationsToSpeed(rations, teamSize);
+            foreach (Hero hero in game.Team)
+                hero.hp = hero.hpMax;
+            game.player.energy = 100;
+        }
+
+        while (dist > 0)
+        {
+            int hours = 4;
+            if (dist == 5 && speed == 10)
+                hours = 2;
+
+            if (game.hour + hours >= 24 || game.player.energy < 10)
+                NextDay();
+
+            dist -= speed;
+            game.hour += hours;
+            game.player.energy -= 10;
+            if (game.hour == 24)
+                NextDay();
+        }
+
+        currentPt = pt;
+        location = map[pt.x + pt.y * sizeX];
     }
 }

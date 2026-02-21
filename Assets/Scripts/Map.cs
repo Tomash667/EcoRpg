@@ -82,8 +82,8 @@ public class Map : MonoBehaviour
             arrow.gameObject.SetActive(true);
             arrow.SetPosition(currentPos, targetPos);
 
-            int dist = CalculateDistance(world.currentPt, targetPt);
-            int days = dist / 40;
+            int dist = World.CalculateDistance(world.currentPt, targetPt);
+            int days = world.CalculateTravelDays(targetPt);
             string daysText;
             if (days == 0)
                 daysText = "less then day";
@@ -111,15 +111,5 @@ public class Map : MonoBehaviour
         int y = Mathf.FloorToInt(dy / tileSize);
 
         return new Vector2Int(x, y);
-    }
-
-    private int CalculateDistance(Vector2Int a, Vector2Int b)
-    {
-        Vector2Int dist = a - b;
-        int distX = Mathf.Abs(dist.x);
-        int distY = Mathf.Abs(dist.y);
-        int diagonalDist = Mathf.Min(distX, distY);
-        int straightDist = Mathf.Max(distX, distY) - diagonalDist;
-        return diagonalDist * 15 + straightDist * 10;
     }
 }

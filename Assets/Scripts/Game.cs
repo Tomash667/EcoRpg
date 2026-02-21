@@ -29,9 +29,7 @@ public class Game : MonoBehaviour
     private string lastAction;
     private bool inChoice;
 
-    public GameUI Ui => ui;
-
-    private IEnumerable<Hero> Team
+    public IEnumerable<Hero> Team
     {
         get
         {
@@ -268,13 +266,6 @@ public class Game : MonoBehaviour
 
     public void Travel()
     {
-        if (player.energy < 10)
-        {
-            lastAction = "You are too tired to travel.";
-            UpdateText();
-            return;
-        }
-
         map.Show();
         ui.ShowDialog(map.gameObject);
     }
@@ -287,10 +278,46 @@ public class Game : MonoBehaviour
             return;
         }
 
-        world.currentPt = pt;
-        world.location = world.map[pt.x + pt.y * World.sizeX];
-        player.energy -= 10;
+        world.Travel(pt);
         lastAction = $"You travel to {world.location.AsString()}.";
+        OnChangeLocation();
+        ui.CloseDialog();
+    }
+
+    public void EnterSewers()
+    {
+        if (player.energy < 10)
+        {
+            lastAction = "You are too tired to travel.";
+            UpdateText();
+            return;
+        }
+
+        player.energy -= 10;
+        lastAction = "You enter sewers.";
+        world.location = TileType.Sewers;
+        AddHour();
+        OnChangeLocation();
+    }
+
+    public void ExitToCity()
+    {
+        if (player.energy < 10)
+        {
+            lastAction = "You are too tired to travel.";
+            UpdateText();
+            return;
+        }
+
+        player.energy -= 10;
+        lastAction = "You exit to city.";
+        world.location = TileType.City;
+        AddHour();
+        OnChangeLocation();
+    }
+
+    private void OnChangeLocation()
+    {
         if (world.location == TileType.City)
         {
             if (player.goldWaiting != 0)
@@ -303,10 +330,9 @@ public class Game : MonoBehaviour
             foreach (Hero ally in allies)
                 ally.BuyItems();
         }
+
         UpdateButtons();
-        AddHour();
         UpdateText();
-        ui.CloseDialog();
     }
 
     public void Shop()
@@ -840,17 +866,19 @@ public class Game : MonoBehaviour
             player.energy = Mathf.Min(player.energy + energy, 100);
         }
 
-        int income = player.properties.Sum(x => x.income);
-        if (income > 0)
+        OnNewDay();
+
+        if (player.goldWaiting > 0 && world.location == TileType.City)
         {
-            if (world.location == TileType.City)
-            {
-                lastAction += $" You receive {income} gold from your properties.";
-                player.AddGold(income);
-            }
-            else
-                player.goldWaiting += income;
+            lastAction += $" You receive {player.goldWaiting} gold from your properties.";
+            player.AddGold(player.goldWaiting);
+            player.goldWaiting = 0;
         }
+    }
+
+    public void OnNewDay()
+    {
+        player.goldWaiting += player.properties.Sum(x => x.income);
     }
 
     public int CountTeamItem(Item item)
@@ -858,7 +886,7 @@ public class Game : MonoBehaviour
         return Team.Sum(x => x.CountItem(item));
     }
 
-    private int RemoveTeamItem(Item item, int count)
+    public int RemoveTeamItem(Item item, int count)
     {
         int removed = 0;
 
@@ -942,8 +970,11 @@ public class Game : MonoBehaviour
         buttons.Find("BtWork").gameObject.SetActive(inCity);
         buttons.Find("BtRecruit").gameObject.SetActive(inCity);
         buttons.Find("BtProperties").gameObject.SetActive(inCity);
+        buttons.Find("BtSewers").gameObject.SetActive(inCity);
 
         buttons.Find("BtForage").gameObject.SetActive(world.location == TileType.Forest);
+
+        buttons.Find("BtCity").gameObject.SetActive(world.location == TileType.Sewers);
 
         GameObject btAlly = buttons.Find("BtAlly").gameObject;
         if (allies.Count < 1)

@@ -1,6 +1,3 @@
-travel takes time -> eat supplies
-no supplies -> slower travel
-
 hero:
 + classes
 + races
@@ -101,9 +98,9 @@ world:
 + buy region map
 + sell region map after 100% discovery
 + region statistics: safety, population
-+ rain -> flood (depends on rain strength, paved roads, severs, dungeons)
++ rain -> flood (depends on rain strength, paved roads, sewers, dungeons)
 + travel animation
 + pathfinding
-+ roads, rivers, bridges, lakes, sea
++ roads, rivers, bridges, lakes, sea, difficult terrain
 + travel speed (horse, magic)
 + teleport
