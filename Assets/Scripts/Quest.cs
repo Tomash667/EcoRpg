@@ -14,7 +14,8 @@ public class Quest : ISerializationCallbackReceiver
     public Enemy enemy;
     public Item item;
     public Type type;
-    public string enemyName, itemName, location;
+    public TileType location;
+    public string enemyName, itemName;
     public int count, max;
 
     public int Reward
@@ -34,7 +35,7 @@ public class Quest : ISerializationCallbackReceiver
             return type switch
             {
                 Type.Defeat => $"Defeat {count}/{max} {Utility.Plural(enemy.name)}",
-                Type.Clear => $"Clear {location.ToLower()} ({Mathf.Min(100 * count / max, 100)}%)",
+                Type.Clear => $"Clear {location.AsString()} ({Mathf.Min(100 * count / max, 100)}%)",
                 Type.Gather => $"Gather {Global.Player.CountItem(item)}/{max} {Utility.Plural(item.name)}",
                 _ => string.Empty
             };
@@ -47,7 +48,7 @@ public class Quest : ISerializationCallbackReceiver
             return type switch
             {
                 Type.Defeat => $"Defeat {Utility.Plural(enemy.name, max)}",
-                Type.Clear => $"Clear {location.ToLower()}",
+                Type.Clear => $"Clear {location.AsString()}",
                 Type.Gather => $"Gather {Utility.Plural(item.name, max)}",
                 _ => string.Empty
             };

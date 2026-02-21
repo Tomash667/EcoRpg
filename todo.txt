@@ -1,10 +1,5 @@
-tiled map
-tiles: plains, forest, mountain
-locations: city (1), village (4), mine, sawmill
-cave, dungeon, sewers
 travel takes time -> eat supplies
-
-
+no supplies -> slower travel
 
 hero:
 + classes
@@ -106,3 +101,9 @@ world:
 + buy region map
 + sell region map after 100% discovery
 + region statistics: safety, population
++ rain -> flood (depends on rain strength, paved roads, severs, dungeons)
++ travel animation
++ pathfinding
++ roads, rivers, bridges, lakes, sea
++ travel speed (horse, magic)
++ teleport

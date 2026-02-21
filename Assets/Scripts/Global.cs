@@ -45,7 +45,9 @@ public class Global : MonoBehaviour
 
     public bool CanContinueGame => saveState.currentIndex != 0 && File.Exists($"{SavesDir}/{saveState.currentIndex}.sav");
     public static Game Game => Instance.game;
+    public static World World => Instance.game.world;
     public static Player Player => Instance.game.player;
+    public static TileType Location => Instance.game.world.location;
 
     private void Init()
     {

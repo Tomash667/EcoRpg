@@ -5,23 +5,23 @@ using TMPro;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 
 public class Game : MonoBehaviour
 {
     private const int MaxAllies = 2;
 
+    public World world;
     public Player player;
     public List<Hero> allies;
     public List<Quest> availableQuests;
     [SerializeReference]
     public Quest activeQuest;
-    public string location;
     public int day, hour;
     public bool dragonDefeated;
 
     private GameUI ui;
-    private GameObject shop, character, allyScreen, giveAllyItems, activeInventory, properiesScreen, guilScreend, travelScreen;
+    private GameObject shop, character, allyScreen, giveAllyItems, activeInventory, properiesScreen, guildScreen;
+    private Map map;
     private TMP_Text text;
     private Hero activeAlly;
     private readonly StringBuilder sb = new();
@@ -29,7 +29,7 @@ public class Game : MonoBehaviour
     private string lastAction;
     private bool inChoice;
 
-    private readonly string[] allLocations = new[] { "City", "Forest", "Mountains", "Dungeon", "Cave", "Sewers" };
+    public GameUI Ui => ui;
 
     private IEnumerable<Hero> Team
     {
@@ -50,25 +50,15 @@ public class Game : MonoBehaviour
         allyScreen = transform.Find("Ally").gameObject;
         giveAllyItems = transform.Find("GiveItems").gameObject;
         properiesScreen = transform.Find("Properties").gameObject;
-        guilScreend = transform.Find("Guild").gameObject;
-        travelScreen = transform.Find("Travel").gameObject;
+        guildScreen = transform.Find("Guild").gameObject;
+        map = transform.Find("Map").GetComponent<Map>();
 
         Global global = Global.Instance;
-        if (global.loadGame)
-        {
-            global.loadGame = false;
-            LoadGame();
-        }
-        else
-        {
-            player = new() { name = global.playerName, female = global.playerFemale };
-            player.Init();
-            allies = new();
-            location = "City";
-            day = 1;
-            hour = 8;
-        }
         global.game = this;
+        if (global.loadGame)
+            LoadGame();
+        else
+            NewGame();
         UpdateText();
         UpdateButtons();
     }
@@ -81,22 +71,9 @@ public class Game : MonoBehaviour
 #endif
 
         if (ui.HasDialog)
-        {
-            if (ui.CurrentDialog == travelScreen)
-            {
-                if (Input.GetKeyDown(KeyCode.Alpha1) && location != "City")
-                    Travel("City");
-                if (Input.GetKeyDown(KeyCode.Alpha2) && location != "Forest")
-                    Travel("Forest");
-                if (Input.GetKeyDown(KeyCode.Alpha3) && location != "Mountains")
-                    Travel("Mountains");
-                if (Input.GetKeyDown(KeyCode.Alpha4) && location != "Dungeon")
-                    Travel("Dungeon");
-                if (Input.GetKeyDown(KeyCode.Alpha5) && location != "Cave")
-                    Travel("Cave");
-            }
-        }
-        else if (inChoice)
+            return;
+
+        if (inChoice)
         {
             if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
                 PickChoice(true);
@@ -117,7 +94,7 @@ public class Game : MonoBehaviour
                 Rest();
             if (Input.GetKeyDown(KeyCode.T))
                 Travel();
-            if (location == "City")
+            if (world.location == TileType.City)
             {
                 if (Input.GetKeyDown(KeyCode.G))
                     Guild();
@@ -128,7 +105,7 @@ public class Game : MonoBehaviour
                 if (Input.GetKeyDown(KeyCode.S))
                     Shop();
             }
-            else if (location == "Forest")
+            else if (world.location == TileType.Forest)
             {
                 if (Input.GetKeyDown(KeyCode.F))
                     Forage();
@@ -151,9 +128,11 @@ public class Game : MonoBehaviour
         }
 
         int chance = 7;
-        if (location == "Sewers" && !(activeQuest != null && activeQuest.type == Quest.Type.Clear && activeQuest.location == location && activeQuest.count < activeQuest.max))
+        if (world.location == TileType.Sewers && !(activeQuest != null && activeQuest.type == Quest.Type.Clear && activeQuest.location == world.location && activeQuest.count < activeQuest.max))
             chance = 0;
-        if (location == "Cave" && dragonDefeated)
+        if (world.location == TileType.Cave && dragonDefeated)
+            chance = 0;
+        if (world.location == TileType.Plains)
             chance = 0;
         player.energy -= 10;
 
@@ -166,17 +145,17 @@ public class Game : MonoBehaviour
 
         if (c < chance)
         {
-            Enemy enemy = Enemy.enemies.RandomItem(x => x.location == location);
+            Enemy enemy = Enemy.enemies.RandomItem(x => x.location == world.location);
             int count = (Utility.Rand % 4) switch
             {
                 1 or 2 => 2,
                 3 => 3,
                 _ => 1,
             };
-            if (location == "Cave")
+            if (world.location == TileType.Cave)
                 count = 1;
 
-            lastAction = $"You explore {location.ToLower()} and {Utility.PluralText(enemy.name, count)} attack you.";
+            lastAction = $"You explore {world.location.AsString()} and {Utility.PluralText(enemy.name, count)} attack you.";
             if (Combat(enemy, count))
             {
                 if (activeQuest != null)
@@ -188,12 +167,12 @@ public class Game : MonoBehaviour
                     }
                     else if (activeQuest.type == Quest.Type.Clear)
                     {
-                        if (activeQuest.location == location)
+                        if (activeQuest.location == world.location)
                             activeQuest.count += count;
                     }
                 }
 
-                if (location == "Cave")
+                if (world.location == TileType.Cave)
                     dragonDefeated = true;
 
                 // gold
@@ -220,7 +199,7 @@ public class Game : MonoBehaviour
             else
                 lastAction += " You run away defeated.";
         }
-        else if (c == 9 && location == "Forest")
+        else if (c == 9 && world.location == TileType.Forest)
         {
             // 1-3 herbs (~1.5)
             int count = (Utility.Rand % 4) switch
@@ -231,9 +210,9 @@ public class Game : MonoBehaviour
             };
             Item herb = Item.Get("herb");
             player.AddItem(herb, count);
-            lastAction = $"You explore {location.ToLower()} and find {Utility.Plural(herb.name, count)}.";
+            lastAction = $"You explore {world.location.AsString()} and find {Utility.Plural(herb.name, count)}.";
         }
-        else if (c == 9 && location == "Mountains")
+        else if (c == 9 && world.location == TileType.Mountains)
         {
             if (player.HaveItem("pickaxe"))
             {
@@ -247,13 +226,13 @@ public class Game : MonoBehaviour
                 };
                 Item nugget = Item.Get("gold nugget");
                 player.AddItem(nugget, count);
-                lastAction = $"You explore {location.ToLower()} and find small gold vein. You mine {Utility.Plural(nugget.name, count)}.";
+                lastAction = $"You explore {world.location.AsString()} and find small gold vein. You mine {Utility.Plural(nugget.name, count)}.";
             }
             else
-                lastAction = $"You explore {location.ToLower()} and find small gold vein but you don't have pickaxe...";
+                lastAction = $"You explore {world.location.AsString()} and find small gold vein but you don't have pickaxe...";
         }
         else
-            lastAction = $"You explore {location.ToLower()} but find nothing interesting.";
+            lastAction = $"You explore {world.location.AsString()} but find nothing interesting.";
 
         AddHour();
         UpdateText();
@@ -296,18 +275,23 @@ public class Game : MonoBehaviour
             return;
         }
 
-        foreach (string loc in allLocations)
-            travelScreen.transform.Find(loc).GetComponent<Button>().interactable = location != loc;
-
-        ui.ShowDialog(travelScreen);
+        map.Show();
+        ui.ShowDialog(map.gameObject);
     }
 
-    public void Travel(string where)
+    public void Travel(Vector2Int pt)
     {
+        if (pt == world.currentPt)
+        {
+            ui.CloseDialog();
+            return;
+        }
+
+        world.currentPt = pt;
+        world.location = world.map[pt.x + pt.y * World.sizeX];
         player.energy -= 10;
-        lastAction = $"You travel to {where.ToLower()}.";
-        location = where;
-        if (location == "City")
+        lastAction = $"You travel to {world.location.AsString()}.";
+        if (world.location == TileType.City)
         {
             if (player.goldWaiting != 0)
             {
@@ -661,7 +645,7 @@ public class Game : MonoBehaviour
     private void UpdateText()
     {
         sb.Clear();
-        sb.Append($"{location}   Day: {day} {hour}:00   Health: {player.hp}/{player.hpMax}   Energy: {player.energy}/100   Gold: {player.gold}");
+        sb.Append($"{world.location.AsString().ToUpper1()}   Day: {day} {hour}:00   Health: {player.hp}/{player.hpMax}   Energy: {player.energy}/100   Gold: {player.gold}");
         if (player.goldReceived != 0)
         {
             sb.Append($"({player.goldReceived:+0;-0})");
@@ -789,7 +773,7 @@ public class Game : MonoBehaviour
     {
         ++day;
         hour = 8;
-        if (location == "City" && player.properties.Any(x => x.name == "House"))
+        if (world.location == TileType.City && player.properties.Any(x => x.name == "House"))
         {
             player.hp = player.hpMax;
             player.energy = 100;
@@ -797,7 +781,7 @@ public class Game : MonoBehaviour
                 ally.hp = ally.hpMax;
             lastAction += "You rest in your house.";
         }
-        else if (location == "City" && player.gold > 0)
+        else if (world.location == TileType.City && player.gold > 0)
         {
             player.hp = player.hpMax;
             player.energy = 100;
@@ -820,9 +804,9 @@ public class Game : MonoBehaviour
             }
             else
             {
-                if (location == "City")
+                if (world.location == TileType.City)
                     where = "on street";
-                else if (location == "Forest")
+                else if (world.location == TileType.Plains || world.location == TileType.Forest)
                     where = "on grass";
                 else
                     where = "on ground";
@@ -859,7 +843,7 @@ public class Game : MonoBehaviour
         int income = player.properties.Sum(x => x.income);
         if (income > 0)
         {
-            if (location == "City")
+            if (world.location == TileType.City)
             {
                 lastAction += $" You receive {income} gold from your properties.";
                 player.AddGold(income);
@@ -867,6 +851,11 @@ public class Game : MonoBehaviour
             else
                 player.goldWaiting += income;
         }
+    }
+
+    public int CountTeamItem(Item item)
+    {
+        return Team.Sum(x => x.CountItem(item));
     }
 
     private int RemoveTeamItem(Item item, int count)
@@ -910,6 +899,19 @@ public class Game : MonoBehaviour
         return removed;
     }
 
+    private void NewGame()
+    {
+        Global global = Global.Instance;
+        player = new() { name = global.playerName, female = global.playerFemale };
+        player.Init();
+        allies = new();
+        world = new();
+        world.Init();
+        map.Build();
+        day = 1;
+        hour = 8;
+    }
+
     private void SaveGame()
     {
         string json = JsonUtility.ToJson(this);
@@ -918,8 +920,11 @@ public class Game : MonoBehaviour
 
     private void LoadGame()
     {
-        string json = Global.Instance.GetSaveData();
+        Global global = Global.Instance;
+        global.loadGame = false;
+        string json = global.GetSaveData();
         JsonUtility.FromJsonOverwrite(json, this);
+        map.Build();
     }
 
     public void ExitToMenu()
@@ -930,7 +935,7 @@ public class Game : MonoBehaviour
 
     private void UpdateButtons()
     {
-        bool inCity = location == "City";
+        bool inCity = world.location == TileType.City;
         Transform buttons = transform.Find("Buttons");
         buttons.Find("BtShop").gameObject.SetActive(inCity);
         buttons.Find("BtGuild").gameObject.SetActive(inCity);
@@ -938,7 +943,7 @@ public class Game : MonoBehaviour
         buttons.Find("BtRecruit").gameObject.SetActive(inCity);
         buttons.Find("BtProperties").gameObject.SetActive(inCity);
 
-        buttons.Find("BtForage").gameObject.SetActive(location == "Forest");
+        buttons.Find("BtForage").gameObject.SetActive(world.location == TileType.Forest);
 
         GameObject btAlly = buttons.Find("BtAlly").gameObject;
         if (allies.Count < 1)
@@ -1011,7 +1016,7 @@ public class Game : MonoBehaviour
                 return true;
             player.AddGold(-count);
             activeAlly.gold += count;
-            if (location == "City")
+            if (world.location == TileType.City)
                 activeAlly.BuyItems();
             RefreshAllyScreen();
             UpdateText();
@@ -1088,7 +1093,7 @@ public class Game : MonoBehaviour
         UpdateGuild();
         if (doneQuest)
             UpdateText();
-        ui.ShowDialog(guilScreend);
+        ui.ShowDialog(guildScreen);
     }
 
     private void UpdateGuild()
@@ -1103,7 +1108,7 @@ public class Game : MonoBehaviour
             guildText = string.Empty;
 
         guildText += $"Current quest: {(activeQuest != null ? activeQuest.Text : "none")}";
-        guilScreend.transform.Find("Text").GetComponent<TMP_Text>().text = guildText;
+        guildScreen.transform.Find("Text").GetComponent<TMP_Text>().text = guildText;
 
         availableQuests ??= new();
         while (availableQuests.Count < 3)
@@ -1114,7 +1119,7 @@ public class Game : MonoBehaviour
             {
             case 0:
                 quest.type = Quest.Type.Clear;
-                quest.location = "Sewers";
+                quest.location = TileType.Sewers;
                 quest.max = 10;
                 break;
             case 1:
@@ -1133,7 +1138,7 @@ public class Game : MonoBehaviour
                 availableQuests.Add(quest);
         }
 
-        Transform content = guilScreend.transform.Find("List/Viewport/Content");
+        Transform content = guildScreen.transform.Find("List/Viewport/Content");
         foreach (Transform child in content)
             Destroy(child.gameObject);
 
@@ -1175,7 +1180,7 @@ public class Game : MonoBehaviour
         Item herb = Item.Get("herb");
         player.energy -= 10;
         player.AddItem(herb, count);
-        lastAction = $"You forage in {location.ToLower()} and find {Utility.Plural(herb.name, count)}.";
+        lastAction = $"You forage in {world.location.AsString()} and find {Utility.Plural(herb.name, count)}.";
         AddHour();
         UpdateText();
     }
@@ -1217,7 +1222,7 @@ public class Game : MonoBehaviour
         foreach (Hero ally in allies)
         {
             ally.gold += share;
-            if (location == "City")
+            if (world.location == TileType.City)
                 ally.BuyItems();
         }
 

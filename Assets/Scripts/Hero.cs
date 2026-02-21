@@ -186,7 +186,7 @@ public class Hero : ISerializationCallbackReceiver
         case Item.Type.Weapon:
             if (weapon != null)
             {
-                if (Global.Game.location == "City")
+                if (Global.Location == TileType.City)
                     gold += weapon.value / 2;
                 else
                     AddItem(weapon);
@@ -196,7 +196,7 @@ public class Hero : ISerializationCallbackReceiver
         case Item.Type.Armor:
             if (armor != null)
             {
-                if (Global.Game.location == "City")
+                if (Global.Location == TileType.City)
                     gold += armor.value / 2;
                 else
                     AddItem(armor);
@@ -206,7 +206,7 @@ public class Hero : ISerializationCallbackReceiver
         case Item.Type.Shield:
             if (shield != null)
             {
-                if (Global.Game.location == "City")
+                if (Global.Location == TileType.City)
                     gold += shield.value / 2;
                 else
                     AddItem(shield);

@@ -1,10 +1,9 @@
-using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class Map : MonoBehaviour
 {
-    public const int sizeX = 20, sizeY = 10;
     public const float tileSize = 50f;
     public readonly Vector2 gridOrigin = new(-609f, 263f);
 
@@ -13,89 +12,40 @@ public class Map : MonoBehaviour
 
     private Arrow arrow;
     private GameObject cursor, cursor2;
+    private TMP_Text text;
     private RectTransform rectTransform;
     private Vector2 currentPos;
-    private Vector2Int currentPt;
 
-    public void Start()
+    public void Build()
     {
-        TileType[] map = new TileType[sizeX * sizeY];
-        for (int y = 0; y < sizeY; ++y)
-        {
-            for (int x = 0; x < sizeX; ++x)
-            {
-                TileType tileType = (Utility.Rand % 5) switch
-                {
-                    2 or 3 => TileType.Forest,
-                    4 => TileType.Mountains,
-                    _ => TileType.Plains
-                };
-                map[x + y * sizeX] = tileType;
-            }
-        }
-
-        Vector2Int center = new(sizeX / 2, sizeY / 2);
-        map[center.x + center.y * sizeX] = TileType.Plains;
-        map[center.x - 1 + center.y * sizeX] = TileType.Plains;
-        map[center.x + 1 + center.y * sizeX] = TileType.Plains;
-        map[center.x + (center.y - 1) * sizeX] = TileType.Plains;
-        map[center.x + (center.y + 1) * sizeX] = TileType.Plains;
-
-        Dictionary<TileType, int> influence = new();
-        for (int y = 0; y < sizeY; ++y)
-        {
-            for (int x = 0; x < sizeX; ++x)
-            {
-                void AddInfluence(int x, int y, int value)
-                {
-                    if (x >= 0 && y >= 0 && x < sizeX && y < sizeY)
-                    {
-                        TileType tileType = map[x + y * sizeX];
-                        influence[tileType] = influence.GetValueOrDefault(tileType) + value;
-                    }
-                }
-
-                influence.Clear();
-                AddInfluence(x, y, 5);
-                AddInfluence(x - 1, y, 3);
-                AddInfluence(x + 1, y, 3);
-                AddInfluence(x, y - 1, 3);
-                AddInfluence(x, y + 1, 3);
-                AddInfluence(x - 1, y - 1, 1);
-                AddInfluence(x - 1, y + 1, 1);
-                AddInfluence(x + 1, y - 1, 1);
-                AddInfluence(x + 1, y + 1, 1);
-                map[x + y * sizeX] = influence.WeightedRandom();
-            }
-        }
-
-        map[center.x + center.y * sizeX] = TileType.City;
-
+        TileType[] map = Global.Game.world.map;
         Transform tiles = transform.Find("Tiles");
-        for (int y = 0; y < sizeY; ++y)
+        for (int y = 0; y < World.sizeY; ++y)
         {
-            for (int x = 0; x < sizeX; ++x)
+            for (int x = 0; x < World.sizeX; ++x)
             {
                 GameObject tile = Instantiate(tilePrefab, tiles);
                 RectTransform rectTransform = tile.GetComponent<RectTransform>();
                 rectTransform.anchoredPosition = new(gridOrigin.x + tileSize * x, gridOrigin.y - tileSize * y);
                 Image image = tile.GetComponent<Image>();
-                image.sprite = sprites[(int)map[x + y * sizeX]];
+                image.sprite = sprites[(int)map[x + y * World.sizeX]];
             }
         }
 
-        currentPt = center;
-        currentPos = new(gridOrigin.x + tileSize * center.x, gridOrigin.y - tileSize * center.y);
         cursor = transform.Find("Cursor").gameObject;
-        cursor.GetComponent<RectTransform>().anchoredPosition = currentPos;
-
         cursor2 = transform.Find("Cursor2").gameObject;
-        cursor2.SetActive(false);
-
         arrow = transform.Find("Arrow").GetComponent<Arrow>();
-        arrow.gameObject.SetActive(false);
-
+        text = transform.Find("Text").GetComponent<TMP_Text>();
         rectTransform = GetComponent<RectTransform>();
+    }
+
+    public void Show()
+    {
+        Vector2Int currentPt = Global.Game.world.currentPt;
+        currentPos = new(gridOrigin.x + tileSize * currentPt.x, gridOrigin.y - tileSize * currentPt.y);
+        cursor.GetComponent<RectTransform>().anchoredPosition = currentPos;
+        cursor2.SetActive(false);
+        arrow.gameObject.SetActive(false);
     }
 
     private void Update()
@@ -107,32 +57,48 @@ public class Map : MonoBehaviour
             out Vector2 localMousePosition
         );
 
+        World world = Global.World;
         Vector2Int targetPt = LocalPosToTile(localMousePosition);
-        if (targetPt.x >= 0 && targetPt.y >= 0 && targetPt.x < sizeX && targetPt.y < sizeY && targetPt != currentPt)
+        if (World.IsInBounds(targetPt.x, targetPt.y))
         {
             if (Input.GetMouseButtonDown(0))
             {
-                currentPt = targetPt;
-                currentPos = new(gridOrigin.x + tileSize * currentPt.x, gridOrigin.y - tileSize * currentPt.y);
-                cursor.GetComponent<RectTransform>().anchoredPosition = currentPos;
-
-                cursor2.SetActive(false);
-                arrow.gameObject.SetActive(false);
+                Global.Game.Travel(targetPt);
+                return;
             }
+
+            if (targetPt == world.currentPt)
+                targetPt.x = -1;
+        }
+        else
+            targetPt.x = -1;
+
+        if (targetPt.x != -1)
+        {
+            Vector2 targetPos = new(gridOrigin.x + tileSize * targetPt.x, gridOrigin.y - tileSize * targetPt.y);
+            cursor2.GetComponent<RectTransform>().anchoredPosition = targetPos;
+            cursor2.SetActive(true);
+
+            arrow.gameObject.SetActive(true);
+            arrow.SetPosition(currentPos, targetPos);
+
+            int dist = CalculateDistance(world.currentPt, targetPt);
+            int days = dist / 40;
+            string daysText;
+            if (days == 0)
+                daysText = "less then day";
+            else if (days == 1)
+                daysText = "1 day";
             else
-            {
-                Vector2 targetPos = new(gridOrigin.x + tileSize * targetPt.x, gridOrigin.y - tileSize * targetPt.y);
-                cursor2.GetComponent<RectTransform>().anchoredPosition = targetPos;
-                cursor2.SetActive(true);
-
-                arrow.SetPosition(currentPos, targetPos);
-                arrow.gameObject.SetActive(true);
-            }
+                daysText = $"{days} days";
+            text.text = $"Rations: {Global.Game.CountTeamItem(Item.Get("rations"))}\nTarget: {world.map[targetPt.x + targetPt.y * World.sizeX]}\nDistance: {dist}km\nTravel time: {daysText}";
+            text.gameObject.SetActive(true);
         }
         else
         {
             cursor2.SetActive(false);
             arrow.gameObject.SetActive(false);
+            text.text = $"Rations: {Global.Game.CountTeamItem(Item.Get("rations"))}";
         }
     }
 
@@ -145,5 +111,15 @@ public class Map : MonoBehaviour
         int y = Mathf.FloorToInt(dy / tileSize);
 
         return new Vector2Int(x, y);
+    }
+
+    private int CalculateDistance(Vector2Int a, Vector2Int b)
+    {
+        Vector2Int dist = a - b;
+        int distX = Mathf.Abs(dist.x);
+        int distY = Mathf.Abs(dist.y);
+        int diagonalDist = Mathf.Min(distX, distY);
+        int straightDist = Mathf.Max(distX, distY) - diagonalDist;
+        return diagonalDist * 15 + straightDist * 10;
     }
 }
