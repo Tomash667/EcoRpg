@@ -43,4 +43,9 @@ public class Player : Hero
         base.OnAfterDeserialize();
         properties = savedProperties?.Select(x => Property.Get(x)).ToList();
     }
+
+    public bool HaveProperty(string name)
+    {
+        return properties.Any(x => x.name == name);
+    }
 }

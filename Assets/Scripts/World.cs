@@ -66,6 +66,8 @@ public class World
 
         map[center.x + center.y * sizeX] = TileType.City;
 
+        SpawnLocation(center, TileType.Forest, TileType.Sawmill);
+        SpawnLocation(center, TileType.Mountains, TileType.Mine);
         SpawnLocation(new Vector2Int(sizeX / 4, sizeY / 2), TileType.Forest, TileType.Dungeon);
         SpawnLocation(new Vector2Int(sizeX * 3 / 4, sizeY / 2), TileType.Mountains, TileType.Cave);
 
@@ -106,6 +108,7 @@ public class World
             return startPos;
 
         int maxRadius = Mathf.Max(sizeX, sizeY);
+        List<Vector2Int> validPoints = new();
 
         for (int r = 1; r <= maxRadius; r++)
         {
@@ -118,21 +121,24 @@ public class World
             for (int x = minX; x <= maxX; x++)
             {
                 if (IsInBounds(x, minY) && pred(new Vector2Int(x, minY)))
-                    return new Vector2Int(x, minY);
+                    validPoints.Add(new Vector2Int(x, minY));
 
                 if (IsInBounds(x, maxY) && pred(new Vector2Int(x, maxY)))
-                    return new Vector2Int(x, maxY);
+                    validPoints.Add(new Vector2Int(x, maxY));
             }
 
             // left & right columns (skip corners, already checked)
             for (int y = minY + 1; y <= maxY - 1; y++)
             {
                 if (IsInBounds(minX, y) && pred(new Vector2Int(minX, y)))
-                    return new Vector2Int(minX, y);
+                    validPoints.Add(new Vector2Int(minX, y));
 
                 if (IsInBounds(maxX, y) && pred(new Vector2Int(maxX, y)))
-                    return new Vector2Int(maxX, y);
+                    validPoints.Add(new Vector2Int(maxX, y));
             }
+
+            if (validPoints.Count > 0)
+                return validPoints.RandomItem();
         }
 
         return new Vector2Int(-1, -1);
@@ -141,7 +147,7 @@ public class World
     // Team move slower, need to forage for food
     private int RationsToSpeed(int rations, int teamSize)
     {
-        if (rations == 0)
+        if (rations <= 0)
             return 5;
         else if (rations < teamSize)
             return 5 + (int)(5f * rations / teamSize);
@@ -174,7 +180,7 @@ public class World
             if (dist == 5 && speed == 10)
                 hours = 2;
 
-            if (hour + hours >= 24 || energy < 10)
+            if (hour + hours > 24 || energy < 10)
                 NextDay();
 
             dist -= speed;
@@ -215,7 +221,7 @@ public class World
             if (dist == 5 && speed == 10)
                 hours = 2;
 
-            if (game.hour + hours >= 24 || game.player.energy < 10)
+            if (game.hour + hours > 24 || game.player.energy < 10)
                 NextDay();
 
             dist -= speed;

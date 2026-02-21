@@ -5,7 +5,7 @@ public class Enemy
 {
     public string name;
     public Vector2Int gold;
-    public TileType location;
+    public TileType[] locations;
     public int level, hp, attack, def, dex;
     public bool quest = true;
 
@@ -19,7 +19,7 @@ public class Enemy
         new()
         {
             name = "bandit",
-            location = TileType.City,
+            locations = new[] { TileType.City },
             level = 0,
             hp = 60,
             attack = 15,
@@ -30,7 +30,7 @@ public class Enemy
         new()
         {
             name = "giant rat",
-            location = TileType.Sewers,
+            locations = new[] { TileType.Sewers },
             level = 0,
             hp = 60,
             attack = 15,
@@ -41,7 +41,7 @@ public class Enemy
         new()
         {
             name = "orc",
-            location = TileType.Forest,
+            locations = new[] { TileType.Forest, TileType.Sawmill },
             level = 1,
             hp = 90,
             attack = 22,
@@ -52,7 +52,7 @@ public class Enemy
         new()
         {
             name = "elf",
-            location = TileType.Forest,
+            locations = new[] { TileType.Forest },
             level = 1,
             hp = 80,
             attack = 20,
@@ -63,7 +63,7 @@ public class Enemy
         new()
         {
             name = "minotaur",
-            location = TileType.Mountains,
+            locations = new[] { TileType.Mountains, TileType.Mine },
             level = 2,
             hp = 110,
             attack = 27,
@@ -74,7 +74,7 @@ public class Enemy
         new()
         {
             name = "harpy",
-            location = TileType.Mountains,
+            locations = new[] { TileType.Mountains },
             level = 2,
             hp = 100,
             attack = 25,
@@ -85,7 +85,7 @@ public class Enemy
         new()
         {
             name = "demon",
-            location = TileType.Dungeon,
+            locations = new[] { TileType.Dungeon },
             level = 3,
             hp = 120,
             attack = 30,
@@ -96,7 +96,7 @@ public class Enemy
         new()
         {
             name = "vampire",
-            location = TileType.Dungeon,
+            locations = new[] { TileType.Dungeon },
             level = 3,
             hp = 125,
             attack = 30,
@@ -107,7 +107,7 @@ public class Enemy
         new()
         {
             name = "dragon",
-            location = TileType.Cave,
+            locations = new[] { TileType.Cave },
             level = 10,
             hp = 250,
             attack = 62,

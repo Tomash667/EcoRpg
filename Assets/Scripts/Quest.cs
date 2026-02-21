@@ -22,10 +22,25 @@ public class Quest : ISerializationCallbackReceiver
     {
         get
         {
-            if (type == Type.Defeat)
+            switch (type)
+            {
+            case Type.Defeat:
                 return 25 * (enemy.level + 1) * max;
-            else
+            case Type.Gather:
                 return 250;
+            case Type.Clear:
+                switch (location)
+                {
+                case TileType.Sewers:
+                    return 250;
+                case TileType.Sawmill:
+                    return 500;
+                case TileType.Mine:
+                    return 750;
+                }
+                break;
+            }
+            return 0;
         }
     }
     public string Text

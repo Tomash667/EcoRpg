@@ -6,6 +6,8 @@ public enum TileType
     City,
     Dungeon,
     Cave,
+    Sawmill,
+    Mine,
     Sewers
 }
 
@@ -21,6 +23,8 @@ public static class TileTypeMethods
             TileType.City => "city",
             TileType.Dungeon => "dungeon",
             TileType.Cave => "cave",
+            TileType.Sawmill => "sawmill",
+            TileType.Mine => "mine",
             TileType.Sewers => "sewers",
             _ => $"[ERROR tileType {tileType}]"
         };

@@ -92,8 +92,10 @@ public class Game : MonoBehaviour
                 Rest();
             if (Input.GetKeyDown(KeyCode.T))
                 Travel();
-            if (world.location == TileType.City)
+
+            switch (world.location)
             {
+            case TileType.City:
                 if (Input.GetKeyDown(KeyCode.G))
                     Guild();
                 if (Input.GetKeyDown(KeyCode.P))
@@ -102,11 +104,22 @@ public class Game : MonoBehaviour
                     Work();
                 if (Input.GetKeyDown(KeyCode.S))
                     Shop();
-            }
-            else if (world.location == TileType.Forest)
-            {
+                if (Input.GetKeyDown(KeyCode.X))
+                    EnterSewers();
+                break;
+            case TileType.Forest:
                 if (Input.GetKeyDown(KeyCode.F))
                     Forage();
+                break;
+            case TileType.Sewers:
+                if (Input.GetKeyDown(KeyCode.X))
+                    EnterSewers();
+                break;
+            case TileType.Sawmill:
+            case TileType.Mine:
+                if (Input.GetKeyDown(KeyCode.W))
+                    Work();
+                break;
             }
         }
     }
@@ -126,7 +139,8 @@ public class Game : MonoBehaviour
         }
 
         int chance = 7;
-        if (world.location == TileType.Sewers && !(activeQuest != null && activeQuest.type == Quest.Type.Clear && activeQuest.location == world.location && activeQuest.count < activeQuest.max))
+        if ((world.location == TileType.Sewers || world.location == TileType.Sawmill || world.location == TileType.Mine)
+            && !(activeQuest != null && activeQuest.type == Quest.Type.Clear && activeQuest.location == world.location && activeQuest.count < activeQuest.max))
             chance = 0;
         if (world.location == TileType.Cave && dragonDefeated)
             chance = 0;
@@ -141,9 +155,9 @@ public class Game : MonoBehaviour
             c = 9;
 #endif
 
-        if (c < chance)
+        if (c < chance && Enemy.enemies.Any(x => x.locations.Contains(world.location)))
         {
-            Enemy enemy = Enemy.enemies.RandomItem(x => x.location == world.location);
+            Enemy enemy = Enemy.enemies.RandomItem(x => x.locations.Contains(world.location));
             int count = (Utility.Rand % 4) switch
             {
                 1 or 2 => 2,
@@ -153,7 +167,7 @@ public class Game : MonoBehaviour
             if (world.location == TileType.Cave)
                 count = 1;
 
-            lastAction = $"You explore {world.location.AsString()} and {Utility.PluralText(enemy.name, count)} attack you.";
+            lastAction = $"You explore the {world.location.AsString()} and {Utility.PluralText(enemy.name, count)} attack you.";
             if (Combat(enemy, count))
             {
                 if (activeQuest != null)
@@ -208,7 +222,7 @@ public class Game : MonoBehaviour
             };
             Item herb = Item.Get("herb");
             player.AddItem(herb, count);
-            lastAction = $"You explore {world.location.AsString()} and find {Utility.Plural(herb.name, count)}.";
+            lastAction = $"You explore the {world.location.AsString()} and find {Utility.Plural(herb.name, count)}.";
         }
         else if (c == 9 && world.location == TileType.Mountains)
         {
@@ -224,13 +238,13 @@ public class Game : MonoBehaviour
                 };
                 Item nugget = Item.Get("gold nugget");
                 player.AddItem(nugget, count);
-                lastAction = $"You explore {world.location.AsString()} and find small gold vein. You mine {Utility.Plural(nugget.name, count)}.";
+                lastAction = $"You explore the {world.location.AsString()} and find small gold vein. You mine {Utility.Plural(nugget.name, count)}.";
             }
             else
-                lastAction = $"You explore {world.location.AsString()} and find small gold vein but you don't have pickaxe...";
+                lastAction = $"You explore the {world.location.AsString()} and find small gold vein but you don't have pickaxe...";
         }
         else
-            lastAction = $"You explore {world.location.AsString()} but find nothing interesting.";
+            lastAction = $"You explore the {world.location.AsString()} but find nothing interesting.";
 
         AddHour();
         UpdateText();
@@ -250,16 +264,27 @@ public class Game : MonoBehaviour
             lastAction = "It's too late to work.";
         else if (player.energy < 50)
             lastAction = "You are too tired to work.";
+        else if (activeQuest != null && activeQuest.type == Quest.Type.Clear && activeQuest.location == world.location && activeQuest.count < activeQuest.max)
+            lastAction = $"You can't work while monsters occupy the {world.location.AsString()}.";
         else
         {
             player.energy -= 50;
-            player.AddGold(20);
+            int payment = world.location switch
+            {
+                TileType.Sawmill => player.HaveProperty("Sawmill") ? 60 : 30,
+                TileType.Mine => player.HaveProperty("Mine") ? 60 : 30,
+                _ => 20
+            };
+            player.AddGold(payment);
             foreach (Hero ally in allies)
-                ally.gold += 20;
-            lastAction = "You earned 20 gold from working. ";
+                ally.gold += payment;
+            lastAction = $"You earned {payment} gold from working. ";
             AddHour(8);
-            foreach (Hero ally in allies)
-                ally.BuyItems();
+            if (world.location == TileType.City)
+            {
+                foreach (Hero ally in allies)
+                    ally.BuyItems();
+            }
         }
         UpdateText();
     }
@@ -279,7 +304,7 @@ public class Game : MonoBehaviour
         }
 
         world.Travel(pt);
-        lastAction = $"You travel to {world.location.AsString()}.";
+        lastAction = $"You travel to the {world.location.AsString()}.";
         OnChangeLocation();
         ui.CloseDialog();
     }
@@ -294,7 +319,7 @@ public class Game : MonoBehaviour
         }
 
         player.energy -= 10;
-        lastAction = "You enter sewers.";
+        lastAction = "You enter the sewers.";
         world.location = TileType.Sewers;
         AddHour();
         OnChangeLocation();
@@ -310,7 +335,7 @@ public class Game : MonoBehaviour
         }
 
         player.energy -= 10;
-        lastAction = "You exit to city.";
+        lastAction = "You exit to the city.";
         world.location = TileType.City;
         AddHour();
         OnChangeLocation();
@@ -799,7 +824,7 @@ public class Game : MonoBehaviour
     {
         ++day;
         hour = 8;
-        if (world.location == TileType.City && player.properties.Any(x => x.name == "House"))
+        if (world.location == TileType.City && player.HaveProperty("House"))
         {
             player.hp = player.hpMax;
             player.energy = 100;
@@ -817,7 +842,15 @@ public class Game : MonoBehaviour
                 ally.hp = ally.hpMax;
                 --ally.gold;
             }
-            lastAction += "You rest in inn (-1 gold).";
+            lastAction += "You rest in an inn (-1 gold).";
+        }
+        else if (world.location == TileType.Sawmill || world.location == TileType.Mine)
+        {
+            player.hp = player.hpMax;
+            player.energy = 100;
+            foreach (Hero ally in allies)
+                ally.hp = ally.hpMax;
+            lastAction += "You rest in a barracks.";
         }
         else
         {
@@ -825,17 +858,17 @@ public class Game : MonoBehaviour
             int energy;
             if (player.HaveItem("tent"))
             {
-                where = "in tent";
+                where = "in a tent";
                 energy = 75;
             }
             else
             {
                 if (world.location == TileType.City)
-                    where = "on street";
+                    where = "on a street";
                 else if (world.location == TileType.Plains || world.location == TileType.Forest)
-                    where = "on grass";
+                    where = "on a grass";
                 else
-                    where = "on ground";
+                    where = "on a ground";
                 energy = 50;
             }
 
@@ -975,6 +1008,8 @@ public class Game : MonoBehaviour
         buttons.Find("BtForage").gameObject.SetActive(world.location == TileType.Forest);
 
         buttons.Find("BtCity").gameObject.SetActive(world.location == TileType.Sewers);
+
+        buttons.Find("BtWork2").gameObject.SetActive(world.location == TileType.Sawmill || world.location == TileType.Mine);
 
         GameObject btAlly = buttons.Find("BtAlly").gameObject;
         if (allies.Count < 1)
@@ -1150,7 +1185,12 @@ public class Game : MonoBehaviour
             {
             case 0:
                 quest.type = Quest.Type.Clear;
-                quest.location = TileType.Sewers;
+                quest.location = (Utility.Rand % 3) switch
+                {
+                    1 => TileType.Sawmill,
+                    2 => TileType.Mine,
+                    _ => TileType.Sewers
+                };
                 quest.max = 10;
                 break;
             case 1:
