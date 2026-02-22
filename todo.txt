@@ -47,6 +47,7 @@ hero:
 events:
 + spotted enemy
 + free person for hire (foreman, geomancer etc)
++ monsters in mine/sawmill -> hire adventurers/send army/deal with it by yourself
 + mine
 	good (mother lode, gems, new vein, good ore quality, technology/tools efficiency, veteran miner training)
 	neutral (surge of workers, royal inspection, ancient ruins)
@@ -71,7 +72,7 @@ investments:
 
 skills:
 + management
-+ mining
++ mining/woodcraft -> gold gain
 + haggle
 + forage
 + alchemy
@@ -80,6 +81,8 @@ skills:
 	house alchemy lab bonus
 + crafting
 	dragon hide -> armor
++ theory vs practice soft cap
++ training from books/trainers
 
 technology
 + blast furnace

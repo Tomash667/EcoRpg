@@ -278,7 +278,11 @@ public class Game : MonoBehaviour
             player.AddGold(payment);
             foreach (Hero ally in allies)
                 ally.gold += payment;
-            lastAction = $"You earned {payment} gold from working. ";
+            lastAction = $"You earned {payment} gold from working.";
+            if (world.location == TileType.Sawmill)
+                player.Train(Skill.Woodcraft, 1, ref lastAction);
+            else if (world.location == TileType.Mine)
+                player.Train(Skill.Mining, 1, ref lastAction);
             AddHour(8);
             if (world.location == TileType.City)
             {
@@ -637,10 +641,19 @@ public class Game : MonoBehaviour
     private void RefreshPlayerScreen()
     {
         TMP_Text charText = character.transform.Find("Text").GetComponent<TMP_Text>();
-        charText.text = $"{player.GenderSign}{player.name}\n" +
+        sb.Clear();
+        sb.Append($"{player.GenderSign}{player.name}\n" +
             $"Level: {player.level} ({player.ExpP}%)\n" +
             $"Attack: {player.Attack}\n" +
-            $"Defense: {player.Defense}";
+            $"Defense: {player.Defense}\n");
+        if (player.skills.Count > 0)
+        {
+            sb.Append("Skills:\n");
+            foreach (var skill in player.skills.Select(kvp => (name: kvp.Key.AsString().ToUpper1(), level: kvp.Value)).OrderBy(x => x.name))
+                sb.Append($"  {skill.name}: {skill.level}\n");
+        }
+
+        charText.text = sb.ToString();
 
         RefreshPlayerItems();
     }
@@ -1273,6 +1286,7 @@ public class Game : MonoBehaviour
             player.RemoveItem(herb, count * 2);
             player.AddItem(potion, count);
             lastAction = $"You created {Utility.Plural(potion.name, count)}.";
+            player.Train(Skill.Alchemy, count, ref lastAction);
             UpdateGuild();
             return true;
         });

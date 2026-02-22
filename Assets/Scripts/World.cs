@@ -164,6 +164,7 @@ public class World
         int speed = RationsToSpeed(rations, teamSize);
         int days = 0, hour = game.hour;
         int energy = game.player.energy;
+        bool haveTent = game.player.HaveItem("Tent");
 
         void NextDay()
         {
@@ -171,7 +172,7 @@ public class World
             ++days;
             rations -= teamSize;
             speed = RationsToSpeed(rations, teamSize);
-            energy = 100;
+            energy = Mathf.Min(energy + (haveTent ? 75 : 50), 100);
         }
 
         while (dist > 0)
@@ -201,6 +202,7 @@ public class World
         int rations = game.CountTeamItem(rationsItem);
         int teamSize = game.Team.Count();
         int speed = RationsToSpeed(rations, teamSize);
+        bool haveTent = game.player.HaveItem("Tent");
 
         void NextDay()
         {
@@ -212,7 +214,7 @@ public class World
             speed = RationsToSpeed(rations, teamSize);
             foreach (Hero hero in game.Team)
                 hero.hp = hero.hpMax;
-            game.player.energy = 100;
+            game.player.energy = Mathf.Min(game.player.energy + (haveTent ? 75 : 50), 100);
         }
 
         while (dist > 0)
