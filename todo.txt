@@ -1,8 +1,43 @@
+v0:
++ more locations
+	crypt/dungeon on plains/forest/mountains
+	cave on mountains
++ more weapons/armors/shields/potions
++ more enemies
+	undead
++ harder boss
++ quest -> clear dungeon/crypt
+	recover artifact
+	enemy camp
+	defeat x enemies in region
+	capture bandits leader in forest
++ minute counter (explore dungeon, buy/sell property, enter/exit sewers)
++ named locations
++ events
+	spotted enemy
+	old camp
+	trap
+	treasure
++ guild
+	recruit here
+	rank (copper, silver, gold)
+	quest tiers: some easy, some medium, some hard
+	refresh quests over time
++ find cave -> clear -> ore -> build iron/silver/gold mine -> buy/sell later
++ location explored % - discover location, find treasure vault, boss
++ intro/outro text
++ managements events
+	monsters in mine/sawmill -> hire adventurers/send army/deal with it by yourself
+	good ore quality
++ mining/woodcraft -> gold gain
++ alchemy
+	takes time
+	skill effect
++ travel animation
+
 hero:
 + classes
 + races
-+ skills
-+ more locations
 + inventory max weight
 	allies
 	horse
@@ -11,24 +46,18 @@ hero:
 + cursed (bad luck, impotence, reduced stats)
 + hire npc for skills, not combat (like M&M)
 + luxury
-+ more weapons/armors/shields/potions
 + interactive combat or idle?
 + player history
 	isekaied
 	noble
 	chosen hero summoned (potential, rewards, reputation)
 + currency 1 gold = 10 silver = 100 copper
-+ guild
-	rank (copper, silver, gold)
-	register
++ guild register
 + quests
-	tiers: some easy, some medium, some hard
-	refresh over time
-	clear sawmill/mine
-	capture bandits leader in forest
 	more types
 	more active
-	finish quest to gather herbs if you already have them (button?)
+	cancel
+	timed
 + forage -> enemies
 + more alchemy recipes
 + allies
@@ -43,13 +72,12 @@ hero:
 	soft skill cap
 * tavern -> celebrate finished quest
 	major kingdom quest -> feast
-	
++ multilevel dungeon
+
 events:
-+ spotted enemy
 + free person for hire (foreman, geomancer etc)
-+ monsters in mine/sawmill -> hire adventurers/send army/deal with it by yourself
 + mine
-	good (mother lode, gems, new vein, good ore quality, technology/tools efficiency, veteran miner training)
+	good (mother lode, gems, new vein, technology/tools efficiency, veteran miner training)
 	neutral (surge of workers, royal inspection, ancient ruins)
 	bad (tunnel collapse, flooding, forged deed, cursed -> bad luck)
 	
@@ -60,6 +88,9 @@ ui:
 investments:
 + cottage/big house/mansion
 + manage mine/sawmill
+	safety
+	efficency
+	corruption
 + sawmill upgrades
 	make charcoal
 	river powered saw
@@ -69,14 +100,13 @@ investments:
 	blast furnace
 	engineer overseer
 	geomancer
++ no instant sell -> get offers
 
 skills:
 + management
-+ mining/woodcraft -> gold gain
 + haggle
 + forage
 + alchemy
-	takes time
 	portable item
 	house alchemy lab bonus
 + crafting
@@ -93,7 +123,6 @@ races:
 + demons (export sex toys, lube, sex skill teachers)
 
 world:
-+ 2d maps with tiles (plains, forest, mountains)
 + king -> duke -> baron -> village elder
 + regions
 + countries
@@ -102,7 +131,6 @@ world:
 + sell region map after 100% discovery
 + region statistics: safety, population
 + rain -> flood (depends on rain strength, paved roads, sewers, dungeons)
-+ travel animation
 + pathfinding
 + roads, rivers, bridges, lakes, sea, difficult terrain
 + travel speed (horse, magic)

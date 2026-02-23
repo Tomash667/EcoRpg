@@ -5,6 +5,7 @@ using TMPro;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class Game : MonoBehaviour
 {
@@ -113,7 +114,7 @@ public class Game : MonoBehaviour
                 break;
             case TileType.Sewers:
                 if (Input.GetKeyDown(KeyCode.X))
-                    EnterSewers();
+                    ExitToCity();
                 break;
             case TileType.Sawmill:
             case TileType.Mine:
@@ -1068,6 +1069,12 @@ public class Game : MonoBehaviour
 
     public void RemoveAlly()
     {
+        if (world.location != TileType.City)
+        {
+            ui.ShowDialog("You can only remove your allies in city.");
+            return;
+        }
+
         ui.ShowConfirm($"Are you sure you want to remove {activeAlly.name} from your team?", () =>
         {
             lastAction = $"{activeAlly.name} is sad and leave.";
@@ -1157,21 +1164,7 @@ public class Game : MonoBehaviour
 
     public void Guild()
     {
-        bool doneQuest = false;
-        if (activeQuest != null && activeQuest.IsDone())
-        {
-            int reward = activeQuest.Reward;
-            lastAction = $"You received {reward} gold for quest '{activeQuest.Title}'.";
-            AddTeamGold(reward);
-            activeQuest = null;
-            doneQuest = true;
-        }
-        else
-            lastAction = null;
-
         UpdateGuild();
-        if (doneQuest)
-            UpdateText();
         ui.ShowDialog(guildScreen);
     }
 
@@ -1188,6 +1181,7 @@ public class Game : MonoBehaviour
 
         guildText += $"Current quest: {(activeQuest != null ? activeQuest.Text : "none")}";
         guildScreen.transform.Find("Text").GetComponent<TMP_Text>().text = guildText;
+        guildScreen.transform.Find("BtFinishQuest").GetComponent<Button>().interactable = activeQuest != null && activeQuest.IsDone();
 
         availableQuests ??= new();
         while (availableQuests.Count < 3)
@@ -1266,6 +1260,16 @@ public class Game : MonoBehaviour
         player.AddItem(herb, count);
         lastAction = $"You forage in {world.location.AsString()} and find {Utility.Plural(herb.name, count)}.";
         AddHour();
+        UpdateText();
+    }
+
+    public void FinishQuest()
+    {
+        int reward = activeQuest.Reward;
+        lastAction = $"You received {reward} gold for quest '{activeQuest.Title}'.";
+        AddTeamGold(reward);
+        activeQuest = null;
+        UpdateGuild();
         UpdateText();
     }
 
