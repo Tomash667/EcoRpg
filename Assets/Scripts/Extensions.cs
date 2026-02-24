@@ -58,4 +58,19 @@ public static class Extensions
             return result.gameObject;
         return null;
     }
+
+    public static Vector2Int Normalized(this Vector2Int v)
+    {
+        int x = v.x;
+        if (x > 1)
+            x = 1;
+        else if (x < -1)
+            x = -1;
+        int y = v.y;
+        if (y > 1)
+            y = 1;
+        else if (y < -1)
+            y = -1;
+        return new(x, y);
+    }
 }

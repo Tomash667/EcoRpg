@@ -12,6 +12,7 @@ public class GameUI : MonoBehaviour
 #endif
 
     public GameObject itemEntryPrefab, lineSeparatorPrefab;
+    public bool lockDialog;
 
     private List<GameObject> dialogs;
     private Func<int, bool> inputFunc;
@@ -104,6 +105,8 @@ public class GameUI : MonoBehaviour
 
     public void CloseDialog()
     {
+        if (lockDialog)
+            return;
         dialogs[^1].SetActive(false);
         dialogs.RemoveAt(dialogs.Count - 1);
     }

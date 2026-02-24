@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -145,26 +146,29 @@ public class World
     }
 
     // Team move slower, need to forage for food
-    private int RationsToSpeed(int rations, int teamSize)
+    private float RationsToSpeed(int rations, int teamSize)
     {
         if (rations <= 0)
-            return 5;
+            return 1.25f;
         else if (rations < teamSize)
-            return 5 + (int)(5f * rations / teamSize);
+            return 1.25f + 1.25f * rations / teamSize;
         else
-            return 10;
+            return 2.5f;
     }
 
     public int CalculateTravelDays(Vector2Int pt)
     {
         Game game = Global.Game;
+        Vector2Int currentTmpPt = currentPt;
         int dist = CalculateDistance(currentPt, pt);
         int rations = game.CountTeamItem(Item.Get("rations"));
         int teamSize = game.Team.Count();
-        int speed = RationsToSpeed(rations, teamSize);
+        float speed = RationsToSpeed(rations, teamSize);
+        float travelDist = 0;
         int days = 0, hour = game.hour;
         int energy = game.player.energy;
         bool haveTent = game.player.HaveItem("Tent");
+        bool energyTick = false;
 
         void NextDay()
         {
@@ -172,37 +176,55 @@ public class World
             ++days;
             rations -= teamSize;
             speed = RationsToSpeed(rations, teamSize);
-            energy = Mathf.Min(energy + (haveTent ? 75 : 50), 100);
+            energy = Mathf.Min(energy + (haveTent ? 100 : 75), 100);
         }
 
         while (dist > 0)
         {
-            int hours = 4;
-            if (dist == 5 && speed == 10)
-                hours = 2;
+            Vector2Int dir = (pt - currentTmpPt).Normalized();
+            Vector2Int nextPt = currentTmpPt + dir;
+            bool isDiagonal = dir.x != 0 && dir.y != 0;
 
-            if (hour + hours > 24 || energy < 10)
-                NextDay();
+            while (true)
+            {
+                if (energy < 5)
+                    NextDay();
 
-            dist -= speed;
-            energy -= 10;
-            hour += hours;
-            if (hour == 24)
-                NextDay();
+                travelDist += speed;
+                if (energyTick)
+                {
+                    energy -= 5;
+                    energyTick = false;
+                }
+                else
+                    energyTick = true;
+                ++hour;
+                if (hour == 24)
+                    NextDay();
+                if (travelDist >= (isDiagonal ? 15 : 10))
+                {
+                    currentTmpPt = nextPt;
+                    travelDist -= isDiagonal ? 15 : 10;
+                    dist -= isDiagonal ? 15 : 10;
+                    break;
+                }
+            }
         }
 
         return days;
     }
 
-    public void Travel(Vector2Int pt)
+    public IEnumerator Travel(Vector2Int pt)
     {
         Game game = Global.Game;
         Item rationsItem = Item.Get("rations");
         int dist = CalculateDistance(currentPt, pt);
         int rations = game.CountTeamItem(rationsItem);
         int teamSize = game.Team.Count();
-        int speed = RationsToSpeed(rations, teamSize);
+        float speed = RationsToSpeed(rations, teamSize);
+        float travelDist = 0;
         bool haveTent = game.player.HaveItem("Tent");
+        bool energyTick = false;
 
         void NextDay()
         {
@@ -214,26 +236,52 @@ public class World
             speed = RationsToSpeed(rations, teamSize);
             foreach (Hero hero in game.Team)
                 hero.hp = hero.hpMax;
-            game.player.energy = Mathf.Min(game.player.energy + (haveTent ? 75 : 50), 100);
+            game.player.energy = Mathf.Min(game.player.energy + (haveTent ? 100 : 75), 100);
         }
 
         while (dist > 0)
         {
-            int hours = 4;
-            if (dist == 5 && speed == 10)
-                hours = 2;
+            Vector2Int dir = (pt - currentPt).Normalized();
+            Vector2Int nextPt = currentPt + dir;
+            bool isDiagonal = dir.x != 0 && dir.y != 0;
 
-            if (game.hour + hours > 24 || game.player.energy < 10)
-                NextDay();
+            while (true)
+            {
+                if (game.player.energy < 5)
+                {
+                    NextDay();
+                    game.UpdateTravel();
+                    yield return new WaitForSeconds(0.1f);
+                }
 
-            dist -= speed;
-            game.hour += hours;
-            game.player.energy -= 10;
-            if (game.hour == 24)
-                NextDay();
+                travelDist += speed;
+                if (energyTick)
+                {
+                    game.player.energy -= 5;
+                    energyTick = false;
+                }
+                else
+                    energyTick = true;
+                ++game.hour;
+                if (game.hour == 24)
+                    NextDay();
+                if (travelDist >= (isDiagonal ? 15 : 10))
+                {
+                    currentPt = nextPt;
+                    location = map[pt.x + pt.y * sizeX];
+                    travelDist -= isDiagonal ? 15 : 10;
+                    dist -= isDiagonal ? 15 : 10;
+                    if (currentPt != pt)
+                    {
+                        game.UpdateTravel();
+                        yield return new WaitForSeconds(0.1f);
+                    }
+                    break;
+                }
+
+                game.UpdateTravel();
+                yield return new WaitForSeconds(0.1f);
+            }
         }
-
-        currentPt = pt;
-        location = map[pt.x + pt.y * sizeX];
     }
 }

@@ -33,7 +33,6 @@ v0:
 + alchemy
 	takes time
 	skill effect
-+ travel animation
 
 hero:
 + classes
@@ -80,6 +79,7 @@ events:
 	good (mother lode, gems, new vein, technology/tools efficiency, veteran miner training)
 	neutral (surge of workers, royal inspection, ancient ruins)
 	bad (tunnel collapse, flooding, forged deed, cursed -> bad luck)
++ travel events
 	
 ui:
 * text colors
@@ -135,3 +135,4 @@ world:
 + roads, rivers, bridges, lakes, sea, difficult terrain
 + travel speed (horse, magic)
 + teleport
++ cancel travel

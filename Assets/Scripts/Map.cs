@@ -14,11 +14,13 @@ public class Map : MonoBehaviour
     private GameObject cursor, cursor2;
     private TMP_Text text;
     private RectTransform rectTransform;
-    private Vector2 currentPos;
+    private Vector2 currentPos, travelPos;
+    private Vector2Int travelPt;
+    private bool inTravel;
 
     public void Build()
     {
-        TileType[] map = Global.Game.world.map;
+        TileType[] map = Global.World.map;
         Transform tiles = transform.Find("Tiles");
         for (int y = 0; y < World.sizeY; ++y)
         {
@@ -41,7 +43,7 @@ public class Map : MonoBehaviour
 
     public void Show()
     {
-        Vector2Int currentPt = Global.Game.world.currentPt;
+        Vector2Int currentPt = Global.World.currentPt;
         currentPos = new(gridOrigin.x + tileSize * currentPt.x, gridOrigin.y - tileSize * currentPt.y);
         cursor.GetComponent<RectTransform>().anchoredPosition = currentPos;
         cursor2.SetActive(false);
@@ -50,6 +52,9 @@ public class Map : MonoBehaviour
 
     private void Update()
     {
+        if (inTravel)
+            return;
+
         RectTransformUtility.ScreenPointToLocalPointInRectangle(
             rectTransform,
             Input.mousePosition,
@@ -82,17 +87,7 @@ public class Map : MonoBehaviour
             arrow.gameObject.SetActive(true);
             arrow.SetPosition(currentPos, targetPos);
 
-            int dist = World.CalculateDistance(world.currentPt, targetPt);
-            int days = world.CalculateTravelDays(targetPt);
-            string daysText;
-            if (days == 0)
-                daysText = "less then day";
-            else if (days == 1)
-                daysText = "1 day";
-            else
-                daysText = $"{days} days";
-            text.text = $"Rations: {Global.Game.CountTeamItem(Item.Get("rations"))}\nTarget: {world.map[targetPt.x + targetPt.y * World.sizeX]}\nDistance: {dist}km\nTravel time: {daysText}";
-            text.gameObject.SetActive(true);
+            UpdateText(world, world.currentPt, targetPt);
         }
         else
         {
@@ -111,5 +106,47 @@ public class Map : MonoBehaviour
         int y = Mathf.FloorToInt(dy / tileSize);
 
         return new Vector2Int(x, y);
+    }
+
+    public void BeginTravel(Vector2Int pt)
+    {
+        travelPt = pt;
+        travelPos = new(gridOrigin.x + tileSize * travelPt.x, gridOrigin.y - tileSize * travelPt.y);
+        cursor2.GetComponent<RectTransform>().anchoredPosition = travelPos;
+        cursor2.SetActive(true);
+        inTravel = true;
+    }
+
+    public void UpdateTravel()
+    {
+        World world = Global.World;
+        Vector2Int currentPt = world.currentPt;
+        currentPos = new(gridOrigin.x + tileSize * currentPt.x, gridOrigin.y - tileSize * currentPt.y);
+        cursor.GetComponent<RectTransform>().anchoredPosition = currentPos;
+
+        arrow.gameObject.SetActive(true);
+        arrow.SetPosition(currentPos, travelPos);
+
+        UpdateText(world, currentPt, travelPt);
+    }
+
+    private void UpdateText(World world, Vector2Int currentPt, Vector2Int targetPt)
+    {
+        int dist = World.CalculateDistance(currentPt, targetPt);
+        int days = world.CalculateTravelDays(targetPt);
+        string daysText;
+        if (days == 0)
+            daysText = "less then day";
+        else if (days == 1)
+            daysText = "1 day";
+        else
+            daysText = $"{days} days";
+        text.text = $"Rations: {Global.Game.CountTeamItem(Item.Get("rations"))}\nTarget: {world.map[targetPt.x + targetPt.y * World.sizeX]}\nDistance: {dist}km\nTravel time: {daysText}";
+        text.gameObject.SetActive(true);
+    }
+
+    public void EndTravel()
+    {
+        inTravel = false;
     }
 }

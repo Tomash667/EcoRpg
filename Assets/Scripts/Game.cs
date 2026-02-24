@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -308,10 +309,25 @@ public class Game : MonoBehaviour
             return;
         }
 
-        world.Travel(pt);
+        StartCoroutine(TravelLoop(pt));
+    }
+
+    private IEnumerator TravelLoop(Vector2Int pt)
+    {
+        ui.lockDialog = true;
+        map.BeginTravel(pt);
+        yield return world.Travel(pt);
+        map.EndTravel();
         lastAction = $"You travel to the {world.location.AsString()}.";
         OnChangeLocation();
+        ui.lockDialog = false;
         ui.CloseDialog();
+    }
+
+    public void UpdateTravel()
+    {
+        map.UpdateTravel();
+        UpdateText();
     }
 
     public void EnterSewers()
