@@ -935,6 +935,7 @@ MonoBehaviour:
   - {fileID: -1296134821, guid: 44cf10429a07f7c4cbbbf670b6199ccc, type: 3}
   - {fileID: -1763866205, guid: 44cf10429a07f7c4cbbbf670b6199ccc, type: 3}
   - {fileID: -349523790, guid: 44cf10429a07f7c4cbbbf670b6199ccc, type: 3}
+  - {fileID: 603060327, guid: 44cf10429a07f7c4cbbbf670b6199ccc, type: 3}
   - {fileID: 605992368, guid: 44cf10429a07f7c4cbbbf670b6199ccc, type: 3}
   - {fileID: 44413607, guid: 44cf10429a07f7c4cbbbf670b6199ccc, type: 3}
   - {fileID: 1166371152, guid: 44cf10429a07f7c4cbbbf670b6199ccc, type: 3}
@@ -13530,7 +13531,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   world:
-    map: 
+    map: []
     location: 0
     currentPt: {x: 0, y: 0}
   player:
@@ -13578,6 +13579,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemEntryPrefab: {fileID: 2579810614886435678, guid: 1e7d6d85b98bb324b882676534c862ec, type: 3}
   lineSeparatorPrefab: {fileID: 2275101242891038866, guid: e842a63905d6cea4c808270fb33cd9c3, type: 3}
+  lockDialog: 0
 --- !u!1 &1381308115
 GameObject:
   m_ObjectHideFlags: 0

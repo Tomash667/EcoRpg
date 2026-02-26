@@ -21,6 +21,14 @@ public static class Extensions
         return filteredItems[Utility.Rand % filteredItems.Length];
     }
 
+    public static T RandomItemPop<T>(this IList<T> items)
+    {
+        int index = Utility.Rand % items.Count;
+        T result = items[index];
+        items.RemoveAt(index);
+        return result;
+    }
+
     public static int Random(this Vector2Int range)
     {
         return Utility.Random(range.x, range.y);

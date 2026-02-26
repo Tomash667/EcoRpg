@@ -20,7 +20,7 @@ public class Map : MonoBehaviour
 
     public void Build()
     {
-        TileType[] map = Global.World.map;
+        Tile[] map = Global.World.map;
         Transform tiles = transform.Find("Tiles");
         for (int y = 0; y < World.sizeY; ++y)
         {
@@ -30,7 +30,7 @@ public class Map : MonoBehaviour
                 RectTransform rectTransform = tile.GetComponent<RectTransform>();
                 rectTransform.anchoredPosition = new(gridOrigin.x + tileSize * x, gridOrigin.y - tileSize * y);
                 Image image = tile.GetComponent<Image>();
-                image.sprite = sprites[(int)map[x + y * World.sizeX]];
+                image.sprite = sprites[(int)map[x + y * World.sizeX].type];
             }
         }
 
@@ -68,7 +68,7 @@ public class Map : MonoBehaviour
         {
             if (Input.GetMouseButtonDown(0))
             {
-                Global.Game.Travel(targetPt);
+                Global.Game.Travel(targetPt, !Input.GetKey(KeyCode.LeftShift));
                 return;
             }
 
@@ -95,6 +95,16 @@ public class Map : MonoBehaviour
             arrow.gameObject.SetActive(false);
             text.text = $"Rations: {Global.Game.CountTeamItem(Item.Get("rations"))}";
         }
+
+#if UNITY_EDITOR
+        if (Input.GetKeyDown(KeyCode.R) && Input.GetKey(KeyCode.LeftShift))
+        {
+            Global.World.Init();
+            foreach (Transform child in transform.Find("Tiles"))
+                Destroy(child.gameObject);
+            Build();
+        }
+#endif
     }
 
     private Vector2Int LocalPosToTile(Vector2 localPos)
@@ -141,12 +151,27 @@ public class Map : MonoBehaviour
             daysText = "1 day";
         else
             daysText = $"{days} days";
-        text.text = $"Rations: {Global.Game.CountTeamItem(Item.Get("rations"))}\nTarget: {world.map[targetPt.x + targetPt.y * World.sizeX]}\nDistance: {dist}km\nTravel time: {daysText}";
+        Tile tile = world.map[targetPt.x + targetPt.y * World.sizeX];
+        text.text = $"Rations: {Global.Game.CountTeamItem(Item.Get("rations"))}\nTarget: {tile.type.AsString().ToUpper1()}\nDistance: {dist}km\nTravel time: {daysText}";
         text.gameObject.SetActive(true);
     }
 
     public void EndTravel()
     {
+        Vector2Int currentPt = Global.World.currentPt;
+        currentPos = new(gridOrigin.x + tileSize * currentPt.x, gridOrigin.y - tileSize * currentPt.y);
+        cursor.GetComponent<RectTransform>().anchoredPosition = currentPos;
+        cursor2.SetActive(false);
+        arrow.gameObject.SetActive(false);
         inTravel = false;
+    }
+
+    public void UpdateMap(Vector2Int pos)
+    {
+        int index = pos.x + pos.y * World.sizeX;
+        Tile tile = Global.World.map[index];
+        Transform tiles = transform.Find("Tiles");
+        Image image = tiles.GetChild(index).GetComponent<Image>();
+        image.sprite = sprites[(int)tile.type];
     }
 }

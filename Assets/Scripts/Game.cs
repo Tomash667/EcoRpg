@@ -301,33 +301,42 @@ public class Game : MonoBehaviour
         ui.ShowDialog(map.gameObject);
     }
 
-    public void Travel(Vector2Int pt)
+    public void Travel(Vector2Int pt, bool enter)
     {
         if (pt == world.currentPt)
         {
-            ui.CloseDialog();
+            if(enter)
+                ui.CloseDialog();
             return;
         }
 
-        StartCoroutine(TravelLoop(pt));
+        StartCoroutine(TravelLoop(pt, enter));
     }
 
-    private IEnumerator TravelLoop(Vector2Int pt)
+    private IEnumerator TravelLoop(Vector2Int pt, bool enter)
     {
         ui.lockDialog = true;
         map.BeginTravel(pt);
         yield return world.Travel(pt);
         map.EndTravel();
-        lastAction = $"You travel to the {world.location.AsString()}.";
-        OnChangeLocation();
         ui.lockDialog = false;
-        ui.CloseDialog();
+        if (enter)
+        {
+            lastAction = $"You travel to the {world.location.AsString()}.";
+            OnChangeLocation();
+            ui.CloseDialog();
+        }
     }
 
     public void UpdateTravel()
     {
         map.UpdateTravel();
         UpdateText();
+    }
+
+    public void RevealLocation(Vector2Int pos)
+    {
+        map.UpdateMap(pos);
     }
 
     public void EnterSewers()
@@ -430,7 +439,7 @@ public class Game : MonoBehaviour
                         }
                         else
                         {
-                            ui.ShowDialog($"You need {item.value} gold to buy {Utility.Plural(item.name, count)}.");
+                            ui.ShowDialog($"You need {price} gold to buy {Utility.Plural(item.name, count)}.");
                             return false;
                         }
                     });

@@ -9,13 +9,13 @@ public class World
 {
     public const int sizeX = 20, sizeY = 10;
 
-    public TileType[] map;
+    public Tile[] map;
     public TileType location;
     public Vector2Int currentPt;
 
     public void Init()
     {
-        map = new TileType[sizeX * sizeY];
+        map = new Tile[sizeX * sizeY];
         for (int y = 0; y < sizeY; ++y)
         {
             for (int x = 0; x < sizeX; ++x)
@@ -26,16 +26,23 @@ public class World
                     4 => TileType.Mountains,
                     _ => TileType.Plains
                 };
-                map[x + y * sizeX] = tileType;
+                int difficulty;
+                if (x < 8)
+                    difficulty = 1;
+                else if (x < 14)
+                    difficulty = 2;
+                else
+                    difficulty = 3;
+                map[x + y * sizeX] = new() { type = tileType, hidden = TileType.None, difficulty = difficulty };
             }
         }
 
-        Vector2Int center = new(sizeX / 2, sizeY / 2);
-        map[center.x + center.y * sizeX] = TileType.Plains;
-        map[center.x - 1 + center.y * sizeX] = TileType.Plains;
-        map[center.x + 1 + center.y * sizeX] = TileType.Plains;
-        map[center.x + (center.y - 1) * sizeX] = TileType.Plains;
-        map[center.x + (center.y + 1) * sizeX] = TileType.Plains;
+        Vector2Int cityPos = new(2, sizeY / 2);
+        map[cityPos.x + cityPos.y * sizeX].type = TileType.Plains;
+        map[cityPos.x - 1 + cityPos.y * sizeX].type = TileType.Plains;
+        map[cityPos.x + 1 + cityPos.y * sizeX].type = TileType.Plains;
+        map[cityPos.x + (cityPos.y - 1) * sizeX].type = TileType.Plains;
+        map[cityPos.x + (cityPos.y + 1) * sizeX].type = TileType.Plains;
 
         Dictionary<TileType, int> influence = new();
         for (int y = 0; y < sizeY; ++y)
@@ -46,7 +53,7 @@ public class World
                 {
                     if (x >= 0 && y >= 0 && x < sizeX && y < sizeY)
                     {
-                        TileType tileType = map[x + y * sizeX];
+                        TileType tileType = map[x + y * sizeX].type;
                         influence[tileType] = influence.GetValueOrDefault(tileType) + value;
                     }
                 }
@@ -61,25 +68,61 @@ public class World
                 AddInfluence(x - 1, y + 1, 1);
                 AddInfluence(x + 1, y - 1, 1);
                 AddInfluence(x + 1, y + 1, 1);
-                map[x + y * sizeX] = influence.WeightedRandom();
+                map[x + y * sizeX].type = influence.WeightedRandom();
             }
         }
 
-        map[center.x + center.y * sizeX] = TileType.City;
+        map[cityPos.x + cityPos.y * sizeX].type = TileType.City;
 
-        SpawnLocation(center, TileType.Forest, TileType.Sawmill);
-        SpawnLocation(center, TileType.Mountains, TileType.Mine);
-        SpawnLocation(new Vector2Int(sizeX / 4, sizeY / 2), TileType.Forest, TileType.Dungeon);
-        SpawnLocation(new Vector2Int(sizeX * 3 / 4, sizeY / 2), TileType.Mountains, TileType.Cave);
+        SpawnLocation(cityPos, TileType.Forest, TileType.Sawmill);
+        SpawnLocation(cityPos, TileType.Mountains, TileType.Mine);
+        SpawnHiddenLocations(0, 7, 2, TileType.Mountains, TileType.Cave);
+        List<Tile> spawned = SpawnHiddenLocations(8, 13, 2, TileType.Mountains, TileType.Cave);
+        spawned[0].mine = true;
+        spawned = SpawnHiddenLocations(14, 19, 2, TileType.Mountains, TileType.Cave);
+        spawned[0].boss = true;
+        spawned[1].mine = true;
+        SpawnHiddenLocations(0, 7, 2, TileType.Forest, TileType.ForestDungeon);
+        SpawnHiddenLocations(8, 13, 2, TileType.Forest, TileType.ForestDungeon);
+        SpawnHiddenLocations(14, 19, 2, TileType.Forest, TileType.ForestDungeon);
+        SpawnHiddenLocations(0, 7, 2, TileType.Plains, TileType.Dungeon);
+        SpawnHiddenLocations(8, 13, 2, TileType.Plains, TileType.Dungeon);
+        SpawnHiddenLocations(14, 19, 2, TileType.Plains, TileType.Dungeon);
 
-        currentPt = center;
+        RevealHiddenLocations(cityPos, false);
+        currentPt = cityPos;
         location = TileType.City;
     }
 
     private void SpawnLocation(Vector2Int wantedPos, TileType wantedTile, TileType targetTile)
     {
-        Vector2Int targetPos = FindMatchingTile(wantedPos, pos => map[pos.x + pos.y * sizeX] == wantedTile);
-        map[targetPos.x + targetPos.y * sizeX] = targetTile;
+        Vector2Int targetPos = FindMatchingTile(wantedPos, pos => map[pos.x + pos.y * sizeX].type == wantedTile);
+        map[targetPos.x + targetPos.y * sizeX].type = targetTile;
+    }
+
+    private List<Tile> SpawnHiddenLocations(int xMin, int xMax, int count, TileType wantedTile, TileType targetTile)
+    {
+        List<Tile> validTiles = new();
+        for (int y = 0; y < sizeY; ++y)
+        {
+            for (int x = xMin; x <= xMax; ++x)
+            {
+                Tile tile = map[x + y * sizeX];
+                if (tile.type == wantedTile)
+                    validTiles.Add(tile);
+            }
+        }
+
+        List<Tile> spawned = new();
+        while (count > 0 && validTiles.Count > 0)
+        {
+            Tile tile = validTiles.RandomItemPop();
+            tile.hidden = targetTile;
+            spawned.Add(tile);
+            --count;
+        }
+
+        return spawned;
     }
 
     public static bool IsInBounds(int x, int y)
@@ -267,8 +310,9 @@ public class World
                     NextDay();
                 if (travelDist >= (isDiagonal ? 15 : 10))
                 {
+                    RevealHiddenLocations(nextPt, true);
                     currentPt = nextPt;
-                    location = map[pt.x + pt.y * sizeX];
+                    location = map[pt.x + pt.y * sizeX].type;
                     travelDist -= isDiagonal ? 15 : 10;
                     dist -= isDiagonal ? 15 : 10;
                     if (currentPt != pt)
@@ -281,6 +325,26 @@ public class World
 
                 game.UpdateTravel();
                 yield return new WaitForSeconds(0.1f);
+            }
+        }
+    }
+
+    private void RevealHiddenLocations(Vector2Int pos, bool updateMap)
+    {
+        for (int y = pos.y - 1; y <= pos.y + 1; ++y)
+        {
+            for (int x = pos.x - 1; x <= pos.x + 1; ++x)
+            {
+                if(IsInBounds(x, y))
+                {
+                    Tile tile = map[x + y * sizeX];
+                    if (tile.type != tile.hidden && tile.hidden != TileType.None)
+                    {
+                        tile.type = tile.hidden;
+                        if (updateMap)
+                            Global.Game.RevealLocation(new(x, y));
+                    }
+                }
             }
         }
     }

@@ -4771,6 +4771,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemEntryPrefab: {fileID: 2579810614886435678, guid: 1e7d6d85b98bb324b882676534c862ec, type: 3}
   lineSeparatorPrefab: {fileID: 2275101242891038866, guid: e842a63905d6cea4c808270fb33cd9c3, type: 3}
+  lockDialog: 0
 --- !u!1 &1547499664
 GameObject:
   m_ObjectHideFlags: 0

@@ -237,7 +237,7 @@ TextureImporter:
         width: 32
         height: 32
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -259,7 +259,7 @@ TextureImporter:
         width: 32
         height: 32
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
@@ -268,6 +268,28 @@ TextureImporter:
       bones: []
       spriteID: a163945d4d4ce0943b6e10ea98d83458
       internalID: 1166371152
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: forest dungeon
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 32
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 36e0ed3f8c591dc4cac645b54805f465
+      internalID: 603060327
       vertices: []
       indices: 
       edges: []
@@ -290,6 +312,8 @@ TextureImporter:
       city: -1763866205
       dungeon: -349523790
       forest: -1939850107
+      forest dungeon: 603060327
+      map tiles_0: 1814030382
       map tiles_10: 1923101346
       map tiles_11: 67019093
       map tiles_12: 272516478

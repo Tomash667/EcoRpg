@@ -1,10 +1,12 @@
+enemies vs difficulty
+boss
+
 v0:
-+ more locations
-	crypt/dungeon on plains/forest/mountains
-	cave on mountains
 + more weapons/armors/shields/potions
+	treasure
 + more enemies
 	undead
+	dragon-kin
 + harder boss
 + quest -> clear dungeon/crypt
 	recover artifact
@@ -136,3 +138,5 @@ world:
 + travel speed (horse, magic)
 + teleport
 + cancel travel
++ new location types (swamp, desert)
++ harder to find locations - need explore

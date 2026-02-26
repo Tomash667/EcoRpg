@@ -1,10 +1,12 @@
 public enum TileType
 {
+    None = -1,
     Plains,
     Forest,
     Mountains,
     City,
     Dungeon,
+    ForestDungeon,
     Cave,
     Sawmill,
     Mine,
@@ -21,7 +23,7 @@ public static class TileTypeMethods
             TileType.Forest => "forest",
             TileType.Mountains => "mountains",
             TileType.City => "city",
-            TileType.Dungeon => "dungeon",
+            TileType.Dungeon or TileType.ForestDungeon => "dungeon",
             TileType.Cave => "cave",
             TileType.Sawmill => "sawmill",
             TileType.Mine => "mine",
