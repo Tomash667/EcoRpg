@@ -144,8 +144,8 @@ public class Game : MonoBehaviour
         if ((world.location == TileType.Sewers || world.location == TileType.Sawmill || world.location == TileType.Mine)
             && !(activeQuest != null && activeQuest.type == Quest.Type.Clear && activeQuest.location == world.location && activeQuest.count < activeQuest.max))
             chance = 0;
-        if (world.location == TileType.Cave && dragonDefeated)
-            chance = 0;
+        //if (world.location == TileType.Cave && dragonDefeated)
+        //    chance = 0;
         if (world.location == TileType.Plains)
             chance = 0;
         player.energy -= 10;
@@ -157,17 +157,18 @@ public class Game : MonoBehaviour
             c = 9;
 #endif
 
-        if (c < chance && Enemy.enemies.Any(x => x.locations.Contains(world.location)))
+        Tile tile = world.CurrentTile;
+        Enemy enemy;
+        if (c < chance && (enemy = Enemy.GetRandom(tile.type, tile.difficulty)) != null)
         {
-            Enemy enemy = Enemy.enemies.RandomItem(x => x.locations.Contains(world.location));
             int count = (Utility.Rand % 4) switch
             {
                 1 or 2 => 2,
                 3 => 3,
                 _ => 1,
             };
-            if (world.location == TileType.Cave)
-                count = 1;
+            //if (world.location == TileType.Cave)
+            //    count = 1;
 
             lastAction = $"You explore the {world.location.AsString()} and {Utility.PluralText(enemy.name, count)} attack you.";
             if (Combat(enemy, count))
@@ -186,8 +187,8 @@ public class Game : MonoBehaviour
                     }
                 }
 
-                if (world.location == TileType.Cave)
-                    dragonDefeated = true;
+                //if (world.location == TileType.Cave)
+                //    dragonDefeated = true;
 
                 // gold
                 int gold = 0;

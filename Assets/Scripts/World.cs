@@ -13,6 +13,8 @@ public class World
     public TileType location;
     public Vector2Int currentPt;
 
+    public Tile CurrentTile => map[currentPt.x + currentPt.y * sizeX];
+
     public void Init()
     {
         map = new Tile[sizeX * sizeY];

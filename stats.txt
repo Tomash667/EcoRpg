@@ -1,0 +1,20 @@
+city/sewers (0) -> forest (0-1) -> mountains (2) -> cave/dungeon(3)
+-> forest 2 (2-3) -> mountains 2 (4) -> cave/dungeon 2 (5-6)
+-> forest 3 (5-6) -> mountains 3 (7) -> cave/dungeon 3 (8+)
+
+forest
+	1 - wolf (0), elf (1)
+	2 - orc (2), dryad (3)
+	3 - giant spider(5), tentacle monster (6)
+mountains
+	1 - harpy (2)
+	2 - minotaur (4)
+	3 - small dragon (7)
+cave
+	1 - bear (3)
+	2 - giant spider (5)
+	3 - purple worm (8)
+dungeon
+	1 - skeleton (3), zomie (3)
+	2 - vampire (6), mummy (5)
+	3 - demon (9), lich (10)

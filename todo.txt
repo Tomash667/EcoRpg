@@ -1,5 +1,8 @@
-enemies vs difficulty
 boss
+	dragon-man (10)
+	dragon
+quests
+sawmill/mine??
 
 v0:
 + more weapons/armors/shields/potions
@@ -74,6 +77,19 @@ hero:
 * tavern -> celebrate finished quest
 	major kingdom quest -> feast
 + multilevel dungeon
++ more enemies
+	slime
+	wererat
+	Carrion crawler
+	boar
+	goblin
+	fay
+	corrupted animals
+	demon prince, greater demon
+	vampire lord
+	ancient dragon
+	sealed horror
+	ghost
 
 events:
 + free person for hire (foreman, geomancer etc)
@@ -140,3 +156,4 @@ world:
 + cancel travel
 + new location types (swamp, desert)
 + harder to find locations - need explore
++ smoother travel
