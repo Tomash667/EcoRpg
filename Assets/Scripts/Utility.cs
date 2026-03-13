@@ -12,8 +12,12 @@ public static class Utility
 
     private static readonly Dictionary<string, string> plurals = new()
     {
+        ["dragon-man"] = "dragon-men",
         ["elf"] = "elves",
-        ["rations"] = "rations"
+        ["harpy"] = "harpies",
+        ["mummy"] = "mummies",
+        ["rations"] = "rations",
+        ["wolf"] = "wolves"
     };
 
     public static int Rand => UnityEngine.Random.Range(0, int.MaxValue);
@@ -27,7 +31,7 @@ public static class Utility
     {
         if (plurals.TryGetValue(word, out string plural))
             return plural;
-        if (word.EndsWith('s'))
+        if (word.EndsWith('s') || word.EndsWith("ch"))
             return word + "es";
         return word + 's';
     }

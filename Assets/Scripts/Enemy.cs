@@ -17,7 +17,7 @@ public class Enemy
     public static Enemy GetRandom(TileType tileType, int difficulty)
     {
         Enemy[] matchingEnemies = enemies.Where(x => x.locations != null && x.locations.Any(y => y.tileType == tileType && y.difficulty == difficulty)).ToArray();
-            if (matchingEnemies.Length == 0)
+        if (matchingEnemies.Length == 0)
             return null;
         return matchingEnemies.RandomItem();
     }
@@ -54,8 +54,7 @@ public class Enemy
             hp = 60,
             attack = 15,
             def = 3,
-            dex = 6,
-            quest = false
+            dex = 6
         },
         new()
         {

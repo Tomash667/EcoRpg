@@ -1,9 +1,6 @@
-boss
-	dragon-man (10)
-	dragon
-quests
+boss - dragon
+quests -> clear uses AsString
 sawmill/mine??
-use location name in other places?
 
 v0:
 + more weapons/armors/shields/potions
@@ -38,7 +35,6 @@ v0:
 + alchemy
 	takes time
 	skill effect
-+ hero unique names
 
 hero:
 + classes

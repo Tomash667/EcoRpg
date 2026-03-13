@@ -332,6 +332,6 @@
         "bloodstone dungeon",
         "crypt of the nameless",
         "eternal catacombs",
-        "crypt of nameless"
+        "crimson castle"
     };
 }

@@ -140,12 +140,13 @@ public class Game : MonoBehaviour
             return;
         }
 
+        Tile tile = world.CurrentTile;
         int chance = 7;
         if ((world.location == TileType.Sewers || world.location == TileType.Sawmill || world.location == TileType.Mine)
             && !(activeQuest != null && activeQuest.type == Quest.Type.Clear && activeQuest.location == world.location && activeQuest.count < activeQuest.max))
             chance = 0;
-        //if (world.location == TileType.Cave && dragonDefeated)
-        //    chance = 0;
+        if (tile.boss && dragonDefeated)
+            chance = 0;
         if (world.location == TileType.Plains)
             chance = 0;
         player.energy -= 10;
@@ -157,7 +158,6 @@ public class Game : MonoBehaviour
             c = 9;
 #endif
 
-        Tile tile = world.CurrentTile;
         Enemy enemy;
         if (c < chance && (enemy = Enemy.GetRandom(tile.type, tile.difficulty)) != null)
         {
@@ -167,10 +167,13 @@ public class Game : MonoBehaviour
                 3 => 3,
                 _ => 1,
             };
+
+            if (tile.boss)
+                enemy = Enemy.Get("dragon-man");
             //if (world.location == TileType.Cave)
             //    count = 1;
 
-            lastAction = $"You explore the {world.location.AsString()} and {Utility.PluralText(enemy.name, count)} attack you.";
+            lastAction = $"You explore the {tile.Name} and {Utility.PluralText(enemy.name, count)} attack you.";
             if (Combat(enemy, count))
             {
                 if (activeQuest != null)
@@ -225,7 +228,7 @@ public class Game : MonoBehaviour
             };
             Item herb = Item.Get("herb");
             player.AddItem(herb, count);
-            lastAction = $"You explore the {world.location.AsString()} and find {Utility.Plural(herb.name, count)}.";
+            lastAction = $"You explore the {tile.Name} and find {Utility.Plural(herb.name, count)}.";
         }
         else if (c == 9 && world.location == TileType.Mountains)
         {
@@ -241,13 +244,13 @@ public class Game : MonoBehaviour
                 };
                 Item nugget = Item.Get("gold nugget");
                 player.AddItem(nugget, count);
-                lastAction = $"You explore the {world.location.AsString()} and find small gold vein. You mine {Utility.Plural(nugget.name, count)}.";
+                lastAction = $"You explore the {tile.Name} and find small gold vein. You mine {Utility.Plural(nugget.name, count)}.";
             }
             else
-                lastAction = $"You explore the {world.location.AsString()} and find small gold vein but you don't have pickaxe...";
+                lastAction = $"You explore the {tile.Name} and find small gold vein but you don't have a pickaxe...";
         }
         else
-            lastAction = $"You explore the {world.location.AsString()} but find nothing interesting.";
+            lastAction = $"You explore the {tile.Name} but find nothing interesting.";
 
         AddHour();
         UpdateText();
@@ -268,7 +271,7 @@ public class Game : MonoBehaviour
         else if (player.energy < 50)
             lastAction = "You are too tired to work.";
         else if (activeQuest != null && activeQuest.type == Quest.Type.Clear && activeQuest.location == world.location && activeQuest.count < activeQuest.max)
-            lastAction = $"You can't work while monsters occupy the {world.location.AsString()}.";
+            lastAction = $"You can't work while monsters occupy the {world.CurrentTile.Name}.";
         else
         {
             player.energy -= 50;
@@ -306,7 +309,7 @@ public class Game : MonoBehaviour
     {
         if (pt == world.currentPt)
         {
-            if(enter)
+            if (enter)
                 ui.CloseDialog();
             return;
         }
@@ -323,7 +326,12 @@ public class Game : MonoBehaviour
         ui.lockDialog = false;
         if (enter)
         {
-            lastAction = $"You travel to the {world.location.AsString()}.";
+            Tile tile = world.CurrentTile;
+            lastAction = $"You travel to the {tile.Name}.";
+            if (tile.boss)
+                lastAction += " There are dragon engravings near entrance.";
+            else if (tile.mine && tile.type == TileType.Cave)
+                lastAction += $" There are {(tile.difficulty == 2 ? "silver" : "gold")} veins inside this cave.";
             OnChangeLocation();
             ui.CloseDialog();
         }
@@ -1080,6 +1088,12 @@ public class Game : MonoBehaviour
 
         Hero hero = new();
         hero.Init();
+        while (true)
+        {
+            if (!Team.Any(x => x.name == hero.name))
+                break;
+            hero.name = (hero.female ? Names.femaleNames : Names.maleNames).RandomItem();
+        }
         Choice($"You meet {hero.name} and talk with {hero.him} about adventurers. Do you want to recruit {hero.him}?", yes =>
         {
             if (yes)
@@ -1284,7 +1298,7 @@ public class Game : MonoBehaviour
         Item herb = Item.Get("herb");
         player.energy -= 10;
         player.AddItem(herb, count);
-        lastAction = $"You forage in {world.location.AsString()} and find {Utility.Plural(herb.name, count)}.";
+        lastAction = $"You forage in the {world.CurrentTile.Name} and find {Utility.Plural(herb.name, count)}.";
         AddHour();
         UpdateText();
     }
