@@ -78,18 +78,21 @@ public class World
 
         SpawnLocation(cityPos, TileType.Forest, TileType.Sawmill);
         SpawnLocation(cityPos, TileType.Mountains, TileType.Mine);
-        SpawnHiddenLocations(0, 7, 2, TileType.Mountains, TileType.Cave);
-        List<Tile> spawned = SpawnHiddenLocations(8, 13, 2, TileType.Mountains, TileType.Cave);
+        SpawnHiddenLocations(0, 7, 2, TileType.Mountains, TileType.Cave, Names.cave1.ToList());
+        List<Tile> spawned = SpawnHiddenLocations(8, 13, 2, TileType.Mountains, TileType.Cave, Names.cave2.ToList());
         spawned[0].mine = true;
-        spawned = SpawnHiddenLocations(14, 19, 2, TileType.Mountains, TileType.Cave);
+        spawned = SpawnHiddenLocations(14, 19, 2, TileType.Mountains, TileType.Cave, Names.cave3.ToList());
         spawned[0].boss = true;
         spawned[1].mine = true;
-        SpawnHiddenLocations(0, 7, 2, TileType.Forest, TileType.ForestDungeon);
-        SpawnHiddenLocations(8, 13, 2, TileType.Forest, TileType.ForestDungeon);
-        SpawnHiddenLocations(14, 19, 2, TileType.Forest, TileType.ForestDungeon);
-        SpawnHiddenLocations(0, 7, 2, TileType.Plains, TileType.Dungeon);
-        SpawnHiddenLocations(8, 13, 2, TileType.Plains, TileType.Dungeon);
-        SpawnHiddenLocations(14, 19, 2, TileType.Plains, TileType.Dungeon);
+        List<string> dungeon1 = Names.dungeon1.ToList();
+        List<string> dungeon2 = Names.dungeon2.ToList();
+        List<string> dungeon3 = Names.dungeon3.ToList();
+        SpawnHiddenLocations(0, 7, 2, TileType.Forest, TileType.ForestDungeon, dungeon1);
+        SpawnHiddenLocations(8, 13, 2, TileType.Forest, TileType.ForestDungeon, dungeon2);
+        SpawnHiddenLocations(14, 19, 2, TileType.Forest, TileType.ForestDungeon, dungeon3);
+        SpawnHiddenLocations(0, 7, 2, TileType.Plains, TileType.Dungeon, dungeon1);
+        SpawnHiddenLocations(8, 13, 2, TileType.Plains, TileType.Dungeon, dungeon2);
+        SpawnHiddenLocations(14, 19, 2, TileType.Plains, TileType.Dungeon, dungeon3);
 
         RevealHiddenLocations(cityPos, false);
         currentPt = cityPos;
@@ -102,7 +105,7 @@ public class World
         map[targetPos.x + targetPos.y * sizeX].type = targetTile;
     }
 
-    private List<Tile> SpawnHiddenLocations(int xMin, int xMax, int count, TileType wantedTile, TileType targetTile)
+    private List<Tile> SpawnHiddenLocations(int xMin, int xMax, int count, TileType wantedTile, TileType targetTile, List<string> names)
     {
         List<Tile> validTiles = new();
         for (int y = 0; y < sizeY; ++y)
@@ -119,6 +122,7 @@ public class World
         while (count > 0 && validTiles.Count > 0)
         {
             Tile tile = validTiles.RandomItemPop();
+            tile.name = names.RandomItemPop();
             tile.hidden = targetTile;
             spawned.Add(tile);
             --count;
@@ -337,7 +341,7 @@ public class World
         {
             for (int x = pos.x - 1; x <= pos.x + 1; ++x)
             {
-                if(IsInBounds(x, y))
+                if (IsInBounds(x, y))
                 {
                     Tile tile = map[x + y * sizeX];
                     if (tile.type != tile.hidden && tile.hidden != TileType.None)
@@ -345,6 +349,25 @@ public class World
                         tile.type = tile.hidden;
                         if (updateMap)
                             Global.Game.RevealLocation(new(x, y));
+                    }
+                }
+            }
+        }
+    }
+
+    public void RevealAllHiddenLocations()
+    {
+        for (int y = 0; y < sizeY; ++y)
+        {
+            for (int x = 0; x < sizeX; ++x)
+            {
+                if (IsInBounds(x, y))
+                {
+                    Tile tile = map[x + y * sizeX];
+                    if (tile.type != tile.hidden && tile.hidden != TileType.None)
+                    {
+                        tile.type = tile.hidden;
+                        Global.Game.RevealLocation(new(x, y));
                     }
                 }
             }

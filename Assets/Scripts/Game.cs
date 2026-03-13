@@ -736,7 +736,7 @@ public class Game : MonoBehaviour
     private void UpdateText()
     {
         sb.Clear();
-        sb.Append($"{world.location.AsString().ToUpper1()}   Day: {day} {hour}:00   Health: {player.hp}/{player.hpMax}   Energy: {player.energy}/100   Gold: {player.gold}");
+        sb.Append($"{world.CurrentTile.Name.ToUpper1()}   Day: {day} {hour}:00   Health: {player.hp}/{player.hpMax}   Energy: {player.energy}/100   Gold: {player.gold}");
         if (player.goldReceived != 0)
         {
             sb.Append($"({player.goldReceived:+0;-0})");
@@ -1361,5 +1361,18 @@ public class Game : MonoBehaviour
         transform.Find("Buttons").gameObject.SetActive(true);
         transform.Find("ChoiceButtons").gameObject.SetActive(false);
         choiceAction(choice);
+    }
+
+    [ContextMenu("Regenerate world")]
+    private void RegenerateWorld()
+    {
+        world.Init();
+        map.Regenerate();
+    }
+
+    [ContextMenu("Reveal world")]
+    private void RevealWorld()
+    {
+        world.RevealAllHiddenLocations();
     }
 }

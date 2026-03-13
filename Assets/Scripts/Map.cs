@@ -95,16 +95,6 @@ public class Map : MonoBehaviour
             arrow.gameObject.SetActive(false);
             text.text = $"Rations: {Global.Game.CountTeamItem(Item.Get("rations"))}";
         }
-
-#if UNITY_EDITOR
-        if (Input.GetKeyDown(KeyCode.R) && Input.GetKey(KeyCode.LeftShift))
-        {
-            Global.World.Init();
-            foreach (Transform child in transform.Find("Tiles"))
-                Destroy(child.gameObject);
-            Build();
-        }
-#endif
     }
 
     private Vector2Int LocalPosToTile(Vector2 localPos)
@@ -152,7 +142,7 @@ public class Map : MonoBehaviour
         else
             daysText = $"{days} days";
         Tile tile = world.map[targetPt.x + targetPt.y * World.sizeX];
-        text.text = $"Rations: {Global.Game.CountTeamItem(Item.Get("rations"))}\nTarget: {tile.type.AsString().ToUpper1()}\nDistance: {dist}km\nTravel time: {daysText}";
+        text.text = $"Rations: {Global.Game.CountTeamItem(Item.Get("rations"))}\nTarget: {tile.Name.ToUpper1()}\nDistance: {dist}km\nTravel time: {daysText}";
         text.gameObject.SetActive(true);
     }
 
@@ -173,5 +163,12 @@ public class Map : MonoBehaviour
         Transform tiles = transform.Find("Tiles");
         Image image = tiles.GetChild(index).GetComponent<Image>();
         image.sprite = sprites[(int)tile.type];
+    }
+
+    public void Regenerate()
+    {
+        foreach (Transform child in transform.Find("Tiles"))
+            Destroy(child.gameObject);
+        Build();
     }
 }

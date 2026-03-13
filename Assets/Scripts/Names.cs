@@ -280,4 +280,58 @@
         "Zelma",
         "Zoe"
     };
+
+    public static readonly string[] cave1 = new[]
+    {
+        "abandoned mine",
+        "mossy cave",
+        "foggy grotto",
+        "dripping cavern"
+    };
+
+    public static readonly string[] cave2 = new[]
+    {
+        "cave of echoes",
+        "dark cave",
+        "black grotto",
+        "crystal cave"
+    };
+
+    public static readonly string[] cave3 = new[]
+    {
+        "deep maw",
+        "dread pit",
+        "forgotten abyss",
+        "cave of chaos"
+    };
+
+    public static readonly string[] dungeon1 = new[]
+    {
+        "old watchtower",
+        "bandit den",
+        "shallow crypt",
+        "broken cellar",
+        "ruined castle",
+        "dusty tunnels"
+    };
+
+    public static readonly string[] dungeon2 = new[]
+    {
+        "shadow crypt",
+        "ruined catacombs",
+        "sunken dungeon",
+        "forsaken vault",
+        "crypt of ash",
+        "labyrinth"
+    };
+
+    public static readonly string[] dungeon3 = new[]
+    {
+        "ancient vault",
+        "obsidian crypt",
+        "bloodstone dungeon",
+        "crypt of the nameless",
+        "eternal catacombs",
+        "crypt of nameless"
+    };
 }

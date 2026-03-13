@@ -3,6 +3,7 @@ boss
 	dragon
 quests
 sawmill/mine??
+use location name in other places?
 
 v0:
 + more weapons/armors/shields/potions
@@ -17,7 +18,6 @@ v0:
 	defeat x enemies in region
 	capture bandits leader in forest
 + minute counter (explore dungeon, buy/sell property, enter/exit sewers)
-+ named locations
 + events
 	spotted enemy
 	old camp
@@ -38,6 +38,7 @@ v0:
 + alchemy
 	takes time
 	skill effect
++ hero unique names
 
 hero:
 + classes
