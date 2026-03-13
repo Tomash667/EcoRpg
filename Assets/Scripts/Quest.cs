@@ -14,33 +14,20 @@ public class Quest : ISerializationCallbackReceiver
     public Enemy enemy;
     public Item item;
     public Type type;
-    public TileType location;
     public string enemyName, itemName;
-    public int count, max;
+    public int location, count, max, difficulty;
 
     public int Reward
     {
         get
         {
-            switch (type)
+            return type switch
             {
-            case Type.Defeat:
-                return 25 * (enemy.level + 1) * max;
-            case Type.Gather:
-                return 250;
-            case Type.Clear:
-                switch (location)
-                {
-                case TileType.Sewers:
-                    return 250;
-                case TileType.Sawmill:
-                    return 500;
-                case TileType.Mine:
-                    return 750;
-                }
-                break;
-            }
-            return 0;
+                Type.Defeat => 25 * (enemy.level + 1) * max,
+                Type.Gather => 250,
+                Type.Clear => difficulty * 250,
+                _ => 0,
+            };
         }
     }
     public string Text
@@ -50,7 +37,7 @@ public class Quest : ISerializationCallbackReceiver
             return type switch
             {
                 Type.Defeat => $"Defeat {count}/{max} {Utility.Plural(enemy.name)}",
-                Type.Clear => $"Clear {location.AsString()} ({Mathf.Min(100 * count / max, 100)}%)",
+                Type.Clear => $"Clear {GetLocationName()} ({Mathf.Min(100 * count / max, 100)}%)",
                 Type.Gather => $"Gather {Global.Player.CountItem(item)}/{max} {Utility.Plural(item.name)}",
                 _ => string.Empty
             };
@@ -63,7 +50,7 @@ public class Quest : ISerializationCallbackReceiver
             return type switch
             {
                 Type.Defeat => $"Defeat {Utility.Plural(enemy.name, max)}",
-                Type.Clear => $"Clear {location.AsString()}",
+                Type.Clear => $"Clear {GetLocationName()}",
                 Type.Gather => $"Gather {Utility.Plural(item.name, max)}",
                 _ => string.Empty
             };
@@ -116,5 +103,13 @@ public class Quest : ISerializationCallbackReceiver
         }
         else
             return count >= max;
+    }
+
+    private string GetLocationName()
+    {
+        Tile tile = Global.World.GetLocation(location);
+        if (tile.type == TileType.City)
+            return TileType.Sewers.AsString();
+        return tile.Name;
     }
 }

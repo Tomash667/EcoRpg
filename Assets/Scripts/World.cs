@@ -14,6 +14,7 @@ public class World
     public Vector2Int currentPt;
 
     public Tile CurrentTile => map[currentPt.x + currentPt.y * sizeX];
+    public int CurrentLocationIndex => currentPt.x + currentPt.y * sizeX;
 
     public void Init()
     {
@@ -361,16 +362,28 @@ public class World
         {
             for (int x = 0; x < sizeX; ++x)
             {
-                if (IsInBounds(x, y))
+                Tile tile = map[x + y * sizeX];
+                if (tile.type != tile.hidden && tile.hidden != TileType.None)
                 {
-                    Tile tile = map[x + y * sizeX];
-                    if (tile.type != tile.hidden && tile.hidden != TileType.None)
-                    {
-                        tile.type = tile.hidden;
-                        Global.Game.RevealLocation(new(x, y));
-                    }
+                    tile.type = tile.hidden;
+                    Global.Game.RevealLocation(new(x, y));
                 }
             }
         }
+    }
+
+    public Tile GetLocation(int index)
+    {
+        return map[index];
+    }
+
+    public int FindLocationIndex(Func<Tile, bool> pred)
+    {
+        for(int index=0; index<sizeX*sizeY; ++index)
+        {
+            if (pred(map[index]))
+                return index;
+        }
+        return -1;
     }
 }

@@ -1,6 +1,4 @@
-boss - dragon
-quests -> clear uses AsString
-sawmill/mine??
+- sewers count as city, exploring city counts toward clear sewers quest
 
 v0:
 + more weapons/armors/shields/potions

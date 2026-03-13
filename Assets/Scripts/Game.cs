@@ -143,7 +143,7 @@ public class Game : MonoBehaviour
         Tile tile = world.CurrentTile;
         int chance = 7;
         if ((world.location == TileType.Sewers || world.location == TileType.Sawmill || world.location == TileType.Mine)
-            && !(activeQuest != null && activeQuest.type == Quest.Type.Clear && activeQuest.location == world.location && activeQuest.count < activeQuest.max))
+            && !(activeQuest != null && activeQuest.type == Quest.Type.Clear && activeQuest.location == world.CurrentLocationIndex && activeQuest.count < activeQuest.max))
             chance = 0;
         if (tile.boss && dragonDefeated)
             chance = 0;
@@ -169,9 +169,15 @@ public class Game : MonoBehaviour
             };
 
             if (tile.boss)
-                enemy = Enemy.Get("dragon-man");
-            //if (world.location == TileType.Cave)
-            //    count = 1;
+            {
+                if (tile.defeatedEnemies >= 10)
+                {
+                    enemy = Enemy.Get("dragon");
+                    count = 1;
+                }
+                else
+                    enemy = Enemy.Get("dragon-man");
+            }
 
             lastAction = $"You explore the {tile.Name} and {Utility.PluralText(enemy.name, count)} attack you.";
             if (Combat(enemy, count))
@@ -185,13 +191,14 @@ public class Game : MonoBehaviour
                     }
                     else if (activeQuest.type == Quest.Type.Clear)
                     {
-                        if (activeQuest.location == world.location)
+                        if (activeQuest.location == world.CurrentLocationIndex)
                             activeQuest.count += count;
                     }
                 }
 
-                //if (world.location == TileType.Cave)
-                //    dragonDefeated = true;
+                tile.defeatedEnemies += count;
+                if (enemy.name == "dragon")
+                    dragonDefeated = true;
 
                 // gold
                 int gold = 0;
@@ -215,7 +222,11 @@ public class Game : MonoBehaviour
                 }
             }
             else
+            {
                 lastAction += " You run away defeated.";
+                if (enemy.name == "dragon")
+                    tile.defeatedEnemies -= 5;
+            }
         }
         else if (c == 9 && world.location == TileType.Forest)
         {
@@ -270,7 +281,7 @@ public class Game : MonoBehaviour
             lastAction = "It's too late to work.";
         else if (player.energy < 50)
             lastAction = "You are too tired to work.";
-        else if (activeQuest != null && activeQuest.type == Quest.Type.Clear && activeQuest.location == world.location && activeQuest.count < activeQuest.max)
+        else if (activeQuest != null && activeQuest.type == Quest.Type.Clear && activeQuest.location == world.CurrentLocationIndex && activeQuest.count < activeQuest.max)
             lastAction = $"You can't work while monsters occupy the {world.CurrentTile.Name}.";
         else
         {
@@ -1232,13 +1243,20 @@ public class Game : MonoBehaviour
             {
             case 0:
                 quest.type = Quest.Type.Clear;
-                quest.location = (Utility.Rand % 3) switch
-                {
-                    1 => TileType.Sawmill,
-                    2 => TileType.Mine,
-                    _ => TileType.Sewers
-                };
+                quest.difficulty = Utility.Random(1, 3);
                 quest.max = 10;
+                switch (quest.difficulty)
+                {
+                case 1:
+                    quest.location = world.FindLocationIndex(x => x.type == TileType.City);
+                    break;
+                case 2:
+                    quest.location = world.FindLocationIndex(x => x.type == TileType.Sawmill);
+                    break;
+                case 3:
+                    quest.location = world.FindLocationIndex(x => x.type == TileType.Mine && x.difficulty == 1);
+                    break;
+                }
                 break;
             case 1:
                 quest.type = Quest.Type.Gather;
@@ -1388,5 +1406,13 @@ public class Game : MonoBehaviour
     private void RevealWorld()
     {
         world.RevealAllHiddenLocations();
+    }
+
+    [ContextMenu("Refresh quests")]
+    private void RefreshQuests()
+    {
+        availableQuests.Clear();
+        if (ui.CurrentDialog == guildScreen)
+            UpdateGuild();
     }
 }

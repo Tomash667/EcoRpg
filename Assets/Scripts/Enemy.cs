@@ -92,7 +92,7 @@ public class Enemy
         new()
         {
             name = "giant spider",
-            locations = new[] { (TileType.Forest, 3), (TileType.Cave, 2) },
+            locations = new[] { (TileType.Forest, 3), (TileType.Cave, 2), (TileType.Mine, 2) },
             level = 5,
             hp = 160,
             attack = 40,
@@ -145,7 +145,7 @@ public class Enemy
         new()
         {
             name = "bear",
-            locations = new[] { (TileType.Cave, 1) },
+            locations = new[] { (TileType.Cave, 1), (TileType.Mine, 1) },
             level = 3,
             hp = 130,
             attack = 32,
@@ -155,7 +155,7 @@ public class Enemy
         new()
         {
             name = "purple worm",
-            locations = new[] { (TileType.Cave, 3) },
+            locations = new[] { (TileType.Cave, 3), (TileType.Mine, 3) },
             level = 8,
             hp = 220,
             attack = 55,
