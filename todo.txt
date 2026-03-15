@@ -1,10 +1,5 @@
 v0:
-+ more weapons/armors/shields/potions
-	treasure
-+ more enemies
-	undead
-	dragon-kin
-+ harder boss
++ treasure items/gold
 + quest -> clear dungeon/crypt
 	recover artifact
 	enemy camp
@@ -22,7 +17,7 @@ v0:
 	quest tiers: some easy, some medium, some hard
 	refresh quests over time
 + find cave -> clear -> ore -> build iron/silver/gold mine -> buy/sell later
-+ location explored % - discover location, find treasure vault, boss
++ location explored % - find treasure vault
 + intro/outro text
 + managements events
 	monsters in mine/sawmill -> hire adventurers/send army/deal with it by yourself
@@ -150,3 +145,4 @@ world:
 + new location types (swamp, desert)
 + harder to find locations - need explore
 + smoother travel
++ locations that require exploring to discover

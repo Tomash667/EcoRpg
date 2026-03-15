@@ -116,6 +116,11 @@ public class Hero : ISerializationCallbackReceiver
         return items.FirstOrDefault(x => x.item.name == name);
     }
 
+    public ItemSlot FindHealingItem()
+    {
+        return items.Where(x => x.item.type == Item.Type.Usable).OrderByDescending(x => x.item.power).FirstOrDefault();
+    }
+
     public bool HaveItem(string name)
     {
         return FindItem(name) != null;
@@ -233,7 +238,7 @@ public class Hero : ISerializationCallbackReceiver
         });
 
         // buy rations/potions
-        Item rations = Item.Get("rations"), potion = Item.Get("potion");
+        Item rations = Item.Get("rations"), potion = Item.Get(hpMax >= 200 ? "elixir" : "potion");
         int rationsCount = CountItem(rations), potionsCount = CountItem(potion);
         while ((rationsCount < 5 && gold >= rations.value) || (potionsCount < 5 && gold >= potion.value))
         {
@@ -346,6 +351,20 @@ public class Hero : ISerializationCallbackReceiver
                         return; // can't afford
                 }
                 break;
+            }
+        }
+    }
+
+    public void ApplyHealing()
+    {
+        float hpp = ((float)hp) / hpMax;
+        if(hpp < 0.5f)
+        {
+            ItemSlot potion = FindHealingItem();
+            if(potion != null)
+            {
+                hp = Mathf.Min(hp + potion.item.power, hpMax);
+                RemoveItem(potion);
             }
         }
     }

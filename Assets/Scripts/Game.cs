@@ -227,6 +227,16 @@ public class Game : MonoBehaviour
                 if (enemy.name == "dragon")
                     tile.defeatedEnemies -= 5;
             }
+
+            // heal after combat
+            if(player.hp < 1)
+                player.hp = 1;
+            foreach (Hero ally in allies)
+            {
+                if (ally.hp < 1)
+                    ally.hp = 1;
+                ally.ApplyHealing();
+            }
         }
         else if (c == 9 && tile.type == TileType.Forest)
         {
@@ -836,8 +846,8 @@ public class Game : MonoBehaviour
                     hero.hp -= Mathf.Max(enemy.attack - hero.Defense, 0);
                     if (hero.hp <= 0)
                     {
-                        ItemSlot potion = hero.FindItem("potion");
-                        if (potion != null && hero.hp + potion.item.power > 0 && !hero.wasteTurn)
+                        ItemSlot potion;
+                        if (!hero.wasteTurn && (potion = hero.FindHealingItem()) != null && hero.hp + potion.item.power > 0)
                         {
                             // hero use potion and waste turn
                             hero.hp = Mathf.Min(hero.hp + potion.item.power, hero.hpMax);
@@ -847,9 +857,6 @@ public class Game : MonoBehaviour
                         else if (Team.All(x => x.hp <= 0))
                         {
                             // lost
-                            player.hp = 1;
-                            foreach (Hero ally in allies)
-                                ally.hp = 1;
                             return false;
                         }
                     }

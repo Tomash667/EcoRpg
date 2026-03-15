@@ -72,6 +72,15 @@ public class Item
         },
         new()
         {
+            name = "magic sword",
+            type = Type.Weapon,
+            level = 5,
+            power = 25,
+            value = 5000,
+            shop = false
+        },
+        new()
+        {
             name = "leather armor",
             type = Type.Armor,
             level = 1,
@@ -104,6 +113,15 @@ public class Item
         },
         new()
         {
+            name = "magic armor",
+            type = Type.Armor,
+            level = 5,
+            power = 10,
+            value = 5000,
+            shop = false
+        },
+        new()
+        {
             name = "wooden shield",
             type = Type.Shield,
             level = 1,
@@ -128,11 +146,20 @@ public class Item
         },
         new()
         {
-            name = "magic shield",
+            name = "dwarven shield",
             type = Type.Shield,
             level = 4,
             power = 4,
             value = 1500
+        },
+        new()
+        {
+            name = "magic shield",
+            type = Type.Shield,
+            level = 5,
+            power = 5,
+            value = 5000,
+            shop = false
         },
         new()
         {
@@ -150,6 +177,14 @@ public class Item
             type = Type.Usable,
             power = 100,
             value = 10
+        },
+        new()
+        {
+            name = "elixir",
+            desc = "200 heal",
+            type = Type.Usable,
+            power = 200,
+            value = 20
         },
         new()
         {

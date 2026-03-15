@@ -396,7 +396,7 @@ public class World
 
     public int FindLocationIndex(Func<Tile, bool> pred, bool inside = false)
     {
-        for(int index=0; index<sizeX*sizeY; ++index)
+        for (int index = 0; index < sizeX * sizeY; ++index)
         {
             if (pred(map[index]))
             {
