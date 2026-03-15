@@ -10,11 +10,18 @@ public class World
     public const int sizeX = 20, sizeY = 10;
 
     public Tile[] map;
-    public TileType location;
+    public Tile sewers;
     public Vector2Int currentPt;
+    public bool isInside;
 
-    public Tile CurrentTile => map[currentPt.x + currentPt.y * sizeX];
-    public int CurrentLocationIndex => currentPt.x + currentPt.y * sizeX;
+    public Tile CurrentTile => isInside ? sewers : map[currentPt.x + currentPt.y * sizeX];
+    public int CurrentLocationIndex => CalculateIndex(currentPt.x, currentPt.y, isInside);
+    public TileType Location => CurrentTile.type;
+
+    public static int CalculateIndex(int x, int y, bool inside)
+    {
+        return x + y * sizeX + (inside ? (sizeX * sizeY) : 0);
+    }
 
     public void Init()
     {
@@ -77,6 +84,13 @@ public class World
 
         map[cityPos.x + cityPos.y * sizeX].type = TileType.City;
 
+        sewers = new Tile
+        {
+            type = TileType.Sewers,
+            hidden = TileType.None,
+            difficulty = 1
+        };
+
         SpawnLocation(cityPos, TileType.Forest, TileType.Sawmill);
         SpawnLocation(cityPos, TileType.Mountains, TileType.Mine);
         SpawnHiddenLocations(0, 7, 2, TileType.Mountains, TileType.Cave, Names.cave1.ToList());
@@ -97,7 +111,6 @@ public class World
 
         RevealHiddenLocations(cityPos, false);
         currentPt = cityPos;
-        location = TileType.City;
     }
 
     private void SpawnLocation(Vector2Int wantedPos, TileType wantedTile, TileType targetTile)
@@ -276,6 +289,8 @@ public class World
         bool haveTent = game.player.HaveItem("Tent");
         bool energyTick = false;
 
+        isInside = false;
+
         void NextDay()
         {
             game.hour = 8;
@@ -319,7 +334,6 @@ public class World
                 {
                     RevealHiddenLocations(nextPt, true);
                     currentPt = nextPt;
-                    location = map[pt.x + pt.y * sizeX].type;
                     travelDist -= isDiagonal ? 15 : 10;
                     dist -= isDiagonal ? 15 : 10;
                     if (currentPt != pt)
@@ -374,15 +388,23 @@ public class World
 
     public Tile GetLocation(int index)
     {
-        return map[index];
+        if (index >= sizeX * sizeY)
+            return sewers;
+        else
+            return map[index];
     }
 
-    public int FindLocationIndex(Func<Tile, bool> pred)
+    public int FindLocationIndex(Func<Tile, bool> pred, bool inside = false)
     {
         for(int index=0; index<sizeX*sizeY; ++index)
         {
             if (pred(map[index]))
-                return index;
+            {
+                if (inside)
+                    return index + sizeX * sizeY;
+                else
+                    return index;
+            }
         }
         return -1;
     }

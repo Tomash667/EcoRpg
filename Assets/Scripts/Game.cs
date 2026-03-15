@@ -95,7 +95,7 @@ public class Game : MonoBehaviour
             if (Input.GetKeyDown(KeyCode.T))
                 Travel();
 
-            switch (world.location)
+            switch (world.CurrentTile.type)
             {
             case TileType.City:
                 if (Input.GetKeyDown(KeyCode.G))
@@ -142,12 +142,12 @@ public class Game : MonoBehaviour
 
         Tile tile = world.CurrentTile;
         int chance = 7;
-        if ((world.location == TileType.Sewers || world.location == TileType.Sawmill || world.location == TileType.Mine)
+        if ((tile.type == TileType.Sewers || tile.type == TileType.Sawmill || tile.type == TileType.Mine)
             && !(activeQuest != null && activeQuest.type == Quest.Type.Clear && activeQuest.location == world.CurrentLocationIndex && activeQuest.count < activeQuest.max))
             chance = 0;
         if (tile.boss && dragonDefeated)
             chance = 0;
-        if (world.location == TileType.Plains)
+        if (tile.type == TileType.Plains)
             chance = 0;
         player.energy -= 10;
 
@@ -228,7 +228,7 @@ public class Game : MonoBehaviour
                     tile.defeatedEnemies -= 5;
             }
         }
-        else if (c == 9 && world.location == TileType.Forest)
+        else if (c == 9 && tile.type == TileType.Forest)
         {
             // 1-3 herbs (~1.5)
             int count = (Utility.Rand % 4) switch
@@ -241,7 +241,7 @@ public class Game : MonoBehaviour
             player.AddItem(herb, count);
             lastAction = $"You explore the {tile.Name} and find {Utility.Plural(herb.name, count)}.";
         }
-        else if (c == 9 && world.location == TileType.Mountains)
+        else if (c == 9 && tile.type == TileType.Mountains)
         {
             if (player.HaveItem("pickaxe"))
             {
@@ -286,7 +286,8 @@ public class Game : MonoBehaviour
         else
         {
             player.energy -= 50;
-            int payment = world.location switch
+            TileType location = world.Location;
+            int payment = location switch
             {
                 TileType.Sawmill => player.HaveProperty("Sawmill") ? 60 : 30,
                 TileType.Mine => player.HaveProperty("Mine") ? 60 : 30,
@@ -296,12 +297,12 @@ public class Game : MonoBehaviour
             foreach (Hero ally in allies)
                 ally.gold += payment;
             lastAction = $"You earned {payment} gold from working.";
-            if (world.location == TileType.Sawmill)
+            if (location == TileType.Sawmill)
                 player.Train(Skill.Woodcraft, 1, ref lastAction);
-            else if (world.location == TileType.Mine)
+            else if (location == TileType.Mine)
                 player.Train(Skill.Mining, 1, ref lastAction);
             AddHour(8);
-            if (world.location == TileType.City)
+            if (location == TileType.City)
             {
                 foreach (Hero ally in allies)
                     ally.BuyItems();
@@ -370,7 +371,7 @@ public class Game : MonoBehaviour
 
         player.energy -= 10;
         lastAction = "You enter the sewers.";
-        world.location = TileType.Sewers;
+        world.isInside = true;
         AddHour();
         OnChangeLocation();
     }
@@ -386,14 +387,14 @@ public class Game : MonoBehaviour
 
         player.energy -= 10;
         lastAction = "You exit to the city.";
-        world.location = TileType.City;
+        world.isInside = false;
         AddHour();
         OnChangeLocation();
     }
 
     private void OnChangeLocation()
     {
-        if (world.location == TileType.City)
+        if (world.CurrentTile.type == TileType.City)
         {
             if (player.goldWaiting != 0)
             {
@@ -821,7 +822,7 @@ public class Game : MonoBehaviour
                     int enemyIndex = enemyHp.Select((hp, index) => (hp, index)).RandomItem(x => x.hp > 0).index;
                     if (AttackChance(hero.dex, enemy.dex))
                     {
-                        enemyHp[enemyIndex] -= hero.Attack - enemy.def;
+                        enemyHp[enemyIndex] -= Mathf.Max(hero.Attack - enemy.def, 0);
                         if (enemyHp.All(x => x <= 0))
                             return true;
                     }
@@ -832,7 +833,7 @@ public class Game : MonoBehaviour
                 Hero hero = Team.RandomItem(x => x.hp > 0);
                 if (AttackChance(enemy.dex, hero.dex))
                 {
-                    hero.hp -= Mathf.Max(enemy.attack - hero.Defense);
+                    hero.hp -= Mathf.Max(enemy.attack - hero.Defense, 0);
                     if (hero.hp <= 0)
                     {
                         ItemSlot potion = hero.FindItem("potion");
@@ -883,7 +884,8 @@ public class Game : MonoBehaviour
     {
         ++day;
         hour = 8;
-        if (world.location == TileType.City && player.HaveProperty("House"))
+        TileType location = world.Location;
+        if (location == TileType.City && player.HaveProperty("House"))
         {
             player.hp = player.hpMax;
             player.energy = 100;
@@ -891,7 +893,7 @@ public class Game : MonoBehaviour
                 ally.hp = ally.hpMax;
             lastAction += "You rest in your house.";
         }
-        else if (world.location == TileType.City && player.gold > 0)
+        else if (location == TileType.City && player.gold > 0)
         {
             player.hp = player.hpMax;
             player.energy = 100;
@@ -903,7 +905,7 @@ public class Game : MonoBehaviour
             }
             lastAction += "You rest in an inn (-1 gold).";
         }
-        else if (world.location == TileType.Sawmill || world.location == TileType.Mine)
+        else if (location == TileType.Sawmill || location == TileType.Mine)
         {
             player.hp = player.hpMax;
             player.energy = 100;
@@ -922,9 +924,9 @@ public class Game : MonoBehaviour
             }
             else
             {
-                if (world.location == TileType.City)
+                if (location == TileType.City)
                     where = "on a street";
-                else if (world.location == TileType.Plains || world.location == TileType.Forest)
+                else if (location == TileType.Plains || location == TileType.Forest)
                     where = "on a grass";
                 else
                     where = "on a ground";
@@ -960,7 +962,7 @@ public class Game : MonoBehaviour
 
         OnNewDay();
 
-        if (player.goldWaiting > 0 && world.location == TileType.City)
+        if (player.goldWaiting > 0 && location == TileType.City)
         {
             lastAction += $" You receive {player.goldWaiting} gold from your properties.";
             player.AddGold(player.goldWaiting);
@@ -1055,7 +1057,8 @@ public class Game : MonoBehaviour
 
     private void UpdateButtons()
     {
-        bool inCity = world.location == TileType.City;
+        TileType location = world.Location;
+        bool inCity = location == TileType.City;
         Transform buttons = transform.Find("Buttons");
         buttons.Find("BtShop").gameObject.SetActive(inCity);
         buttons.Find("BtGuild").gameObject.SetActive(inCity);
@@ -1064,11 +1067,11 @@ public class Game : MonoBehaviour
         buttons.Find("BtProperties").gameObject.SetActive(inCity);
         buttons.Find("BtSewers").gameObject.SetActive(inCity);
 
-        buttons.Find("BtForage").gameObject.SetActive(world.location == TileType.Forest);
+        buttons.Find("BtForage").gameObject.SetActive(location == TileType.Forest);
 
-        buttons.Find("BtCity").gameObject.SetActive(world.location == TileType.Sewers);
+        buttons.Find("BtCity").gameObject.SetActive(location == TileType.Sewers);
 
-        buttons.Find("BtWork2").gameObject.SetActive(world.location == TileType.Sawmill || world.location == TileType.Mine);
+        buttons.Find("BtWork2").gameObject.SetActive(location == TileType.Sawmill || location == TileType.Mine);
 
         GameObject btAlly = buttons.Find("BtAlly").gameObject;
         if (allies.Count < 1)
@@ -1120,7 +1123,7 @@ public class Game : MonoBehaviour
 
     public void RemoveAlly()
     {
-        if (world.location != TileType.City)
+        if (world.Location != TileType.City)
         {
             ui.ShowDialog("You can only remove your allies in city.");
             return;
@@ -1153,7 +1156,7 @@ public class Game : MonoBehaviour
                 return true;
             player.AddGold(-count);
             activeAlly.gold += count;
-            if (world.location == TileType.City)
+            if (world.Location == TileType.City)
                 activeAlly.BuyItems();
             RefreshAllyScreen();
             UpdateText();
@@ -1248,7 +1251,7 @@ public class Game : MonoBehaviour
                 switch (quest.difficulty)
                 {
                 case 1:
-                    quest.location = world.FindLocationIndex(x => x.type == TileType.City);
+                    quest.location = world.FindLocationIndex(x => x.type == TileType.City, true);
                     break;
                 case 2:
                     quest.location = world.FindLocationIndex(x => x.type == TileType.Sawmill);
@@ -1369,7 +1372,7 @@ public class Game : MonoBehaviour
         foreach (Hero ally in allies)
         {
             ally.gold += share;
-            if (world.location == TileType.City)
+            if (world.Location == TileType.City)
                 ally.BuyItems();
         }
 

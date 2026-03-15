@@ -1,5 +1,3 @@
-- sewers count as city, exploring city counts toward clear sewers quest
-
 v0:
 + more weapons/armors/shields/potions
 	treasure
