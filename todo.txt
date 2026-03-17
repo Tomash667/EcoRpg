@@ -14,7 +14,6 @@ v0:
 + guild
 	recruit here
 	rank (copper, silver, gold)
-	quest tiers: some easy, some medium, some hard
 	refresh quests over time
 + find cave -> clear -> ore -> build iron/silver/gold mine -> buy/sell later
 + location explored % - find treasure vault
@@ -78,6 +77,8 @@ hero:
 	ancient dragon
 	sealed horror
 	ghost
++ guild rank benefits (cheaper hire for quests, shop, sleep)
++ well rested in house/guild personal room
 
 events:
 + free person for hire (foreman, geomancer etc)

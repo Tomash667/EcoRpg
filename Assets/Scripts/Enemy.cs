@@ -22,6 +22,11 @@ public class Enemy
         return matchingEnemies.RandomItem();
     }
 
+    public static Enemy GetRandom(int difficulty)
+    {
+        return enemies.RandomItem(x => x.locations != null && x.locations.Any(y => y.difficulty == difficulty));
+    }
+
     public static Enemy[] enemies = new Enemy[]
     {
         new()

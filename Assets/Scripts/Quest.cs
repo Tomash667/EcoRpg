@@ -15,7 +15,7 @@ public class Quest : ISerializationCallbackReceiver
     public Item item;
     public Type type;
     public string enemyName, itemName;
-    public int location, count, max, difficulty;
+    public int location, count, max, locationDifficulty, difficulty;
 
     public int Reward
     {
@@ -25,7 +25,7 @@ public class Quest : ISerializationCallbackReceiver
             {
                 Type.Defeat => 25 * (enemy.level + 1) * max,
                 Type.Gather => 250,
-                Type.Clear => difficulty * 250,
+                Type.Clear => locationDifficulty * 250,
                 _ => 0,
             };
         }

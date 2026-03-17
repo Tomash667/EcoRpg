@@ -351,9 +351,9 @@ public class Game : MonoBehaviour
             Tile tile = world.CurrentTile;
             lastAction = $"You travel to the {tile.Name}.";
             if (tile.boss)
-                lastAction += " There are dragon engravings near entrance.";
+                lastAction += " There are <b>dragon engravings</b> near entrance.";
             else if (tile.mine && tile.type == TileType.Cave)
-                lastAction += $" There are {(tile.difficulty == 2 ? "silver" : "gold")} veins inside this cave.";
+                lastAction += $" There are <b>{(tile.difficulty == 2 ? "silver" : "gold")} veins</b> inside this cave.";
             OnChangeLocation();
             ui.CloseDialog();
         }
@@ -1245,45 +1245,25 @@ public class Game : MonoBehaviour
         guildScreen.transform.Find("BtFinishQuest").GetComponent<Button>().interactable = activeQuest != null && activeQuest.IsDone();
 
         availableQuests ??= new();
-        while (availableQuests.Count < 3)
+        if (availableQuests.Count != 6)
         {
-            Quest quest = new();
-            int c = Utility.Rand % 5;
-            switch (c)
+            int[] questsByDifficulty = new int[4];
+            foreach (Quest quest in availableQuests)
+                questsByDifficulty[quest.difficulty]++;
+
+            for (int difficulty = 1; difficulty <= 3; ++difficulty)
             {
-            case 0:
-                quest.type = Quest.Type.Clear;
-                quest.difficulty = Utility.Random(1, 3);
-                quest.max = 10;
-                switch (quest.difficulty)
+                while (questsByDifficulty[difficulty] < 2)
                 {
-                case 1:
-                    quest.location = world.FindLocationIndex(x => x.type == TileType.City, true);
-                    break;
-                case 2:
-                    quest.location = world.FindLocationIndex(x => x.type == TileType.Sawmill);
-                    break;
-                case 3:
-                    quest.location = world.FindLocationIndex(x => x.type == TileType.Mine && x.difficulty == 1);
-                    break;
+                    Quest quest = GenerateQuest(difficulty);
+                    availableQuests.Add(quest);
+                    ++questsByDifficulty[difficulty];
                 }
-                break;
-            case 1:
-                quest.type = Quest.Type.Gather;
-                quest.item = Item.Get("herb");
-                quest.max = 20;
-                break;
-            default:
-                quest.type = Quest.Type.Defeat;
-                quest.enemy = Enemy.enemies.RandomItem(x => x.quest);
-                quest.max = Utility.Random(2, 3);
-                break;
             }
 
-            if (availableQuests.All(x => !x.IsSimilar(quest)) && (activeQuest == null || !activeQuest.IsSimilar(quest)))
-                availableQuests.Add(quest);
+            availableQuests.Sort((a, b) => a.difficulty.CompareTo(b.difficulty));
         }
-
+        
         Transform content = guildScreen.transform.Find("List/Viewport/Content");
         foreach (Transform child in content)
             Destroy(child.gameObject);
@@ -1303,6 +1283,57 @@ public class Game : MonoBehaviour
             }
             else
                 itemEntry.Init(quest.TitleReward);
+        }
+    }
+
+    private Quest GenerateQuest(int difficulty)
+    {
+        Quest quest = new() { difficulty = difficulty };
+        while (true)
+        {
+            if (difficulty == 1)
+            {
+                int c = Utility.Rand % 5;
+                switch (c)
+                {
+                case 0:
+                    quest.type = Quest.Type.Clear;
+                    quest.locationDifficulty = Utility.Random(1, 3);
+                    quest.max = 10;
+                    switch (quest.locationDifficulty)
+                    {
+                    case 1:
+                        quest.location = world.FindLocationIndex(x => x.type == TileType.City, true);
+                        break;
+                    case 2:
+                        quest.location = world.FindLocationIndex(x => x.type == TileType.Sawmill);
+                        break;
+                    case 3:
+                        quest.location = world.FindLocationIndex(x => x.type == TileType.Mine && x.difficulty == 1);
+                        break;
+                    }
+                    break;
+                case 1:
+                    quest.type = Quest.Type.Gather;
+                    quest.item = Item.Get("herb");
+                    quest.max = 20;
+                    break;
+                default:
+                    quest.type = Quest.Type.Defeat;
+                    quest.enemy = Enemy.GetRandom(difficulty);
+                    quest.max = Utility.Random(2, 3);
+                    break;
+                }
+            }
+            else
+            {
+                quest.type = Quest.Type.Defeat;
+                quest.enemy = Enemy.GetRandom(difficulty);
+                quest.max = Utility.Random(2, 3);
+            }
+
+            if (availableQuests.All(x => !x.IsSimilar(quest)) && (activeQuest == null || !activeQuest.IsSimilar(quest)))
+                return quest;
         }
     }
 
