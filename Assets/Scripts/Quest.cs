@@ -15,7 +15,7 @@ public class Quest : ISerializationCallbackReceiver
     public Item item;
     public Type type;
     public string enemyName, itemName;
-    public int location, count, max, locationDifficulty, difficulty;
+    public int location, count, max, locationDifficulty, difficulty, timer;
 
     public int Reward
     {

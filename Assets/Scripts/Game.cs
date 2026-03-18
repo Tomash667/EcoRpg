@@ -982,6 +982,11 @@ public class Game : MonoBehaviour
     public void OnNewDay()
     {
         player.goldWaiting += player.properties.Sum(x => x.income);
+        if (availableQuests != null)
+        {
+            foreach (Quest quest in availableQuests)
+                --quest.timer;
+        }
     }
 
     public int CountTeamItem(Item item)
@@ -1247,6 +1252,11 @@ public class Game : MonoBehaviour
         guildScreen.transform.Find("BtFinishQuest").GetComponent<Button>().interactable = activeQuest != null && activeQuest.IsDone();
 
         availableQuests ??= new();
+
+        // remove old quests
+        availableQuests.RemoveAll(x => x.timer <= 0);
+
+        // add new quests
         if (availableQuests.Count != 6)
         {
             int[] questsByDifficulty = new int[4];
@@ -1263,7 +1273,13 @@ public class Game : MonoBehaviour
                 }
             }
 
-            availableQuests.Sort((a, b) => a.difficulty.CompareTo(b.difficulty));
+            availableQuests.Sort((a, b) =>
+            {
+                int result = a.difficulty.CompareTo(b.difficulty);
+                if (result != 0)
+                    return result;
+                return a.timer.CompareTo(b.timer);
+            });
         }
 
         Transform content = guildScreen.transform.Find("List/Viewport/Content");
@@ -1297,7 +1313,7 @@ public class Game : MonoBehaviour
 
     private Quest GenerateQuest(int difficulty)
     {
-        Quest quest = new() { difficulty = difficulty };
+        Quest quest = new() { difficulty = difficulty, timer = Utility.Random(5, 20) };
         while (true)
         {
             if (difficulty == 1)

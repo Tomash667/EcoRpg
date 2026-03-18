@@ -11,9 +11,7 @@ v0:
 	old camp
 	trap
 	treasure
-+ guild
-	recruit here
-	refresh quests over time
++ recruit in guild
 + find cave -> clear -> ore -> build iron/silver/gold mine -> buy/sell later
 + location explored % - find treasure vault
 + intro/outro text
