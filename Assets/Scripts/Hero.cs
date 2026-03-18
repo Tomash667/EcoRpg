@@ -358,10 +358,10 @@ public class Hero : ISerializationCallbackReceiver
     public void ApplyHealing()
     {
         float hpp = ((float)hp) / hpMax;
-        if(hpp < 0.5f)
+        if (hpp < 0.5f)
         {
             ItemSlot potion = FindHealingItem();
-            if(potion != null)
+            if (potion != null)
             {
                 hp = Mathf.Min(hp + potion.item.power, hpMax);
                 RemoveItem(potion);

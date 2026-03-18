@@ -12,13 +12,15 @@ public class Game : MonoBehaviour
 {
     private const int MaxAllies = 2;
 
+    private static readonly string[] GuildRanks = new[] { "Copper", "Silver", "Gold" };
+
     public World world;
     public Player player;
     public List<Hero> allies;
     public List<Quest> availableQuests;
     [SerializeReference]
     public Quest activeQuest;
-    public int day, hour;
+    public int day, hour, guildRank, guildProgress;
     public bool dragonDefeated;
 
     private GameUI ui;
@@ -229,7 +231,7 @@ public class Game : MonoBehaviour
             }
 
             // heal after combat
-            if(player.hp < 1)
+            if (player.hp < 1)
                 player.hp = 1;
             foreach (Hero ally in allies)
             {
@@ -1240,7 +1242,7 @@ public class Game : MonoBehaviour
         else
             guildText = string.Empty;
 
-        guildText += $"Current quest: {(activeQuest != null ? activeQuest.Text : "none")}";
+        guildText += $"Your rank: {GuildRanks[guildRank]}\nCurrent quest: {(activeQuest != null ? activeQuest.Text : "none")}";
         guildScreen.transform.Find("Text").GetComponent<TMP_Text>().text = guildText;
         guildScreen.transform.Find("BtFinishQuest").GetComponent<Button>().interactable = activeQuest != null && activeQuest.IsDone();
 
@@ -1263,15 +1265,22 @@ public class Game : MonoBehaviour
 
             availableQuests.Sort((a, b) => a.difficulty.CompareTo(b.difficulty));
         }
-        
+
         Transform content = guildScreen.transform.Find("List/Viewport/Content");
         foreach (Transform child in content)
             Destroy(child.gameObject);
 
+        bool unavailable = false;
         foreach (Quest quest in availableQuests)
         {
+            if (!unavailable && quest.difficulty > guildRank + 1)
+            {
+                unavailable = true;
+                Instantiate(ui.lineSeparatorPrefab, content);
+            }
+
             ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
-            if (activeQuest == null)
+            if (activeQuest == null && !unavailable)
             {
                 itemEntry.Init(quest.TitleReward, "Pick", () =>
                 {
@@ -1366,6 +1375,16 @@ public class Game : MonoBehaviour
     {
         int reward = activeQuest.Reward;
         lastAction = $"You received {reward} gold for quest '{activeQuest.Title}'.";
+        if (activeQuest.difficulty > guildRank && guildRank != 2)
+        {
+            ++guildProgress;
+            if (guildProgress == 2)
+            {
+                ++guildRank;
+                guildProgress = 0;
+                lastAction += $" You were promoted to <b>{GuildRanks[guildRank]}</b> rank.";
+            }
+        }
         AddTeamGold(reward);
         activeQuest = null;
         UpdateGuild();

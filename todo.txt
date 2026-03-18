@@ -13,7 +13,6 @@ v0:
 	treasure
 + guild
 	recruit here
-	rank (copper, silver, gold)
 	refresh quests over time
 + find cave -> clear -> ore -> build iron/silver/gold mine -> buy/sell later
 + location explored % - find treasure vault
