@@ -5,7 +5,7 @@ v0:
 	enemy camp
 	defeat x enemies in region
 	capture bandits leader in forest
-+ minute counter (explore dungeon, buy/sell property, enter/exit sewers)
++ minute counter (explore dungeon)
 + events
 	spotted enemy
 	old camp
@@ -19,9 +19,7 @@ v0:
 	monsters in mine/sawmill -> hire adventurers/send army/deal with it by yourself
 	good ore quality
 + mining/woodcraft -> gold gain
-+ alchemy
-	takes time
-	skill effect
++ alchemy skill effect
 
 hero:
 + classes
@@ -46,6 +44,7 @@ hero:
 	more active
 	cancel
 	timed
+	gather better herbs, magic crystals
 + forage -> enemies
 + more alchemy recipes
 + allies

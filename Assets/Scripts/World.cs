@@ -242,6 +242,13 @@ public class World
             energy = Mathf.Min(energy + (haveTent ? 100 : 75), 100);
         }
 
+        if (isInside && game.minute + 30 >= 60)
+        {
+            ++hour;
+            if (hour == 24)
+                NextDay();
+        }
+
         while (dist > 0)
         {
             Vector2Int dir = (pt - currentTmpPt).Normalized();
@@ -289,11 +296,10 @@ public class World
         bool haveTent = game.player.HaveItem("Tent");
         bool energyTick = false;
 
-        isInside = false;
-
         void NextDay()
         {
             game.hour = 8;
+            game.minute = 0;
             ++game.day;
             game.OnNewDay();
             game.RemoveTeamItem(rationsItem, teamSize);
@@ -302,6 +308,19 @@ public class World
             foreach (Hero hero in game.Team)
                 hero.hp = hero.hpMax;
             game.player.energy = Mathf.Min(game.player.energy + (haveTent ? 100 : 75), 100);
+        }
+
+        if (isInside)
+        {
+            isInside = false;
+            game.minute += 30;
+            if (game.minute >= 60)
+            {
+                game.minute -= 60;
+                ++game.hour;
+                if (game.hour == 24)
+                    NextDay();
+            }
         }
 
         while (dist > 0)

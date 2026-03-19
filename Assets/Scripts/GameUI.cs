@@ -21,6 +21,7 @@ public class GameUI : MonoBehaviour
 
     public bool HasDialog => dialogs.Count > 0;
     public GameObject CurrentDialog => dialogs.Count > 0 ? dialogs[^1] : null;
+    public GameObject TopDialog => dialogs.Count > 0 ? dialogs[0] : null;
 
     private void Awake()
     {
@@ -109,5 +110,11 @@ public class GameUI : MonoBehaviour
             return;
         dialogs[^1].SetActive(false);
         dialogs.RemoveAt(dialogs.Count - 1);
+    }
+
+    public void CloseTopDialog()
+    {
+        dialogs[0].SetActive(false);
+        dialogs.RemoveAt(0);
     }
 }

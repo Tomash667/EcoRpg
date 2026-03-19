@@ -20,7 +20,7 @@ public class Game : MonoBehaviour
     public List<Quest> availableQuests;
     [SerializeReference]
     public Quest activeQuest;
-    public int day, hour, guildRank, guildProgress;
+    public int day, hour, minute, guildRank, guildProgress;
     public bool dragonDefeated;
 
     private GameUI ui;
@@ -275,7 +275,7 @@ public class Game : MonoBehaviour
         else
             lastAction = $"You explore the {tile.Name} but find nothing interesting.";
 
-        AddHour();
+        AddTime(hours: 1);
         UpdateText();
     }
 
@@ -313,7 +313,7 @@ public class Game : MonoBehaviour
                 player.Train(Skill.Woodcraft, 1, ref lastAction);
             else if (location == TileType.Mine)
                 player.Train(Skill.Mining, 1, ref lastAction);
-            AddHour(8);
+            AddTime(hours: 8);
             if (location == TileType.City)
             {
                 foreach (Hero ally in allies)
@@ -374,33 +374,33 @@ public class Game : MonoBehaviour
 
     public void EnterSewers()
     {
-        if (player.energy < 10)
+        if (player.energy < 5)
         {
             lastAction = "You are too tired to travel.";
             UpdateText();
             return;
         }
 
-        player.energy -= 10;
+        player.energy -= 5;
         lastAction = "You enter the sewers.";
         world.isInside = true;
-        AddHour();
+        AddTime(minutes: 30);
         OnChangeLocation();
     }
 
     public void ExitToCity()
     {
-        if (player.energy < 10)
+        if (player.energy < 5)
         {
             lastAction = "You are too tired to travel.";
             UpdateText();
             return;
         }
 
-        player.energy -= 10;
+        player.energy -= 5;
         lastAction = "You exit to the city.";
         world.isInside = false;
-        AddHour();
+        AddTime(minutes: 30);
         OnChangeLocation();
     }
 
@@ -768,7 +768,7 @@ public class Game : MonoBehaviour
     private void UpdateText()
     {
         sb.Clear();
-        sb.Append($"{world.CurrentTile.Name.ToUpper1()}   Day: {day} {hour}:00   Health: {player.hp}/{player.hpMax}   Energy: {player.energy}/100   Gold: {player.gold}");
+        sb.Append($"{world.CurrentTile.Name.ToUpper1()}   Day: {day} {hour}:{minute:00}   Health: {player.hp}/{player.hpMax}   Energy: {player.energy}/100   Gold: {player.gold}");
         if (player.goldReceived != 0)
         {
             sb.Append($"({player.goldReceived:+0;-0})");
@@ -879,9 +879,15 @@ public class Game : MonoBehaviour
         return Utility.Random(0, 100) < chance;
     }
 
-    private void AddHour(int count = 1)
+    private void AddTime(int hours = 0, int minutes = 0)
     {
-        hour += count;
+        minute += minutes;
+        if (minute >= 60)
+        {
+            hour += minute / 60;
+            minute %= 60;
+        }
+        hour += hours;
         if (hour >= 24)
         {
             lastAction += " It's a new day. ";
@@ -893,6 +899,7 @@ public class Game : MonoBehaviour
     {
         ++day;
         hour = 8;
+        minute = 0;
         TileType location = world.Location;
         if (location == TileType.City && player.HaveProperty("House"))
         {
@@ -962,10 +969,10 @@ public class Game : MonoBehaviour
                     foreach (Hero ally in allies)
                         ally.hp = Mathf.Min(ally.hp + (int)(ratio * ally.hpMax), ally.hpMax);
                 }
-                lastAction = $"You rest {where} and eat rations.";
+                lastAction += $"You rest {where} and eat rations.";
             }
             else
-                lastAction = $"You rest {where}.";
+                lastAction += $"You rest {where}.";
             player.energy = Mathf.Min(player.energy + energy, 100);
         }
 
@@ -977,6 +984,10 @@ public class Game : MonoBehaviour
             player.AddGold(player.goldWaiting);
             player.goldWaiting = 0;
         }
+
+        GameObject topDialog = ui.TopDialog;
+        if (topDialog == properiesScreen || topDialog == guildScreen)
+            ui.CloseTopDialog();
     }
 
     public void OnNewDay()
@@ -1130,7 +1141,7 @@ public class Game : MonoBehaviour
                 allies.Add(hero);
                 UpdateButtons();
             }
-            AddHour();
+            AddTime(minutes: 30);
             UpdateText();
         });
     }
@@ -1186,6 +1197,9 @@ public class Game : MonoBehaviour
 
     private void UpdateProperties()
     {
+        properiesScreen.transform.Find("Text").GetComponent<TMP_Text>().text = lastAction ?? string.Empty;
+        lastAction = null;
+
         Transform content = properiesScreen.transform.Find("List/Viewport/Content");
         foreach (Transform child in content)
             Destroy(child.gameObject);
@@ -1202,7 +1216,10 @@ public class Game : MonoBehaviour
                 {
                     player.AddGold(property.value / 2);
                     player.properties.Remove(property);
-                    UpdateProperties();
+                    lastAction = $"You sell {property.name} for {property.value / 2} gold.";
+                    AddTime(minutes: 30);
+                    if (ui.CurrentDialog == properiesScreen)
+                        UpdateProperties();
                     UpdateText();
                 });
             }
@@ -1223,7 +1240,10 @@ public class Game : MonoBehaviour
                 {
                     player.AddGold(-property.value);
                     player.properties.Add(property);
-                    UpdateProperties();
+                    lastAction = $"You buy {property.name} for {property.value} gold.";
+                    AddTime(minutes: 30);
+                    if (ui.CurrentDialog == properiesScreen)
+                        UpdateProperties();
                     UpdateText();
                 }
             });
@@ -1302,8 +1322,11 @@ public class Game : MonoBehaviour
                 {
                     activeQuest = quest;
                     availableQuests.Remove(quest);
+                    lastAction = $"You accepted quest '{activeQuest.Title}'.";
+                    AddTime(minutes: 15);
+                    if (ui.CurrentDialog == guildScreen)
+                        UpdateGuild();
                     UpdateText();
-                    UpdateGuild();
                 });
             }
             else
@@ -1362,6 +1385,28 @@ public class Game : MonoBehaviour
         }
     }
 
+    public void FinishQuest()
+    {
+        int reward = activeQuest.Reward;
+        lastAction = $"You received {reward} gold for quest '{activeQuest.Title}'.";
+        if (activeQuest.difficulty > guildRank && guildRank != 2)
+        {
+            ++guildProgress;
+            if (guildProgress == 2)
+            {
+                ++guildRank;
+                guildProgress = 0;
+                lastAction += $" You were promoted to <b>{GuildRanks[guildRank]}</b> rank.";
+            }
+        }
+        AddTeamGold(reward);
+        activeQuest = null;
+        AddTime(minutes: 15);
+        if (ui.CurrentDialog == guildScreen)
+            UpdateGuild();
+        UpdateText();
+    }
+
     public void Forage()
     {
         if (player.energy < 10)
@@ -1383,27 +1428,7 @@ public class Game : MonoBehaviour
         player.energy -= 10;
         player.AddItem(herb, count);
         lastAction = $"You forage in the {world.CurrentTile.Name} and find {Utility.Plural(herb.name, count)}.";
-        AddHour();
-        UpdateText();
-    }
-
-    public void FinishQuest()
-    {
-        int reward = activeQuest.Reward;
-        lastAction = $"You received {reward} gold for quest '{activeQuest.Title}'.";
-        if (activeQuest.difficulty > guildRank && guildRank != 2)
-        {
-            ++guildProgress;
-            if (guildProgress == 2)
-            {
-                ++guildRank;
-                guildProgress = 0;
-                lastAction += $" You were promoted to <b>{GuildRanks[guildRank]}</b> rank.";
-            }
-        }
-        AddTeamGold(reward);
-        activeQuest = null;
-        UpdateGuild();
+        AddTime(hours: 1);
         UpdateText();
     }
 
@@ -1425,7 +1450,10 @@ public class Game : MonoBehaviour
             player.AddItem(potion, count);
             lastAction = $"You created {Utility.Plural(potion.name, count)}.";
             player.Train(Skill.Alchemy, count, ref lastAction);
-            UpdateGuild();
+            AddTime(minutes: count * 5);
+            if (ui.TopDialog == guildScreen)
+                UpdateGuild();
+            UpdateText();
             return true;
         });
     }
