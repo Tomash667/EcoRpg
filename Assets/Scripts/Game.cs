@@ -268,6 +268,7 @@ public class Game : MonoBehaviour
                 Item nugget = Item.Get("gold nugget");
                 player.AddItem(nugget, count);
                 lastAction = $"You explore the {tile.Name} and find small gold vein. You mine {Utility.Plural(nugget.name, count)}.";
+                player.Train(Skill.Mining, 1, ref lastAction);
             }
             else
                 lastAction = $"You explore the {tile.Name} and find small gold vein but you don't have a pickaxe...";
@@ -299,12 +300,23 @@ public class Game : MonoBehaviour
         {
             player.energy -= 50;
             TileType location = world.Location;
-            int payment = location switch
+            int payment;
+            switch (location)
             {
-                TileType.Sawmill => player.HaveProperty("Sawmill") ? 60 : 30,
-                TileType.Mine => player.HaveProperty("Mine") ? 60 : 30,
-                _ => 20
-            };
+            case TileType.Sawmill:
+                payment = 30 + player.GetSkill(Skill.Woodcraft) / 10;
+                if (player.HaveProperty("Sawmill"))
+                    payment *= 2;
+                break;
+            case TileType.Mine:
+                payment = 30 + player.GetSkill(Skill.Mining) / 10;
+                if (player.HaveProperty("Mine"))
+                    payment *= 2;
+                break;
+            default:
+                payment = 20;
+                break;
+            }
             player.AddGold(payment);
             foreach (Hero ally in allies)
                 ally.gold += payment;
@@ -1447,8 +1459,21 @@ public class Game : MonoBehaviour
             }
             Item potion = Item.Get("potion");
             player.RemoveItem(herb, count * 2);
-            player.AddItem(potion, count);
-            lastAction = $"You created {Utility.Plural(potion.name, count)}.";
+            float mod;
+            int alchemy = player.GetSkill(Skill.Alchemy);
+            if (alchemy >= 100)
+                mod = 1;
+            else if (alchemy >= 75)
+                mod = 0.5f;
+            else if (alchemy >= 50)
+                mod = 0.25f;
+            else if (alchemy >= 25)
+                mod = 0.1f;
+            else
+                mod = 0;
+            int extra = (int)(count * mod);
+            player.AddItem(potion, count + extra);
+            lastAction = $"You created {Utility.Plural(potion.name, count + extra)}.";
             player.Train(Skill.Alchemy, count, ref lastAction);
             AddTime(minutes: count * 5);
             if (ui.TopDialog == guildScreen)

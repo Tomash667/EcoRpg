@@ -25,3 +25,8 @@ Left Shift + click - sell whole stack
 Map:
 Click - travel
 Left Shift + click - travel without entering location
+
+Skills:
+Alchemy - create extra potions
+Mining - extra payment in mine
+Woodwork - extra payment in sawmill
