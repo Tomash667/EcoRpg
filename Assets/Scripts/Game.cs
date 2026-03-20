@@ -146,14 +146,16 @@ public class Game : MonoBehaviour
 
     public void Explore()
     {
-        if (player.energy < 10)
+        Tile tile = world.CurrentTile;
+        bool isSmall = tile.type.IsSmall();
+
+        if (player.energy < (isSmall ? 5 : 10))
         {
             lastAction = "You are too tired to explore.";
             UpdateText();
             return;
         }
 
-        Tile tile = world.CurrentTile;
         int chance = 7;
         if ((tile.type == TileType.Sewers || tile.type == TileType.Sawmill || tile.type == TileType.Mine)
             && !(activeQuest != null && activeQuest.type == Quest.Type.Clear && activeQuest.location == world.CurrentLocationIndex && activeQuest.count < activeQuest.max))
@@ -162,7 +164,7 @@ public class Game : MonoBehaviour
             chance = 0;
         if (tile.type == TileType.Plains)
             chance = 0;
-        player.energy -= 10;
+        player.energy -= 5;
 
         int c = Random.Range(0, 10);
 
@@ -287,7 +289,10 @@ public class Game : MonoBehaviour
         else
             lastAction = $"You explore the {tile.Name} but find nothing interesting.";
 
-        AddTime(hours: 1);
+        if (isSmall)
+            AddTime(minutes: 30);
+        else
+            AddTime(hours: 1);
         UpdateText();
     }
 
@@ -804,12 +809,12 @@ public class Game : MonoBehaviour
             sb.Append($"Quest: {activeQuest.Text}\n");
         else
             sb.Append('\n');
-        if (lastAction != null)
+        if (!string.IsNullOrEmpty(lastAction))
         {
             sb.Append('\n');
             sb.Append(lastAction);
-            lastAction = null;
         }
+        lastAction = null;
         text.text = sb.ToString();
     }
 
@@ -1264,6 +1269,23 @@ public class Game : MonoBehaviour
                     player.AddGold(-property.value);
                     player.properties.Add(property);
                     lastAction = $"You buy {property.name} for {property.value} gold.";
+
+                    // remove quests assigned to this location
+                    int locationIndex = -1;
+                    if (property.name == "Sawmill")
+                        locationIndex = world.FindLocationIndex(x => x.type == TileType.Sawmill);
+                    else if (property.name == "Mine")
+                        locationIndex = world.FindLocationIndex(x => x.type == TileType.Mine && x.difficulty == 1);
+                    if (locationIndex != -1)
+                    {
+                        if (activeQuest != null && activeQuest.type == Quest.Type.Clear && activeQuest.location == locationIndex)
+                        {
+                            lastAction += $" Quest '{activeQuest.Title}' is reassigned to other party.";
+                            activeQuest = null;
+                        }
+                        availableQuests.RemoveAll(x => x.type == Quest.Type.Clear && x.location == locationIndex);
+                    }
+
                     AddTime(minutes: 30);
                     if (ui.CurrentDialog == properiesScreen)
                         UpdateProperties();
@@ -1282,7 +1304,7 @@ public class Game : MonoBehaviour
     private void UpdateGuild()
     {
         string guildText;
-        if (lastAction != null)
+        if (!string.IsNullOrEmpty(lastAction))
         {
             guildText = lastAction;
             guildText += "\n\n";
@@ -1377,10 +1399,24 @@ public class Game : MonoBehaviour
                         quest.location = world.FindLocationIndex(x => x.type == TileType.City, true);
                         break;
                     case 2:
-                        quest.location = world.FindLocationIndex(x => x.type == TileType.Sawmill);
+                        if (player.HaveProperty("Sawmill"))
+                        {
+                            // don't generate random quest if player owned
+                            quest.locationDifficulty = 1;
+                            quest.location = world.FindLocationIndex(x => x.type == TileType.City, true);
+                        }
+                        else
+                            quest.location = world.FindLocationIndex(x => x.type == TileType.Sawmill);
                         break;
                     case 3:
-                        quest.location = world.FindLocationIndex(x => x.type == TileType.Mine && x.difficulty == 1);
+                        if (player.HaveProperty("Mine"))
+                        {
+                            // don't generate random quest if player owned
+                            quest.locationDifficulty = 1;
+                            quest.location = world.FindLocationIndex(x => x.type == TileType.City, true);
+                        }
+                        else
+                            quest.location = world.FindLocationIndex(x => x.type == TileType.Mine && x.difficulty == 1);
                         break;
                     }
                     break;

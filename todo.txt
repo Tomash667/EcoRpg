@@ -5,7 +5,6 @@ v0:
 	enemy camp
 	defeat x enemies in region
 	capture bandits leader in forest
-+ minute counter (explore dungeon)
 + events
 	spotted enemy
 	old camp
@@ -16,7 +15,7 @@ v0:
 + location explored % - find treasure vault
 + intro/outro text
 + managements events
-	monsters in mine/sawmill -> hire adventurers/send army/deal with it by yourself
+	monsters in mine/sawmill -> hire adventurers/send army/deal with it by yourself; can't sell when infested
 	good ore quality
 
 hero:

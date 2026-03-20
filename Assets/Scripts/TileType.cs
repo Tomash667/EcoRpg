@@ -31,4 +31,9 @@ public static class TileTypeMethods
             _ => $"[ERROR tileType {tileType}]"
         };
     }
+
+    public static bool IsSmall(this TileType tileType)
+    {
+        return tileType == TileType.Cave || tileType == TileType.Dungeon || tileType == TileType.ForestDungeon || tileType == TileType.Mine || tileType == TileType.Sewers;
+    }
 }
