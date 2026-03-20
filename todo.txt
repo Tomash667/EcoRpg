@@ -1,10 +1,10 @@
 v0:
-+ treasure items/gold
 + quest -> clear dungeon/crypt
 	recover artifact
 	enemy camp
 	defeat x enemies in region
 	capture bandits leader in forest
+	rewards
 + events
 	spotted enemy
 	old camp

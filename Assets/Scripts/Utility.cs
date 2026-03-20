@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 
 public static class Utility
 {
@@ -25,6 +26,15 @@ public static class Utility
     public static int Random(int a, int b)
     {
         return UnityEngine.Random.Range(a, b + 1);
+    }
+
+    public static int Round(int value)
+    {
+        if (value < 100)
+            return value;
+        int digits = (int)Mathf.Log10(value);
+        int step = (int)Mathf.Pow(10, digits - 1);
+        return Mathf.RoundToInt(value / (float)step) * step;
     }
 
     public static string Plural(string word)

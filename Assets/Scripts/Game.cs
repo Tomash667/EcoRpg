@@ -174,7 +174,17 @@ public class Game : MonoBehaviour
 #endif
 
         Enemy enemy;
-        if (c < chance && (enemy = Enemy.GetRandom(tile.type, tile.difficulty)) != null)
+        if ((tile.type == TileType.Dungeon || tile.type == TileType.ForestDungeon) && !tile.foundTreasure && tile.defeatedEnemies >= 10)
+        {
+            int level = tile.difficulty + 2;
+            Item item = Item.items.RandomItem(x => x.level == level);
+            int gold = Utility.Round(Utility.Random(level * 100, level * 200));
+            lastAction = $"You explore the {tile.Name} and find treasure room. Inside chest you find {gold} gold and {item.name}.";
+            AddTeamGold(gold);
+            player.AddItem(item);
+            tile.foundTreasure = true;
+        }
+        else if (c < chance && (enemy = Enemy.GetRandom(tile.type, tile.difficulty)) != null)
         {
             int count = (Utility.Rand % 4) switch
             {
