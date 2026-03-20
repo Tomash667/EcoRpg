@@ -16,6 +16,7 @@ public class GameUI : MonoBehaviour
 
     private List<GameObject> dialogs;
     private Func<int, bool> inputFunc;
+    private Action<bool> confirmAction2;
     private Action confirmAction;
     private GameObject okDialog, confirmDialog, inputDialog;
 
@@ -80,7 +81,13 @@ public class GameUI : MonoBehaviour
 
     public void ShowConfirm(string text, Action action)
     {
-        confirmAction = action;
+        ShowConfirm(text, x => action());
+    }
+
+    public void ShowConfirm(string text, Action<bool> action)
+    {
+        confirmAction = null;
+        confirmAction2 = action;
         confirmDialog.transform.GetChild(0).GetChild(0).GetComponent<TMP_Text>().text = text;
         confirmDialog.transform.SetAsLastSibling();
         confirmDialog.SetActive(true);
@@ -95,12 +102,15 @@ public class GameUI : MonoBehaviour
             TMP_InputField input = inputDialog.transform.GetChild(0).GetChild(1).GetComponent<TMP_InputField>();
             string text = input.text.Trim();
             if (int.TryParse(text, out int value) && inputFunc(value))
-                CloseDialog();
+                CloseDialogInternal();
         }
         else
         {
-            CloseDialog();
-            confirmAction();
+            CloseDialogInternal();
+            if (confirmAction == null)
+                confirmAction2(true);
+            else
+                confirmAction();
         }
     }
 
@@ -108,6 +118,17 @@ public class GameUI : MonoBehaviour
     {
         if (lockDialog)
             return;
+        GameObject currentDialog = dialogs[^1];
+        CloseDialogInternal();
+        if (currentDialog == confirmDialog)
+        {
+            if (confirmAction == null)
+                confirmAction2(false);
+        }
+    }
+
+    private void CloseDialogInternal()
+    {
         dialogs[^1].SetActive(false);
         dialogs.RemoveAt(dialogs.Count - 1);
     }

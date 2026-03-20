@@ -73,7 +73,18 @@ public class Game : MonoBehaviour
 #endif
 
         if (ui.HasDialog)
+        {
+            if (ui.CurrentDialog == guildScreen)
+            {
+                if (Input.GetKeyDown(KeyCode.C))
+                    Craft();
+                if (activeQuest != null && activeQuest.IsDone() && Input.GetKeyDown(KeyCode.F))
+                    FinishQuest();
+                if (Input.GetKeyDown(KeyCode.R))
+                    Recruit();
+            }
             return;
+        }
 
         if (inChoice)
         {
@@ -1100,7 +1111,6 @@ public class Game : MonoBehaviour
         buttons.Find("BtShop").gameObject.SetActive(inCity);
         buttons.Find("BtGuild").gameObject.SetActive(inCity);
         buttons.Find("BtWork").gameObject.SetActive(inCity);
-        buttons.Find("BtRecruit").gameObject.SetActive(inCity);
         buttons.Find("BtProperties").gameObject.SetActive(inCity);
         buttons.Find("BtSewers").gameObject.SetActive(inCity);
 
@@ -1132,8 +1142,7 @@ public class Game : MonoBehaviour
     {
         if (allies.Count >= MaxAllies)
         {
-            lastAction = "Your team is full.";
-            UpdateText();
+            ui.ShowDialog("Your team is full.");
             return;
         }
 
@@ -1145,7 +1154,7 @@ public class Game : MonoBehaviour
                 break;
             hero.name = (hero.female ? Names.femaleNames : Names.maleNames).RandomItem();
         }
-        Choice($"You meet {hero.name} and talk with {hero.him} about adventurers. Do you want to recruit {hero.him}?", yes =>
+        ui.ShowConfirm($"You meet {hero.name} and talk with {hero.him} about adventurers. Do you want to recruit {hero.him}?", yes =>
         {
             if (yes)
             {
@@ -1154,6 +1163,8 @@ public class Game : MonoBehaviour
                 UpdateButtons();
             }
             AddTime(minutes: 30);
+            if (ui.TopDialog == guildScreen)
+                UpdateGuild();
             UpdateText();
         });
     }

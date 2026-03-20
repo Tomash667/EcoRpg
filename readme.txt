@@ -22,6 +22,11 @@ Click - buy/sell one
 Left Ctrl + click - pick how much to buy/sell
 Left Shift + click - sell whole stack
 
+Guild:
+R - recruit
+C - craft
+F - finish quest
+
 Map:
 Click - travel
 Left Shift + click - travel without entering location
