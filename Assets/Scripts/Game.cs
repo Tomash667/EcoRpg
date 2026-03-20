@@ -164,6 +164,8 @@ public class Game : MonoBehaviour
             chance = 0;
         if (tile.type == TileType.Plains)
             chance = 0;
+        if (tile.foundTreasure && chance > 0)
+            chance = 4;
         player.energy -= 5;
 
         int c = Random.Range(0, 10);
@@ -179,7 +181,12 @@ public class Game : MonoBehaviour
             int level = tile.difficulty + 2;
             Item item = Item.items.RandomItem(x => x.level == level);
             int gold = Utility.Round(Utility.Random(level * 100, level * 200));
-            lastAction = $"You explore the {tile.Name} and find treasure room. Inside chest you find {gold} gold and {item.name}.";
+            lastAction = $"You explore the {tile.Name} and find <b>treasure room</b>. Inside chest you find {gold} gold and {item.name}.";
+            if (activeQuest != null && activeQuest.type == Quest.Type.Artifact && activeQuest.location == world.CurrentLocationIndex)
+            {
+                activeQuest.count = 1;
+                lastAction += $" You also find an artifact.";
+            }
             AddTeamGold(gold);
             player.AddItem(item);
             tile.foundTreasure = true;
@@ -1378,6 +1385,12 @@ public class Game : MonoBehaviour
                     activeQuest = quest;
                     availableQuests.Remove(quest);
                     lastAction = $"You accepted quest '{activeQuest.Title}'.";
+                    if (quest.type == Quest.Type.Artifact)
+                    {
+                        Tile tile = world.GetLocation(quest.location);
+                        tile.defeatedEnemies = 0;
+                        tile.foundTreasure = false;
+                    }
                     AddTime(minutes: 15);
                     if (ui.CurrentDialog == guildScreen)
                         UpdateGuild();
@@ -1396,10 +1409,11 @@ public class Game : MonoBehaviour
         {
             if (difficulty == 1)
             {
-                int c = Utility.Rand % 5;
+                int c = Utility.Rand % 10;
                 switch (c)
                 {
                 case 0:
+                    // 10%
                     quest.type = Quest.Type.Clear;
                     quest.locationDifficulty = Utility.Random(1, 3);
                     quest.max = 10;
@@ -1431,11 +1445,21 @@ public class Game : MonoBehaviour
                     }
                     break;
                 case 1:
+                    // 10%
                     quest.type = Quest.Type.Gather;
                     quest.item = Item.Get("herb");
                     quest.max = 20;
                     break;
+                case 2:
+                case 3:
+                    // 20%
+                    quest.type = Quest.Type.Artifact;
+                    quest.location = world.FindRandomLocationIndex(x => (x.type == TileType.Dungeon || x.type == TileType.ForestDungeon) && x.difficulty == difficulty);
+                    quest.locationDifficulty = difficulty;
+                    quest.max = 1;
+                    break;
                 default:
+                    // 60%
                     quest.type = Quest.Type.Defeat;
                     quest.enemy = Enemy.GetRandom(difficulty);
                     quest.max = Utility.Random(2, 3);
@@ -1444,9 +1468,21 @@ public class Game : MonoBehaviour
             }
             else
             {
-                quest.type = Quest.Type.Defeat;
-                quest.enemy = Enemy.GetRandom(difficulty);
-                quest.max = Utility.Random(2, 3);
+                if (Utility.Rand % 5 < 3)
+                {
+                    // 60%
+                    quest.type = Quest.Type.Defeat;
+                    quest.enemy = Enemy.GetRandom(difficulty);
+                    quest.max = Utility.Random(2, 3);
+                }
+                else
+                {
+                    // 40%
+                    quest.type = Quest.Type.Artifact;
+                    quest.location = world.FindRandomLocationIndex(x => (x.type == TileType.Dungeon || x.type == TileType.ForestDungeon) && x.difficulty == difficulty);
+                    quest.locationDifficulty = difficulty;
+                    quest.max = 1;
+                }
             }
 
             if (availableQuests.All(x => !x.IsSimilar(quest)) && (activeQuest == null || !activeQuest.IsSimilar(quest)))

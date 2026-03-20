@@ -427,4 +427,17 @@ public class World
         }
         return -1;
     }
+
+    public int FindRandomLocationIndex(Func<Tile, bool> pred)
+    {
+        List<int> choices = new();
+        for (int index = 0; index < sizeX * sizeY; ++index)
+        {
+            if (pred(map[index]))
+                choices.Add(index);
+        }
+        if (choices.Count > 0)
+            return choices.RandomItem();
+        return -1;
+    }
 }

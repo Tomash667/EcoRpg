@@ -1,6 +1,5 @@
 v0:
 + quest -> clear dungeon/crypt
-	recover artifact
 	enemy camp
 	defeat x enemies in region
 	capture bandits leader in forest
@@ -12,7 +11,6 @@ v0:
 	treasure
 	ore in cave, or mountain (?) - depends on mining skill
 + find cave -> clear -> ore -> build iron/silver/gold mine -> buy/sell later
-+ location explored % - find treasure vault
 + intro/outro text
 + managements events
 	monsters in mine/sawmill -> hire adventurers/send army/deal with it by yourself; can't sell when infested

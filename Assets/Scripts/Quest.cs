@@ -8,7 +8,8 @@ public class Quest : ISerializationCallbackReceiver
     {
         Defeat,
         Clear,
-        Gather
+        Gather,
+        Artifact
     }
 
     public Enemy enemy;
@@ -26,6 +27,7 @@ public class Quest : ISerializationCallbackReceiver
                 Type.Defeat => 25 * (enemy.level + 1) * max,
                 Type.Gather => 250,
                 Type.Clear => locationDifficulty * 250,
+                Type.Artifact => locationDifficulty * 500,
                 _ => 0,
             };
         }
@@ -39,6 +41,7 @@ public class Quest : ISerializationCallbackReceiver
                 Type.Defeat => $"Defeat {count}/{max} {Utility.Plural(enemy.name)}",
                 Type.Clear => $"Clear {GetLocationName()} ({Mathf.Min(100 * count / max, 100)}%)",
                 Type.Gather => $"Gather {Global.Player.CountItem(item)}/{max} {Utility.Plural(item.name)}",
+                Type.Artifact => count == 0 ? $"Find artifact in {GetLocationName()}" : $"Bring artifact from {GetLocationName()} to guild",
                 _ => string.Empty
             };
         }
@@ -52,6 +55,7 @@ public class Quest : ISerializationCallbackReceiver
                 Type.Defeat => $"Defeat {Utility.Plural(enemy.name, max)}",
                 Type.Clear => $"Clear {GetLocationName()}",
                 Type.Gather => $"Gather {Utility.Plural(item.name, max)}",
+                Type.Artifact => $"Find artifact in {GetLocationName()}",
                 _ => string.Empty
             };
         }
@@ -82,7 +86,7 @@ public class Quest : ISerializationCallbackReceiver
         return type switch
         {
             Type.Defeat => enemy == quest.enemy,
-            Type.Clear => location == quest.location,
+            Type.Clear or Type.Artifact => location == quest.location,
             Type.Gather => item == quest.item,
             _ => false
         };
