@@ -1,5 +1,3 @@
-+ notification
-
 v0:
 + quest -> clear dungeon/crypt
 	enemy camp
@@ -144,3 +142,4 @@ world:
 + smoother travel
 + locations that require exploring to discover
 + better clear/respawn enemies - don't wait 30 days from last kill
++ show multiple notifications with date

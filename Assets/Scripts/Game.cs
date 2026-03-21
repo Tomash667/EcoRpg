@@ -1101,6 +1101,8 @@ public class Game : MonoBehaviour
                 map.UpdateMap(World.IndexToPoint(locationIndex));
                 notifications ??= new();
                 notifications.Add("The construction of silver mine has been completed.");
+                if (world.Location == TileType.City)
+                    UpdateButtons();
             }
         }
 
@@ -1117,6 +1119,8 @@ public class Game : MonoBehaviour
                 map.UpdateMap(World.IndexToPoint(locationIndex));
                 notifications ??= new();
                 notifications.Add("The construction of gold mine has been completed.");
+                if (world.Location == TileType.City)
+                    UpdateButtons();
             }
         }
 
@@ -1219,6 +1223,14 @@ public class Game : MonoBehaviour
         buttons.Find("BtWork").gameObject.SetActive(inCity);
         buttons.Find("BtProperties").gameObject.SetActive(inCity);
         buttons.Find("BtSewers").gameObject.SetActive(inCity);
+
+        GameObject btMessages = buttons.Find("BtMessages").gameObject;
+        btMessages.SetActive(inCity);
+        if (inCity)
+        {
+            btMessages.GetComponent<Button>().interactable = notifications.Count > 0;
+            btMessages.GetComponentInChildren<TMP_Text>().text = notifications.Count > 0 ? $"Messages ({notifications.Count})" : "Messages";
+        }
 
         buttons.Find("BtForage").gameObject.SetActive(location == TileType.Forest);
 
@@ -1784,5 +1796,12 @@ public class Game : MonoBehaviour
         availableQuests.Clear();
         if (ui.CurrentDialog == guildScreen)
             UpdateGuild();
+    }
+
+    public void ShowNotification()
+    {
+        ui.ShowDialog(notifications[0]);
+        notifications.RemoveAt(0);
+        UpdateButtons();
     }
 }
