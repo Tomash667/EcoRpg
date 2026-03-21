@@ -1,3 +1,5 @@
++ notification
+
 v0:
 + quest -> clear dungeon/crypt
 	enemy camp
@@ -10,7 +12,6 @@ v0:
 	trap
 	treasure
 	ore in cave, or mountain (?) - depends on mining skill
-+ find cave -> clear -> ore -> build iron/silver/gold mine -> buy/sell later
 + intro/outro text
 + managements events
 	monsters in mine/sawmill -> hire adventurers/send army/deal with it by yourself; can't sell when infested
@@ -142,3 +143,4 @@ world:
 + harder to find locations - need explore
 + smoother travel
 + locations that require exploring to discover
++ better clear/respawn enemies - don't wait 30 days from last kill

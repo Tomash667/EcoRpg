@@ -150,6 +150,11 @@ public class World
         return x >= 0 && x < sizeX && y >= 0 && y < sizeY;
     }
 
+    public static Vector2Int IndexToPoint(int index)
+    {
+        return new(index % sizeX, index / sizeX);
+    }
+
     public static int CalculateDistance(Vector2Int a, Vector2Int b)
     {
         Vector2Int dist = a - b;
@@ -428,6 +433,15 @@ public class World
         return -1;
     }
 
+    public Tile FindLocation(Func<Tile, bool> pred)
+    {
+        int index = FindLocationIndex(pred);
+        if (index != -1)
+            return map[index];
+        else
+            return null;
+    }
+
     public int FindRandomLocationIndex(Func<Tile, bool> pred)
     {
         List<int> choices = new();
@@ -439,5 +453,24 @@ public class World
         if (choices.Count > 0)
             return choices.RandomItem();
         return -1;
+    }
+
+    public void Update()
+    {
+        foreach (Tile tile in map.Where(x => x.timer > 0))
+        {
+            tile.timer--;
+            if (tile.timer == 0)
+            {
+                tile.defeatedEnemies = 0;
+                if (tile.mine)
+                {
+                    if (tile.difficulty == 2)
+                        Global.Game.silverMineStatus = Game.MineStatus.None;
+                    else
+                        Global.Game.goldMineStatus = Game.MineStatus.None;
+                }
+            }
+        }
     }
 }
