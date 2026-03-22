@@ -18,6 +18,13 @@ public class Game : MonoBehaviour
         Done
     }
 
+    public enum DragonStatus
+    {
+        None,
+        Defeated,
+        Win
+    }
+
     private const int MaxAllies = 2;
 
     private static readonly string[] GuildRanks = new[] { "Copper", "Silver", "Gold" };
@@ -30,9 +37,9 @@ public class Game : MonoBehaviour
     public List<string> notifications;
     [SerializeReference]
     public Quest activeQuest;
+    public DragonStatus dragonStatus;
     public MineStatus silverMineStatus, goldMineStatus;
     public int day, hour, minute, guildRank, guildProgress, silverMineTimer, goldMineTimer;
-    public bool dragonDefeated;
 
     private GameUI ui;
     private GameObject shop, character, allyScreen, giveAllyItems, activeInventory, properiesScreen, guildScreen;
@@ -238,7 +245,15 @@ public class Game : MonoBehaviour
                 int gold = 0;
                 for (int i = 0; i < count; ++i)
                     gold += enemy.gold.Random();
-                lastAction += $" You win ({gold} gold found).";
+                if (enemy.name == "dragon")
+                {
+                    dragonStatus = DragonStatus.Defeated;
+                    lastAction += " With a final blow, the dragon falls. Its roar fades into silence, and the cavern grows still. The beast is slain—its hoard and your legend now yours to claim. " +
+                        $"You found {gold} gold.";
+                    tile.clear = true;
+                }
+                else
+                    lastAction += $" You win ({gold} gold found).";
                 AddTeamGold(gold);
 
                 // exp
@@ -277,11 +292,6 @@ public class Game : MonoBehaviour
                         lastAction += " You cleared this place.";
                         propertyEvents.dictionary.Remove(tile.Name.ToUpper1());
                     }
-                }
-                if (enemy.name == "dragon")
-                {
-                    dragonDefeated = true;
-                    tile.clear = true;
                 }
             }
             else
@@ -443,7 +453,14 @@ public class Game : MonoBehaviour
         if (enter)
         {
             Tile tile = world.CurrentTile;
-            lastAction = $"You travel to the {tile.Name}.";
+            if (tile.type == TileType.City && dragonStatus == DragonStatus.Defeated)
+            {
+                dragonStatus = DragonStatus.Win;
+                lastAction = "You return to the city as a hero. The Adventurer’s Guild erupts in cheers, mugs raised high in your honor. " +
+                    "Songs of your victory begin to spread, and your name will not be forgotten.";
+            }
+            else
+                lastAction = $"You travel to the {tile.Name}.";
             if (tile.boss)
                 lastAction += " There are <b>dragon engravings</b> near entrance.";
             else if (tile.mine && tile.type == TileType.Cave)
@@ -1256,6 +1273,8 @@ public class Game : MonoBehaviour
         day = 1;
         hour = 8;
         propertyEvents = new();
+        lastAction = "You are an adventurer seeking glory and gold. Rumors speak of a dragon lurking deep within a forgotten cave beyond the wilds. " +
+            "Find its lair, face the beast, and carve your name into legend.";
     }
 
     private void SaveGame()
@@ -1708,7 +1727,8 @@ public class Game : MonoBehaviour
                 case 3:
                     // 20%
                     quest.type = Quest.Type.Artifact;
-                    quest.location = world.FindRandomLocationIndex(x => (x.type == TileType.Dungeon || x.type == TileType.ForestDungeon) && x.difficulty == difficulty);
+                    quest.location = world.FindRandomLocationIndex(
+                        x => (x.type == TileType.Dungeon || x.type == TileType.ForestDungeon || x.hidden == TileType.Dungeon || x.hidden == TileType.ForestDungeon) && x.difficulty == difficulty);
                     quest.locationDifficulty = difficulty;
                     quest.max = 1;
                     break;
@@ -1744,7 +1764,8 @@ public class Game : MonoBehaviour
                 {
                     // 40% (or 20% if mine is built and player don't own it)
                     quest.type = Quest.Type.Artifact;
-                    quest.location = world.FindRandomLocationIndex(x => (x.type == TileType.Dungeon || x.type == TileType.ForestDungeon) && x.difficulty == difficulty);
+                    quest.location = world.FindRandomLocationIndex(
+                        x => (x.type == TileType.Dungeon || x.type == TileType.ForestDungeon || x.hidden == TileType.Dungeon || x.hidden == TileType.ForestDungeon) && x.difficulty == difficulty);
                     quest.locationDifficulty = difficulty;
                     quest.max = 1;
                 }

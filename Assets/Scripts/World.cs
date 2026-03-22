@@ -389,6 +389,7 @@ public class World
                     if (tile.type != tile.hidden && tile.hidden != TileType.None)
                     {
                         tile.type = tile.hidden;
+                        tile.hidden = TileType.None;
                         if (updateMap)
                             Global.Game.RevealLocation(new(x, y));
                     }
@@ -407,6 +408,7 @@ public class World
                 if (tile.type != tile.hidden && tile.hidden != TileType.None)
                 {
                     tile.type = tile.hidden;
+                    tile.hidden = TileType.None;
                     Global.Game.RevealLocation(new(x, y));
                 }
             }

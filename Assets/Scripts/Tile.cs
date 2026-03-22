@@ -8,52 +8,52 @@ public class Tile
     public int difficulty, defeatedEnemies, timer;
     public bool mine, boss, foundTreasure, clear;
 
-    public string Name
-    {
-        get
-        {
-            switch (type)
-            {
-            case TileType.Forest:
-                switch (difficulty)
-                {
-                case 1:
-                    return "forest";
-                case 2:
-                    return "deep forest";
-                case 3:
-                    return "ancient forest";
-                }
-                break;
-            case TileType.Mountains:
-                switch (difficulty)
-                {
-                case 1:
-                    return "hills";
-                case 2:
-                    return "mountains";
-                case 3:
-                    return "high peaks";
-                }
-                break;
-            case TileType.Mine:
-                switch (difficulty)
-                {
-                case 1:
-                    return "iron mine";
-                case 2:
-                    return "silver mine";
-                case 3:
-                    return "gold mine";
-                }
-                break;
-            case TileType.Cave:
-            case TileType.Dungeon:
-            case TileType.ForestDungeon:
-                return name;
-            }
+    public string Name => GetName(type);
+    public string RealName => GetName(hidden == TileType.None ? type : hidden);
 
-            return type.AsString();
+    public string GetName(TileType tileType)
+    {
+        switch (tileType)
+        {
+        case TileType.Forest:
+            switch (difficulty)
+            {
+            case 1:
+                return "forest";
+            case 2:
+                return "deep forest";
+            case 3:
+                return "ancient forest";
+            }
+            break;
+        case TileType.Mountains:
+            switch (difficulty)
+            {
+            case 1:
+                return "hills";
+            case 2:
+                return "mountains";
+            case 3:
+                return "high peaks";
+            }
+            break;
+        case TileType.Mine:
+            switch (difficulty)
+            {
+            case 1:
+                return "iron mine";
+            case 2:
+                return "silver mine";
+            case 3:
+                return "gold mine";
+            }
+            break;
+        case TileType.Cave:
+        case TileType.Dungeon:
+        case TileType.ForestDungeon:
+            return name;
         }
+
+        return type.AsString();
     }
 }

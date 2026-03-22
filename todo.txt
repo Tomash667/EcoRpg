@@ -10,7 +10,6 @@ v0:
 	trap
 	treasure
 	ore in cave, or mountain (?) - depends on mining skill
-+ intro/outro text
 
 hero:
 + classes

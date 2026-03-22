@@ -114,6 +114,6 @@ public class Quest : ISerializationCallbackReceiver
         Tile tile = Global.World.GetLocation(location);
         if (tile.type == TileType.City)
             return TileType.Sewers.AsString();
-        return tile.Name;
+        return tile.RealName;
     }
 }
