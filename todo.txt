@@ -11,9 +11,7 @@ v0:
 	treasure
 	ore in cave, or mountain (?) - depends on mining skill
 + intro/outro text
-+ managements events
-	monsters in mine/sawmill -> hire adventurers/send army/deal with it by yourself; can't sell when infested
-	good ore quality
++ monsters in mine/sawmill -> hire adventurers/send army/deal with it by yourself; can't sell when infested
 
 hero:
 + classes
@@ -100,6 +98,8 @@ investments:
 	geomancer
 + no instant sell -> get offers
 + house garden -> grow herbs/food
++ refactor property data
++ news/events travel speed
 
 skills:
 + management

@@ -24,6 +24,7 @@ public class Game : MonoBehaviour
 
     public World world;
     public Player player;
+    public SerializableDictionary<string, int> propertyEvents;
     public List<Hero> allies;
     public List<Quest> availableQuests;
     public List<string> notifications;
@@ -1086,7 +1087,26 @@ public class Game : MonoBehaviour
                 return goldMineStatus == MineStatus.Done;
             else
                 return true;
-        }).Sum(x => x.income);
+        })
+        .Sum(x =>
+        {
+            if (propertyEvents.dictionary.TryGetValue(x.name, out int value))
+            {
+                if (value > 0)
+                {
+                    --value;
+                    if (value > 0)
+                        propertyEvents.dictionary[x.name] = value;
+                    else
+                        propertyEvents.dictionary.Remove(x.name);
+                    return x.income * 3 / 2;
+                }
+                else
+                    return 0;
+            }
+            else
+                return x.income;
+        });
 
         if (silverMineStatus == MineStatus.Building)
         {
@@ -1099,10 +1119,7 @@ public class Game : MonoBehaviour
                 tile.type = TileType.Mine;
                 tile.hidden = TileType.None;
                 map.UpdateMap(World.IndexToPoint(locationIndex));
-                notifications ??= new();
-                notifications.Add("The construction of silver mine has been completed.");
-                if (world.Location == TileType.City)
-                    UpdateButtons();
+                AddNotification("The construction of Silver mine has been completed.");
             }
         }
 
@@ -1117,10 +1134,7 @@ public class Game : MonoBehaviour
                 tile.type = TileType.Mine;
                 tile.hidden = TileType.None;
                 map.UpdateMap(World.IndexToPoint(locationIndex));
-                notifications ??= new();
-                notifications.Add("The construction of gold mine has been completed.");
-                if (world.Location == TileType.City)
-                    UpdateButtons();
+                AddNotification("The construction of Gold mine has been completed.");
             }
         }
 
@@ -1131,6 +1145,40 @@ public class Game : MonoBehaviour
         }
 
         world.Update();
+
+        if (day % 10 == 0)
+        {
+            foreach (Property property in player.properties)
+            {
+                if (property.income <= 0)
+                    continue;
+
+                if (propertyEvents.dictionary.TryGetValue(property.name, out int _))
+                    continue;
+
+                if (Utility.Rand % 10 == 0)
+                {
+                    propertyEvents.dictionary.Add(property.name, 30);
+                    string str;
+                    if (property.name == "Sawmill")
+                        str = "Your Sawmill production increased thanks to good weather.";
+                    else if (Utility.Rand % 2 == 0)
+                        str = $"Your {property.name} production increased thanks to good ore quality.";
+                    else
+                        str = $"Your {property.name} production increased thanks to new ore veins.";
+                    AddNotification(str);
+                    break;
+                }
+            }
+        }
+    }
+
+    private void AddNotification(string str)
+    {
+        notifications ??= new();
+        notifications.Add(str);
+        if (world.Location == TileType.City)
+            UpdateButtons();
     }
 
     public int CountTeamItem(Item item)
@@ -1376,6 +1424,7 @@ public class Game : MonoBehaviour
                     {
                         player.AddGold(property.value / 2);
                         player.properties.Remove(property);
+                        propertyEvents?.dictionary.Remove(property.name);
                         lastAction = $"You sell {property.name} for {property.value / 2} gold.";
                         AddTime(minutes: 30);
                         if (ui.CurrentDialog == properiesScreen)
