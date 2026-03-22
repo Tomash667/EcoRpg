@@ -36,4 +36,9 @@ public static class TileTypeMethods
     {
         return tileType == TileType.Cave || tileType == TileType.Dungeon || tileType == TileType.ForestDungeon || tileType == TileType.Mine || tileType == TileType.Sewers;
     }
+
+    public static bool IsClearable(this TileType tileType)
+    {
+        return tileType == TileType.Cave || tileType == TileType.Mine || tileType == TileType.Sawmill || tileType == TileType.Sewers;
+    }
 }

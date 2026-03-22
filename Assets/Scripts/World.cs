@@ -88,7 +88,8 @@ public class World
         {
             type = TileType.Sewers,
             hidden = TileType.None,
-            difficulty = 1
+            difficulty = 1,
+            clear = true
         };
 
         SpawnLocation(cityPos, TileType.Forest, TileType.Sawmill);
@@ -116,7 +117,9 @@ public class World
     private void SpawnLocation(Vector2Int wantedPos, TileType wantedTile, TileType targetTile)
     {
         Vector2Int targetPos = FindMatchingTile(wantedPos, pos => map[pos.x + pos.y * sizeX].type == wantedTile);
-        map[targetPos.x + targetPos.y * sizeX].type = targetTile;
+        Tile tile = map[targetPos.x + targetPos.y * sizeX];
+        tile.type = targetTile;
+        tile.clear = true;
     }
 
     private List<Tile> SpawnHiddenLocations(int xMin, int xMax, int count, TileType wantedTile, TileType targetTile, List<string> names)
@@ -462,6 +465,7 @@ public class World
             tile.timer--;
             if (tile.timer == 0)
             {
+                tile.clear = false;
                 tile.defeatedEnemies = 0;
                 if (tile.mine)
                 {

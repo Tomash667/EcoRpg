@@ -6,7 +6,7 @@ public class Tile
     public string name;
     public TileType type, hidden;
     public int difficulty, defeatedEnemies, timer;
-    public bool mine, boss, foundTreasure;
+    public bool mine, boss, foundTreasure, clear;
 
     public string Name
     {

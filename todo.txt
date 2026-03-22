@@ -11,7 +11,6 @@ v0:
 	treasure
 	ore in cave, or mountain (?) - depends on mining skill
 + intro/outro text
-+ monsters in mine/sawmill -> hire adventurers/send army/deal with it by yourself; can't sell when infested
 
 hero:
 + classes
@@ -37,6 +36,7 @@ hero:
 	cancel
 	timed
 	gather better herbs, magic crystals
+	- quest is generated for location but enemies "spawn" only after accepting
 + forage -> enemies
 + more alchemy recipes
 + allies
@@ -100,6 +100,9 @@ investments:
 + house garden -> grow herbs/food
 + refactor property data
 + news/events travel speed
++ extra/better guards -> security -> no infestation
++ send city guards to clear mine -> need influence
++ pay to clear property takes time
 
 skills:
 + management

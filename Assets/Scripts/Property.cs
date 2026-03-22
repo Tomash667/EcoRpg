@@ -2,26 +2,37 @@ using System.Linq;
 
 public class Property
 {
+    public enum Status
+    {
+        Buy,
+        Sell,
+        Build,
+        Building,
+        Infested
+    }
+
     public string name, desc;
     public int value, income, buildPrice, buildTime;
 
-    public string ToString(bool sellPrice, bool build)
+    public string ToString(Status status)
     {
-        if (build)
+        switch (status)
         {
-            if (sellPrice)
+        default:
+        case Status.Buy:
+            return $"{name} ({desc}, {value} gold)";
+        case Status.Sell:
+            return $"{name} ({desc}, {value / 2} gold)";
+        case Status.Build:
+            return $"{name} ({buildTime} days to build, {desc}, {buildPrice} gold)";
+        case Status.Building:
             {
                 Game game = Global.Game;
                 int days = name == "Silver mine" ? game.silverMineTimer : game.goldMineTimer;
                 return $"{name} ({Utility.Plural("day", days)} left, {desc})";
             }
-            else
-                return $"{name} ({buildTime} days to build, {desc}, {buildPrice} gold)";
-        }
-        else
-        {
-            int price = sellPrice ? value / 2 : value;
-            return $"{name} ({desc}, {price} gold)";
+        case Status.Infested:
+            return $"{name} (<s>{desc}, {value / 2} gold</s>)";
         }
     }
 
