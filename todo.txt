@@ -1,3 +1,53 @@
+v1:
++ icon
++ background in menu, location
++ post dragon enemies
++ classes
+	warrior
+	tank
++ idle combat
++ guild register
++ harder to gain guild rank
++ quests
+	more active
+	cancel
+	journal - dragon quest
+	gather better herbs, magic crystals
++ alchemy
+	portable items
+	create potions when traveling
+	non-linear training
+	house alchemy lab bonus
+	elixir recipe
++ allies
+	better heroes
+	relationship
+	skills
++ multilevel dungeon
++ well rested in house/guild personal room
++ dungeon different traps (damage, accuracy, targets)
++ trophies from enemies
+* text colors
+* investments
+	mansion
+	sawmill -> cheaper build/upkeep
+	inn
+	refactor property data
+	pay to clear property takes time
+	extra/better guards -> security -> no infestation
+	efficiency upgrades
+	house garden -> grow herbs/food
++ world
+	village
+	buy horse
+	better clear/respawn enemies - don't wait 30 days from last kill
+	show multiple notifications with date
+	bigger map - scrolling
+	spawn biomes
+	swamp, swamp dungeon
+	refactor dungeon in forest to allow tile + building
+
+---------------------------------------------------------------------------------------------------
 hero:
 + classes
 + races
@@ -9,40 +59,31 @@ hero:
 + cursed (bad luck, impotence, reduced stats)
 + hire npc for skills, not combat (like M&M)
 + luxury
-+ interactive combat or idle?
++ interactive combat
 + player history
 	isekaied
 	noble
 	chosen hero summoned (potential, rewards, reputation)
 + currency 1 gold = 10 silver = 100 copper
-+ guild register
 + quests
 	more types
 		clear dungeon/crypt
 		enemy camp
 		defeat x enemies in region
 		capture bandits leader in forest
-	more active
-	cancel
 	timed
-	gather better herbs, magic crystals
 	- quest is generated for location but enemies "spawn" only after accepting
 + forage -> enemies
-+ more alchemy recipes
 + allies
 	soft limit
 	recruit chance
-	better heroes
-	relationship
 	leave and take from guild
-	skills
 + damage type
 	holy vs undead
 + adventurers potential (1-broken x0.25, 3-commoner x1, 5-adventurer x1.5, 7-hero x2.25, 10-chosen one x5)
 	soft skill cap
 * tavern -> celebrate finished quest
 	major kingdom quest -> feast
-+ multilevel dungeon
 + more enemies
 	slime
 	wererat
@@ -57,9 +98,6 @@ hero:
 	sealed horror
 	ghost
 + guild rank benefits (cheaper hire for quests, shop, sleep)
-+ well rested in house/guild personal room
-+ dungeon different traps (damage, accuracy, targets)
-+ trophies from enemies
 
 events:
 + free person for hire (foreman, geomancer etc)
@@ -71,11 +109,11 @@ events:
 + spotted enemy
 	
 ui:
-* text colors
-* images
++ item icons
++ property icons
 	
 investments:
-+ cottage/big house/mansion
++ cottage/big house
 + manage mine/sawmill
 	safety
 	efficency
@@ -90,22 +128,15 @@ investments:
 	engineer overseer
 	geomancer
 + no instant sell -> get offers
-+ house garden -> grow herbs/food
-+ refactor property data
 + news/events travel speed
-+ extra/better guards -> security -> no infestation
 + send city guards to clear mine -> need influence
-+ pay to clear property takes time
++ supply & demand
 
 skills:
 + management
 + haggle
 + forage
-+ alchemy
-	portable item
-	house alchemy lab bonus
-	more recipes (elixir)
-	harder to increase
++ alchemy more recipes
 + crafting
 	dragon hide -> armor
 + theory vs practice soft cap
@@ -130,12 +161,10 @@ world:
 + rain -> flood (depends on rain strength, paved roads, sewers, dungeons)
 + pathfinding
 + roads, rivers, bridges, lakes, sea, difficult terrain
-+ travel speed (horse, magic)
++ travel speed (magic)
 + teleport
 + cancel travel
-+ new location types (swamp, desert)
++ new location types (desert)
 + harder to find locations - need explore
 + smoother travel
 + locations that require exploring to discover
-+ better clear/respawn enemies - don't wait 30 days from last kill
-+ show multiple notifications with date
