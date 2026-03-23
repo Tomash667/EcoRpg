@@ -1,5 +1,3 @@
-- nearest forest is not nearest by km
-
 v1:
 + icon
 + background in menu, location

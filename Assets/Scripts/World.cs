@@ -157,6 +157,11 @@ public class World
         return x >= 0 && x < sizeX && y >= 0 && y < sizeY;
     }
 
+    public static bool IsInBounds(Vector2Int pt)
+    {
+        return pt.x >= 0 && pt.x < sizeX && pt.y >= 0 && pt.y < sizeY;
+    }
+
     public static Vector2Int IndexToPoint(int index)
     {
         return new(index % sizeX, index / sizeX);
@@ -184,7 +189,14 @@ public class World
             return startPos;
 
         int maxRadius = Mathf.Max(sizeX, sizeY);
-        List<Vector2Int> validPoints = new();
+        List<(Vector2Int pt, int dist)> validPoints = new();
+
+        void CheckPoint(int x, int y)
+        {
+            Vector2Int pt = new(x, y);
+            if (IsInBounds(pt) && pred(pt))
+                validPoints.Add((pt, CalculateDistance(pt, startPos)));
+        }
 
         for (int r = 1; r <= maxRadius; r++)
         {
@@ -196,25 +208,22 @@ public class World
             // top & bottom rows
             for (int x = minX; x <= maxX; x++)
             {
-                if (IsInBounds(x, minY) && pred(new Vector2Int(x, minY)))
-                    validPoints.Add(new Vector2Int(x, minY));
-
-                if (IsInBounds(x, maxY) && pred(new Vector2Int(x, maxY)))
-                    validPoints.Add(new Vector2Int(x, maxY));
+                CheckPoint(x, minY);
+                CheckPoint(x, maxY);
             }
 
             // left & right columns (skip corners, already checked)
             for (int y = minY + 1; y <= maxY - 1; y++)
             {
-                if (IsInBounds(minX, y) && pred(new Vector2Int(minX, y)))
-                    validPoints.Add(new Vector2Int(minX, y));
-
-                if (IsInBounds(maxX, y) && pred(new Vector2Int(maxX, y)))
-                    validPoints.Add(new Vector2Int(maxX, y));
+                CheckPoint(minX, y);
+                CheckPoint(maxX, y);
             }
 
             if (validPoints.Count > 0)
-                return validPoints.RandomItem();
+            {
+                int minDist = validPoints.Min(x => x.dist);
+                return validPoints.RandomItem(x => x.dist == minDist).pt;
+            }
         }
 
         return new Vector2Int(-1, -1);

@@ -64,7 +64,7 @@ public class Map : MonoBehaviour
 
         World world = Global.World;
         Vector2Int targetPt = LocalPosToTile(localMousePosition);
-        if (World.IsInBounds(targetPt.x, targetPt.y))
+        if (World.IsInBounds(targetPt))
         {
             if (Input.GetMouseButtonDown(0))
             {
@@ -170,5 +170,6 @@ public class Map : MonoBehaviour
         foreach (Transform child in transform.Find("Tiles"))
             Destroy(child.gameObject);
         Build();
+        Show();
     }
 }
