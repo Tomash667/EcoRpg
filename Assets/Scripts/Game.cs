@@ -184,6 +184,8 @@ public class Game : MonoBehaviour
         int c = Random.Range(0, 10);
 
 #if UNITY_EDITOR
+        if (Input.GetKey(KeyCode.Alpha8))
+            c = 8;
         if (Input.GetKey(KeyCode.Alpha9))
             c = 9;
 #endif
@@ -311,6 +313,42 @@ public class Game : MonoBehaviour
                 ally.ApplyHealing();
             }
         }
+        else if (c == 8 && (tile.type == TileType.Dungeon || tile.type == TileType.ForestDungeon) && (!tile.foundTreasure || Utility.Rand % 2 == 0))
+        {
+            // trap
+            Hero target = Team.RandomItem();
+            lastAction = target == player ? $"You explore the {tile.Name} and step on a trap." : $"You explore the {tile.Name} and {target.name} step on a trap.";
+            if (AttackChance(10, target.dex))
+            {
+                target.hp -= Mathf.Max(15 + tile.difficulty * 5 + Utility.Random(0, 5), 0);
+                if (target.hp < 1)
+                    target.hp = 1;
+                if (target == player)
+                    lastAction += " A shooting arrow hits you.";
+                else
+                {
+                    target.ApplyHealing();
+                    lastAction += $" A shooting arrow hits {target.him}.";
+                }
+            }
+            else
+                lastAction += target == player ? "You dodge a shooting arrow." : $"{target.He} dodges a shooting arrow.";
+        }
+        else if (c == 9 && (tile.type == TileType.Dungeon || tile.type == TileType.ForestDungeon) && (!tile.foundTreasure || Utility.Rand % 2 == 0))
+        {
+            // lesser treasure
+            string item = tile.difficulty switch
+            {
+                2 => Utility.Rand % 2 == 0 ? "potion" : "elixir",
+                3 => "elixir",
+                _ => "potion",
+            };
+            int gold = Utility.Round(Utility.Random(100 * tile.difficulty, 200 * tile.difficulty));
+            int count = Utility.Random(1, 2);
+            AddTeamGold(gold);
+            player.AddItem(Item.Get(item), count);
+            lastAction = $"You explore the {tile.Name} and find chest. Inside you find {Utility.Plural(item, count)} and {gold} gold.";
+        }
         else if (c == 9 && tile.type == TileType.Forest)
         {
             // 1-3 herbs (~1.5)
@@ -326,9 +364,9 @@ public class Game : MonoBehaviour
         }
         else if (c == 9 && tile.type == TileType.Mountains)
         {
+            // 1-4 gold nuggets (~3.16)
             if (player.HaveItem("pickaxe"))
             {
-                // 1-4 gold nuggets (~3.16)
                 int count = (Utility.Rand % 6) switch
                 {
                     1 or 2 => 2,

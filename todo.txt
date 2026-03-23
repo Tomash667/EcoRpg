@@ -7,8 +7,6 @@ v0:
 + events
 	spotted enemy
 	old camp
-	trap
-	treasure
 	ore in cave, or mountain (?) - depends on mining skill
 
 hero:
@@ -67,6 +65,7 @@ hero:
 	ghost
 + guild rank benefits (cheaper hire for quests, shop, sleep)
 + well rested in house/guild personal room
++ dungeon different traps (damage, accuracy, targets)
 
 events:
 + free person for hire (foreman, geomancer etc)

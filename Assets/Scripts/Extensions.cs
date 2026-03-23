@@ -15,6 +15,12 @@ public static class Extensions
         return items[Utility.Rand % items.Count];
     }
 
+    public static T RandomItem<T>(this IEnumerable<T> items)
+    {
+        T[] array = items.ToArray();
+        return array[Utility.Rand % array.Length];
+    }
+
     public static T RandomItem<T>(this IEnumerable<T> items, Func<T, bool> pred)
     {
         T[] filteredItems = items.Where(pred).ToArray();
