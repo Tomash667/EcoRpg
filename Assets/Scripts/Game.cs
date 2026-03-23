@@ -1778,11 +1778,19 @@ public class Game : MonoBehaviour
                     quest.locationDifficulty = difficulty;
                     quest.max = 1;
                     break;
+                case 4:
+                    // 10%
+                    quest.type = Quest.Type.Clear;
+                    quest.location = world.FindRandomLocationIndex(x => x.type == TileType.Cave && !x.mine && x.difficulty == 1);
+                    quest.locationDifficulty = 3;
+                    quest.max = 10;
+                    break;
                 default:
-                    // 60%
+                    // 50%
                     quest.type = Quest.Type.Defeat;
                     quest.enemy = Enemy.GetRandom(difficulty);
                     quest.max = Utility.Random(2, 3);
+                    quest.locationDifficulty = difficulty;
                     break;
                 }
             }
@@ -1796,19 +1804,23 @@ public class Game : MonoBehaviour
                     // 60%
                     quest.type = Quest.Type.Defeat;
                     quest.enemy = Enemy.GetRandom(difficulty);
-                    quest.max = Utility.Random(2, 3);
+                    quest.max = Utility.Random(2, 2 + difficulty);
+                    quest.locationDifficulty = difficulty;
                 }
-                else if (c == 3 && allowMine)
+                else if (c == 3 && (allowMine || difficulty == 2))
                 {
-                    // 20% (only if mine is built and player don't own it)
+                    // 0-20% (if player don't own the mine or cave can be picked)
                     quest.type = Quest.Type.Clear;
                     quest.locationDifficulty = difficulty == 2 ? 5 : 8;
                     quest.max = 10;
-                    quest.location = world.FindLocationIndex(x => x.type == TileType.Mine && x.difficulty == difficulty);
+                    if (difficulty == 2 && (!allowMine || Utility.Rand % 2 == 0))
+                        quest.location = world.FindRandomLocationIndex(x => x.type == TileType.Cave && !x.mine && x.difficulty == 2);
+                    else
+                        quest.location = world.FindLocationIndex(x => x.type == TileType.Mine && x.difficulty == difficulty);
                 }
                 else
                 {
-                    // 40% (or 20% if mine is built and player don't own it)
+                    // 20-40% (if clear quest is unavailable)
                     quest.type = Quest.Type.Artifact;
                     quest.location = world.FindRandomLocationIndex(
                         x => (x.type == TileType.Dungeon || x.type == TileType.ForestDungeon || x.hidden == TileType.Dungeon || x.hidden == TileType.ForestDungeon) && x.difficulty == difficulty);

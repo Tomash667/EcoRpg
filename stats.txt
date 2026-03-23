@@ -18,3 +18,39 @@ dungeon
 	1 - skeleton (3), zomie (3)
 	2 - vampire (6), mummy (5)
 	3 - demon (9), lich (10)
+
+
+Quest rewards
+1
+herbs - 250, 0
+clear sewers - 250, 10x0 (no gold)            25 per enemy
+clear sawmill - 500, 10x1.5                   50+31 -> 81 per enemy
+clear mine - 750, 10x3 (no gold)              75 per enemy
+artifact - 500, 10x3 + 650 treasure
+clear cave - 750, 10x3 (no gold)
+defeat 2.5x
+	0: 25x2.5 = 62.5
+	1  50x2.5 = 125
+	2  75x2.5 = 187
+	3  100x2.5 = 250
+
+2
+clear mine/cave - 1250
+artifact - 1000
+defeat 3x
+	2  100x3 = 300
+	3  125x3 = 375
+	4  150x3 = 450
+	5  175x3 = 525
+	6  200x3 = 600
+
+3
+clear mine - 2000
+artifact - 1500
+defeat 3.5x
+	5  200x3.5 = 700
+	6  225x3.5 = 787
+	7  250x3.5 = 875
+	8  275x3.5 = 962
+	9  300x3.5 = 1050
+	10 325x3.5 = 1137

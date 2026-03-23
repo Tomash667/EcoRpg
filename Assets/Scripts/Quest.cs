@@ -24,7 +24,7 @@ public class Quest : ISerializationCallbackReceiver
         {
             return type switch
             {
-                Type.Defeat => 25 * (enemy.level + 1) * max,
+                Type.Defeat => 25 * (enemy.level + locationDifficulty) * max,
                 Type.Gather => 250,
                 Type.Clear => locationDifficulty * 250,
                 Type.Artifact => locationDifficulty * 500,
