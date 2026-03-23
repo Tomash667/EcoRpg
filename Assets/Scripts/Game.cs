@@ -339,7 +339,7 @@ public class Game : MonoBehaviour
                 }
             }
             else
-                lastAction += target == player ? "You dodge a shooting arrow." : $"{target.He} dodges a shooting arrow.";
+                lastAction += target == player ? " You dodge a shooting arrow." : $" {target.He} dodges a shooting arrow.";
         }
         else if (c == 9 && (tile.type == TileType.Dungeon || tile.type == TileType.ForestDungeon) && (!tile.foundTreasure || Utility.Rand % 2 == 0))
         {
@@ -1221,6 +1221,17 @@ public class Game : MonoBehaviour
                 if (property.income <= 0)
                     continue;
 
+                if (property.name == "Silver mine")
+                {
+                    if (silverMineStatus != MineStatus.Done)
+                        continue;
+                }
+                else if (property.name == "Gold mine")
+                {
+                    if (goldMineStatus != MineStatus.Done)
+                        continue;
+                }
+
                 if (propertyEvents.dictionary.TryGetValue(property.name, out int _))
                     continue;
 
@@ -1502,7 +1513,7 @@ public class Game : MonoBehaviour
                 ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
                 if (building)
                     itemEntry.Init(property.ToString(Property.Status.Building));
-                else if (propertyEvents.dictionary.TryGetValue(property.name, out int _))
+                else if (propertyEvents.dictionary.TryGetValue(property.name, out int value) && value == -1)
                     itemEntry.Init(property.ToString(Property.Status.Infested));
                 else
                 {

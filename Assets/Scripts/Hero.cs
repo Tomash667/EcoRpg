@@ -240,9 +240,10 @@ public class Hero : ISerializationCallbackReceiver
         // buy rations/potions
         Item rations = Item.Get("rations"), potion = Item.Get(hpMax >= 200 ? "elixir" : "potion");
         int rationsCount = CountItem(rations), potionsCount = CountItem(potion);
-        while ((rationsCount < 5 && gold >= rations.value) || (potionsCount < 5 && gold >= potion.value))
+        int requiredRations = 5 + level / 2;
+        while ((rationsCount < requiredRations && gold >= rations.value) || (potionsCount < 5 && gold >= potion.value))
         {
-            if (rationsCount < 5)
+            if (rationsCount < requiredRations)
             {
                 gold -= rations.value;
                 AddItem(rations);

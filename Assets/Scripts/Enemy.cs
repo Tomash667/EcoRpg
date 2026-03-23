@@ -24,7 +24,7 @@ public class Enemy
 
     public static Enemy GetRandom(int difficulty)
     {
-        return enemies.RandomItem(x => x.locations != null && x.locations.Any(y => y.difficulty == difficulty));
+        return enemies.RandomItem(x => x.quest && x.locations != null && x.locations.Any(y => y.difficulty == difficulty));
     }
 
     public static Enemy[] enemies = new Enemy[]
