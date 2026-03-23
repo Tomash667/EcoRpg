@@ -209,6 +209,14 @@ public class Item
         },
         new()
         {
+            name = "silver nugget",
+            desc = "treasure",
+            type = Type.Other,
+            value = 25,
+            shop = false
+        },
+        new()
+        {
             name = "gold nugget",
             desc = "treasure",
             type = Type.Other,

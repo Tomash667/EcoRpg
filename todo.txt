@@ -4,10 +4,6 @@ v0:
 	defeat x enemies in region
 	capture bandits leader in forest
 	rewards
-+ events
-	spotted enemy
-	old camp
-	ore in cave, or mountain (?) - depends on mining skill
 
 hero:
 + classes
@@ -74,6 +70,7 @@ events:
 	neutral (surge of workers, royal inspection, ancient ruins)
 	bad (tunnel collapse, flooding, forged deed, cursed -> bad luck)
 + travel events
++ spotted enemy
 	
 ui:
 * text colors

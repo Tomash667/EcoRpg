@@ -313,6 +313,13 @@ public class Game : MonoBehaviour
                 ally.ApplyHealing();
             }
         }
+        else if (c == 8 && (tile.type == TileType.Forest || tile.type == TileType.Mountains || tile.type == TileType.Plains))
+        {
+            // old camp
+            int count = Utility.Random(1, 4);
+            player.AddItem(Item.Get("rations"), count);
+            lastAction = $"You explore the {tile.Name} and find old camp. You pick up {Utility.Plural("rations", count)}.";
+        }
         else if (c == 8 && (tile.type == TileType.Dungeon || tile.type == TileType.ForestDungeon) && (!tile.foundTreasure || Utility.Rand % 2 == 0))
         {
             // trap
@@ -362,9 +369,9 @@ public class Game : MonoBehaviour
             player.AddItem(herb, count);
             lastAction = $"You explore the {tile.Name} and find {Utility.Plural(herb.name, count)}.";
         }
-        else if (c == 9 && tile.type == TileType.Mountains)
+        else if (c == 9 && (tile.type == TileType.Mountains || (tile.type == TileType.Cave && tile.mine && !tile.clear)) && tile.difficulty >= 2)
         {
-            // 1-4 gold nuggets (~3.16)
+            // 1-4 silver/gold nuggets (~3.16)
             if (player.HaveItem("pickaxe"))
             {
                 int count = (Utility.Rand % 6) switch
@@ -374,13 +381,14 @@ public class Game : MonoBehaviour
                     5 => 4,
                     _ => 1,
                 };
-                Item nugget = Item.Get("gold nugget");
+                count += player.GetSkill(Skill.Mining) / 25;
+                Item nugget = Item.Get(tile.difficulty == 2 ? "silver nugget" : "gold nugget");
                 player.AddItem(nugget, count);
-                lastAction = $"You explore the {tile.Name} and find small gold vein. You mine {Utility.Plural(nugget.name, count)}.";
+                lastAction = $"You explore the {tile.Name} and find small {(tile.difficulty == 2 ? "silver" : "gold")} vein. You mine {Utility.Plural(nugget.name, count)}.";
                 player.Train(Skill.Mining, 1, ref lastAction);
             }
             else
-                lastAction = $"You explore the {tile.Name} and find small gold vein but you don't have a pickaxe...";
+                lastAction = $"You explore the {tile.Name} and find small {(tile.difficulty == 2 ? "silver" : "gold")} vein but you don't have a pickaxe...";
         }
         else
             lastAction = $"You explore the {tile.Name} but find nothing interesting.";
