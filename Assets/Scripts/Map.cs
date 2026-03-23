@@ -30,7 +30,7 @@ public class Map : MonoBehaviour
                 RectTransform rectTransform = tile.GetComponent<RectTransform>();
                 rectTransform.anchoredPosition = new(gridOrigin.x + tileSize * x, gridOrigin.y - tileSize * y);
                 Image image = tile.GetComponent<Image>();
-                image.sprite = sprites[(int)map[x + y * World.sizeX].type];
+                image.sprite = sprites[(int)map[x + y * World.sizeX].image];
             }
         }
 
@@ -162,7 +162,7 @@ public class Map : MonoBehaviour
         Tile tile = Global.World.map[index];
         Transform tiles = transform.Find("Tiles");
         Image image = tiles.GetChild(index).GetComponent<Image>();
-        image.sprite = sprites[(int)tile.type];
+        image.sprite = sprites[(int)tile.image];
     }
 
     public void Regenerate()

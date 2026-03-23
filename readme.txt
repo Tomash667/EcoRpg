@@ -1,4 +1,4 @@
-EcoRpg v0
+EcoRpg v0.1
 (Economic, not ecologic)
 
 Goal:

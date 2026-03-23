@@ -4,6 +4,7 @@ using System;
 public class Tile
 {
     public string name;
+    public TileImage image;
     public TileType type, hidden;
     public int difficulty, defeatedEnemies, timer;
     public bool mine, boss, foundTreasure, clear;
@@ -50,10 +51,44 @@ public class Tile
             break;
         case TileType.Cave:
         case TileType.Dungeon:
-        case TileType.ForestDungeon:
             return name;
         }
 
         return type.AsString();
+    }
+
+    public void SetType(TileType newType)
+    {
+        switch (newType)
+        {
+        case TileType.Plains:
+            image = TileImage.Plains;
+            break;
+        case TileType.Forest:
+            image = TileImage.Forest;
+            break;
+        case TileType.Mountains:
+            image = TileImage.Mountains;
+            break;
+        case TileType.City:
+            image = TileImage.City;
+            break;
+        case TileType.Dungeon:
+            if (type == TileType.Forest)
+                image = TileImage.ForestDungeon;
+            else
+                image = TileImage.Dungeon;
+            break;
+        case TileType.Cave:
+            image = TileImage.Cave;
+            break;
+        case TileType.Sawmill:
+            image = TileImage.Sawmill;
+            break;
+        case TileType.Mine:
+            image = TileImage.Mine;
+            break;
+        }
+        type = newType;
     }
 }

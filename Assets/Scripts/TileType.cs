@@ -6,11 +6,23 @@ public enum TileType
     Mountains,
     City,
     Dungeon,
-    ForestDungeon,
     Cave,
     Sawmill,
     Mine,
     Sewers
+}
+
+public enum TileImage
+{
+    Plains,
+    Forest,
+    Mountains,
+    City,
+    Dungeon,
+    ForestDungeon,
+    Cave,
+    Sawmill,
+    Mine
 }
 
 public static class TileTypeMethods
@@ -23,7 +35,7 @@ public static class TileTypeMethods
             TileType.Forest => "forest",
             TileType.Mountains => "mountains",
             TileType.City => "city",
-            TileType.Dungeon or TileType.ForestDungeon => "dungeon",
+            TileType.Dungeon => "dungeon",
             TileType.Cave => "cave",
             TileType.Sawmill => "sawmill",
             TileType.Mine => "mine",
@@ -34,7 +46,7 @@ public static class TileTypeMethods
 
     public static bool IsSmall(this TileType tileType)
     {
-        return tileType == TileType.Cave || tileType == TileType.Dungeon || tileType == TileType.ForestDungeon || tileType == TileType.Mine || tileType == TileType.Sewers;
+        return tileType == TileType.Cave || tileType == TileType.Dungeon || tileType == TileType.Mine || tileType == TileType.Sewers;
     }
 
     public static bool IsClearable(this TileType tileType)

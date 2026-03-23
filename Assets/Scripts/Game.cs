@@ -191,7 +191,7 @@ public class Game : MonoBehaviour
 #endif
 
         Enemy enemy;
-        if ((tile.type == TileType.Dungeon || tile.type == TileType.ForestDungeon) && !tile.foundTreasure && tile.defeatedEnemies >= 10)
+        if (tile.type == TileType.Dungeon && !tile.foundTreasure && tile.defeatedEnemies >= 10)
         {
             int level = tile.difficulty + 2;
             Item item = Item.items.RandomItem(x => x.level == level);
@@ -320,7 +320,7 @@ public class Game : MonoBehaviour
             player.AddItem(Item.Get("rations"), count);
             lastAction = $"You explore the {tile.Name} and find old camp. You pick up {Utility.Plural("rations", count)}.";
         }
-        else if (c == 8 && (tile.type == TileType.Dungeon || tile.type == TileType.ForestDungeon) && (!tile.foundTreasure || Utility.Rand % 2 == 0))
+        else if (c == 8 && tile.type == TileType.Dungeon && (!tile.foundTreasure || Utility.Rand % 2 == 0))
         {
             // trap
             Hero target = Team.RandomItem();
@@ -341,7 +341,7 @@ public class Game : MonoBehaviour
             else
                 lastAction += target == player ? " You dodge a shooting arrow." : $" {target.He} dodges a shooting arrow.";
         }
-        else if (c == 9 && (tile.type == TileType.Dungeon || tile.type == TileType.ForestDungeon) && (!tile.foundTreasure || Utility.Rand % 2 == 0))
+        else if (c == 9 && tile.type == TileType.Dungeon && (!tile.foundTreasure || Utility.Rand % 2 == 0))
         {
             // lesser treasure
             string item = tile.difficulty switch
@@ -1183,9 +1183,7 @@ public class Game : MonoBehaviour
             {
                 silverMineStatus = MineStatus.Done;
                 int locationIndex = world.FindLocationIndex(x => x.type == TileType.Cave && x.mine && x.difficulty == 2);
-                Tile tile = world.GetLocation(locationIndex);
-                tile.type = TileType.Mine;
-                tile.hidden = TileType.None;
+                world.GetLocation(locationIndex).SetType(TileType.Mine);
                 map.UpdateMap(World.IndexToPoint(locationIndex));
                 AddNotification("The construction of Silver mine has been completed.");
             }
@@ -1198,9 +1196,7 @@ public class Game : MonoBehaviour
             {
                 goldMineStatus = MineStatus.Done;
                 int locationIndex = world.FindLocationIndex(x => x.type == TileType.Cave && x.mine && x.difficulty == 3);
-                Tile tile = world.GetLocation(locationIndex);
-                tile.type = TileType.Mine;
-                tile.hidden = TileType.None;
+                world.GetLocation(locationIndex).SetType(TileType.Mine);
                 map.UpdateMap(World.IndexToPoint(locationIndex));
                 AddNotification("The construction of Gold mine has been completed.");
             }
@@ -1784,8 +1780,7 @@ public class Game : MonoBehaviour
                 case 3:
                     // 20%
                     quest.type = Quest.Type.Artifact;
-                    quest.location = world.FindRandomLocationIndex(
-                        x => (x.type == TileType.Dungeon || x.type == TileType.ForestDungeon || x.hidden == TileType.Dungeon || x.hidden == TileType.ForestDungeon) && x.difficulty == difficulty);
+                    quest.location = world.FindRandomLocationIndex(x => (x.type == TileType.Dungeon || x.hidden == TileType.Dungeon) && x.difficulty == difficulty);
                     quest.locationDifficulty = difficulty;
                     quest.max = 1;
                     break;
@@ -1833,8 +1828,7 @@ public class Game : MonoBehaviour
                 {
                     // 20-40% (if clear quest is unavailable)
                     quest.type = Quest.Type.Artifact;
-                    quest.location = world.FindRandomLocationIndex(
-                        x => (x.type == TileType.Dungeon || x.type == TileType.ForestDungeon || x.hidden == TileType.Dungeon || x.hidden == TileType.ForestDungeon) && x.difficulty == difficulty);
+                    quest.location = world.FindRandomLocationIndex(x => (x.type == TileType.Dungeon || x.hidden == TileType.Dungeon) && x.difficulty == difficulty);
                     quest.locationDifficulty = difficulty;
                     quest.max = 1;
                 }

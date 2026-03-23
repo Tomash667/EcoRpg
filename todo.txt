@@ -1,3 +1,5 @@
+- nearest forest is not nearest by km
+
 v1:
 + icon
 + background in menu, location
@@ -13,6 +15,7 @@ v1:
 	cancel
 	journal - dragon quest
 	gather better herbs, magic crystals
++ mining/woodwork non linear training
 + alchemy
 	portable items
 	create potions when traveling
@@ -45,7 +48,6 @@ v1:
 	bigger map - scrolling
 	spawn biomes
 	swamp, swamp dungeon
-	refactor dungeon in forest to allow tile + building
 
 ---------------------------------------------------------------------------------------------------
 hero:
@@ -71,6 +73,7 @@ hero:
 		enemy camp
 		defeat x enemies in region
 		capture bandits leader in forest
+		rescue
 	timed
 	- quest is generated for location but enemies "spawn" only after accepting
 + forage -> enemies
@@ -78,6 +81,7 @@ hero:
 	soft limit
 	recruit chance
 	leave and take from guild
+	ally guild rank
 + damage type
 	holy vs undead
 + adventurers potential (1-broken x0.25, 3-commoner x1, 5-adventurer x1.5, 7-hero x2.25, 10-chosen one x5)
@@ -98,6 +102,8 @@ hero:
 	sealed horror
 	ghost
 + guild rank benefits (cheaper hire for quests, shop, sleep)
++ skip time
++ train
 
 events:
 + free person for hire (foreman, geomancer etc)
@@ -131,6 +137,7 @@ investments:
 + news/events travel speed
 + send city guards to clear mine -> need influence
 + supply & demand
++ farm
 
 skills:
 + management

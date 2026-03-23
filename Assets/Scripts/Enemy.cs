@@ -170,7 +170,7 @@ public class Enemy
         new()
         {
             name = "skeleton",
-            locations = new[] { (TileType.Dungeon, 1), (TileType.ForestDungeon, 1) },
+            locations = new[] { (TileType.Dungeon, 1) },
             level = 3,
             hp = 120,
             attack = 30,
@@ -181,7 +181,7 @@ public class Enemy
         new()
         {
             name = "zombie",
-            locations = new[] { (TileType.Dungeon, 1), (TileType.ForestDungeon, 1) },
+            locations = new[] { (TileType.Dungeon, 1) },
             level = 3,
             hp = 130,
             attack = 32,
@@ -192,7 +192,7 @@ public class Enemy
         new()
         {
             name = "mummy",
-            locations = new[] { (TileType.Dungeon, 2), (TileType.ForestDungeon, 2) },
+            locations = new[] { (TileType.Dungeon, 2) },
             level = 5,
             hp = 180,
             attack = 45,
@@ -203,7 +203,7 @@ public class Enemy
         new()
         {
             name = "vampire",
-            locations = new[] { (TileType.Dungeon, 2), (TileType.ForestDungeon, 2) },
+            locations = new[] { (TileType.Dungeon, 2) },
             level = 6,
             hp = 180,
             attack = 45,
@@ -214,7 +214,7 @@ public class Enemy
         new()
         {
             name = "demon",
-            locations = new[] { (TileType.Dungeon, 3), (TileType.ForestDungeon, 3) },
+            locations = new[] { (TileType.Dungeon, 3) },
             level = 9,
             hp = 240,
             attack = 60,
@@ -225,7 +225,7 @@ public class Enemy
         new()
         {
             name = "lich",
-            locations = new[] { (TileType.Dungeon, 3), (TileType.ForestDungeon, 3) },
+            locations = new[] { (TileType.Dungeon, 3) },
             level = 10,
             hp = 240,
             attack = 70,

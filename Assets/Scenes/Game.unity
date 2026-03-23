@@ -13610,6 +13610,7 @@ MonoBehaviour:
     map: []
     sewers:
       name: 
+      image: 0
       type: 0
       hidden: 0
       difficulty: 0
@@ -13618,6 +13619,7 @@ MonoBehaviour:
       mine: 0
       boss: 0
       foundTreasure: 0
+      clear: 0
     currentPt: {x: 0, y: 0}
     isInside: 0
   player:
@@ -13639,11 +13641,14 @@ MonoBehaviour:
     goldWaiting: 0
     energy: 100
     savedSkills: []
+  propertyEvents:
+    data: []
   allies: []
   availableQuests: []
   notifications: []
   activeQuest:
     rid: -2
+  dragonStatus: 0
   silverMineStatus: 0
   goldMineStatus: 0
   day: 0
@@ -13653,7 +13658,6 @@ MonoBehaviour:
   guildProgress: 0
   silverMineTimer: 0
   goldMineTimer: 0
-  dragonDefeated: 0
   references:
     version: 2
     RefIds:
