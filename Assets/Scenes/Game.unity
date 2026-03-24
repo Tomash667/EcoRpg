@@ -13682,16 +13682,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2981dd936ec0b754d8e4964f9d70eca4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  backgrounds:
-  - {fileID: 21300000, guid: 7e553885a06ccdb4ca2ce3f0399757da, type: 3}
-  - {fileID: 21300000, guid: b19eae1355097384eacb637b5ebd4760, type: 3}
-  - {fileID: 21300000, guid: 7ce9250932593ea46890e04bf8275c83, type: 3}
-  - {fileID: 21300000, guid: 6881dfb1b17e9c44da3f6155035b215b, type: 3}
-  - {fileID: 21300000, guid: 1b7778de8f3ef5e428c2cfda44fa92ba, type: 3}
-  - {fileID: 21300000, guid: b5760eff270aeea4c86c61687fc32ab0, type: 3}
-  - {fileID: 21300000, guid: c230ddd3592f97747a25b916144c0302, type: 3}
-  - {fileID: 21300000, guid: a6a71bd69e59b3c40bf0b9d6dd965e6c, type: 3}
-  - {fileID: 21300000, guid: 12304df5e7f642b419528fd7b6ae4ec1, type: 3}
   world:
     map: []
     sewers:
@@ -13761,9 +13751,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 40a6108539ddbdd419272d1e8e86d845, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  backgrounds:
+  - {fileID: 21300000, guid: 7e553885a06ccdb4ca2ce3f0399757da, type: 3}
+  - {fileID: 21300000, guid: b19eae1355097384eacb637b5ebd4760, type: 3}
+  - {fileID: 21300000, guid: 7ce9250932593ea46890e04bf8275c83, type: 3}
+  - {fileID: 21300000, guid: 6881dfb1b17e9c44da3f6155035b215b, type: 3}
+  - {fileID: 21300000, guid: 1b7778de8f3ef5e428c2cfda44fa92ba, type: 3}
+  - {fileID: 21300000, guid: b5760eff270aeea4c86c61687fc32ab0, type: 3}
+  - {fileID: 21300000, guid: c230ddd3592f97747a25b916144c0302, type: 3}
+  - {fileID: 21300000, guid: a6a71bd69e59b3c40bf0b9d6dd965e6c, type: 3}
+  - {fileID: 21300000, guid: 12304df5e7f642b419528fd7b6ae4ec1, type: 3}
   itemEntryPrefab: {fileID: 2579810614886435678, guid: 1e7d6d85b98bb324b882676534c862ec, type: 3}
   lineSeparatorPrefab: {fileID: 2275101242891038866, guid: e842a63905d6cea4c808270fb33cd9c3, type: 3}
-  lockDialog: 0
 --- !u!1 &1381308115
 GameObject:
   m_ObjectHideFlags: 0

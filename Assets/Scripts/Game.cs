@@ -29,8 +29,6 @@ public class Game : MonoBehaviour
 
     private static readonly string[] GuildRanks = new[] { "Copper", "Silver", "Gold" };
 
-    public Sprite[] backgrounds;
-
     public World world;
     public Player player;
     public SerializableDictionary<string, int> propertyEvents;
@@ -576,7 +574,7 @@ public class Game : MonoBehaviour
                 ally.BuyItems();
         }
 
-        UpdateBackground();
+        ui.UpdateBackground((int)world.Location);
         UpdateButtons();
         UpdateText();
     }
@@ -1346,7 +1344,7 @@ public class Game : MonoBehaviour
         string json = global.GetSaveData();
         JsonUtility.FromJsonOverwrite(json, this);
         map.Build();
-        UpdateBackground();
+        ui.UpdateBackground((int)world.Location);
     }
 
     public void ExitToMenu()
@@ -1791,7 +1789,7 @@ public class Game : MonoBehaviour
                 case 4:
                     // 10%
                     quest.type = Quest.Type.Clear;
-                    quest.location = world.FindRandomLocationIndex(x => x.type == TileType.Cave && !x.mine && x.difficulty == 1);
+                    quest.location = world.FindRandomLocationIndex(x => (x.type == TileType.Cave || x.hidden == TileType.Cave) && !x.mine && x.difficulty == 1);
                     quest.locationDifficulty = 3;
                     quest.max = 10;
                     break;
@@ -1824,7 +1822,7 @@ public class Game : MonoBehaviour
                     quest.locationDifficulty = difficulty == 2 ? 5 : 8;
                     quest.max = 10;
                     if (difficulty == 2 && (!allowMine || Utility.Rand % 2 == 0))
-                        quest.location = world.FindRandomLocationIndex(x => x.type == TileType.Cave && !x.mine && x.difficulty == 2);
+                        quest.location = world.FindRandomLocationIndex(x => (x.type == TileType.Cave || x.hidden == TileType.Cave) && !x.mine && x.difficulty == 2);
                     else
                         quest.location = world.FindLocationIndex(x => x.type == TileType.Mine && x.difficulty == difficulty);
                 }
@@ -2019,10 +2017,5 @@ public class Game : MonoBehaviour
             return -1;
         }
         return world.FindLocationIndex(func);
-    }
-
-    private void UpdateBackground()
-    {
-        transform.Find("Background").GetComponent<Image>().sprite = backgrounds[(int)world.Location];
     }
 }

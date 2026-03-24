@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GameUI : MonoBehaviour
 {
@@ -11,7 +12,10 @@ public class GameUI : MonoBehaviour
     public const KeyCode escKey = KeyCode.Escape;
 #endif
 
+    public Sprite[] backgrounds;
     public GameObject itemEntryPrefab, lineSeparatorPrefab;
+
+    [NonSerialized]
     public bool lockDialog;
 
     private List<GameObject> dialogs;
@@ -137,5 +141,10 @@ public class GameUI : MonoBehaviour
     {
         dialogs[0].SetActive(false);
         dialogs.RemoveAt(0);
+    }
+
+    public void UpdateBackground(int index)
+    {
+        transform.Find("Background").GetComponent<Image>().sprite = backgrounds[index];
     }
 }

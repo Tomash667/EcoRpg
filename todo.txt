@@ -1,7 +1,4 @@
-- quest with clear location -1 (mine or cave?)
-
 v1:
-+ icon
 + post dragon enemies
 + classes
 	warrior
