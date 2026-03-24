@@ -13,7 +13,7 @@ public class GameUI : MonoBehaviour
 #endif
 
     public Sprite[] backgrounds;
-    public GameObject itemEntryPrefab, lineSeparatorPrefab;
+    public GameObject itemEntryPrefab, lineSeparatorPrefab, textHeaderPrefab;
 
     [NonSerialized]
     public bool lockDialog;
@@ -146,5 +146,10 @@ public class GameUI : MonoBehaviour
     public void UpdateBackground(int index)
     {
         transform.Find("Background").GetComponent<Image>().sprite = backgrounds[index];
+    }
+
+    public void AddTextHeader(string text, Transform parent)
+    {
+        Instantiate(textHeaderPrefab, parent).transform.GetChild(0).GetComponent<TMP_Text>().text = text;
     }
 }

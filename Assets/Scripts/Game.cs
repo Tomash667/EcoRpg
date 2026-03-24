@@ -27,7 +27,7 @@ public class Game : MonoBehaviour
 
     private const int MaxAllies = 2;
 
-    private static readonly string[] GuildRanks = new[] { "Copper", "Silver", "Gold" };
+    private static readonly string[] GuildRanks = new[] { "None", "Copper", "Silver", "Gold" };
 
     public World world;
     public Player player;
@@ -94,12 +94,15 @@ public class Game : MonoBehaviour
         {
             if (ui.CurrentDialog == guildScreen)
             {
-                if (Input.GetKeyDown(KeyCode.C))
-                    Craft();
-                if (activeQuest != null && activeQuest.IsDone() && Input.GetKeyDown(KeyCode.F))
-                    FinishQuest();
-                if (Input.GetKeyDown(KeyCode.R))
-                    Recruit();
+                if (guildRank != 0)
+                {
+                    if (Input.GetKeyDown(KeyCode.C))
+                        Craft();
+                    if (activeQuest != null && activeQuest.IsDone() && Input.GetKeyDown(KeyCode.F))
+                        FinishQuest();
+                    if (Input.GetKeyDown(KeyCode.R))
+                        Recruit();
+                }
             }
             return;
         }
@@ -1616,7 +1619,23 @@ public class Game : MonoBehaviour
 
         guildText += $"Your rank: {GuildRanks[guildRank]}\nCurrent quest: {(activeQuest != null ? activeQuest.Text : "none")}";
         guildScreen.transform.Find("Text").GetComponent<TMP_Text>().text = guildText;
-        guildScreen.transform.Find("BtFinishQuest").GetComponent<Button>().interactable = activeQuest != null && activeQuest.IsDone();
+
+        if (guildRank == 0)
+        {
+            guildScreen.transform.Find("BtFinishQuest").gameObject.SetActive(false);
+            guildScreen.transform.Find("BtJoin").gameObject.SetActive(true);
+            guildScreen.transform.Find("BtRecruit").GetComponent<Button>().interactable = false;
+            guildScreen.transform.Find("BtCraft").GetComponent<Button>().interactable = false;
+        }
+        else
+        {
+            Transform finishQuestTransform = guildScreen.transform.Find("BtFinishQuest");
+            finishQuestTransform.gameObject.SetActive(true);
+            finishQuestTransform.GetComponent<Button>().interactable = activeQuest != null && activeQuest.IsDone();
+            guildScreen.transform.Find("BtJoin").gameObject.SetActive(false);
+        }
+        guildScreen.transform.Find("BtRecruit").GetComponent<Button>().interactable = guildRank != 0;
+        guildScreen.transform.Find("BtCraft").GetComponent<Button>().interactable = guildRank != 0;
 
         availableQuests ??= new();
 
@@ -1654,13 +1673,17 @@ public class Game : MonoBehaviour
         foreach (Transform child in content)
             Destroy(child.gameObject);
 
+        if (guildRank != 0)
+            ui.AddTextHeader("Available quests:", content);
+
         bool unavailable = false;
         foreach (Quest quest in availableQuests)
         {
-            if (!unavailable && quest.difficulty > guildRank + 1)
+            if (!unavailable && quest.difficulty > guildRank)
             {
                 unavailable = true;
                 Instantiate(ui.lineSeparatorPrefab, content);
+                ui.AddTextHeader("Unavailable quests:", content);
             }
 
             ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
@@ -1845,7 +1868,7 @@ public class Game : MonoBehaviour
     {
         int reward = activeQuest.Reward;
         lastAction = $"You received {reward} gold for quest '{activeQuest.Title}'.";
-        if (activeQuest.difficulty > guildRank && guildRank != 2)
+        if (activeQuest.difficulty == guildRank && guildRank != 3)
         {
             ++guildProgress;
             if (guildProgress == 2)
@@ -2017,5 +2040,15 @@ public class Game : MonoBehaviour
             return -1;
         }
         return world.FindLocationIndex(func);
+    }
+
+    public void JoinGuild()
+    {
+        guildRank = 1;
+        lastAction = "You register as an adventurer.";
+        AddTime(minutes: 15);
+        if (ui.CurrentDialog == guildScreen)
+            UpdateGuild();
+        UpdateText();
     }
 }

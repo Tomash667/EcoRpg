@@ -4,7 +4,6 @@ v1:
 	warrior
 	tank
 + idle combat
-+ guild register
 + harder to gain guild rank
 + quests
 	more active
@@ -25,7 +24,7 @@ v1:
 + multilevel dungeon
 + well rested in house/guild personal room
 + dungeon different traps (damage, accuracy, targets)
-+ trophies from enemies
++ trophies/meat from enemies
 * text colors
 * investments
 	mansion
@@ -36,6 +35,7 @@ v1:
 	extra/better guards -> security -> no infestation
 	efficiency upgrades
 	house garden -> grow herbs/food
+	split owned/unowned
 + world
 	village
 	buy horse
@@ -57,6 +57,7 @@ hero:
 + cursed (bad luck, impotence, reduced stats)
 + hire npc for skills, not combat (like M&M)
 + luxury
++ lose consequences
 + interactive combat
 + player history
 	isekaied
@@ -100,6 +101,9 @@ hero:
 + guild rank benefits (cheaper hire for quests, shop, sleep)
 + skip time
 + train
++ forage -> find food
++ hunt for deers etc
++ guild register event
 
 events:
 + free person for hire (foreman, geomancer etc)
@@ -145,6 +149,7 @@ skills:
 	dragon hide -> armor
 + theory vs practice soft cap
 + training from books/trainers
++ survival - hunting, bad terrain
 
 technology
 + blast furnace
