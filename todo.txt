@@ -1,6 +1,7 @@
+- quest with clear location -1 (mine or cave?)
+
 v1:
 + icon
-+ background in menu, location
 + post dragon enemies
 + classes
 	warrior
@@ -136,6 +137,7 @@ investments:
 + send city guards to clear mine -> need influence
 + supply & demand
 + farm
++ old mansion/mine -> need repairs
 
 skills:
 + management

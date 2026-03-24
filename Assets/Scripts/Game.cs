@@ -29,6 +29,8 @@ public class Game : MonoBehaviour
 
     private static readonly string[] GuildRanks = new[] { "Copper", "Silver", "Gold" };
 
+    public Sprite[] backgrounds;
+
     public World world;
     public Player player;
     public SerializableDictionary<string, int> propertyEvents;
@@ -574,6 +576,7 @@ public class Game : MonoBehaviour
                 ally.BuyItems();
         }
 
+        UpdateBackground();
         UpdateButtons();
         UpdateText();
     }
@@ -1343,6 +1346,7 @@ public class Game : MonoBehaviour
         string json = global.GetSaveData();
         JsonUtility.FromJsonOverwrite(json, this);
         map.Build();
+        UpdateBackground();
     }
 
     public void ExitToMenu()
@@ -2015,5 +2019,10 @@ public class Game : MonoBehaviour
             return -1;
         }
         return world.FindLocationIndex(func);
+    }
+
+    private void UpdateBackground()
+    {
+        transform.Find("Background").GetComponent<Image>().sprite = backgrounds[(int)world.Location];
     }
 }
