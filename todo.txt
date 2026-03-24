@@ -35,10 +35,8 @@ v1:
 	extra/better guards -> security -> no infestation
 	efficiency upgrades
 	house garden -> grow herbs/food
-	split owned/unowned
 + world
 	village
-	buy horse
 	better clear/respawn enemies - don't wait 30 days from last kill
 	show multiple notifications with date
 	bigger map - scrolling
@@ -104,6 +102,7 @@ hero:
 + forage -> find food
 + hunt for deers etc
 + guild register event
++ upkeep/taxes (house/mansion/horses)
 
 events:
 + free person for hire (foreman, geomancer etc)
@@ -170,10 +169,11 @@ world:
 + rain -> flood (depends on rain strength, paved roads, sewers, dungeons)
 + pathfinding
 + roads, rivers, bridges, lakes, sea, difficult terrain
-+ travel speed (magic)
++ travel speed (faster horse/beast, magic)
 + teleport
 + cancel travel
 + new location types (desert)
 + harder to find locations - need explore
 + smoother travel
 + locations that require exploring to discover
++ hamlet spawning next to mine

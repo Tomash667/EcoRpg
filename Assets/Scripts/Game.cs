@@ -1503,6 +1503,7 @@ public class Game : MonoBehaviour
         // player properties
         if (player.properties.Count > 0)
         {
+            ui.AddTextHeader("Your properties:", content);
             foreach (Property property in player.properties.OrderBy(x => x.value))
             {
                 bool building = false;
@@ -1537,6 +1538,8 @@ public class Game : MonoBehaviour
         }
 
         // available properties
+        if (propertiesToBuy.Length > 0)
+            ui.AddTextHeader("Available properties:", content);
         foreach (Property property in propertiesToBuy)
         {
             bool build = false;

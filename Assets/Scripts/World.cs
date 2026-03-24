@@ -248,6 +248,7 @@ public class World
         int rations = game.CountTeamItem(Item.Get("rations"));
         int teamSize = game.Team.Count();
         float speed = RationsToSpeed(rations, teamSize);
+        float speedMod = game.player.HaveProperty("Horses") ? 1.25f : 1f;
         float travelDist = 0;
         int days = 0, hour = game.hour;
         int energy = game.player.energy;
@@ -281,7 +282,7 @@ public class World
                 if (energy < 5)
                     NextDay();
 
-                travelDist += speed;
+                travelDist += speed * speedMod;
                 if (energyTick)
                 {
                     energy -= 5;
@@ -313,6 +314,7 @@ public class World
         int rations = game.CountTeamItem(rationsItem);
         int teamSize = game.Team.Count();
         float speed = RationsToSpeed(rations, teamSize);
+        float speedMod = game.player.HaveProperty("Horses") ? 1.25f : 1f;
         float travelDist = 0;
         bool haveTent = game.player.HaveItem("Tent");
         bool energyTick = false;
@@ -359,7 +361,7 @@ public class World
                     yield return new WaitForSeconds(0.1f);
                 }
 
-                travelDist += speed;
+                travelDist += speed * speedMod;
                 if (energyTick)
                 {
                     game.player.energy -= 5;

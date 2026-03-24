@@ -51,6 +51,12 @@ public class Property
         },
         new()
         {
+            name = "Horses",
+            desc = "+25% travel speel",
+            value = 500
+        },
+        new()
+        {
             name = "Sawmill",
             desc = "5 gold/day",
             value = 5000,
