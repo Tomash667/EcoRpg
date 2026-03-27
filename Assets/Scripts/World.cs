@@ -104,6 +104,8 @@ public class World
             clear = true
         };
 
+        SpawnBlob(9, 16, Utility.Random(5, 7), TileType.Plains, TileType.Forest, TileType.Swamp);
+        SpawnBlob(17, 24, Utility.Random(5, 7), TileType.Plains, TileType.Forest, TileType.Swamp);
         SpawnLocation(cityPos, TileType.Forest, TileType.Sawmill);
         SpawnLocation(cityPos, TileType.Mountains, TileType.Mine);
         SpawnHiddenLocations(0, 8, 2, TileType.Mountains, TileType.Cave, Names.cave1.ToList());
@@ -158,6 +160,49 @@ public class World
         }
 
         return spawned;
+    }
+
+    private void SpawnBlob(int xMin, int xMax, int count, TileType wantedTile, TileType optionalTile, TileType targetTile)
+    {
+        List<Vector2Int> validTiles = new();
+        for (int y = 0; y < sizeY; ++y)
+        {
+            for (int x = xMin; x <= xMax; ++x)
+            {
+                Tile tile = map[x + y * sizeX];
+                if (tile.type == wantedTile)
+                    validTiles.Add(new(x, y));
+            }
+        }
+
+        if (validTiles == null)
+            return;
+
+        void CheckTiles(int x, int y)
+        {
+            if (x >= xMin && x <= xMax && IsInBounds(x, y) && (map[x + y * sizeX].type == wantedTile || map[x + y * sizeX].type == optionalTile))
+                validTiles.Add(new(x, y));
+        }
+
+        Vector2Int pt = validTiles.RandomItem();
+        validTiles.Clear();
+        map[pt.x + pt.y * sizeX].SetType(targetTile);
+        --count;
+        CheckTiles(pt.x - 1, pt.y);
+        CheckTiles(pt.x + 1, pt.y);
+        CheckTiles(pt.x, pt.y - 1);
+        CheckTiles(pt.x, pt.y + 1);
+
+        while (count > 0 && validTiles.Count > 0)
+        {
+            pt = validTiles.RandomItemPop();
+            map[pt.x + pt.y * sizeX].SetType(targetTile);
+            --count;
+            CheckTiles(pt.x - 1, pt.y);
+            CheckTiles(pt.x + 1, pt.y);
+            CheckTiles(pt.x, pt.y - 1);
+            CheckTiles(pt.x, pt.y + 1);
+        }
     }
 
     public static bool IsInBounds(int x, int y)

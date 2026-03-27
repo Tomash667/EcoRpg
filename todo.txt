@@ -39,7 +39,7 @@ v1:
 	better clear/respawn enemies - don't wait 30 days from last kill
 	show multiple notifications with date
 	spawn biomes
-	swamp, swamp dungeon
+	swamp dungeon
 
 ---------------------------------------------------------------------------------------------------
 hero:
@@ -77,6 +77,8 @@ hero:
 	ally guild rank
 + damage type
 	holy vs undead
+	poison
+	acid
 + adventurers potential (1-broken x0.25, 3-commoner x1, 5-adventurer x1.5, 7-hero x2.25, 10-chosen one x5)
 	soft skill cap
 * tavern -> celebrate finished quest
@@ -94,6 +96,8 @@ hero:
 	ancient dragon
 	sealed horror
 	ghost
+	swamp dragon, bog titan, bog rats, swamp leeches, mud crab, swamp hag, bog zombie, will-o-wisps, snake
+	
 + guild rank benefits (cheaper hire for quests, shop, sleep)
 + skip time
 + train
@@ -170,6 +174,7 @@ world:
 + pathfinding
 + roads, rivers, bridges, lakes, sea, difficult terrain
 + travel speed (faster horse/beast, magic)
+	bad terrain -> mountains, swamp
 + teleport
 + cancel travel
 + new location types (desert)
@@ -179,3 +184,7 @@ world:
 + hamlet spawning next to mine
 + multiple villages/cities
 + capitol
++ swamp names
+	marsh, bog, Fen, Wetlands
+	Mire, Quagmire, Morass, Blackwater, Rotfen, Blight Bog
++ fog "of war" around swamp

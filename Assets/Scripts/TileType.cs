@@ -10,7 +10,8 @@ public enum TileType
     Sawmill,
     Mine,
     Sewers,
-    Village
+    Village,
+    Swamp
 }
 
 public enum TileImage
@@ -24,7 +25,8 @@ public enum TileImage
     Cave,
     Sawmill,
     Mine,
-    Village
+    Village,
+    Swamp
 }
 
 public static class TileTypeMethods
@@ -43,6 +45,7 @@ public static class TileTypeMethods
             TileType.Mine => "mine",
             TileType.Sewers => "sewers",
             TileType.Village => "village",
+            TileType.Swamp => "swamp",
             _ => $"[ERROR tileType {tileType}]"
         };
     }

@@ -254,6 +254,26 @@ public class Enemy
             dex = 26,
             gold = new(10000, 10000),
             quest = false
-        }
+        },
+        new()
+        {
+            name = "giant crocodile",
+            locations = new[] { (TileType.Swamp, 2) },
+            level = 6,
+            hp = 180,
+            attack = 45,
+            def = 8,
+            dex = 18
+        },
+        new()
+        {
+            name = "hydra",
+            locations = new[] { (TileType.Swamp, 3) },
+            level = 9,
+            hp = 240,
+            attack = 55,
+            def = 11,
+            dex = 24
+        },
     };
 }

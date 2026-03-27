@@ -52,6 +52,11 @@ public class Tile
         case TileType.Cave:
         case TileType.Dungeon:
             return name;
+        case TileType.Swamp:
+            if (difficulty <= 2)
+                return "swamp";
+            else
+                return "deadmarsh";
         }
 
         return type.AsString();
@@ -90,6 +95,9 @@ public class Tile
             break;
         case TileType.Village:
             image = TileImage.Village;
+            break;
+        case TileType.Swamp:
+            image = TileImage.Swamp;
             break;
         }
         type = newType;
