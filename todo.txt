@@ -3,7 +3,7 @@ v1:
 + classes
 	warrior
 	tank
-+ idle combat
++ idle combat -> escape, use potion
 + harder to gain guild rank
 + quests
 	more active
@@ -39,7 +39,6 @@ v1:
 	village
 	better clear/respawn enemies - don't wait 30 days from last kill
 	show multiple notifications with date
-	bigger map - scrolling
 	spawn biomes
 	swamp, swamp dungeon
 
@@ -116,6 +115,8 @@ events:
 ui:
 + item icons
 + property icons
++ shop tabs
++ drag/scale map
 	
 investments:
 + cottage/big house

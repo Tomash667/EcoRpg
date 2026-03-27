@@ -4,8 +4,11 @@ using UnityEngine.UI;
 
 public class Map : MonoBehaviour
 {
-    public const float tileSize = 50f;
-    public readonly Vector2 gridOrigin = new(-609f, 263f);
+    private const float tileSize = 50f;
+    private const float borderSize = 6f;
+    private static readonly Vector2 gridOrigin = new(-tileSize * World.sizeX / 2 + tileSize / 2, tileSize * World.sizeY / 2 - tileSize / 2);
+    private static readonly Vector2 gridSize = new(tileSize * World.sizeX, tileSize * World.sizeY);
+    private static readonly Vector2 contentSize = new(gridSize.x + borderSize * 2, gridSize.y + borderSize * 2);
 
     public GameObject tilePrefab;
     public Sprite[] sprites;
@@ -13,32 +16,42 @@ public class Map : MonoBehaviour
     private Arrow arrow;
     private GameObject cursor, cursor2;
     private TMP_Text text;
+    private ScrollRect scrollRect;
+    private Transform tilesContainer;
     private RectTransform rectTransform;
-    private Vector2 currentPos, travelPos;
+    private Vector2 currentPos, travelPos, viewportSize;
     private Vector2Int travelPt;
     private bool inTravel;
+
+    public void Init()
+    {
+        text = transform.Find("Text").GetComponent<TMP_Text>();
+        scrollRect = transform.Find("MapView").GetComponent<ScrollRect>();
+        rectTransform = scrollRect.GetComponent<RectTransform>();
+        viewportSize = transform.Find("MapView/Viewport").GetComponent<RectTransform>().rect.size;
+        Transform mapContent = transform.Find("MapView/Viewport/Content");
+        mapContent.GetComponent<RectTransform>().sizeDelta = contentSize;
+        cursor = mapContent.Find("Cursor").gameObject;
+        cursor2 = mapContent.Find("Cursor2").gameObject;
+        arrow = mapContent.Find("Arrow").GetComponent<Arrow>();
+        tilesContainer = mapContent.Find("Tiles");
+    }
 
     public void Build()
     {
         Tile[] map = Global.World.map;
-        Transform tiles = transform.Find("Tiles");
+        tilesContainer = transform.Find("MapView/Viewport/Content/Tiles");
         for (int y = 0; y < World.sizeY; ++y)
         {
             for (int x = 0; x < World.sizeX; ++x)
             {
-                GameObject tile = Instantiate(tilePrefab, tiles);
+                GameObject tile = Instantiate(tilePrefab, tilesContainer);
                 RectTransform rectTransform = tile.GetComponent<RectTransform>();
                 rectTransform.anchoredPosition = new(gridOrigin.x + tileSize * x, gridOrigin.y - tileSize * y);
                 Image image = tile.GetComponent<Image>();
                 image.sprite = sprites[(int)map[x + y * World.sizeX].image];
             }
         }
-
-        cursor = transform.Find("Cursor").gameObject;
-        cursor2 = transform.Find("Cursor2").gameObject;
-        arrow = transform.Find("Arrow").GetComponent<Arrow>();
-        text = transform.Find("Text").GetComponent<TMP_Text>();
-        rectTransform = GetComponent<RectTransform>();
     }
 
     public void Show()
@@ -48,23 +61,19 @@ public class Map : MonoBehaviour
         cursor.GetComponent<RectTransform>().anchoredPosition = currentPos;
         cursor2.SetActive(false);
         arrow.gameObject.SetActive(false);
+        CenterOnPlayer();
     }
 
     private void Update()
     {
         if (inTravel)
+        {
+            CenterOnPlayer();
             return;
-
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(
-            rectTransform,
-            Input.mousePosition,
-            null,
-            out Vector2 localMousePosition
-        );
+        }
 
         World world = Global.World;
-        Vector2Int targetPt = LocalPosToTile(localMousePosition);
-        if (World.IsInBounds(targetPt))
+        if (GetTile(Input.mousePosition, out Vector2Int targetPt) && World.IsInBounds(targetPt))
         {
             if (Input.GetMouseButtonDown(0))
             {
@@ -97,15 +106,30 @@ public class Map : MonoBehaviour
         }
     }
 
-    private Vector2Int LocalPosToTile(Vector2 localPos)
+    private bool GetTile(Vector2 pos, out Vector2Int pt)
     {
-        float dx = localPos.x - gridOrigin.x + tileSize / 2;
-        float dy = gridOrigin.y - localPos.y + tileSize / 2;
+        // check if pos is inside map
+        if (!RectTransformUtility.RectangleContainsScreenPoint(rectTransform, pos))
+        {
+            pt = new(-1, -1);
+            return false;
+        }
 
-        int x = Mathf.FloorToInt(dx / tileSize);
-        int y = Mathf.FloorToInt(dy / tileSize);
+        // transform to local position
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(
+            rectTransform,
+            Input.mousePosition,
+            null,
+            out Vector2 localPos
+        );
+        localPos += viewportSize * 0.5f;
 
-        return new Vector2Int(x, y);
+        Vector2 scrollRange = contentSize - viewportSize;
+        Vector2 offset = scrollRect.normalizedPosition * scrollRange;
+        float dx = localPos.x - borderSize + offset.x;
+        float dy = gridSize.y - localPos.y + borderSize - offset.y;
+        pt = new Vector2Int(Mathf.FloorToInt(dx / tileSize), Mathf.FloorToInt(dy / tileSize));
+        return true;
     }
 
     public void BeginTravel(Vector2Int pt)
@@ -160,16 +184,36 @@ public class Map : MonoBehaviour
     {
         int index = pos.x + pos.y * World.sizeX;
         Tile tile = Global.World.map[index];
-        Transform tiles = transform.Find("Tiles");
-        Image image = tiles.GetChild(index).GetComponent<Image>();
+        Image image = tilesContainer.GetChild(index).GetComponent<Image>();
         image.sprite = sprites[(int)tile.image];
     }
 
     public void Regenerate()
     {
-        foreach (Transform child in transform.Find("Tiles"))
+        foreach (Transform child in tilesContainer)
             Destroy(child.gameObject);
         Build();
         Show();
+    }
+
+    private void CenterOnPlayer()
+    {
+        World world = Global.World;
+
+        // Player position inside content
+        Vector2 playerPos = new(tileSize * world.currentPt.x, tileSize * world.currentPt.y);
+        Vector2 desiredPos = playerPos - (viewportSize * 0.5f);
+        Vector2 scrollRange = contentSize - viewportSize;
+
+        // Convert to normalized position (0–1)
+        Vector2 normalized = new(desiredPos.x / scrollRange.x, desiredPos.y / scrollRange.y);
+
+        // Flip Y because ScrollRect uses bottom-left origin
+        normalized.y = 1f - normalized.y;
+
+        normalized.x = Mathf.Clamp01(normalized.x);
+        normalized.y = Mathf.Clamp01(normalized.y);
+
+        scrollRect.normalizedPosition = normalized;
     }
 }

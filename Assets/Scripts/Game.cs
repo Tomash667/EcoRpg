@@ -72,6 +72,7 @@ public class Game : MonoBehaviour
         properiesScreen = transform.Find("Properties").gameObject;
         guildScreen = transform.Find("Guild").gameObject;
         map = transform.Find("Map").GetComponent<Map>();
+        map.Init();
 
         Global global = Global.Instance;
         global.game = this;
@@ -476,8 +477,8 @@ public class Game : MonoBehaviour
 
     public void Travel()
     {
-        map.Show();
         ui.ShowDialog(map.gameObject);
+        map.Show();
     }
 
     public void Travel(Vector2Int pt, bool enter)

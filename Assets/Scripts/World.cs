@@ -7,7 +7,7 @@ using UnityEngine;
 [Serializable]
 public class World
 {
-    public const int sizeX = 20, sizeY = 10;
+    public const int sizeX = 25, sizeY = 15;
 
     public Tile[] map;
     public Tile sewers;
@@ -38,11 +38,11 @@ public class World
                 };
 
                 int difficulty;
-                if (x < 8)
+                if (x < 9) // 9
                     difficulty = 1;
-                else if (x < 14)
+                else if (x < 17) // 8
                     difficulty = 2;
-                else
+                else // 8
                     difficulty = 3;
 
                 Tile tile = new() { hidden = TileType.None, difficulty = difficulty };
@@ -98,21 +98,21 @@ public class World
 
         SpawnLocation(cityPos, TileType.Forest, TileType.Sawmill);
         SpawnLocation(cityPos, TileType.Mountains, TileType.Mine);
-        SpawnHiddenLocations(0, 7, 2, TileType.Mountains, TileType.Cave, Names.cave1.ToList());
-        List<Tile> spawned = SpawnHiddenLocations(8, 13, 2, TileType.Mountains, TileType.Cave, Names.cave2.ToList());
+        SpawnHiddenLocations(0, 8, 2, TileType.Mountains, TileType.Cave, Names.cave1.ToList());
+        List<Tile> spawned = SpawnHiddenLocations(9, 16, 2, TileType.Mountains, TileType.Cave, Names.cave2.ToList());
         spawned[0].mine = true;
-        spawned = SpawnHiddenLocations(14, 19, 2, TileType.Mountains, TileType.Cave, Names.cave3.ToList());
+        spawned = SpawnHiddenLocations(17, 24, 2, TileType.Mountains, TileType.Cave, Names.cave3.ToList());
         spawned[0].boss = true;
         spawned[1].mine = true;
         List<string> dungeon1 = Names.dungeon1.ToList();
         List<string> dungeon2 = Names.dungeon2.ToList();
         List<string> dungeon3 = Names.dungeon3.ToList();
-        SpawnHiddenLocations(0, 7, 2, TileType.Forest, TileType.Dungeon, dungeon1);
-        SpawnHiddenLocations(8, 13, 2, TileType.Forest, TileType.Dungeon, dungeon2);
-        SpawnHiddenLocations(14, 19, 2, TileType.Forest, TileType.Dungeon, dungeon3);
-        SpawnHiddenLocations(0, 7, 2, TileType.Plains, TileType.Dungeon, dungeon1);
-        SpawnHiddenLocations(8, 13, 2, TileType.Plains, TileType.Dungeon, dungeon2);
-        SpawnHiddenLocations(14, 19, 2, TileType.Plains, TileType.Dungeon, dungeon3);
+        SpawnHiddenLocations(0, 8, 2, TileType.Forest, TileType.Dungeon, dungeon1);
+        SpawnHiddenLocations(9, 16, 2, TileType.Forest, TileType.Dungeon, dungeon2);
+        SpawnHiddenLocations(17, 24, 2, TileType.Forest, TileType.Dungeon, dungeon3);
+        SpawnHiddenLocations(0, 8, 2, TileType.Plains, TileType.Dungeon, dungeon1);
+        SpawnHiddenLocations(9, 16, 2, TileType.Plains, TileType.Dungeon, dungeon2);
+        SpawnHiddenLocations(17, 24, 2, TileType.Plains, TileType.Dungeon, dungeon3);
 
         RevealHiddenLocations(cityPos, false);
         currentPt = cityPos;
