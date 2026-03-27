@@ -226,6 +226,8 @@ public class Hero : ISerializationCallbackReceiver
 
     public void BuyItems()
     {
+        bool isCity = Global.World.Location == TileType.City;
+
         // sell old items
         items.RemoveAll(x =>
         {
@@ -238,10 +240,12 @@ public class Hero : ISerializationCallbackReceiver
         });
 
         // buy rations/potions
-        Item rations = Item.Get("rations"), potion = Item.Get(hpMax >= 200 ? "elixir" : "potion");
-        int rationsCount = CountItem(rations), potionsCount = CountItem(potion);
+        Item rations = Item.Get("rations"), potion = Item.Get(hpMax >= 200 ? "elixir" : "potion"), elixir = Item.Get("elixir");
+        Item healingItem = (hpMax >= 200 && isCity) ? elixir : potion;
+        int rationsCount = CountItem(rations), potionsCount = CountItem(potion), elixirCount = CountItem(elixir);
+        int healingItemCount = potionsCount + elixirCount;
         int requiredRations = 5 + level / 2;
-        while ((rationsCount < requiredRations && gold >= rations.value) || (potionsCount < 5 && gold >= potion.value))
+        while ((rationsCount < requiredRations && gold >= rations.value) || (healingItemCount < 5 && gold >= healingItem.value))
         {
             if (rationsCount < requiredRations)
             {
@@ -250,18 +254,19 @@ public class Hero : ISerializationCallbackReceiver
                 ++rationsCount;
             }
 
-            if (potionsCount < 5 && gold >= potion.value)
+            if (healingItemCount < 5 && gold >= healingItem.value)
             {
-                gold -= potion.value;
-                AddItem(potion);
-                ++potionsCount;
+                gold -= healingItem.value;
+                AddItem(healingItem);
+                ++healingItemCount;
             }
         }
 
         // buy weapon/armor/shield
+        int maxLevel = isCity ? Item.MaxLevelCity : Item.MaxLevelVillage;
         int weaponLevel = weapon?.level ?? 0, armorLevel = armor?.level ?? 0, shieldLevel = shield?.level ?? 0;
         bool boughtWeapon = false, boughtArmor = false, boughtShield = false;
-        while (weaponLevel < Item.MaxLevel || armorLevel < Item.MaxLevel || shieldLevel < Item.MaxLevel)
+        while (weaponLevel < maxLevel || armorLevel < maxLevel || shieldLevel < maxLevel)
         {
             int minLevel = Mathf.Min(weaponLevel, armorLevel, shieldLevel);
             List<Item.Type> typesToBuy = new();

@@ -13,12 +13,12 @@ public class Item
         Other
     }
 
-    public const int MaxLevel = 4;
+    public const int MaxLevelCity = 4;
+    public const int MaxLevelVillage = 3;
 
     public string name, desc;
     public Type type;
     public int level, power, value;
-    public bool shop = true;
 
     public string ToString(bool sellPrice)
     {
@@ -76,8 +76,7 @@ public class Item
             type = Type.Weapon,
             level = 5,
             power = 25,
-            value = 5000,
-            shop = false
+            value = 5000
         },
         new()
         {
@@ -117,8 +116,7 @@ public class Item
             type = Type.Armor,
             level = 5,
             power = 10,
-            value = 5000,
-            shop = false
+            value = 5000
         },
         new()
         {
@@ -158,8 +156,7 @@ public class Item
             type = Type.Shield,
             level = 5,
             power = 5,
-            value = 5000,
-            shop = false
+            value = 5000
         },
         new()
         {
@@ -167,8 +164,7 @@ public class Item
             desc = "25 heal",
             type = Type.Usable,
             power = 25,
-            value = 5,
-            shop = false
+            value = 5
         },
         new()
         {
@@ -212,17 +208,54 @@ public class Item
             name = "silver nugget",
             desc = "treasure",
             type = Type.Other,
-            value = 25,
-            shop = false
+            value = 25
         },
         new()
         {
             name = "gold nugget",
             desc = "treasure",
             type = Type.Other,
-            value = 50,
-            shop = false
+            value = 50
         }
+    };
+
+    public static readonly Item[] cityItems = new[]
+    {
+        Get("club"),
+        Get("axe"),
+        Get("sword"),
+        Get("two handed sword"),
+        Get("leather armor"),
+        Get("chainmail"),
+        Get("breastplate"),
+        Get("plate armor"),
+        Get("wooden shield"),
+        Get("iron shield"),
+        Get("steel shield"),
+        Get("dwarven shield"),
+        Get("potion"),
+        Get("elixir"),
+        Get("rations"),
+        Get("tent"),
+        Get("pickaxe")
+    };
+
+
+    public static readonly Item[] villageItems = new[]
+    {
+        Get("club"),
+        Get("axe"),
+        Get("sword"),
+        Get("leather armor"),
+        Get("chainmail"),
+        Get("breastplate"),
+        Get("wooden shield"),
+        Get("iron shield"),
+        Get("steel shield"),
+        Get("potion"),
+        Get("rations"),
+        Get("tent"),
+        Get("pickaxe")
     };
 }
 

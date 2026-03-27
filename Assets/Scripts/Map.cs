@@ -80,14 +80,11 @@ public class Map : MonoBehaviour
                 Global.Game.Travel(targetPt, !Input.GetKey(KeyCode.LeftShift));
                 return;
             }
-
-            if (targetPt == world.currentPt)
-                targetPt.x = -1;
         }
         else
             targetPt.x = -1;
 
-        if (targetPt.x != -1)
+        if (targetPt.x != -1 && targetPt != world.currentPt)
         {
             Vector2 targetPos = new(gridOrigin.x + tileSize * targetPt.x, gridOrigin.y - tileSize * targetPt.y);
             cursor2.GetComponent<RectTransform>().anchoredPosition = targetPos;
@@ -102,7 +99,13 @@ public class Map : MonoBehaviour
         {
             cursor2.SetActive(false);
             arrow.gameObject.SetActive(false);
-            text.text = $"Rations: {Global.Game.CountTeamItem(Item.Get("rations"))}";
+            if (targetPt == world.currentPt)
+            {
+                Tile tile = world.map[targetPt.x + targetPt.y * World.sizeX];
+                text.text = $"Rations: {Global.Game.CountTeamItem(Item.Get("rations"))}\nTarget: {tile.Name.ToUpper1()}";
+            }
+            else
+                text.text = $"Rations: {Global.Game.CountTeamItem(Item.Get("rations"))}";
         }
     }
 

@@ -25,6 +25,7 @@ public class World
 
     public void Init()
     {
+        Tile tile;
         map = new Tile[sizeX * sizeY];
         for (int y = 0; y < sizeY; ++y)
         {
@@ -38,14 +39,14 @@ public class World
                 };
 
                 int difficulty;
-                if (x < 9) // 9
+                if (x < 9)
                     difficulty = 1;
-                else if (x < 17) // 8
+                else if (x < 17)
                     difficulty = 2;
-                else // 8
+                else
                     difficulty = 3;
 
-                Tile tile = new() { hidden = TileType.None, difficulty = difficulty };
+                tile = new() { hidden = TileType.None, difficulty = difficulty };
                 tile.SetType(tileType);
                 map[x + y * sizeX] = tile;
             }
@@ -57,6 +58,9 @@ public class World
         map[cityPos.x + 1 + cityPos.y * sizeX].SetType(TileType.Plains);
         map[cityPos.x + (cityPos.y - 1) * sizeX].SetType(TileType.Plains);
         map[cityPos.x + (cityPos.y + 1) * sizeX].SetType(TileType.Plains);
+
+        Vector2Int villagePos = new(Utility.Random(15, 19), Utility.Rand % 2 == 0 ? Utility.Random(2, 6) : Utility.Random(8, 12));
+        map[villagePos.x + villagePos.y * sizeX].SetType(TileType.Plains);
 
         Dictionary<TileType, int> influence = new();
         for (int y = 0; y < sizeY; ++y)
@@ -87,6 +91,10 @@ public class World
         }
 
         map[cityPos.x + cityPos.y * sizeX].SetType(TileType.City);
+
+        tile = map[villagePos.x + villagePos.y * sizeX];
+        tile.SetType(TileType.Village);
+        tile.difficulty = 1;
 
         sewers = new Tile
         {

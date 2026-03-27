@@ -49,7 +49,7 @@ public class Game : MonoBehaviour
     private readonly StringBuilder sb = new();
     private System.Action<bool> choiceAction;
     private string lastAction;
-    private bool inChoice;
+    private bool inChoice, traveled;
 
     public IEnumerable<Hero> Team
     {
@@ -143,6 +143,12 @@ public class Game : MonoBehaviour
                     Shop();
                 if (Input.GetKeyDown(KeyCode.X))
                     EnterSewers();
+                break;
+            case TileType.Village:
+                if (Input.GetKeyDown(KeyCode.W))
+                    Work();
+                if (Input.GetKeyDown(KeyCode.S))
+                    Shop();
                 break;
             case TileType.Forest:
                 if (Input.GetKeyDown(KeyCode.F))
@@ -418,7 +424,7 @@ public class Game : MonoBehaviour
             lastAction = "It's too late to work.";
         else if (player.energy < 50)
             lastAction = "You are too tired to work.";
-        else if (!world.CurrentTile.clear)
+        else if (!world.CurrentTile.clear && world.Location.IsClearable())
             lastAction = $"You can't work while monsters occupy the {world.CurrentTile.Name}.";
         else
         {
@@ -466,7 +472,7 @@ public class Game : MonoBehaviour
             else if (location == TileType.Mine)
                 player.Train(Skill.Mining, 1, ref lastAction);
             AddTime(hours: 8);
-            if (location == TileType.City)
+            if (location == TileType.City || location == TileType.Village)
             {
                 foreach (Hero ally in allies)
                     ally.BuyItems();
@@ -486,7 +492,11 @@ public class Game : MonoBehaviour
         if (pt == world.currentPt)
         {
             if (enter)
+            {
+                if (traveled)
+                    OnChangeLocation();
                 ui.CloseDialog();
+            }
             return;
         }
 
@@ -495,6 +505,7 @@ public class Game : MonoBehaviour
 
     private IEnumerator TravelLoop(Vector2Int pt, bool enter)
     {
+        traveled = true;
         ui.lockDialog = true;
         map.BeginTravel(pt);
         yield return world.Travel(pt);
@@ -565,7 +576,8 @@ public class Game : MonoBehaviour
 
     private void OnChangeLocation()
     {
-        if (world.CurrentTile.type == TileType.City)
+        Tile tile = world.CurrentTile;
+        if (tile.type == TileType.City || tile.type == TileType.Village)
         {
             if (player.goldWaiting != 0)
             {
@@ -578,9 +590,10 @@ public class Game : MonoBehaviour
                 ally.BuyItems();
         }
 
-        ui.UpdateBackground((int)world.Location);
+        ui.UpdateBackground((int)tile.type);
         UpdateButtons();
         UpdateText();
+        traveled = false;
     }
 
     public void Shop()
@@ -610,7 +623,8 @@ public class Game : MonoBehaviour
         Transform content = shop.transform.Find("ShopItems/Viewport/Content");
         foreach (Transform child in content)
             Destroy(child.gameObject);
-        foreach (Item item in Item.items.Where(x => x.shop))
+        Item[] availableItems = (world.Location == TileType.City ? Item.cityItems : Item.villageItems);
+        foreach (Item item in availableItems)
         {
             ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
             itemEntry.Init(item.ToString(false), "Buy", () =>
@@ -1069,7 +1083,7 @@ public class Game : MonoBehaviour
                 ally.hp = ally.hpMax;
             lastAction += "You rest in your house.";
         }
-        else if (location == TileType.City && player.gold > 0)
+        else if ((location == TileType.City || location == TileType.Village) && player.gold > 0)
         {
             player.hp = player.hpMax;
             player.energy = 100;
@@ -1100,7 +1114,7 @@ public class Game : MonoBehaviour
             }
             else
             {
-                if (location == TileType.City)
+                if (location == TileType.City || location == TileType.Village)
                     where = "on a street";
                 else if (location == TileType.Plains || location == TileType.Forest)
                     where = "on a grass";
@@ -1138,7 +1152,7 @@ public class Game : MonoBehaviour
 
         OnNewDay();
 
-        if (player.goldWaiting > 0 && location == TileType.City)
+        if (player.goldWaiting > 0 && (location == TileType.City || location == TileType.Village))
         {
             lastAction += $" You receive {player.goldWaiting} gold from your properties.";
             player.AddGold(player.goldWaiting);
@@ -1269,7 +1283,7 @@ public class Game : MonoBehaviour
     {
         notifications ??= new();
         notifications.Add(str);
-        if (world.Location == TileType.City)
+        if (world.Location == TileType.City || world.Location == TileType.Village)
             UpdateButtons();
     }
 
@@ -1361,16 +1375,17 @@ public class Game : MonoBehaviour
     {
         TileType location = world.Location;
         bool inCity = location == TileType.City;
+        bool inVillage = location == TileType.Village;
         Transform buttons = transform.Find("Buttons");
-        buttons.Find("BtShop").gameObject.SetActive(inCity);
+        buttons.Find("BtShop").gameObject.SetActive(inCity || inVillage);
+        buttons.Find("BtWork").gameObject.SetActive(inCity || inVillage);
         buttons.Find("BtGuild").gameObject.SetActive(inCity);
-        buttons.Find("BtWork").gameObject.SetActive(inCity);
         buttons.Find("BtProperties").gameObject.SetActive(inCity);
         buttons.Find("BtSewers").gameObject.SetActive(inCity);
 
         GameObject btMessages = buttons.Find("BtMessages").gameObject;
-        btMessages.SetActive(inCity);
-        if (inCity)
+        btMessages.SetActive(inCity || inVillage);
+        if (inCity || inVillage)
         {
             btMessages.GetComponent<Button>().interactable = notifications.Count > 0;
             btMessages.GetComponentInChildren<TMP_Text>().text = notifications.Count > 0 ? $"Messages ({notifications.Count})" : "Messages";
@@ -1433,9 +1448,9 @@ public class Game : MonoBehaviour
 
     public void RemoveAlly()
     {
-        if (world.Location != TileType.City)
+        if (world.Location != TileType.City && world.Location != TileType.Village)
         {
-            ui.ShowDialog("You can only remove your allies in city.");
+            ui.ShowDialog("You can only remove your allies in city or village.");
             return;
         }
 
@@ -1466,7 +1481,7 @@ public class Game : MonoBehaviour
                 return true;
             player.AddGold(-count);
             activeAlly.gold += count;
-            if (world.Location == TileType.City)
+            if (world.Location == TileType.City || world.Location == TileType.Village)
                 activeAlly.BuyItems();
             RefreshAllyScreen();
             UpdateText();
@@ -1969,7 +1984,7 @@ public class Game : MonoBehaviour
         foreach (Hero ally in allies)
         {
             ally.gold += share;
-            if (world.Location == TileType.City)
+            if (world.Location == TileType.City || world.Location == TileType.Village)
                 ally.BuyItems();
         }
 

@@ -32,7 +32,7 @@ public class Enemy
         new()
         {
             name = "bandit",
-            locations = new[] { (TileType.City, 1) },
+            locations = new[] { (TileType.City, 1), (TileType.Village, 1) },
             level = 0,
             hp = 60,
             attack = 15,

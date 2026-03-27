@@ -294,6 +294,28 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: village
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 32
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: e28113a77c0195d4fa12a1df85a9bd16
+      internalID: 132706450
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     customData: 
     physicsShape: []
@@ -313,7 +335,7 @@ TextureImporter:
       dungeon: -349523790
       forest: -1939850107
       forest dungeon: 603060327
-      map tiles_0: 1814030382
+      map tiles_1: -236607163
       map tiles_10: 1923101346
       map tiles_11: 67019093
       map tiles_12: 272516478
@@ -332,6 +354,7 @@ TextureImporter:
       mountain: -1296134821
       plains: -722268265
       sawmill: 44413607
+      village: 1814030382
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

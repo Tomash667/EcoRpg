@@ -36,7 +36,6 @@ v1:
 	efficiency upgrades
 	house garden -> grow herbs/food
 + world
-	village
 	better clear/respawn enemies - don't wait 30 days from last kill
 	show multiple notifications with date
 	spawn biomes
@@ -178,3 +177,5 @@ world:
 + smoother travel
 + locations that require exploring to discover
 + hamlet spawning next to mine
++ multiple villages/cities
++ capitol

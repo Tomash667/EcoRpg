@@ -88,6 +88,9 @@ public class Tile
         case TileType.Mine:
             image = TileImage.Mine;
             break;
+        case TileType.Village:
+            image = TileImage.Village;
+            break;
         }
         type = newType;
     }
