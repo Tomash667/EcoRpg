@@ -198,11 +198,11 @@ public class Game : MonoBehaviour
             int level = tile.difficulty + 2;
             Item item = Item.items.RandomItem(x => x.level == level);
             int gold = Utility.Round(Utility.Random(level * 100, level * 200));
-            lastAction = $"You explore the {tile.Name} and find <b>treasure room</b>. Inside chest you find {gold} gold and {item.name}.";
+            lastAction = $"You explore the {tile.Name} and find <b>treasure room</b>. Inside chest you find <color=#FFD700>{gold}</color> gold and <b>{item.name}</b>.";
             if (activeQuest != null && activeQuest.type == Quest.Type.Artifact && activeQuest.location == world.CurrentLocationIndex)
             {
                 activeQuest.count = 1;
-                lastAction += $" You also find an artifact.";
+                lastAction += $" You also find an <b>artifact</b>.";
             }
             AddTeamGold(gold);
             player.AddItem(item);
@@ -228,7 +228,7 @@ public class Game : MonoBehaviour
                     enemy = Enemy.Get("dragon-man");
             }
 
-            lastAction = $"You explore the {tile.Name} and {Utility.PluralText(enemy.name, count)} attack you.";
+            lastAction = $"You explore the {tile.Name} and <b>{Utility.PluralText(enemy.name, count)}</b> attack you.";
             if (Combat(enemy, count))
             {
                 if (activeQuest != null)
@@ -253,11 +253,13 @@ public class Game : MonoBehaviour
                 {
                     dragonStatus = DragonStatus.Defeated;
                     lastAction += " With a final blow, the dragon falls. Its roar fades into silence, and the cavern grows still. The beast is slain—its hoard and your legend now yours to claim. " +
-                        $"You found {gold} gold.";
+                        $"You found <color=#FFD700>{gold}</color> gold.";
                     tile.clear = true;
                 }
+                else if (gold > 0)
+                    lastAction += $" You win (<color=#FFD700>{gold}</color> gold found).";
                 else
-                    lastAction += $" You win ({gold} gold found).";
+                    lastAction += $" You win.";
                 AddTeamGold(gold);
 
                 // exp
@@ -294,14 +296,14 @@ public class Game : MonoBehaviour
                     }
                     else if (tile.type == TileType.Mine || tile.type == TileType.Sawmill)
                     {
-                        lastAction += " You cleared this place.";
+                        lastAction += " You <b>cleared</b> this place.";
                         propertyEvents.dictionary.Remove(tile.Name.ToUpper1());
                     }
                 }
             }
             else
             {
-                lastAction += " You run away defeated.";
+                lastAction += " You run away <color=red>defeated<color>.";
                 if (enemy.name == "dragon")
                     tile.defeatedEnemies -= 5;
             }
@@ -321,13 +323,15 @@ public class Game : MonoBehaviour
             // old camp
             int count = Utility.Random(1, 4);
             player.AddItem(Item.Get("rations"), count);
-            lastAction = $"You explore the {tile.Name} and find old camp. You pick up {Utility.Plural("rations", count)}.";
+            lastAction = $"You explore the {tile.Name} and find old camp. You pick up <b>{Utility.Plural("rations", count)}</b>.";
         }
         else if (c == 8 && tile.type == TileType.Dungeon && (!tile.foundTreasure || Utility.Rand % 2 == 0))
         {
             // trap
             Hero target = Team.RandomItem();
-            lastAction = target == player ? $"You explore the {tile.Name} and step on a trap." : $"You explore the {tile.Name} and {target.name} step on a trap.";
+            lastAction = target == player
+                ? $"You explore the {tile.Name} and step on a <color=red>trap</color>."
+                : $"You explore the {tile.Name} and {target.name} step on a <color=red>trap</color>.";
             if (AttackChance(10, target.dex))
             {
                 target.hp -= Mathf.Max(15 + tile.difficulty * 5 + Utility.Random(0, 5), 0);
@@ -357,7 +361,7 @@ public class Game : MonoBehaviour
             int count = Utility.Random(1, 2);
             AddTeamGold(gold);
             player.AddItem(Item.Get(item), count);
-            lastAction = $"You explore the {tile.Name} and find chest. Inside you find {Utility.Plural(item, count)} and {gold} gold.";
+            lastAction = $"You explore the {tile.Name} and find chest. Inside you find <b>{Utility.Plural(item, count)}</b> and <color=#FFD700>{gold}</color> gold.";
         }
         else if (c == 9 && tile.type == TileType.Forest)
         {
@@ -370,7 +374,7 @@ public class Game : MonoBehaviour
             };
             Item herb = Item.Get("herb");
             player.AddItem(herb, count);
-            lastAction = $"You explore the {tile.Name} and find {Utility.Plural(herb.name, count)}.";
+            lastAction = $"You explore the {tile.Name} and find <b>{Utility.Plural(herb.name, count)}</b>.";
         }
         else if (c == 9 && (tile.type == TileType.Mountains || (tile.type == TileType.Cave && tile.mine && !tile.clear)) && tile.difficulty >= 2)
         {
@@ -387,11 +391,11 @@ public class Game : MonoBehaviour
                 count += player.GetSkill(Skill.Mining) / 25;
                 Item nugget = Item.Get(tile.difficulty == 2 ? "silver nugget" : "gold nugget");
                 player.AddItem(nugget, count);
-                lastAction = $"You explore the {tile.Name} and find small {(tile.difficulty == 2 ? "silver" : "gold")} vein. You mine {Utility.Plural(nugget.name, count)}.";
+                lastAction = $"You explore the {tile.Name} and find small <b>{(tile.difficulty == 2 ? "silver" : "gold")} vein</b>. You mine <b>{Utility.Plural(nugget.name, count)}</b>.";
                 player.Train(Skill.Mining, 1, ref lastAction);
             }
             else
-                lastAction = $"You explore the {tile.Name} and find small {(tile.difficulty == 2 ? "silver" : "gold")} vein but you don't have a pickaxe...";
+                lastAction = $"You explore the {tile.Name} and find small <b>{(tile.difficulty == 2 ? "silver" : "gold")} vein</b> but you don't have a pickaxe...";
         }
         else
             lastAction = $"You explore the {tile.Name} but find nothing interesting.";
@@ -435,7 +439,7 @@ public class Game : MonoBehaviour
             player.AddGold(payment);
             foreach (Hero ally in allies)
                 ally.gold += payment;
-            lastAction = $"You earned {payment} gold from working.";
+            lastAction = $"You earned <color=#FFD700>{payment}</color> gold from working.";
             if (location == TileType.Sawmill)
                 player.Train(Skill.Woodcraft, 1, ref lastAction);
             else if (location == TileType.Mine)
@@ -555,7 +559,7 @@ public class Game : MonoBehaviour
         {
             if (player.goldWaiting != 0)
             {
-                lastAction += $" You receive {player.goldWaiting} gold from your properties.";
+                lastAction += $" You receive <color=#FFD700>{player.goldWaiting}</color> gold from your properties.";
                 player.AddGold(player.goldWaiting);
                 player.goldWaiting = 0;
             }
@@ -1067,7 +1071,7 @@ public class Game : MonoBehaviour
                 ally.hp = ally.hpMax;
                 --ally.gold;
             }
-            lastAction += "You rest in an inn (-1 gold).";
+            lastAction += "You rest in an inn (<color=#FFD700>-1</color> gold).";
         }
         else if (location == TileType.Sawmill || location == TileType.Mine)
         {
@@ -1128,7 +1132,7 @@ public class Game : MonoBehaviour
 
         if (player.goldWaiting > 0 && (location == TileType.City || location == TileType.Village))
         {
-            lastAction += $" You receive {player.goldWaiting} gold from your properties.";
+            lastAction += $" You receive <color=#FFD700>{player.goldWaiting}</color> gold from your properties.";
             player.AddGold(player.goldWaiting);
             player.goldWaiting = 0;
         }
@@ -1529,7 +1533,7 @@ public class Game : MonoBehaviour
                         player.AddGold(property.value / 2);
                         player.properties.Remove(property);
                         propertyEvents.dictionary.Remove(property.name);
-                        lastAction = $"You sell {property.name} for {property.value / 2} gold.";
+                        lastAction = $"You sell {property.name} for <color=#FFD700>{property.value / 2}</color> gold.";
                         AddTime(minutes: 30);
                         if (ui.CurrentDialog == properiesScreen)
                             UpdateProperties();
@@ -1563,13 +1567,13 @@ public class Game : MonoBehaviour
                 properties.Remove(property);
                 if (build)
                 {
-                    lastAction = $"You pay {cost} gold to build {property.name}.";
+                    lastAction = $"You pay <color=#FFD700>{cost}</color> gold to build {property.name}.";
                     property.status = Property.Status.Building;
                     world.GetLocation(property.locationIndex).timer = 0; // prevent resetting
                 }
                 else
                 {
-                    lastAction = $"You buy {property.name} for {cost} gold.";
+                    lastAction = $"You buy {property.name} for <color=#FFD700>{cost}</color> gold.";
 
                     // remove quests assigned to this location
                     if (property.locationIndex != -1)
@@ -1732,7 +1736,7 @@ public class Game : MonoBehaviour
                     }
 
                     player.AddGold(-cost);
-                    lastAction = $"You pay {cost} gold to adventurers to clear the {kvp.Key.ToLower()}.";
+                    lastAction = $"You pay <color=#FFD700>{cost}</color> gold to adventurers to clear the {kvp.Key.ToLower()}.";
                     world.GetLocation(player.properties.First(x => x.name == kvp.Key).locationIndex).clear = true;
                     propertyEvents.dictionary.Remove(kvp.Key);
                     AddTime(minutes: 15);
@@ -1858,7 +1862,7 @@ public class Game : MonoBehaviour
     public void FinishQuest()
     {
         int reward = activeQuest.Reward;
-        lastAction = $"You received {reward} gold for quest '{activeQuest.Title}'.";
+        lastAction = $"You received <color=#FFD700>{reward}</color> gold for quest '{activeQuest.Title}'.";
         if (activeQuest.difficulty == guildRank && guildRank != 3)
         {
             ++guildProgress;
@@ -1897,7 +1901,7 @@ public class Game : MonoBehaviour
         Item herb = Item.Get("herb");
         player.energy -= 10;
         player.AddItem(herb, count);
-        lastAction = $"You forage in the {world.CurrentTile.Name} and find {Utility.Plural(herb.name, count)}.";
+        lastAction = $"You forage in the {world.CurrentTile.Name} and find <b>{Utility.Plural(herb.name, count)}</b>.";
         AddTime(hours: 1);
         UpdateText();
     }

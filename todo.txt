@@ -25,7 +25,6 @@ v1:
 + well rested in house/guild personal room
 + dungeon different traps (damage, accuracy, targets)
 + trophies/meat from enemies
-* text colors
 * investments
 	mansion
 	sawmill -> cheaper build/upkeep
@@ -145,7 +144,8 @@ investments:
 + village house
 + mansion upgrades
 	office room
-+ different text when entering mine being build
++ different text when entering mine being build or when finished while inside
++ house -> store items
 
 skills:
 + management

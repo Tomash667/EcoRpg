@@ -13769,7 +13769,7 @@ MonoBehaviour:
     dex: 0
     gold: 5000
     female: 0
-    savedProperties: []
+    properties: []
     goldWaiting: 0
     energy: 100
     savedSkills: []
@@ -13777,19 +13777,16 @@ MonoBehaviour:
     data: []
   allies: []
   availableQuests: []
+  properties: []
   notifications: []
   activeQuest:
     rid: -2
   dragonStatus: 0
-  silverMineStatus: 0
-  goldMineStatus: 0
   day: 0
   hour: 0
   minute: 0
   guildRank: 0
   guildProgress: 0
-  silverMineTimer: 0
-  goldMineTimer: 0
   references:
     version: 2
     RefIds:
