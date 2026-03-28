@@ -1,3 +1,6 @@
+? be inside cave when it's turned into mine (probably buttons/image don't change)
+- travel z shift i wejście -> brak tekstu
+
 v1:
 + post dragon enemies
 + classes
@@ -30,7 +33,6 @@ v1:
 	mansion
 	sawmill -> cheaper build/upkeep
 	inn
-	refactor property data
 	pay to clear property takes time
 	extra/better guards -> security -> no infestation
 	efficiency upgrades
@@ -114,6 +116,7 @@ events:
 	bad (tunnel collapse, flooding, forged deed, cursed -> bad luck)
 + travel events
 + spotted enemy
++ cooldown so same events don't happen all the time
 	
 ui:
 + item icons
@@ -142,6 +145,7 @@ investments:
 + supply & demand
 + farm
 + old mansion/mine -> need repairs
++ village house
 
 skills:
 + management

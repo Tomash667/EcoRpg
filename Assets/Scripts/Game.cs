@@ -10,14 +10,6 @@ using UnityEngine.UI;
 
 public class Game : MonoBehaviour
 {
-    public enum MineStatus
-    {
-        None,
-        Cleared,
-        Building,
-        Done
-    }
-
     public enum DragonStatus
     {
         None,
@@ -34,12 +26,12 @@ public class Game : MonoBehaviour
     public SerializableDictionary<string, int> propertyEvents;
     public List<Hero> allies;
     public List<Quest> availableQuests;
+    public List<Property> properties;
     public List<string> notifications;
     [SerializeReference]
     public Quest activeQuest;
     public DragonStatus dragonStatus;
-    public MineStatus silverMineStatus, goldMineStatus;
-    public int day, hour, minute, guildRank, guildProgress, silverMineTimer, goldMineTimer;
+    public int day, hour, minute, guildRank, guildProgress;
 
     private GameUI ui;
     private GameObject shop, character, allyScreen, giveAllyItems, activeInventory, properiesScreen, guildScreen;
@@ -292,11 +284,12 @@ public class Game : MonoBehaviour
                         tile.timer = 30;
                         if (tile.mine)
                         {
-                            if (tile.difficulty == 2)
-                                silverMineStatus = MineStatus.Cleared;
-                            else
-                                goldMineStatus = MineStatus.Cleared;
-                            lastAction += " You can build a <b>mine</b> here.";
+                            Property property = properties.FirstOrDefault(x => x.locationIndex == world.CurrentLocationIndex);
+                            if (property != null)
+                            {
+                                property.status = Property.Status.Cleared;
+                                lastAction += " You can build a <b>mine</b> here.";
+                            }
                         }
                     }
                     else if (tile.type == TileType.Mine || tile.type == TileType.Sawmill)
@@ -430,39 +423,15 @@ public class Game : MonoBehaviour
         {
             player.energy -= 50;
             TileType location = world.Location;
-            int payment;
-            switch (location)
+            int payment = location switch
             {
-            case TileType.Sawmill:
-                payment = 30 + player.GetSkill(Skill.Woodcraft) / 10;
-                if (player.HaveProperty("Sawmill"))
-                    payment *= 2;
-                break;
-            case TileType.Mine:
-                switch (world.CurrentTile.difficulty)
-                {
-                default:
-                case 1:
-                    payment = 30 + player.GetSkill(Skill.Mining) / 10;
-                    if (player.HaveProperty("Iron mine"))
-                        payment *= 2;
-                    break;
-                case 2:
-                    payment = 40 + player.GetSkill(Skill.Mining) / 10;
-                    if (player.HaveProperty("Silver mine"))
-                        payment *= 2;
-                    break;
-                case 3:
-                    payment = 50 + player.GetSkill(Skill.Mining) / 10;
-                    if (player.HaveProperty("Gold mine"))
-                        payment *= 2;
-                    break;
-                }
-                break;
-            default:
-                payment = 20;
-                break;
-            }
+                TileType.Sawmill => 30 + player.GetSkill(Skill.Woodcraft) / 10,
+                TileType.Mine => (20 + world.CurrentTile.difficulty * 10) + player.GetSkill(Skill.Mining) / 10,
+                _ => 20,
+            };
+            // double pay if owned
+            if (player.properties.Any(x => x.locationIndex == world.CurrentLocationIndex))
+                payment *= 2;
             player.AddGold(payment);
             foreach (Hero ally in allies)
                 ally.gold += payment;
@@ -1166,58 +1135,37 @@ public class Game : MonoBehaviour
 
     public void OnNewDay()
     {
-        player.goldWaiting += player.properties.Where(x =>
-        {
-            if (x.name == "Silver mine")
-                return silverMineStatus == MineStatus.Done;
-            else if (x.name == "Gold mine")
-                return goldMineStatus == MineStatus.Done;
-            else
-                return true;
-        })
-        .Sum(x =>
-        {
-            if (propertyEvents.dictionary.TryGetValue(x.name, out int value))
+        player.goldWaiting += player.properties
+            .Where(x => x.status == Property.Status.Active)
+            .Sum(x =>
             {
-                if (value > 0)
+                if (propertyEvents.dictionary.TryGetValue(x.name, out int value))
                 {
-                    --value;
                     if (value > 0)
-                        propertyEvents.dictionary[x.name] = value;
+                    {
+                        --value;
+                        if (value > 0)
+                            propertyEvents.dictionary[x.name] = value;
+                        else
+                            propertyEvents.dictionary.Remove(x.name);
+                        return x.income * 3 / 2;
+                    }
                     else
-                        propertyEvents.dictionary.Remove(x.name);
-                    return x.income * 3 / 2;
+                        return 0;
                 }
                 else
-                    return 0;
-            }
-            else
-                return x.income;
-        });
+                    return x.income;
+            });
 
-        if (silverMineStatus == MineStatus.Building)
+        foreach (Property property in player.properties.Where(x => x.status == Property.Status.Building))
         {
-            --silverMineTimer;
-            if (silverMineTimer == 0)
+            --property.buildTime;
+            if (property.buildTime == 0)
             {
-                silverMineStatus = MineStatus.Done;
-                int locationIndex = world.FindLocationIndex(x => x.type == TileType.Cave && x.mine && x.difficulty == 2);
-                world.GetLocation(locationIndex).SetType(TileType.Mine);
-                map.UpdateMap(World.IndexToPoint(locationIndex));
-                AddNotification("The construction of Silver mine has been completed.");
-            }
-        }
-
-        if (goldMineStatus == MineStatus.Building)
-        {
-            --goldMineTimer;
-            if (goldMineTimer == 0)
-            {
-                goldMineStatus = MineStatus.Done;
-                int locationIndex = world.FindLocationIndex(x => x.type == TileType.Cave && x.mine && x.difficulty == 3);
-                world.GetLocation(locationIndex).SetType(TileType.Mine);
-                map.UpdateMap(World.IndexToPoint(locationIndex));
-                AddNotification("The construction of Gold mine has been completed.");
+                property.status = Property.Status.Active;
+                world.GetLocation(property.locationIndex).SetType(TileType.Mine);
+                map.UpdateMap(World.IndexToPoint(property.locationIndex));
+                AddNotification($"The construction of {property.name} has been completed.");
             }
         }
 
@@ -1231,22 +1179,8 @@ public class Game : MonoBehaviour
 
         if (day % 10 == 0)
         {
-            foreach (Property property in player.properties)
+            foreach (Property property in player.properties.Where(x => x.income > 0 && x.status == Property.Status.Active))
             {
-                if (property.income <= 0)
-                    continue;
-
-                if (property.name == "Silver mine")
-                {
-                    if (silverMineStatus != MineStatus.Done)
-                        continue;
-                }
-                else if (property.name == "Gold mine")
-                {
-                    if (goldMineStatus != MineStatus.Done)
-                        continue;
-                }
-
                 if (propertyEvents.dictionary.TryGetValue(property.name, out int _))
                     continue;
 
@@ -1270,7 +1204,7 @@ public class Game : MonoBehaviour
                     // 5%
                     propertyEvents.dictionary.Add(property.name, -1);
                     AddNotification($"{property.name} has been taken over by monsters! Hire adventurers or deal with it yourself.");
-                    Tile tile = world.GetLocation(PropertyToLocationIndex(property.name));
+                    Tile tile = world.GetLocation(property.locationIndex);
                     tile.clear = false;
                     tile.defeatedEnemies = 0;
                     break;
@@ -1344,6 +1278,63 @@ public class Game : MonoBehaviour
         map.Build();
         day = 1;
         hour = 8;
+        properties = new()
+        {
+            new()
+            {
+                name = "House",
+                desc = "don't pay for inn",
+                value = 500,
+                status = Property.Status.Active,
+                locationIndex = -1
+            },
+            new()
+            {
+                name = "Horses",
+                desc = "+25% travel speel",
+                value = 500,
+                status = Property.Status.Active,
+                locationIndex = -1
+            },
+            new()
+            {
+                name = "Sawmill",
+                desc = "5 gold/day",
+                value = 5000,
+                income = 5,
+                status = Property.Status.Active,
+                locationIndex = world.FindLocationIndex(x => x.type == TileType.Sawmill)
+            },
+            new()
+            {
+                name = "Iron mine",
+                desc = "10 gold/day",
+                value = 10000,
+                income = 10,
+                status = Property.Status.Active,
+                locationIndex = world.FindLocationIndex(x => x.type == TileType.Mine)
+            },
+            new()
+            {
+                name = "Silver mine",
+                desc = "25 gold/day",
+                value = 25000,
+                income = 25,
+                buildPrice = 6000,
+                buildTime = 20,
+                locationIndex = world.FindLocationIndex(x => x.hidden == TileType.Cave && x.mine && x.difficulty == 2)
+            },
+            new()
+            {
+                name = "Gold mine",
+                desc = "50 gold/day",
+                value = 50000,
+                income = 50,
+                buildPrice = 7500,
+                buildTime = 30,
+                locationIndex = world.FindLocationIndex(x => x.hidden == TileType.Cave && x.mine && x.difficulty == 3)
+            }
+        };
         propertyEvents = new();
         lastAction = "You are an adventurer seeking glory and gold. Rumors speak of a dragon lurking deep within a forgotten cave beyond the wilds. " +
             "Find its lair, face the beast, and carve your name into legend.";
@@ -1423,14 +1414,7 @@ public class Game : MonoBehaviour
             return;
         }
 
-        Hero hero = new();
-        hero.Init();
-        while (true)
-        {
-            if (!Team.Any(x => x.name == hero.name))
-                break;
-            hero.name = (hero.female ? Names.femaleNames : Names.maleNames).RandomItem();
-        }
+        Hero hero = SpawnHero();
         ui.ShowConfirm($"You meet {hero.name} and talk with {hero.him} about adventurers. Do you want to recruit {hero.him}?", yes =>
         {
             if (yes)
@@ -1444,6 +1428,19 @@ public class Game : MonoBehaviour
                 UpdateGuild();
             UpdateText();
         });
+    }
+
+    private Hero SpawnHero()
+    {
+        Hero hero = new();
+        hero.Init();
+        while (true)
+        {
+            if (!Team.Any(x => x.name == hero.name))
+                break;
+            hero.name = (hero.female ? Names.femaleNames : Names.maleNames).RandomItem();
+        }
+        return hero;
     }
 
     public void RemoveAlly()
@@ -1504,17 +1501,7 @@ public class Game : MonoBehaviour
         foreach (Transform child in content)
             Destroy(child.gameObject);
 
-        Property[] propertiesToBuy = Property.properties.Except(player.properties)
-            .Where(x =>
-            {
-                if (x.name == "Silver mine")
-                    return silverMineStatus != MineStatus.None;
-                else if (x.name == "Gold mine")
-                    return goldMineStatus != MineStatus.None;
-                else
-                    return true;
-            })
-            .ToArray();
+        Property[] propertiesToBuy = properties.Where(x => x.status != Property.Status.None).ToArray();
 
         // player properties
         if (player.properties.Count > 0)
@@ -1522,21 +1509,16 @@ public class Game : MonoBehaviour
             ui.AddTextHeader("Your properties:", content);
             foreach (Property property in player.properties.OrderBy(x => x.value))
             {
-                bool building = false;
-                if (property.name == "Silver mine")
-                    building = silverMineStatus != MineStatus.Done;
-                else if (property.name == "Gold mine")
-                    building = goldMineStatus != MineStatus.Done;
-
                 ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
-                if (building)
-                    itemEntry.Init(property.ToString(Property.Status.Building));
+                if (property.status == Property.Status.Building)
+                    itemEntry.Init(property.ToString(Property.DescStatus.Building));
                 else if (propertyEvents.dictionary.TryGetValue(property.name, out int value) && value == -1)
-                    itemEntry.Init(property.ToString(Property.Status.Infested));
+                    itemEntry.Init(property.ToString(Property.DescStatus.Infested));
                 else
                 {
-                    itemEntry.Init(property.ToString(Property.Status.Sell), "Sell", () =>
+                    itemEntry.Init(property.ToString(Property.DescStatus.Sell), "Sell", () =>
                     {
+                        properties.Add(property);
                         player.AddGold(property.value / 2);
                         player.properties.Remove(property);
                         propertyEvents.dictionary.Remove(property.name);
@@ -1558,13 +1540,9 @@ public class Game : MonoBehaviour
             ui.AddTextHeader("Available properties:", content);
         foreach (Property property in propertiesToBuy)
         {
-            bool build = false;
-            if (property.name == "Silver mine")
-                build = silverMineStatus == MineStatus.Cleared;
-            else if (property.name == "Gold mine")
-                build = goldMineStatus == MineStatus.Cleared;
+            bool build = property.status == Property.Status.Cleared;
             ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
-            itemEntry.Init(property.ToString(build ? Property.Status.Build : Property.Status.Buy), build ? "Build" : "Buy", () =>
+            itemEntry.Init(property.ToString(build ? Property.DescStatus.Build : Property.DescStatus.Buy), build ? "Build" : "Buy", () =>
             {
                 int cost = build ? property.buildPrice : property.value;
                 if (player.gold < cost)
@@ -1575,39 +1553,26 @@ public class Game : MonoBehaviour
 
                 player.AddGold(-cost);
                 player.properties.Add(property);
+                properties.Remove(property);
                 if (build)
                 {
                     lastAction = $"You pay {cost} gold to build {property.name}.";
-                    int difficulty;
-                    if (property.name == "Silver mine")
-                    {
-                        silverMineStatus = MineStatus.Building;
-                        silverMineTimer = property.buildTime;
-                        difficulty = 2;
-                    }
-                    else
-                    {
-                        goldMineStatus = MineStatus.Building;
-                        goldMineTimer = property.buildTime;
-                        difficulty = 3;
-                    }
-                    // prevent resetting
-                    world.FindLocation(x => x.type == TileType.Cave && x.mine && x.difficulty == difficulty).timer = 0;
+                    property.status = Property.Status.Building;
+                    world.GetLocation(property.locationIndex).timer = 0; // prevent resetting
                 }
                 else
                 {
                     lastAction = $"You buy {property.name} for {cost} gold.";
 
                     // remove quests assigned to this location
-                    int locationIndex = PropertyToLocationIndex(property.name);
-                    if (locationIndex != -1)
+                    if (property.locationIndex != -1)
                     {
-                        if (activeQuest != null && activeQuest.type == Quest.Type.Clear && activeQuest.location == locationIndex)
+                        if (activeQuest != null && activeQuest.type == Quest.Type.Clear && activeQuest.location == property.locationIndex)
                         {
                             lastAction += $" Quest '{activeQuest.Title}' is reassigned to other party.";
                             activeQuest = null;
                         }
-                        availableQuests.RemoveAll(x => x.type == Quest.Type.Clear && x.location == locationIndex);
+                        availableQuests.RemoveAll(x => x.type == Quest.Type.Clear && x.location == property.locationIndex);
                     }
                 }
 
@@ -1761,7 +1726,7 @@ public class Game : MonoBehaviour
 
                     player.AddGold(-cost);
                     lastAction = $"You pay {cost} gold to adventurers to clear the {kvp.Key.ToLower()}.";
-                    world.GetLocation(PropertyToLocationIndex(kvp.Key)).clear = true;
+                    world.GetLocation(player.properties.First(x => x.name == kvp.Key).locationIndex).clear = true;
                     propertyEvents.dictionary.Remove(kvp.Key);
                     AddTime(minutes: 15);
                     if (ui.CurrentDialog == guildScreen)
@@ -1846,8 +1811,8 @@ public class Game : MonoBehaviour
             }
             else
             {
-                MineStatus mineStatus = difficulty == 2 ? silverMineStatus : goldMineStatus;
-                bool allowMine = (mineStatus == MineStatus.Done && !player.HaveProperty(difficulty == 2 ? "Silver mine" : "Gold mine"));
+                string mineName = (difficulty == 2 ? "Silver mine" : "Gold mine");
+                bool allowMine = properties.Any(x => x.name == mineName && x.status == Property.Status.Active);
                 int c = Utility.Rand % 5;
                 if (c < 3)
                 {
@@ -2031,34 +1996,43 @@ public class Game : MonoBehaviour
             UpdateGuild();
     }
 
+    [ContextMenu("Give all")]
+    private void GiveAll()
+    {
+        while (allies.Count < MaxAllies)
+            allies.Add(SpawnHero());
+
+        foreach (Hero hero in Team)
+        {
+            while (hero.level < 10)
+                hero.AddExp(hero.level, 4f);
+            hero.weapon = Item.Get("magic sword");
+            hero.armor = Item.Get("magic armor");
+            hero.shield = Item.Get("magic shield");
+            hero.AddItem(Item.Get("elixir"), 100);
+            hero.AddItem(Item.Get("rations"), 1000 - hero.CountItem(Item.Get("rations")));
+            hero.gold = Mathf.Max(hero.gold, 100000);
+        }
+
+        player.AddItemIfMissing("tent");
+        player.AddItemIfMissing("pickaxe");
+
+        if (!player.HaveProperty("Horses"))
+        {
+            Property property = properties.First(x => x.name == "Horses");
+            player.properties.Add(property);
+            properties.Remove(property);
+        }
+
+        UpdateText();
+        UpdateButtons();
+    }
+
     public void ShowNotification()
     {
         ui.ShowDialog(notifications[0]);
         notifications.RemoveAt(0);
         UpdateButtons();
-    }
-
-    private int PropertyToLocationIndex(string name)
-    {
-        System.Func<Tile, bool> func;
-        switch (name)
-        {
-        case "Sawmill":
-            func = x => x.type == TileType.Sawmill;
-            break;
-        case "Iron mine":
-            func = x => x.type == TileType.Mine && x.difficulty == 1;
-            break;
-        case "Silver mine":
-            func = x => x.type == TileType.Mine && x.difficulty == 2;
-            break;
-        case "Gold mine":
-            func = x => x.type == TileType.Mine && x.difficulty == 3;
-            break;
-        default:
-            return -1;
-        }
-        return world.FindLocationIndex(func);
     }
 
     public void JoinGuild()

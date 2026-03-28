@@ -6,9 +6,7 @@ using UnityEngine;
 [Serializable]
 public class Player : Hero
 {
-    [NonSerialized]
     public List<Property> properties;
-    public List<string> savedProperties;
     public int goldWaiting, energy;
     [NonSerialized]
     public int goldReceived;
@@ -39,14 +37,12 @@ public class Player : Hero
     public override void OnBeforeSerialize()
     {
         base.OnBeforeSerialize();
-        savedProperties = properties?.Select(x => x.name).ToList();
         savedSkills = skills?.Select(kvp => new SkillEntry { skill = kvp.Key, level = kvp.Value }).ToList();
     }
 
     public override void OnAfterDeserialize()
     {
         base.OnAfterDeserialize();
-        properties = savedProperties?.Select(x => Property.Get(x)).ToList();
         skills = savedSkills?.ToDictionary(x => x.skill, x => x.level);
     }
 

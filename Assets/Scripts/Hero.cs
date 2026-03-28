@@ -111,19 +111,19 @@ public class Hero : ISerializationCallbackReceiver
         };
     }
 
-    public ItemSlot FindItem(string name)
-    {
-        return items.FirstOrDefault(x => x.item.name == name);
-    }
-
     public ItemSlot FindHealingItem()
     {
         return items.Where(x => x.item.type == Item.Type.Usable).OrderByDescending(x => x.item.power).FirstOrDefault();
     }
 
+    public bool HaveItem(Item item)
+    {
+        return items.FirstOrDefault(x => x.item == item) != null;
+    }
+
     public bool HaveItem(string name)
     {
-        return FindItem(name) != null;
+        return items.FirstOrDefault(x => x.item.name == name) != null;
     }
 
     public int CountItem(Item item)
@@ -139,6 +139,13 @@ public class Hero : ISerializationCallbackReceiver
             itemSlot.count += count;
         else
             items.Add(new() { item = item, count = count });
+    }
+
+    public void AddItemIfMissing(string name)
+    {
+        Item item = Item.Get(name);
+        if (!HaveItem(item))
+            AddItem(item);
     }
 
     public void RemoveItem(ItemSlot itemSlot, int count = 1)

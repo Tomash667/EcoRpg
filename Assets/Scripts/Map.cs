@@ -169,7 +169,13 @@ public class Map : MonoBehaviour
         else
             daysText = $"{days} days";
         Tile tile = world.map[targetPt.x + targetPt.y * World.sizeX];
-        text.text = $"Rations: {Global.Game.CountTeamItem(Item.Get("rations"))}\nTarget: {tile.Name.ToUpper1()}\nDistance: {dist}km\nTravel time: {daysText}";
+        string str;
+#if UNITY_EDITOR
+        str = $"Rations: {Global.Game.CountTeamItem(Item.Get("rations"))}\nTarget: {tile.Name.ToUpper1()} [{World.CalculateIndex(targetPt.x, targetPt.y, false)}]\nDistance: {dist}km\nTravel time: {daysText}";
+#else
+        str = $"Rations: {Global.Game.CountTeamItem(Item.Get("rations"))}\nTarget: {tile.Name.ToUpper1()}\nDistance: {dist}km\nTravel time: {daysText}";
+#endif
+        text.text = str;
         text.gameObject.SetActive(true);
     }
 

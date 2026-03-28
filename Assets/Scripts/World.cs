@@ -539,10 +539,10 @@ public class World
                 tile.defeatedEnemies = 0;
                 if (tile.mine)
                 {
-                    if (tile.difficulty == 2)
-                        Global.Game.silverMineStatus = Game.MineStatus.None;
-                    else
-                        Global.Game.goldMineStatus = Game.MineStatus.None;
+                    int index = Array.IndexOf(map, tile);
+                    Property property = Global.Game.properties.FirstOrDefault(x => x.locationIndex == index);
+                    if (property != null)
+                        property.status = Property.Status.None;
                 }
             }
         }
