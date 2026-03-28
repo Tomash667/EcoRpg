@@ -1,6 +1,3 @@
-? be inside cave when it's turned into mine (probably buttons/image don't change)
-- travel z shift i wejście -> brak tekstu
-
 v1:
 + post dragon enemies
 + classes
@@ -146,6 +143,9 @@ investments:
 + farm
 + old mansion/mine -> need repairs
 + village house
++ mansion upgrades
+	office room
++ different text when entering mine being build
 
 skills:
 + management

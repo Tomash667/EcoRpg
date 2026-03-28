@@ -463,7 +463,7 @@ public class Game : MonoBehaviour
             if (enter)
             {
                 if (traveled)
-                    OnChangeLocation();
+                    OnEnterLocation();
                 ui.CloseDialog();
             }
             return;
@@ -482,20 +482,7 @@ public class Game : MonoBehaviour
         ui.lockDialog = false;
         if (enter)
         {
-            Tile tile = world.CurrentTile;
-            if (tile.type == TileType.City && dragonStatus == DragonStatus.Defeated)
-            {
-                dragonStatus = DragonStatus.Win;
-                lastAction = "You return to the city as a hero. The Adventurer’s Guild erupts in cheers, mugs raised high in your honor. " +
-                    "Songs of your victory begin to spread, and your name will not be forgotten.";
-            }
-            else
-                lastAction = $"You travel to the {tile.Name}.";
-            if (tile.boss)
-                lastAction += " There are <b>dragon engravings</b> near entrance.";
-            else if (tile.mine && tile.type == TileType.Cave)
-                lastAction += $" There are <b>{(tile.difficulty == 2 ? "silver" : "gold")} veins</b> inside this cave.";
-            OnChangeLocation();
+            OnEnterLocation();
             ui.CloseDialog();
         }
     }
@@ -540,6 +527,24 @@ public class Game : MonoBehaviour
         lastAction = "You exit to the city.";
         world.isInside = false;
         AddTime(minutes: 30);
+        OnChangeLocation();
+    }
+
+    private void OnEnterLocation()
+    {
+        Tile tile = world.CurrentTile;
+        if (tile.type == TileType.City && dragonStatus == DragonStatus.Defeated)
+        {
+            dragonStatus = DragonStatus.Win;
+            lastAction = "You return to the city as a hero. The Adventurer’s Guild erupts in cheers, mugs raised high in your honor. " +
+                "Songs of your victory begin to spread, and your name will not be forgotten.";
+        }
+        else
+            lastAction = $"You travel to the {tile.Name}.";
+        if (tile.boss)
+            lastAction += " There are <b>dragon engravings</b> near entrance.";
+        else if (tile.mine && tile.type == TileType.Cave)
+            lastAction += $" There are <b>{(tile.difficulty == 2 ? "silver" : "gold")} veins</b> inside this cave.";
         OnChangeLocation();
     }
 
@@ -1165,6 +1170,8 @@ public class Game : MonoBehaviour
                 property.status = Property.Status.Active;
                 world.GetLocation(property.locationIndex).SetType(TileType.Mine);
                 map.UpdateMap(World.IndexToPoint(property.locationIndex));
+                if (world.CurrentLocationIndex == property.locationIndex)
+                    OnChangeLocation();
                 AddNotification($"The construction of {property.name} has been completed.");
             }
         }
