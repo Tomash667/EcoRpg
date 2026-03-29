@@ -733,7 +733,7 @@ public class Game : MonoBehaviour
                     }
                 }
 
-                if (itemSlot.item.type == Item.Type.Weapon || itemSlot.item.type == Item.Type.Armor || itemSlot.item.type == Item.Type.Shield)
+                if (player.CanEquip(itemSlot.item))
                 {
                     itemEntry.Init2(itemSlot.ToString(true), "Equip", () =>
                     {
@@ -854,7 +854,7 @@ public class Game : MonoBehaviour
         TMP_Text charText = character.transform.Find("Text").GetComponent<TMP_Text>();
         sb.Clear();
         sb.Append($"{player.GenderSign}{player.name}\n" +
-            $"Level: {player.level} ({player.ExpP}%)\n" +
+            $"Level: {player.level} {player.clas.AsString()} ({player.ExpP}%)\n" +
             $"Attack: {player.Attack}\n" +
             $"Defense: {player.Defense}\n");
         if (player.skills.Count > 0)
@@ -873,7 +873,7 @@ public class Game : MonoBehaviour
     {
         TMP_Text charText = allyScreen.transform.Find("Text").GetComponent<TMP_Text>();
         charText.text = $"{activeAlly.GenderSign}{activeAlly.name}\n" +
-            $"Level: {activeAlly.level} ({activeAlly.ExpP}%)\n" +
+            $"Level: {activeAlly.level} {activeAlly.clas.AsString()} ({activeAlly.ExpP}%)\n" +
             $"Attack: {activeAlly.Attack}\n" +
             $"Defense: {activeAlly.Defense}\n" +
             $"Gold: {activeAlly.gold}";
@@ -1281,7 +1281,7 @@ public class Game : MonoBehaviour
     private void NewGame()
     {
         Global global = Global.Instance;
-        player = new() { name = global.playerName, female = global.playerFemale };
+        player = new() { name = global.playerName, clas = global.playerClass, female = global.playerFemale };
         player.Init();
         allies = new();
         world = new();
@@ -1354,7 +1354,7 @@ public class Game : MonoBehaviour
     private void SaveGame()
     {
         string json = JsonUtility.ToJson(this);
-        Global.Instance.SaveGame($"{player.name}, Day {day}, Level {player.level}, Gold {player.gold}", json);
+        Global.Instance.SaveGame($"{player.name}, Day {day}, Level {player.level} {player.clas.AsString()}, Gold {player.gold}", json);
     }
 
     private void LoadGame()
@@ -1426,7 +1426,8 @@ public class Game : MonoBehaviour
         }
 
         Hero hero = SpawnHero();
-        ui.ShowConfirm($"You meet {hero.name} and talk with {hero.him} about adventurers. Do you want to recruit {hero.him}?", yes =>
+        string className = hero.clas.AsString();
+        ui.ShowConfirm($"You meet <b>{hero.name}</b> and talk with {hero.him} about adventurers. {hero.He} is {Utility.A(className)} <b>{className}</b>. Do you want to recruit {hero.him}?", yes =>
         {
             if (yes)
             {

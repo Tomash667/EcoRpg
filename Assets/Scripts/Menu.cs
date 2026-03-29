@@ -15,6 +15,11 @@ public class Menu : MonoBehaviour
         loadGameDialog = transform.Find("LoadGameDialog").gameObject;
         if (!Global.Instance.CanContinueGame)
             transform.Find("BtContinue").GetComponent<Button>().interactable = false;
+
+        TMP_Dropdown dropdown = newGameDialog.transform.Find("Panel/Class").GetComponent<TMP_Dropdown>();
+        foreach (Class clas in ClassMethods.all)
+            dropdown.options.Add(new TMP_Dropdown.OptionData { text = clas.AsString().ToUpper1() });
+        dropdown.value = ClassMethods.defaultClass;
     }
 
     private void Update()
@@ -77,6 +82,7 @@ public class Menu : MonoBehaviour
         {
             Global global = Global.Instance;
             global.playerName = name;
+            global.playerClass = ClassMethods.all[newGameDialog.GetComponentInChildren<TMP_Dropdown>().value];
             global.playerFemale = newGameDialog.GetComponentInChildren<Toggle>().isOn;
             global.NewGame();
         }

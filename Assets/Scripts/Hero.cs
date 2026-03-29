@@ -9,6 +9,7 @@ public class Hero : ISerializationCallbackReceiver
     public List<ItemSlot> items = new();
     public Item weapon, armor, shield;
     public string name, weaponName, armorName, shieldName;
+    public Class clas;
     public int level, exp, hp, hpMax, attack, defense, dex, gold;
     public bool female;
 
@@ -58,13 +59,20 @@ public class Hero : ISerializationCallbackReceiver
     {
         female = Utility.Rand % 2 == 0;
         name = (female ? Names.femaleNames : Names.maleNames).RandomItem();
+        clas = ClassMethods.all.RandomItem();
         level = 1;
         hpMax = 100;
         hp = hpMax;
         attack = 25;
         defense = 5;
         dex = 10;
-        weapon = Item.Get("club");
+        if (clas == Class.Warrior)
+        {
+            weapon = Item.Get("club");
+            shield = Item.Get("wooden shield");
+        }
+        else
+            weapon = Item.Get("short bow");
         armor = Item.Get("leather armor");
         AddItem(Item.Get("potion"));
         AddItem(Item.Get("rations"), 3);
@@ -184,11 +192,29 @@ public class Hero : ISerializationCallbackReceiver
     {
         return item.type switch
         {
-            Item.Type.Weapon => weapon == null || weapon.power < item.power,
-            Item.Type.Armor => armor == null || armor.power < item.power,
-            Item.Type.Shield => shield == null || shield.power < item.power,
+            Item.Type.Weapon => CanEquip(item) && (weapon == null || weapon.power < item.power),
+            Item.Type.Armor => CanEquip(item) && (armor == null || armor.power < item.power),
+            Item.Type.Shield => CanEquip(item) && (shield == null || shield.power < item.power),
             _ => true
         };
+    }
+
+    public bool CanEquip(Item item)
+    {
+        switch (item.type)
+        {
+        case Item.Type.Weapon:
+            if (clas == Class.Warrior)
+                return item.subtype == Item.Subtype.Melee;
+            else
+                return item.subtype == Item.Subtype.Bow;
+        case Item.Type.Shield:
+            return clas == Class.Warrior;
+        case Item.Type.Armor:
+            return true;
+        default:
+            return false;
+        }
     }
 
     public void GiveItem(Item item, int count = 1)
@@ -273,6 +299,15 @@ public class Hero : ISerializationCallbackReceiver
         int maxLevel = isCity ? Item.MaxLevelCity : Item.MaxLevelVillage;
         int weaponLevel = weapon?.level ?? 0, armorLevel = armor?.level ?? 0, shieldLevel = shield?.level ?? 0;
         bool boughtWeapon = false, boughtArmor = false, boughtShield = false;
+        Item.Subtype weaponSubtype;
+        if (clas == Class.Warrior)
+            weaponSubtype = Item.Subtype.Melee;
+        else
+        {
+            weaponSubtype = Item.Subtype.Bow;
+            shieldLevel = maxLevel;
+        }
+
         while (weaponLevel < maxLevel || armorLevel < maxLevel || shieldLevel < maxLevel)
         {
             int minLevel = Mathf.Min(weaponLevel, armorLevel, shieldLevel);
@@ -288,7 +323,7 @@ public class Hero : ISerializationCallbackReceiver
             {
             case Item.Type.Weapon:
                 {
-                    Item nextWeapon = Item.items.First(x => x.type == Item.Type.Weapon && x.level == weaponLevel + 1);
+                    Item nextWeapon = Item.items.First(x => x.type == Item.Type.Weapon && x.subtype == weaponSubtype && x.level == weaponLevel + 1);
 
                     // include resell of old weapon
                     int tmpGold = gold;

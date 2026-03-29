@@ -22,7 +22,7 @@ public class Player : Hero
         hpMax = 100;
         hp = hpMax;
         energy = 100;
-        gold = 50;
+        gold = 100;
         attack = 25;
         defense = 5;
         dex = 10;

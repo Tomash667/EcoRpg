@@ -13,11 +13,19 @@ public class Item
         Other
     }
 
+    public enum Subtype
+    {
+        None,
+        Melee,
+        Bow
+    }
+
     public const int MaxLevelCity = 4;
     public const int MaxLevelVillage = 3;
 
     public string name, desc;
     public Type type;
+    public Subtype subtype;
     public int level, power, value;
 
     public string ToString(bool sellPrice)
@@ -42,6 +50,7 @@ public class Item
         {
             name = "club",
             type = Type.Weapon,
+            subtype = Subtype.Melee,
             level = 1,
             power = 5,
             value = 25
@@ -50,6 +59,7 @@ public class Item
         {
             name = "axe",
             type = Type.Weapon,
+            subtype = Subtype.Melee,
             level = 2,
             power = 10,
             value = 100
@@ -58,6 +68,7 @@ public class Item
         {
             name = "sword",
             type = Type.Weapon,
+            subtype = Subtype.Melee,
             level = 3,
             power = 15,
             value = 400
@@ -66,6 +77,7 @@ public class Item
         {
             name = "two handed sword",
             type = Type.Weapon,
+            subtype = Subtype.Melee,
             level = 4,
             power = 20,
             value = 1500
@@ -74,9 +86,56 @@ public class Item
         {
             name = "magic sword",
             type = Type.Weapon,
+            subtype = Subtype.Melee,
             level = 5,
             power = 25,
             value = 5000
+        },
+
+        new()
+        {
+            name = "short bow",
+            type = Type.Weapon,
+            subtype = Subtype.Bow,
+            level = 1,
+            power = 10,
+            value = 50
+        },
+        new()
+        {
+            name = "long bow",
+            type = Type.Weapon,
+            subtype = Subtype.Bow,
+            level = 2,
+            power = 20,
+            value = 200
+        },
+        new()
+        {
+            name = "composite bow",
+            type = Type.Weapon,
+            subtype = Subtype.Bow,
+            level = 3,
+            power = 30,
+            value = 800
+        },
+        new()
+        {
+            name = "elven bow",
+            type = Type.Weapon,
+            subtype = Subtype.Bow,
+            level = 4,
+            power = 40,
+            value = 3000
+        },
+        new()
+        {
+            name = "magic bow",
+            type = Type.Weapon,
+            subtype = Subtype.Bow,
+            level = 5,
+            power = 50,
+            value = 10000
         },
         new()
         {
@@ -225,6 +284,10 @@ public class Item
         Get("axe"),
         Get("sword"),
         Get("two handed sword"),
+        Get("short bow"),
+        Get("long bow"),
+        Get("composite bow"),
+        Get("elven bow"),
         Get("leather armor"),
         Get("chainmail"),
         Get("breastplate"),
@@ -246,6 +309,9 @@ public class Item
         Get("club"),
         Get("axe"),
         Get("sword"),
+        Get("short bow"),
+        Get("long bow"),
+        Get("composite bow"),
         Get("leather armor"),
         Get("chainmail"),
         Get("breastplate"),

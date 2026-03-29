@@ -1,8 +1,9 @@
+archer
+	combat blocking
+	hp/atk/def/dex gain
+
 v1:
 + post dragon enemies
-+ classes
-	warrior
-	tank
 + idle combat -> escape, use potion
 + harder to gain guild rank
 + quests
@@ -42,6 +43,10 @@ v1:
 ---------------------------------------------------------------------------------------------------
 hero:
 + classes
+	tank
+	rogue
+	cleric
+	mage
 + races
 + inventory max weight
 	allies
@@ -94,8 +99,7 @@ hero:
 	ancient dragon
 	sealed horror
 	ghost
-	swamp dragon, bog titan, bog rats, swamp leeches, mud crab, swamp hag, bog zombie, will-o-wisps, snake
-	
+	swamp dragon, bog titan, bog rats, swamp leeches, mud crab, swamp hag, bog zombie, will-o-wisps, snake	
 + guild rank benefits (cheaper hire for quests, shop, sleep)
 + skip time
 + train
@@ -103,6 +107,8 @@ hero:
 + hunt for deers etc
 + guild register event
 + upkeep/taxes (house/mansion/horses)
++ light/heavy armor
++ hero sword/spear/bow/shield
 
 events:
 + free person for hire (foreman, geomancer etc)
@@ -157,6 +163,7 @@ skills:
 + theory vs practice soft cap
 + training from books/trainers
 + survival - hunting, bad terrain
++ leadership
 
 technology
 + blast furnace

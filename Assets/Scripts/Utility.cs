@@ -37,6 +37,15 @@ public static class Utility
         return Mathf.RoundToInt(value / (float)step) * step;
     }
 
+    public static string A(string word)
+    {
+        char c = word[0];
+        if (c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u' || c == 'A' || c == 'E' || c == 'I' || c == 'O' || c == 'U')
+            return "an";
+        else
+            return "a";
+    }
+
     public static string Plural(string word)
     {
         if (plurals.TryGetValue(word, out string plural))
