@@ -946,12 +946,12 @@ public class Game : MonoBehaviour
     {
         List<int> order = new() { -1 };
         List<int> enemyHp = new();
-        player.wasteTurn = false;
+        player.InitCombat();
         int index = -2;
         foreach (Hero ally in allies)
         {
             order.Add(index);
-            ally.wasteTurn = false;
+            ally.InitCombat();
             --index;
         }
         for (int i = 0; i < enemyCount; ++i)
@@ -979,6 +979,8 @@ public class Game : MonoBehaviour
             if (unitIndex < 0)
             {
                 Hero hero = unitIndex == -1 ? player : allies[-unitIndex - 2];
+                if (!hero.backRow)
+                    hero.canBlock = true;
                 if (hero.wasteTurn)
                     hero.wasteTurn = false;
                 else if (hero.hp > 0)
@@ -995,6 +997,17 @@ public class Game : MonoBehaviour
             else if (enemyHp[unitIndex] > 0)
             {
                 Hero hero = Team.RandomItem(x => x.hp > 0);
+                if (hero.backRow)
+                {
+                    // front row heroes can block attack once per round
+                    Hero blockingHero = Team.RandomItem(x => x.hp > 0 && x.canBlock);
+                    if (blockingHero != null)
+                    {
+                        hero = blockingHero;
+                        hero.canBlock = false;
+                    }
+                }
+
                 if (AttackChance(enemy.dex, hero.dex))
                 {
                     hero.hp -= Mathf.Max(enemy.attack - hero.Defense, 0);

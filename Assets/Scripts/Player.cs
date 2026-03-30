@@ -17,15 +17,9 @@ public class Player : Hero
     {
         properties = new();
         skills = new();
-        level = 1;
-        exp = 0;
-        hpMax = 100;
-        hp = hpMax;
+        InitCommon();
         energy = 100;
         gold = 100;
-        attack = 25;
-        defense = 5;
-        dex = 10;
     }
 
     public void AddGold(int value)

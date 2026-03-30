@@ -14,7 +14,7 @@ public class Hero : ISerializationCallbackReceiver
     public bool female;
 
     [NonSerialized]
-    public bool wasteTurn;
+    public bool wasteTurn, backRow, canBlock;
 
     public int Attack
     {
@@ -60,12 +60,7 @@ public class Hero : ISerializationCallbackReceiver
         female = Utility.Rand % 2 == 0;
         name = (female ? Names.femaleNames : Names.maleNames).RandomItem();
         clas = ClassMethods.all.RandomItem();
-        level = 1;
-        hpMax = 100;
-        hp = hpMax;
-        attack = 25;
-        defense = 5;
-        dex = 10;
+        InitCommon();
         if (clas == Class.Warrior)
         {
             weapon = Item.Get("club");
@@ -76,6 +71,40 @@ public class Hero : ISerializationCallbackReceiver
         armor = Item.Get("leather armor");
         AddItem(Item.Get("potion"));
         AddItem(Item.Get("rations"), 3);
+    }
+
+    protected void InitCommon()
+    {
+        level = 1;
+        hpMax = 100;
+        hp = hpMax;
+        if (clas == Class.Warrior)
+        {
+            attack = 25;
+            defense = 5;
+            dex = 10;
+        }
+        else
+        {
+            attack = 30;
+            defense = 3;
+            dex = 15;
+        }
+    }
+
+    public void InitCombat()
+    {
+        wasteTurn = false;
+        if (clas == Class.Warrior)
+        {
+            backRow = false;
+            canBlock = true;
+        }
+        else
+        {
+            backRow = true;
+            canBlock = false;
+        }
     }
 
     public bool AddExp(int enemyLevel, float mod)
