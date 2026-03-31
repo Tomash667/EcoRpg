@@ -392,7 +392,7 @@ public class Game : MonoBehaviour
                 Item nugget = Item.Get(tile.difficulty == 2 ? "silver nugget" : "gold nugget");
                 player.AddItem(nugget, count);
                 lastAction = $"You explore the {tile.Name} and find small <b>{(tile.difficulty == 2 ? "silver" : "gold")} vein</b>. You mine <b>{Utility.Plural(nugget.name, count)}</b>.";
-                player.Train(Skill.Mining, 1, ref lastAction);
+                lastAction += player.Train(Skill.Mining, 1);
             }
             else
                 lastAction = $"You explore the {tile.Name} and find small <b>{(tile.difficulty == 2 ? "silver" : "gold")} vein</b> but you don't have a pickaxe...";
@@ -427,23 +427,46 @@ public class Game : MonoBehaviour
         {
             player.energy -= 50;
             TileType location = world.Location;
-            int payment = location switch
+            int basePay, payMod = 1;
+            Skill skill;
+            switch (location)
             {
-                TileType.Sawmill => 30 + player.GetSkill(Skill.Woodcraft) / 10,
-                TileType.Mine => (20 + world.CurrentTile.difficulty * 10) + player.GetSkill(Skill.Mining) / 10,
-                _ => 20,
-            };
+            case TileType.Sawmill:
+                basePay = 30;
+                skill = Skill.Woodcraft;
+                break;
+            case TileType.Mine:
+                basePay = 20 + world.CurrentTile.difficulty * 10;
+                skill = Skill.Mining;
+                break;
+            default:
+                basePay = 20;
+                skill = Skill.None;
+                break;
+            }
             // double pay if owned
             if (player.properties.Any(x => x.locationIndex == world.CurrentLocationIndex))
-                payment *= 2;
-            player.AddGold(payment);
-            foreach (Hero ally in allies)
-                ally.gold += payment;
-            lastAction = $"You earned <color=#FFD700>{payment}</color> gold from working.";
-            if (location == TileType.Sawmill)
-                player.Train(Skill.Woodcraft, 1, ref lastAction);
-            else if (location == TileType.Mine)
-                player.Train(Skill.Mining, 1, ref lastAction);
+                payMod = 2;
+            foreach (Hero hero in Team)
+            {
+                int payment = basePay;
+                if (skill != Skill.None)
+                    payment += hero.GetSkill(skill) / 10;
+                payment *= payMod;
+                if (hero == player)
+                {
+                    player.AddGold(payment);
+                    lastAction = $"You earned <color=#FFD700>{payment}</color> gold from working.";
+                    if (skill != Skill.None)
+                        lastAction += player.Train(skill, 1);
+                }
+                else
+                {
+                    hero.gold += payment;
+                    if (skill != Skill.None)
+                        hero.Train(skill, 1);
+                }
+            }
             AddTime(hours: 8);
             if (location == TileType.City || location == TileType.Village)
             {
@@ -863,7 +886,6 @@ public class Game : MonoBehaviour
             foreach (var skill in player.skills.Select(kvp => (name: kvp.Key.AsString().ToUpper1(), level: kvp.Value)).OrderBy(x => x.name))
                 sb.Append($"  {skill.name}: {skill.level}\n");
         }
-
         charText.text = sb.ToString();
 
         RefreshPlayerItems();
@@ -872,11 +894,19 @@ public class Game : MonoBehaviour
     private void RefreshAllyScreen()
     {
         TMP_Text charText = allyScreen.transform.Find("Text").GetComponent<TMP_Text>();
-        charText.text = $"{activeAlly.GenderSign}{activeAlly.name}\n" +
+        sb.Clear();
+        sb.Append($"{activeAlly.GenderSign}{activeAlly.name}\n" +
             $"Level: {activeAlly.level} {activeAlly.clas.AsString()} ({activeAlly.ExpP}%)\n" +
             $"Attack: {activeAlly.Attack}\n" +
             $"Defense: {activeAlly.Defense}\n" +
-            $"Gold: {activeAlly.gold}";
+            $"Gold: {activeAlly.gold}\n");
+        if (activeAlly.skills.Count > 0)
+        {
+            sb.Append("Skills:\n");
+            foreach (var skill in activeAlly.skills.Select(kvp => (name: kvp.Key.AsString().ToUpper1(), level: kvp.Value)).OrderBy(x => x.name))
+                sb.Append($"  {skill.name}: {skill.level}\n");
+        }
+        charText.text = sb.ToString();
 
         RefreshAllyItems(allyScreen);
         if (activeInventory == giveAllyItems)
@@ -1950,7 +1980,7 @@ public class Game : MonoBehaviour
             int extra = (int)(count * mod);
             player.AddItem(potion, count + extra);
             lastAction = $"You created {Utility.Plural(potion.name, count + extra)}.";
-            player.Train(Skill.Alchemy, count, ref lastAction);
+            lastAction += player.Train(Skill.Alchemy, count);
             AddTime(minutes: count * 5);
             if (ui.TopDialog == guildScreen)
                 UpdateGuild();

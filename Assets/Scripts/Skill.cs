@@ -2,6 +2,7 @@ using System;
 
 public enum Skill
 {
+    None = -1,
     Alchemy,
     Mining,
     Woodcraft

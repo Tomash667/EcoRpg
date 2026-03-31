@@ -17,7 +17,6 @@ v1:
 + allies
 	better heroes
 	relationship
-	skills
 + multilevel dungeon
 + well rested in house/guild personal room
 + dungeon different traps (damage, accuracy, targets)
@@ -74,6 +73,7 @@ hero:
 	recruit chance
 	leave and take from guild
 	ally guild rank
+	initial skills
 + damage type
 	holy vs undead
 	poison

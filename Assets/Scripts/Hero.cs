@@ -6,7 +6,9 @@ using UnityEngine;
 [Serializable]
 public class Hero : ISerializationCallbackReceiver
 {
+    public Dictionary<Skill, int> skills;
     public List<ItemSlot> items = new();
+    public List<SkillEntry> savedSkills;
     public Item weapon, armor, shield;
     public string name, weaponName, armorName, shieldName;
     public Class clas;
@@ -75,6 +77,7 @@ public class Hero : ISerializationCallbackReceiver
 
     protected void InitCommon()
     {
+        skills = new();
         level = 1;
         hpMax = 100;
         hp = hpMax;
@@ -205,6 +208,7 @@ public class Hero : ISerializationCallbackReceiver
         weaponName = weapon?.name;
         armorName = armor?.name;
         shieldName = shield?.name;
+        savedSkills = skills?.Select(kvp => new SkillEntry { skill = kvp.Key, level = kvp.Value }).ToList();
     }
 
     public virtual void OnAfterDeserialize()
@@ -215,6 +219,7 @@ public class Hero : ISerializationCallbackReceiver
             armor = Item.Get(armorName);
         if (!string.IsNullOrEmpty(shieldName))
             shield = Item.Get(shieldName);
+        skills = savedSkills?.ToDictionary(x => x.skill, x => x.level);
     }
 
     public bool WillTakeItem(Item item)
@@ -444,5 +449,23 @@ public class Hero : ISerializationCallbackReceiver
                 RemoveItem(potion);
             }
         }
+    }
+
+    public int GetSkill(Skill skill)
+    {
+        return skills.GetValueOrDefault(skill);
+    }
+
+    public string Train(Skill skill, int value)
+    {
+        int currentLevel = GetSkill(skill);
+        int gain = Mathf.Min(value, 100 - currentLevel);
+        if (gain > 0)
+        {
+            skills[skill] = currentLevel + gain;
+            return $" Your {skill.AsString()} skill increased to {currentLevel + gain}.";
+        }
+        else
+            return string.Empty;
     }
 }
