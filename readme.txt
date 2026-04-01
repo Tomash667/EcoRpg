@@ -10,6 +10,7 @@ C - character screen
 E - explore
 F - forage
 G - guild
+H - house
 P - properties
 R - rest
 T - travel

@@ -8,19 +8,20 @@ using UnityEngine;
 public class World
 {
     public const int sizeX = 25, sizeY = 15;
+    public const int sublocationOffset = sizeX * sizeY;
 
     public Tile[] map;
-    public Tile sewers;
+    public Tile[] sublocations;
     public Vector2Int currentPt;
-    public bool isInside;
+    public int sublocation; // 0-none, 1-sewers, 2-house
 
-    public Tile CurrentTile => isInside ? sewers : map[currentPt.x + currentPt.y * sizeX];
-    public int CurrentLocationIndex => CalculateIndex(currentPt.x, currentPt.y, isInside);
+    public Tile CurrentTile => sublocation == 0 ? map[currentPt.x + currentPt.y * sizeX] : sublocations[sublocation];
+    public int CurrentLocationIndex => CalculateIndex(currentPt.x, currentPt.y, sublocation);
     public TileType Location => CurrentTile.type;
 
-    public static int CalculateIndex(int x, int y, bool inside)
+    public static int CalculateIndex(int x, int y, int z)
     {
-        return x + y * sizeX + (inside ? (sizeX * sizeY) : 0);
+        return x + y * sizeX + z * sublocationOffset;
     }
 
     public void Init()
@@ -96,12 +97,23 @@ public class World
         tile.SetType(TileType.Village);
         tile.difficulty = 1;
 
-        sewers = new Tile
+        sublocations = new Tile[]
         {
-            type = TileType.Sewers,
-            hidden = TileType.None,
-            difficulty = 1,
-            clear = true
+            null,
+            new()
+            {
+                type = TileType.Sewers,
+                hidden = TileType.None,
+                difficulty = 1,
+                clear = true
+            },
+            new()
+            {
+                type = TileType.House,
+                hidden = TileType.None,
+                difficulty = 0,
+                clear = true
+            }
         };
 
         SpawnBlob(9, 16, Utility.Random(5, 7), TileType.Plains, TileType.Forest, TileType.Swamp);
@@ -317,7 +329,7 @@ public class World
             energy = Mathf.Min(energy + (haveTent ? 100 : 75), 100);
         }
 
-        if (isInside && game.minute + 30 >= 60)
+        if (sublocation == 1 && game.minute + 30 >= 60)
         {
             ++hour;
             if (hour == 24)
@@ -386,10 +398,13 @@ public class World
             game.player.energy = Mathf.Min(game.player.energy + (haveTent ? 100 : 75), 100);
         }
 
-        if (isInside)
+        if (sublocation != 0)
         {
-            isInside = false;
-            game.minute += 30;
+            if (sublocation == 1)
+                game.minute += 30;
+            else
+                game.minute += 5;
+            sublocation = 0;
             if (game.minute >= 60)
             {
                 game.minute -= 60;
@@ -485,23 +500,18 @@ public class World
 
     public Tile GetLocation(int index)
     {
-        if (index >= sizeX * sizeY)
-            return sewers;
+        if (index >= sublocationOffset)
+            return sublocations[index / sublocationOffset];
         else
             return map[index];
     }
 
-    public int FindLocationIndex(Func<Tile, bool> pred, bool inside = false)
+    public int FindLocationIndex(Func<Tile, bool> pred, int sublocation = 0)
     {
         for (int index = 0; index < sizeX * sizeY; ++index)
         {
             if (pred(map[index]))
-            {
-                if (inside)
-                    return index + sizeX * sizeY;
-                else
-                    return index;
-            }
+                return index + sublocation * sublocationOffset;
         }
         return -1;
     }

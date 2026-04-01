@@ -135,6 +135,8 @@ public class Game : MonoBehaviour
                     Shop();
                 if (Input.GetKeyDown(KeyCode.X))
                     EnterSewers();
+                if (Input.GetKeyDown(KeyCode.H) && player.HaveProperty("House"))
+                    EnterHouse();
                 break;
             case TileType.Village:
                 if (Input.GetKeyDown(KeyCode.W))
@@ -154,6 +156,10 @@ public class Game : MonoBehaviour
             case TileType.Mine:
                 if (Input.GetKeyDown(KeyCode.W))
                     Work();
+                break;
+            case TileType.House:
+                if (Input.GetKeyDown(KeyCode.X))
+                    ExitToCity();
                 break;
             }
         }
@@ -536,24 +542,37 @@ public class Game : MonoBehaviour
 
         player.energy -= 5;
         lastAction = "You enter the sewers.";
-        world.isInside = true;
+        world.sublocation = 1;
         AddTime(minutes: 30);
+        OnChangeLocation();
+    }
+
+    public void EnterHouse()
+    {
+        lastAction = "You enter your house.";
+        world.sublocation = 2;
+        AddTime(minutes: 5);
         OnChangeLocation();
     }
 
     public void ExitToCity()
     {
-        if (player.energy < 5)
+        if (world.sublocation == 1 && player.energy < 5)
         {
             lastAction = "You are too tired to travel.";
             UpdateText();
             return;
         }
 
-        player.energy -= 5;
         lastAction = "You exit to the city.";
-        world.isInside = false;
-        AddTime(minutes: 30);
+        if (world.sublocation == 1)
+        {
+            player.energy -= 5;
+            AddTime(minutes: 30);
+        }
+        else
+            AddTime(minutes: 5);
+        world.sublocation = 0;
         OnChangeLocation();
     }
 
@@ -1096,7 +1115,7 @@ public class Game : MonoBehaviour
         hour = 8;
         minute = 0;
         TileType location = world.Location;
-        if (location == TileType.City && player.HaveProperty("House"))
+        if ((location == TileType.City && player.HaveProperty("House")) || location == TileType.House)
         {
             player.hp = player.hpMax;
             player.energy = 100;
@@ -1271,7 +1290,7 @@ public class Game : MonoBehaviour
     {
         notifications ??= new();
         notifications.Add(str);
-        if (world.Location == TileType.City || world.Location == TileType.Village)
+        if (world.Location.IsSafe())
             UpdateButtons();
     }
 
@@ -1427,10 +1446,12 @@ public class Game : MonoBehaviour
         buttons.Find("BtGuild").gameObject.SetActive(inCity);
         buttons.Find("BtProperties").gameObject.SetActive(inCity);
         buttons.Find("BtSewers").gameObject.SetActive(inCity);
+        buttons.Find("BtHouse").gameObject.SetActive(inCity && player.HaveProperty("House"));
 
         GameObject btMessages = buttons.Find("BtMessages").gameObject;
-        btMessages.SetActive(inCity || inVillage);
-        if (inCity || inVillage)
+        bool showMessages = inCity || inVillage || location == TileType.House;
+        btMessages.SetActive(showMessages);
+        if (showMessages)
         {
             btMessages.GetComponent<Button>().interactable = notifications.Count > 0;
             btMessages.GetComponentInChildren<TMP_Text>().text = notifications.Count > 0 ? $"Messages ({notifications.Count})" : "Messages";
@@ -1438,7 +1459,7 @@ public class Game : MonoBehaviour
 
         buttons.Find("BtForage").gameObject.SetActive(location == TileType.Forest);
 
-        buttons.Find("BtCity").gameObject.SetActive(location == TileType.Sewers);
+        buttons.Find("BtCity").gameObject.SetActive(location == TileType.Sewers || location == TileType.House);
 
         buttons.Find("BtWork2").gameObject.SetActive(location == TileType.Sawmill || location == TileType.Mine);
 
@@ -1500,7 +1521,7 @@ public class Game : MonoBehaviour
 
     public void RemoveAlly()
     {
-        if (world.Location != TileType.City && world.Location != TileType.Village)
+        if (!world.Location.IsSafe())
         {
             ui.ShowDialog("You can only remove your allies in city or village.");
             return;
@@ -1578,6 +1599,8 @@ public class Game : MonoBehaviour
                         player.properties.Remove(property);
                         propertyEvents.dictionary.Remove(property.name);
                         lastAction = $"You sell {property.name} for <color=#FFD700>{property.value / 2}</color> gold.";
+                        if (property.name == "House")
+                            UpdateButtons();
                         AddTime(minutes: 30);
                         if (ui.CurrentDialog == properiesScreen)
                             UpdateProperties();
@@ -1631,6 +1654,8 @@ public class Game : MonoBehaviour
                     }
                 }
 
+                if (property.name == "House")
+                    UpdateButtons();
                 AddTime(minutes: 30);
                 if (ui.CurrentDialog == properiesScreen)
                     UpdateProperties();
@@ -1810,14 +1835,14 @@ public class Game : MonoBehaviour
                     switch (quest.locationDifficulty)
                     {
                     case 1:
-                        quest.location = world.FindLocationIndex(x => x.type == TileType.City, true);
+                        quest.location = world.FindLocationIndex(x => x.type == TileType.City, 1);
                         break;
                     case 2:
                         if (player.HaveProperty("Sawmill"))
                         {
                             // don't generate random quest if player owned
                             quest.locationDifficulty = 1;
-                            quest.location = world.FindLocationIndex(x => x.type == TileType.City, true);
+                            quest.location = world.FindLocationIndex(x => x.type == TileType.City, 1);
                         }
                         else
                             quest.location = world.FindLocationIndex(x => x.type == TileType.Sawmill);
@@ -1827,7 +1852,7 @@ public class Game : MonoBehaviour
                         {
                             // don't generate random quest if player owned
                             quest.locationDifficulty = 1;
-                            quest.location = world.FindLocationIndex(x => x.type == TileType.City, true);
+                            quest.location = world.FindLocationIndex(x => x.type == TileType.City, 1);
                         }
                         else
                             quest.location = world.FindLocationIndex(x => x.type == TileType.Mine && x.difficulty == 1);
