@@ -8,11 +8,18 @@ public enum Skill
     Woodcraft
 }
 
-[Serializable]
 public class SkillEntry
+{
+    public int level;
+    public float train;
+}
+
+[Serializable]
+public class SavedSkillEntry
 {
     public Skill skill;
     public int level;
+    public float train;
 }
 
 public static class SkillMethods

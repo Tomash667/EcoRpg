@@ -6,9 +6,9 @@ using UnityEngine;
 [Serializable]
 public class Hero : ISerializationCallbackReceiver
 {
-    public Dictionary<Skill, int> skills;
+    public Dictionary<Skill, SkillEntry> skills;
     public List<ItemSlot> items = new();
-    public List<SkillEntry> savedSkills;
+    public List<SavedSkillEntry> savedSkills;
     public Item weapon, armor, shield;
     public string name, weaponName, armorName, shieldName;
     public Class clas;
@@ -208,7 +208,7 @@ public class Hero : ISerializationCallbackReceiver
         weaponName = weapon?.name;
         armorName = armor?.name;
         shieldName = shield?.name;
-        savedSkills = skills?.Select(kvp => new SkillEntry { skill = kvp.Key, level = kvp.Value }).ToList();
+        savedSkills = skills?.Select(kvp => new SavedSkillEntry { skill = kvp.Key, level = kvp.Value.level, train = kvp.Value.train }).ToList();
     }
 
     public virtual void OnAfterDeserialize()
@@ -219,7 +219,7 @@ public class Hero : ISerializationCallbackReceiver
             armor = Item.Get(armorName);
         if (!string.IsNullOrEmpty(shieldName))
             shield = Item.Get(shieldName);
-        skills = savedSkills?.ToDictionary(x => x.skill, x => x.level);
+        skills = savedSkills?.ToDictionary(x => x.skill, x => new SkillEntry { level = x.level, train = x.train });
     }
 
     public bool WillTakeItem(Item item)
@@ -453,19 +453,55 @@ public class Hero : ISerializationCallbackReceiver
 
     public int GetSkill(Skill skill)
     {
-        return skills.GetValueOrDefault(skill);
+        if (skills.TryGetValue(skill, out SkillEntry skillEntry))
+            return skillEntry.level;
+        else
+            return 0;
     }
 
-    public string Train(Skill skill, int value)
+    private SkillEntry GetSkillEntry(Skill skill)
     {
-        int currentLevel = GetSkill(skill);
-        int gain = Mathf.Min(value, 100 - currentLevel);
-        if (gain > 0)
+        if (!skills.TryGetValue(skill, out SkillEntry skillEntry))
         {
-            skills[skill] = currentLevel + gain;
-            return $" Your {skill.AsString()} skill increased to {currentLevel + gain}.";
+            skillEntry = new();
+            skills[skill] = skillEntry;
         }
+        return skillEntry;
+    }
+
+    public string Train(Skill skill, float mod = 1f)
+    {
+        SkillEntry skillEntry = GetSkillEntry(skill);
+        if (skillEntry.level >= 100)
+            return string.Empty;
+
+        bool increased = false;
+        float required = CalculateRequiredSkillTrain(skillEntry.level);
+        skillEntry.train += 5f * mod;
+        while (skillEntry.train >= required && skillEntry.level != 100)
+        {
+            ++skillEntry.level;
+            skillEntry.train -= required;
+            required = CalculateRequiredSkillTrain(skillEntry.level);
+            increased = true;
+        }
+
+        if (increased)
+            return $" Your {skill.AsString()} skill increased to {skillEntry.level}.";
         else
             return string.Empty;
+    }
+
+    private float CalculateRequiredSkillTrain(int value)
+    {
+        float valueFloat = (float)value;
+        return (value / 20) switch
+        {
+            0 => 1f + (1.25f - 1f) * (valueFloat / 20),
+            1 => 1.25f + (1.666666666f - 1.25f) * ((valueFloat - 20) / 20),
+            2 => 1.666666666f + (2.5f - 1.666666666f) * ((valueFloat - 40) / 20),
+            3 => 2.5f + (5f - 2.5f) * ((valueFloat - 60) / 20),
+            _ => 5f
+        };
     }
 }

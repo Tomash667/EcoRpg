@@ -392,7 +392,7 @@ public class Game : MonoBehaviour
                 Item nugget = Item.Get(tile.difficulty == 2 ? "silver nugget" : "gold nugget");
                 player.AddItem(nugget, count);
                 lastAction = $"You explore the {tile.Name} and find small <b>{(tile.difficulty == 2 ? "silver" : "gold")} vein</b>. You mine <b>{Utility.Plural(nugget.name, count)}</b>.";
-                lastAction += player.Train(Skill.Mining, 1);
+                lastAction += player.Train(Skill.Mining, 0.25f);
             }
             else
                 lastAction = $"You explore the {tile.Name} and find small <b>{(tile.difficulty == 2 ? "silver" : "gold")} vein</b> but you don't have a pickaxe...";
@@ -458,13 +458,13 @@ public class Game : MonoBehaviour
                     player.AddGold(payment);
                     lastAction = $"You earned <color=#FFD700>{payment}</color> gold from working.";
                     if (skill != Skill.None)
-                        lastAction += player.Train(skill, 1);
+                        lastAction += player.Train(skill);
                 }
                 else
                 {
                     hero.gold += payment;
                     if (skill != Skill.None)
-                        hero.Train(skill, 1);
+                        hero.Train(skill);
                 }
             }
             AddTime(hours: 8);
@@ -883,7 +883,7 @@ public class Game : MonoBehaviour
         if (player.skills.Count > 0)
         {
             sb.Append("Skills:\n");
-            foreach (var skill in player.skills.Select(kvp => (name: kvp.Key.AsString().ToUpper1(), level: kvp.Value)).OrderBy(x => x.name))
+            foreach (var skill in player.skills.Select(kvp => (name: kvp.Key.AsString().ToUpper1(), kvp.Value.level)).OrderBy(x => x.name))
                 sb.Append($"  {skill.name}: {skill.level}\n");
         }
         charText.text = sb.ToString();
@@ -903,7 +903,7 @@ public class Game : MonoBehaviour
         if (activeAlly.skills.Count > 0)
         {
             sb.Append("Skills:\n");
-            foreach (var skill in activeAlly.skills.Select(kvp => (name: kvp.Key.AsString().ToUpper1(), level: kvp.Value)).OrderBy(x => x.name))
+            foreach (var skill in activeAlly.skills.Select(kvp => (name: kvp.Key.AsString().ToUpper1(), kvp.Value.level)).OrderBy(x => x.name))
                 sb.Append($"  {skill.name}: {skill.level}\n");
         }
         charText.text = sb.ToString();
@@ -1980,7 +1980,7 @@ public class Game : MonoBehaviour
             int extra = (int)(count * mod);
             player.AddItem(potion, count + extra);
             lastAction = $"You created {Utility.Plural(potion.name, count + extra)}.";
-            lastAction += player.Train(Skill.Alchemy, count);
+            lastAction += player.Train(Skill.Alchemy, 0.2f * count);
             AddTime(minutes: count * 5);
             if (ui.TopDialog == guildScreen)
                 UpdateGuild();

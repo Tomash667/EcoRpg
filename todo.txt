@@ -7,11 +7,9 @@ v1:
 	cancel
 	journal - dragon quest
 	gather better herbs, magic crystals
-+ mining/woodwork non linear training
 + alchemy
 	portable items
 	create potions when traveling
-	non-linear training
 	house alchemy lab bonus
 	elixir recipe
 + allies
