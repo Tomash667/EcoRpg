@@ -88,17 +88,18 @@ public static class Extensions
         return new(x, y);
     }
 
-    public static void RemoveFirst<T>(this IList<T> items, Func<T, bool> pred)
+    public static bool RemoveFirst<T>(this IList<T> items, Func<T, bool> pred)
     {
         if (items == null)
-            return;
+            return false;
         for (int i = 0; i < items.Count; ++i)
         {
             if (pred(items[i]))
             {
                 items.RemoveAt(i);
-                return;
+                return true;
             }
         }
+        return false;
     }
 }

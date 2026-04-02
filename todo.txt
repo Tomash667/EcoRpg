@@ -23,7 +23,6 @@ v1:
 	sawmill -> cheaper build/upkeep
 	inn
 	pay to clear property takes time
-	extra/better guards -> security -> no infestation
 	efficiency upgrades
 	house garden -> grow herbs/food
 + world
@@ -118,7 +117,7 @@ events:
 	
 ui:
 + item icons
-+ property icons
++ property icons (infested, buffed)
 + shop tabs
 + drag/scale map
 	
@@ -151,6 +150,7 @@ investments:
 + house -> store items
 + upgrades takes time
 + undo upgrades
++ see active events
 
 skills:
 + management

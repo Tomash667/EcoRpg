@@ -602,7 +602,9 @@ public class Game : MonoBehaviour
         {
             if (player.goldWaiting != 0)
             {
-                lastAction += $" You receive <color=#FFD700>{player.goldWaiting}</color> gold from your properties.";
+                lastAction += player.goldWaiting > 0
+                    ? $" You receive <color=#FFD700>{player.goldWaiting}</color> gold from your properties."
+                    : $" You pay <color=#FFD700>{-player.goldWaiting}</color> gold for your properties.";
                 player.AddGold(player.goldWaiting);
                 player.goldWaiting = 0;
             }
@@ -1193,9 +1195,11 @@ public class Game : MonoBehaviour
 
         OnNewDay();
 
-        if (player.goldWaiting > 0 && location.IsSafe())
+        if (player.goldWaiting != 0 && location.IsSafe())
         {
-            lastAction += $" You receive <color=#FFD700>{player.goldWaiting}</color> gold from your properties.";
+            lastAction += player.goldWaiting > 0
+                ? $" You receive <color=#FFD700>{player.goldWaiting}</color> gold from your properties."
+                : $" You pay <color=#FFD700>{-player.goldWaiting}</color> gold for your properties.";
             player.AddGold(player.goldWaiting);
             player.goldWaiting = 0;
         }
@@ -1208,24 +1212,24 @@ public class Game : MonoBehaviour
     public void OnNewDay()
     {
         player.goldWaiting += player.properties
-            .Where(x => x.status == Property.Status.Active)
-            .Sum(x =>
+            .Where(p => p.status == Property.Status.Active)
+            .Sum(p =>
             {
-                if (x.events.Count != 0)
+                if (p.events.Count != 0)
                 {
-                    Property.Event even = x.events[0];
+                    Property.Event even = p.events[0];
                     if (even.name == "Infested")
-                        return 0;
+                        return -p.upkeep / 2;
                     else
                     {
                         --even.timer;
                         if (even.timer == 0)
-                            x.events.Clear();
-                        return x.income * 3 / 2;
+                            p.events.Clear();
+                        return p.income * 3 / 2 - p.upkeep;
                     }
                 }
                 else
-                    return x.income;
+                    return p.income - p.upkeep;
             });
 
         foreach (Property property in player.properties.Where(x => x.status == Property.Status.Building))
@@ -1272,7 +1276,7 @@ public class Game : MonoBehaviour
                     AddNotification(str);
                     break;
                 }
-                else if (c == 2)
+                else if (c == 2 && !property.HaveUpgrade("Extra guards"))
                 {
                     // 5%
                     property.events.Add(new Property.Event { name = "Infested", timer = -1 });
@@ -1381,44 +1385,88 @@ public class Game : MonoBehaviour
             new()
             {
                 name = "Sawmill",
-                desc = "5 gold/day",
+                desc = "PROFIT gold/day",
                 value = 5000,
                 infestedCost = 500,
-                income = 5,
+                income = 10,
+                upkeep = 5,
                 status = Property.Status.Active,
-                locationIndex = world.FindLocationIndex(x => x.type == TileType.Sawmill)
+                locationIndex = world.FindLocationIndex(x => x.type == TileType.Sawmill),
+                upgrades = new Property.Upgrade[]
+                {
+                    new()
+                    {
+                        name = "Extra guards",
+                        desc = "Prevents monster invasion, +1 upkeep",
+                        value = 1000,
+                        upkeep = 1
+                    }
+                }
             },
             new()
             {
                 name = "Iron mine",
-                desc = "10 gold/day",
+                desc = "PROFIT gold/day",
                 value = 10000,
                 infestedCost = 750,
-                income = 10,
+                income = 20,
+                upkeep = 10,
                 status = Property.Status.Active,
-                locationIndex = world.FindLocationIndex(x => x.type == TileType.Mine)
+                locationIndex = world.FindLocationIndex(x => x.type == TileType.Mine),
+                upgrades = new Property.Upgrade[]
+                {
+                    new()
+                    {
+                        name = "Extra guards",
+                        desc = "Prevents monster invasion, +2 upkeep",
+                        value = 2000,
+                        upkeep = 2
+                    }
+                }
             },
             new()
             {
                 name = "Silver mine",
-                desc = "25 gold/day",
+                desc = "PROFIT gold/day",
                 value = 25000,
                 infestedCost = 1500,
-                income = 25,
+                income = 35,
+                upkeep = 10,
                 buildPrice = 6000,
                 buildTime = 20,
-                locationIndex = world.FindLocationIndex(x => x.hidden == TileType.Cave && x.mine && x.difficulty == 2)
+                locationIndex = world.FindLocationIndex(x => x.hidden == TileType.Cave && x.mine && x.difficulty == 2),
+                upgrades = new Property.Upgrade[]
+                {
+                    new()
+                    {
+                        name = "Extra guards",
+                        desc = "Prevents monster invasion, +2 upkeep",
+                        value = 2000,
+                        upkeep = 2
+                    }
+                }
             },
             new()
             {
                 name = "Gold mine",
-                desc = "50 gold/day",
+                desc = "PROFIT gold/day",
                 value = 50000,
                 infestedCost = 2000,
-                income = 50,
+                income = 60,
+                upkeep = 10,
                 buildPrice = 7500,
                 buildTime = 30,
-                locationIndex = world.FindLocationIndex(x => x.hidden == TileType.Cave && x.mine && x.difficulty == 3)
+                locationIndex = world.FindLocationIndex(x => x.hidden == TileType.Cave && x.mine && x.difficulty == 3),
+                upgrades = new Property.Upgrade[]
+                {
+                    new()
+                    {
+                        name = "Extra guards",
+                        desc = "Prevents monster invasion, +2 upkeep",
+                        value = 2000,
+                        upkeep = 2
+                    }
+                }
             }
         };
         lastAction = "You are an adventurer seeking glory and gold. Rumors speak of a dragon lurking deep within a forgotten cave beyond the wilds. " +
@@ -1706,7 +1754,8 @@ public class Game : MonoBehaviour
         string str;
         if (selectedProperty != null)
         {
-            str = $"<b>{selectedProperty.name}</b>\nUpgrades: ";
+            str = $"<b>{selectedProperty.name}</b>\n" +
+                $"Income:{selectedProperty.Income}  Upkeep:{selectedProperty.Upkeep}  Profit:{selectedProperty.Profit}\nUpgrades: ";
             if (selectedProperty.upgrades != null && selectedProperty.upgrades.Any(x => x.active))
                 str += string.Join(", ", selectedProperty.upgrades.Where(x => x.active).Select(x => x.name).OrderBy(x => x));
             else
@@ -1737,7 +1786,13 @@ public class Game : MonoBehaviour
                     player.AddGold(-upgrade.value);
                     upgrade.active = true;
                     selectedProperty.value += upgrade.value;
+                    selectedProperty.upkeep += upgrade.upkeep;
                     lastAction = $"You buy {upgrade.name} for <color=#FFD700>{upgrade.value}</color> gold.";
+                    if (upgrade.name == "Extra guards")
+                    {
+                        if (selectedProperty.RemoveEvent("Infested"))
+                            lastAction += $" That will take care of monsters infestation.";
+                    }
                     AddTime(minutes: 30);
                     if (ui.CurrentDialog == propertiesScreen)
                     {
