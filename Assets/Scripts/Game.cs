@@ -23,7 +23,6 @@ public class Game : MonoBehaviour
 
     public World world;
     public Player player;
-    public SerializableDictionary<string, int> propertyEvents;
     public List<Hero> allies;
     public List<Quest> availableQuests;
     public List<Property> properties;
@@ -304,7 +303,8 @@ public class Game : MonoBehaviour
                     else if (tile.type == TileType.Mine || tile.type == TileType.Sawmill)
                     {
                         lastAction += " You <b>cleared</b> this place.";
-                        propertyEvents.dictionary.Remove(tile.Name.ToUpper1());
+                        Property property = properties.FirstOrDefault(x => x.locationIndex == world.CurrentLocationIndex);
+                        property?.RemoveEvent("Infested");
                     }
                 }
             }
@@ -1211,19 +1211,18 @@ public class Game : MonoBehaviour
             .Where(x => x.status == Property.Status.Active)
             .Sum(x =>
             {
-                if (propertyEvents.dictionary.TryGetValue(x.name, out int value))
+                if (x.events.Count != 0)
                 {
-                    if (value > 0)
+                    Property.Event even = x.events[0];
+                    if (even.name == "Infested")
+                        return 0;
+                    else
                     {
-                        --value;
-                        if (value > 0)
-                            propertyEvents.dictionary[x.name] = value;
-                        else
-                            propertyEvents.dictionary.Remove(x.name);
+                        --even.timer;
+                        if (even.timer == 0)
+                            x.events.Clear();
                         return x.income * 3 / 2;
                     }
-                    else
-                        return 0;
                 }
                 else
                     return x.income;
@@ -1255,14 +1254,14 @@ public class Game : MonoBehaviour
         {
             foreach (Property property in player.properties.Where(x => x.income > 0 && x.status == Property.Status.Active))
             {
-                if (propertyEvents.dictionary.TryGetValue(property.name, out int _))
+                if (property.events != null && property.events.Count > 0)
                     continue;
 
                 int c = Utility.Rand % 20;
                 if (c < 2)
                 {
                     // 10%
-                    propertyEvents.dictionary.Add(property.name, 30);
+                    property.events.Add(new Property.Event { name = "Buff", timer = 30 });
                     string str;
                     if (property.name == "Sawmill")
                         str = "Your Sawmill production increased thanks to good weather.";
@@ -1276,7 +1275,7 @@ public class Game : MonoBehaviour
                 else if (c == 2)
                 {
                     // 5%
-                    propertyEvents.dictionary.Add(property.name, -1);
+                    property.events.Add(new Property.Event { name = "Infested", timer = -1 });
                     AddNotification($"{property.name} has been taken over by monsters! Hire adventurers or deal with it yourself.");
                     Tile tile = world.GetLocation(property.locationIndex);
                     tile.clear = false;
@@ -1384,6 +1383,7 @@ public class Game : MonoBehaviour
                 name = "Sawmill",
                 desc = "5 gold/day",
                 value = 5000,
+                infestedCost = 500,
                 income = 5,
                 status = Property.Status.Active,
                 locationIndex = world.FindLocationIndex(x => x.type == TileType.Sawmill)
@@ -1393,6 +1393,7 @@ public class Game : MonoBehaviour
                 name = "Iron mine",
                 desc = "10 gold/day",
                 value = 10000,
+                infestedCost = 750,
                 income = 10,
                 status = Property.Status.Active,
                 locationIndex = world.FindLocationIndex(x => x.type == TileType.Mine)
@@ -1402,6 +1403,7 @@ public class Game : MonoBehaviour
                 name = "Silver mine",
                 desc = "25 gold/day",
                 value = 25000,
+                infestedCost = 1500,
                 income = 25,
                 buildPrice = 6000,
                 buildTime = 20,
@@ -1412,13 +1414,13 @@ public class Game : MonoBehaviour
                 name = "Gold mine",
                 desc = "50 gold/day",
                 value = 50000,
+                infestedCost = 2000,
                 income = 50,
                 buildPrice = 7500,
                 buildTime = 30,
                 locationIndex = world.FindLocationIndex(x => x.hidden == TileType.Cave && x.mine && x.difficulty == 3)
             }
         };
-        propertyEvents = new();
         lastAction = "You are an adventurer seeking glory and gold. Rumors speak of a dragon lurking deep within a forgotten cave beyond the wilds. " +
             "Find its lair, face the beast, and carve your name into legend.";
     }
@@ -1593,13 +1595,13 @@ public class Game : MonoBehaviour
         foreach (Transform child in content)
             Destroy(child.gameObject);
 
-        Property[] propertiesToBuy = properties.Where(x => x.status != Property.Status.None).ToArray();
+        Property[] propertiesToBuy = properties.Where(x => x.status != Property.Status.None).OrderBy(x => x.value).ThenBy(x => x.name).ToArray();
 
         // player properties
         if (player.properties.Count > 0)
         {
             ui.AddTextHeader("Your properties:", content);
-            foreach (Property property in player.properties.OrderBy(x => x.value))
+            foreach (Property property in player.properties.OrderBy(x => x.value).ThenBy(x => x.name))
             {
                 ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
                 itemEntry.data = property;
@@ -1609,7 +1611,7 @@ public class Game : MonoBehaviour
 
                 if (property.status == Property.Status.Building)
                     itemEntry.Init(property.ToString(Property.DescStatus.Building));
-                else if (propertyEvents.dictionary.TryGetValue(property.name, out int value) && value == -1)
+                else if (property.HaveEvent("Infested"))
                     itemEntry.Init(property.ToString(Property.DescStatus.Infested));
                 else
                 {
@@ -1618,7 +1620,7 @@ public class Game : MonoBehaviour
                         properties.Add(property);
                         player.AddGold(property.value / 2);
                         player.properties.Remove(property);
-                        propertyEvents.dictionary.Remove(property.name);
+                        property.events.Clear();
                         lastAction = $"You sell {property.name} for <color=#FFD700>{property.value / 2}</color> gold.";
                         if (property.name == "House")
                             UpdateButtons();
@@ -1865,33 +1867,26 @@ public class Game : MonoBehaviour
         }
 
         // add player paid quests
-        if (propertyEvents.dictionary.Any(x => x.Value == -1))
+        Property[] infestedProperties = player.properties.Where(p => p.events.Any(e => e.name == "Infested")).ToArray();
+        if (infestedProperties.Length > 0)
         {
             Instantiate(ui.lineSeparatorPrefab, content);
-            foreach (var kvp in propertyEvents.dictionary.Where(x => x.Value == -1))
+            foreach (Property prop in infestedProperties)
             {
+                Property property = prop;
                 ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
-                int cost = kvp.Key switch
+                itemEntry.Init($"Clear {property.name.ToLower()} ({property.infestedCost} gold)", "Pay", () =>
                 {
-                    "Sawmill" => 500,
-                    "Iron mine" => 750,
-                    "Silver mine" => 1500,
-                    "Gold mine" => 2000,
-                    _ => 0,
-                };
-
-                itemEntry.Init($"Clear {kvp.Key.ToLower()} ({cost} gold)", "Pay", () =>
-                {
-                    if (player.gold < cost)
+                    if (player.gold < property.infestedCost)
                     {
-                        ui.ShowDialog($"You need {cost} gold to pay adventurers to clear the {kvp.Key.ToLower()}.");
+                        ui.ShowDialog($"You need {property.infestedCost} gold to pay adventurers to clear the {property.name.ToLower()}.");
                         return;
                     }
 
-                    player.AddGold(-cost);
-                    lastAction = $"You pay <color=#FFD700>{cost}</color> gold to adventurers to clear the {kvp.Key.ToLower()}.";
-                    world.GetLocation(player.properties.First(x => x.name == kvp.Key).locationIndex).clear = true;
-                    propertyEvents.dictionary.Remove(kvp.Key);
+                    player.AddGold(-property.infestedCost);
+                    lastAction = $"You pay <color=#FFD700>{property.infestedCost}</color> gold to adventurers to clear the {property.name.ToLower()}.";
+                    world.GetLocation(property.locationIndex).clear = true;
+                    property.RemoveEvent("Infested");
                     AddTime(minutes: 15);
                     if (ui.CurrentDialog == guildScreen)
                         UpdateGuild();

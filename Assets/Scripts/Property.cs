@@ -1,8 +1,17 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 [Serializable]
 public class Property
 {
+    [Serializable]
+    public class Event
+    {
+        public string name;
+        public int timer;
+    }
+
     [Serializable]
     public class Upgrade
     {
@@ -34,9 +43,10 @@ public class Property
     }
 
     public string name, desc;
+    public List<Event> events = new();
     public Upgrade[] upgrades;
     public Status status;
-    public int value, income, buildPrice, buildTime, locationIndex;
+    public int value, infestedCost, income, buildPrice, buildTime, locationIndex;
 
     public string ToString(DescStatus status)
     {
@@ -48,5 +58,15 @@ public class Property
             DescStatus.Infested => $"{name} (<s>{desc}, {value / 2} gold</s>)",
             _ => $"{name} ({desc}, {value} gold)"
         };
+    }
+
+    public bool HaveEvent(string eventName)
+    {
+        return events.Any(x => x.name == eventName);
+    }
+
+    public void RemoveEvent(string eventName)
+    {
+        events.RemoveFirst(x => x.name == eventName);
     }
 }
