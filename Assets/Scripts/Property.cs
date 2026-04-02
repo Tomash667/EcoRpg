@@ -3,6 +3,19 @@ using System;
 [Serializable]
 public class Property
 {
+    [Serializable]
+    public class Upgrade
+    {
+        public string name, desc;
+        public int value;
+        public bool active;
+
+        public override string ToString()
+        {
+            return $"{name} ({desc}, {value} gold)";
+        }
+    }
+
     public enum Status
     {
         None,
@@ -21,6 +34,7 @@ public class Property
     }
 
     public string name, desc;
+    public Upgrade[] upgrades;
     public Status status;
     public int value, income, buildPrice, buildTime, locationIndex;
 

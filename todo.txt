@@ -1,3 +1,5 @@
+- properties to buy not sorted
+
 v1:
 + post dragon enemies
 + idle combat -> escape, use potion
@@ -10,7 +12,6 @@ v1:
 + alchemy
 	portable items
 	create potions when traveling
-	house alchemy lab bonus
 	elixir recipe
 + allies
 	better heroes
@@ -147,8 +148,11 @@ investments:
 + village house
 + mansion upgrades
 	office room
+	stables
 + different text when entering mine being build or when finished while inside
 + house -> store items
++ upgrades takes time
++ undo upgrades
 
 skills:
 + management

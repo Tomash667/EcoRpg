@@ -28,4 +28,12 @@ public class Player : Hero
     {
         return properties.Any(x => x.name == name);
     }
+
+    public bool HavePropertyUpgrade(string propertyName, string upgradeName)
+    {
+        Property property = properties.FirstOrDefault(x => x.name == propertyName);
+        if (property == null || property.upgrades == null)
+            return false;
+        return property.upgrades.FirstOrDefault(x => x.name == upgradeName)?.active ?? false;
+    }
 }

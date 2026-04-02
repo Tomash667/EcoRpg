@@ -34,10 +34,11 @@ public class Game : MonoBehaviour
     public int day, hour, minute, guildRank, guildProgress;
 
     private GameUI ui;
-    private GameObject shop, character, allyScreen, giveAllyItems, activeInventory, properiesScreen, guildScreen;
+    private GameObject shop, character, allyScreen, giveAllyItems, activeInventory, propertiesScreen, guildScreen;
     private Map map;
     private TMP_Text text;
     private Hero activeAlly;
+    private Property selectedProperty;
     private readonly StringBuilder sb = new();
     private System.Action<bool> choiceAction;
     private string lastAction;
@@ -61,7 +62,7 @@ public class Game : MonoBehaviour
         character = transform.Find("Character").gameObject;
         allyScreen = transform.Find("Ally").gameObject;
         giveAllyItems = transform.Find("GiveItems").gameObject;
-        properiesScreen = transform.Find("Properties").gameObject;
+        propertiesScreen = transform.Find("Properties").gameObject;
         guildScreen = transform.Find("Guild").gameObject;
         map = transform.Find("Map").GetComponent<Map>();
         map.Init();
@@ -474,7 +475,7 @@ public class Game : MonoBehaviour
                 }
             }
             AddTime(hours: 8);
-            if (location == TileType.City || location == TileType.Village)
+            if (location.IsSafe())
             {
                 foreach (Hero ally in allies)
                     ally.BuyItems();
@@ -597,7 +598,7 @@ public class Game : MonoBehaviour
     private void OnChangeLocation()
     {
         Tile tile = world.CurrentTile;
-        if (tile.type == TileType.City || tile.type == TileType.Village)
+        if (tile.type.IsSafe())
         {
             if (player.goldWaiting != 0)
             {
@@ -1192,7 +1193,7 @@ public class Game : MonoBehaviour
 
         OnNewDay();
 
-        if (player.goldWaiting > 0 && (location == TileType.City || location == TileType.Village))
+        if (player.goldWaiting > 0 && location.IsSafe())
         {
             lastAction += $" You receive <color=#FFD700>{player.goldWaiting}</color> gold from your properties.";
             player.AddGold(player.goldWaiting);
@@ -1200,7 +1201,7 @@ public class Game : MonoBehaviour
         }
 
         GameObject topDialog = ui.TopDialog;
-        if (topDialog == properiesScreen || topDialog == guildScreen)
+        if (topDialog == propertiesScreen || topDialog == guildScreen)
             ui.CloseTopDialog();
     }
 
@@ -1359,7 +1360,16 @@ public class Game : MonoBehaviour
                 desc = "don't pay for inn",
                 value = 500,
                 status = Property.Status.Active,
-                locationIndex = -1
+                locationIndex = -1,
+                upgrades = new Property.Upgrade[]
+                {
+                    new()
+                    {
+                        name = "Alchemy lab",
+                        desc = "+25 alchemy",
+                        value = 100
+                    }
+                }
             },
             new()
             {
@@ -1463,6 +1473,8 @@ public class Game : MonoBehaviour
 
         buttons.Find("BtWork2").gameObject.SetActive(location == TileType.Sawmill || location == TileType.Mine);
 
+        buttons.Find("BtCraft").gameObject.SetActive(location == TileType.House && player.HavePropertyUpgrade("House", "Alchemy lab"));
+
         GameObject btAlly = buttons.Find("BtAlly").gameObject;
         if (allies.Count < 1)
             btAlly.SetActive(false);
@@ -1554,7 +1566,7 @@ public class Game : MonoBehaviour
                 return true;
             player.AddGold(-count);
             activeAlly.gold += count;
-            if (world.Location == TileType.City || world.Location == TileType.Village)
+            if (world.Location.IsSafe())
                 activeAlly.BuyItems();
             RefreshAllyScreen();
             UpdateText();
@@ -1564,16 +1576,20 @@ public class Game : MonoBehaviour
 
     public void ManageProperties()
     {
+        selectedProperty = null;
         UpdateProperties();
-        ui.ShowDialog(properiesScreen);
+        UpdatePropertyDetails();
+        ui.ShowDialog(propertiesScreen);
     }
 
     private void UpdateProperties()
     {
-        properiesScreen.transform.Find("Text").GetComponent<TMP_Text>().text = lastAction ?? string.Empty;
+        propertiesScreen.transform.Find("Text").GetComponent<TMP_Text>().text = lastAction ?? string.Empty;
         lastAction = null;
 
-        Transform content = properiesScreen.transform.Find("List/Viewport/Content");
+        ItemEntryList list = propertiesScreen.transform.Find("List").GetComponent<ItemEntryList>();
+        list.Clear();
+        Transform content = propertiesScreen.transform.Find("List/Viewport/Content");
         foreach (Transform child in content)
             Destroy(child.gameObject);
 
@@ -1586,6 +1602,11 @@ public class Game : MonoBehaviour
             foreach (Property property in player.properties.OrderBy(x => x.value))
             {
                 ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
+                itemEntry.data = property;
+                itemEntry.canSelect = true;
+                if (property == selectedProperty)
+                    list.Select(itemEntry);
+
                 if (property.status == Property.Status.Building)
                     itemEntry.Init(property.ToString(Property.DescStatus.Building));
                 else if (propertyEvents.dictionary.TryGetValue(property.name, out int value) && value == -1)
@@ -1602,8 +1623,15 @@ public class Game : MonoBehaviour
                         if (property.name == "House")
                             UpdateButtons();
                         AddTime(minutes: 30);
-                        if (ui.CurrentDialog == properiesScreen)
+                        if (ui.CurrentDialog == propertiesScreen)
+                        {
+                            if (selectedProperty == property)
+                            {
+                                selectedProperty = null;
+                                UpdatePropertyDetails();
+                            }
                             UpdateProperties();
+                        }
                         UpdateText();
                     });
                 }
@@ -1657,10 +1685,66 @@ public class Game : MonoBehaviour
                 if (property.name == "House")
                     UpdateButtons();
                 AddTime(minutes: 30);
-                if (ui.CurrentDialog == properiesScreen)
+                if (ui.CurrentDialog == propertiesScreen)
+                {
+                    selectedProperty = property;
                     UpdateProperties();
+                    UpdatePropertyDetails();
+                }
                 UpdateText();
             });
+        }
+    }
+
+    public void UpdatePropertyDetails()
+    {
+        ItemEntryList list = propertiesScreen.transform.Find("List").GetComponent<ItemEntryList>();
+        selectedProperty = list.GetSelectedData() as Property;
+
+        string str;
+        if (selectedProperty != null)
+        {
+            str = $"<b>{selectedProperty.name}</b>\nUpgrades: ";
+            if (selectedProperty.upgrades != null && selectedProperty.upgrades.Any(x => x.active))
+                str += string.Join(", ", selectedProperty.upgrades.Where(x => x.active).Select(x => x.name).OrderBy(x => x));
+            else
+                str += "(none)";
+        }
+        else
+            str = string.Empty;
+        propertiesScreen.transform.Find("Text2").GetComponent<TMP_Text>().text = str;
+
+        Transform content = propertiesScreen.transform.Find("Upgrades/Viewport/Content");
+        foreach (Transform child in content)
+            Destroy(child.gameObject);
+
+        if (selectedProperty != null && selectedProperty.upgrades != null && selectedProperty.upgrades.Any(x => !x.active))
+        {
+            ui.AddTextHeader("Available upgrades:", content);
+            foreach (Property.Upgrade upgrade in selectedProperty.upgrades.Where(x => !x.active).OrderBy(x => x.name))
+            {
+                ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
+                itemEntry.Init(upgrade.ToString(), "Buy", () =>
+                {
+                    if (player.gold < upgrade.value)
+                    {
+                        ui.ShowDialog($"You need {upgrade.value} gold to buy {upgrade.name}.");
+                        return;
+                    }
+
+                    player.AddGold(-upgrade.value);
+                    upgrade.active = true;
+                    selectedProperty.value += upgrade.value;
+                    lastAction = $"You buy {upgrade.name} for <color=#FFD700>{upgrade.value}</color> gold.";
+                    AddTime(minutes: 30);
+                    if (ui.CurrentDialog == propertiesScreen)
+                    {
+                        UpdateProperties();
+                        UpdatePropertyDetails();
+                    }
+                    UpdateText();
+                });
+            }
         }
     }
 
@@ -1992,6 +2076,8 @@ public class Game : MonoBehaviour
             player.RemoveItem(herb, count * 2);
             float mod;
             int alchemy = player.GetSkill(Skill.Alchemy);
+            if (world.Location == TileType.House)
+                alchemy += 25;
             if (alchemy >= 100)
                 mod = 1;
             else if (alchemy >= 75)
@@ -2029,7 +2115,7 @@ public class Game : MonoBehaviour
         foreach (Hero ally in allies)
         {
             ally.gold += share;
-            if (world.Location == TileType.City || world.Location == TileType.Village)
+            if (world.Location.IsSafe())
                 ally.BuyItems();
         }
 
