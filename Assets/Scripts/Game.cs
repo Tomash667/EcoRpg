@@ -26,6 +26,7 @@ public class Game : MonoBehaviour
     public List<Hero> allies;
     public List<Quest> availableQuests;
     public List<Property> properties;
+    public List<ItemSlot> storedItems;
     public List<string> notifications;
     [SerializeReference]
     public Quest activeQuest;
@@ -33,7 +34,7 @@ public class Game : MonoBehaviour
     public int day, hour, minute, guildRank, guildProgress;
 
     private GameUI ui;
-    private GameObject shop, character, allyScreen, giveAllyItems, activeInventory, propertiesScreen, guildScreen;
+    private GameObject shop, character, allyScreen, giveAllyItems, storeItemsScreen, activeInventory, propertiesScreen, guildScreen;
     private Map map;
     private TMP_Text text;
     private Hero activeAlly;
@@ -61,6 +62,7 @@ public class Game : MonoBehaviour
         character = transform.Find("Character").gameObject;
         allyScreen = transform.Find("Ally").gameObject;
         giveAllyItems = transform.Find("GiveItems").gameObject;
+        storeItemsScreen = transform.Find("StoreItems").gameObject;
         propertiesScreen = transform.Find("Properties").gameObject;
         guildScreen = transform.Find("Guild").gameObject;
         map = transform.Find("Map").GetComponent<Map>();
@@ -851,7 +853,7 @@ public class Game : MonoBehaviour
                     }
                 });
             }
-            else
+            else if (activeInventory == giveAllyItems)
             {
                 if (activeAlly.WillTakeItem(itemSlot.item))
                 {
@@ -890,6 +892,40 @@ public class Game : MonoBehaviour
                 }
                 else
                     itemEntry.Init(itemSlot.ToString(true));
+            }
+            else
+            {
+                itemEntry.Init(itemSlot.ToString(true), "Store", () =>
+                {
+                    if (Input.GetKey(KeyCode.LeftShift))
+                    {
+                        AddStoredItem(itemSlot.item, itemSlot.count);
+                        player.RemoveItem(itemSlot, itemSlot.count);
+                        RefreshPlayerItems();
+                        RefreshStoredItems();
+                    }
+                    else if (Input.GetKey(KeyCode.LeftControl))
+                    {
+                        ui.ShowInput($"How many {Utility.Plural(itemSlot.item.name)} to store?", count =>
+                        {
+                            if (count <= 0)
+                                return true;
+                            count = Mathf.Min(count, itemSlot.count);
+                            AddStoredItem(itemSlot.item, count);
+                            player.RemoveItem(itemSlot, count);
+                            RefreshPlayerItems();
+                            RefreshStoredItems();
+                            return true;
+                        });
+                    }
+                    else
+                    {
+                        AddStoredItem(itemSlot.item);
+                        player.RemoveItem(itemSlot);
+                        RefreshPlayerItems();
+                        RefreshStoredItems();
+                    }
+                });
             }
         }
     }
@@ -1350,6 +1386,7 @@ public class Game : MonoBehaviour
         player = new() { name = global.playerName, clas = global.playerClass, female = global.playerFemale };
         player.Init();
         allies = new();
+        storedItems = new();
         world = new();
         world.Init();
         map.Build();
@@ -1523,6 +1560,7 @@ public class Game : MonoBehaviour
 
         buttons.Find("BtWork2").gameObject.SetActive(location == TileType.Sawmill || location == TileType.Mine);
 
+        buttons.Find("BtStorage").gameObject.SetActive(location == TileType.House);
         buttons.Find("BtCraft").gameObject.SetActive(location == TileType.House && player.HavePropertyUpgrade("House", "Alchemy lab"));
 
         GameObject btAlly = buttons.Find("BtAlly").gameObject;
@@ -2259,5 +2297,72 @@ public class Game : MonoBehaviour
         if (ui.CurrentDialog == guildScreen)
             UpdateGuild();
         UpdateText();
+    }
+
+    public void StoreItems()
+    {
+        activeInventory = storeItemsScreen;
+        ui.ShowDialog(storeItemsScreen);
+        RefreshPlayerItems();
+        RefreshStoredItems();
+    }
+
+    private void RefreshStoredItems()
+    {
+        Transform content = storeItemsScreen.transform.Find("StoredItems/Viewport/Content");
+        foreach (Transform child in content)
+            Destroy(child.gameObject);
+
+        foreach (ItemSlot itemSlot in storedItems)
+        {
+            ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
+            itemEntry.Init(itemSlot.ToString(false), "Take", () =>
+            {
+                if (Input.GetKey(KeyCode.LeftShift))
+                {
+                    player.AddItem(itemSlot.item, itemSlot.count);
+                    RemoveStoredItem(itemSlot, itemSlot.count);
+                    RefreshPlayerItems();
+                    RefreshStoredItems();
+                }
+                else if (Input.GetKey(KeyCode.LeftControl))
+                {
+                    ui.ShowInput($"How many {Utility.Plural(itemSlot.item.name)} to take?", count =>
+                    {
+                        if (count <= 0)
+                            return true;
+                        count = Mathf.Min(count, itemSlot.count);
+                        player.AddItem(itemSlot.item, count);
+                        RemoveStoredItem(itemSlot, count);
+                        RefreshPlayerItems();
+                        RefreshStoredItems();
+                        return true;
+                    });
+                }
+                else
+                {
+                    player.AddItem(itemSlot.item);
+                    RemoveStoredItem(itemSlot);
+                    RefreshPlayerItems();
+                    RefreshStoredItems();
+                }
+            });
+        }
+    }
+
+    private void AddStoredItem(Item item, int count = 1)
+    {
+        ItemSlot itemSlot = storedItems.FirstOrDefault(x => x.item == item);
+        if (itemSlot != null)
+            itemSlot.count += count;
+        else
+            storedItems.Add(new() { item = item, count = count });
+    }
+
+    private void RemoveStoredItem(ItemSlot itemSlot, int count = 1)
+    {
+        itemSlot.count -= count;
+        if (itemSlot.count <= 0)
+            storedItems.Remove(itemSlot);
     }
 }

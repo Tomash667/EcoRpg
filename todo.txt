@@ -147,7 +147,6 @@ investments:
 	office room
 	stables
 + different text when entering mine being build or when finished while inside
-+ house -> store items
 + upgrades takes time
 + undo upgrades
 + see active events
