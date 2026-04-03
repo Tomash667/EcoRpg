@@ -1158,25 +1158,32 @@ public class Game : MonoBehaviour
 
     private void OnRest()
     {
+        void FullRest()
+        {
+            player.hp = player.hpMax;
+            player.energy = 100;
+            foreach (Hero ally in allies)
+                ally.hp = ally.hpMax;
+        }
+
         ++day;
         hour = 8;
         minute = 0;
         TileType location = world.Location;
         if ((location == TileType.City && player.HaveProperty("House")) || location == TileType.House)
         {
-            player.hp = player.hpMax;
-            player.energy = 100;
-            foreach (Hero ally in allies)
-                ally.hp = ally.hpMax;
+            FullRest();
             lastAction += "You rest in your house.";
         }
         else if ((location == TileType.City && player.HaveProperty("Mansion")) || location == TileType.Mansion)
         {
-            player.hp = player.hpMax;
-            player.energy = 100;
-            foreach (Hero ally in allies)
-                ally.hp = ally.hpMax;
+            FullRest();
             lastAction += "You rest in your mansion.";
+        }
+        else if (location == TileType.City && player.HaveProperty("Inn"))
+        {
+            FullRest();
+            lastAction += "You rest in your inn.";
         }
         else if ((location == TileType.City || location == TileType.Village) && player.gold > 0)
         {
@@ -1192,10 +1199,7 @@ public class Game : MonoBehaviour
         }
         else if (location == TileType.Sawmill || location == TileType.Mine)
         {
-            player.hp = player.hpMax;
-            player.energy = 100;
-            foreach (Hero ally in allies)
-                ally.hp = ally.hpMax;
+            FullRest();
             lastAction += "You rest in a barracks.";
         }
         else
@@ -1294,7 +1298,7 @@ public class Game : MonoBehaviour
                 map.UpdateMap(World.IndexToPoint(property.locationIndex));
                 if (world.CurrentLocationIndex == property.locationIndex)
                     OnChangeLocation();
-                AddNotification($"The construction of {property.name} has been completed.");
+                AddNotification($"The construction of {property.name.ToLower()} has been completed.");
             }
         }
 
@@ -1334,15 +1338,17 @@ public class Game : MonoBehaviour
                     property.events.Add(new Property.Event { name = "Buff", timer = 30 });
                     string str;
                     if (property.name == "Sawmill")
-                        str = "Your Sawmill production increased thanks to good weather.";
+                        str = "Your sawmill production increased thanks to good weather.";
+                    else if (property.name == "Inn")
+                        str = "Your inn income increased thanks to festival.";
                     else if (Utility.Rand % 2 == 0)
-                        str = $"Your {property.name} production increased thanks to good ore quality.";
+                        str = $"Your {property.name.ToLower()} production increased thanks to good ore quality.";
                     else
-                        str = $"Your {property.name} production increased thanks to new ore veins.";
+                        str = $"Your {property.name.ToLower()} production increased thanks to new ore veins.";
                     AddNotification(str);
                     break;
                 }
-                else if (c == 2 && !property.HaveUpgrade("Extra guards"))
+                else if (c == 2 && property.locationIndex != -1 && !property.HaveUpgrade("Extra guards"))
                 {
                     // 5%
                     property.events.Add(new Property.Event { name = "Infested", timer = -1 });
@@ -1451,7 +1457,7 @@ public class Game : MonoBehaviour
             new()
             {
                 name = "Mansion",
-                desc = "don't pay for inn, 5 upkeep",
+                desc = "don't pay for inn, better rest, 5 upkeep",
                 value = 10000,
                 upkeep = 5,
                 status = Property.Status.Active,
@@ -1594,7 +1600,17 @@ public class Game : MonoBehaviour
                         income = 20
                     }
                 }
-            }
+            },
+            new()
+            {
+                name = "Inn",
+                desc = "PROFIT gold/day, free rest",
+                value = 5000,
+                income = 10,
+                upkeep = 5,
+                status = Property.Status.Active,
+                locationIndex = -1
+            },
         };
         lastAction = "You are an adventurer seeking glory and gold. Rumors speak of a dragon lurking deep within a forgotten cave beyond the wilds. " +
             "Find its lair, face the beast, and carve your name into legend.";
@@ -1807,7 +1823,7 @@ public class Game : MonoBehaviour
                         player.AddGold(property.value / 2);
                         player.properties.Remove(property);
                         property.events.Clear();
-                        lastAction = $"You sell {property.name} for <color=#FFD700>{property.value / 2}</color> gold.";
+                        lastAction = $"You sell {property.name.ToLower()} for <color=#FFD700>{property.value / 2}</color> gold.";
                         if (property.name == "House" || property.name == "Mansion")
                         {
                             UpdateButtons();
@@ -1844,7 +1860,7 @@ public class Game : MonoBehaviour
                 int cost = build ? property.buildPrice : property.value;
                 if (player.gold < cost)
                 {
-                    ui.ShowDialog($"You need {cost} gold to {(build ? "build" : "buy")} {property.name}.");
+                    ui.ShowDialog($"You need {cost} gold to {(build ? "build" : "buy")} {property.name.ToLower()}.");
                     return;
                 }
 
@@ -1859,13 +1875,13 @@ public class Game : MonoBehaviour
                 properties.Remove(property);
                 if (build)
                 {
-                    lastAction = $"You pay <color=#FFD700>{cost}</color> gold to build {property.name}.";
+                    lastAction = $"You pay <color=#FFD700>{cost}</color> gold to build {property.name.ToLower()}.";
                     property.status = Property.Status.Building;
                     world.GetLocation(property.locationIndex).timer = 0; // prevent resetting
                 }
                 else
                 {
-                    lastAction = $"You buy {property.name} for <color=#FFD700>{cost}</color> gold.";
+                    lastAction = $"You buy {property.name.ToLower()} for <color=#FFD700>{cost}</color> gold.";
 
                     // remove quests assigned to this location
                     if (property.locationIndex != -1)
@@ -1934,7 +1950,7 @@ public class Game : MonoBehaviour
                 {
                     if (player.gold < upgrade.value)
                     {
-                        ui.ShowDialog($"You need {upgrade.value} gold to buy {upgrade.name}.");
+                        ui.ShowDialog($"You need {upgrade.value} gold to buy {upgrade.name.ToLower()}.");
                         return;
                     }
 
@@ -1943,7 +1959,7 @@ public class Game : MonoBehaviour
                     selectedProperty.value += upgrade.value;
                     selectedProperty.income += upgrade.income;
                     selectedProperty.upkeep += upgrade.upkeep;
-                    lastAction = $"You buy {upgrade.name} for <color=#FFD700>{upgrade.value}</color> gold.";
+                    lastAction = $"You buy {upgrade.name.ToLower()} for <color=#FFD700>{upgrade.value}</color> gold.";
                     if (upgrade.name == "Extra guards")
                     {
                         if (selectedProperty.RemoveEvent("Infested"))

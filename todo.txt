@@ -20,7 +20,6 @@ v1:
 + trophies/meat from enemies
 * investments
 	sawmill -> cheaper build/upkeep
-	inn
 	pay to clear property takes time
 + world
 	better clear/respawn enemies - don't wait 30 days from last kill
@@ -140,7 +139,7 @@ investments:
 + supply & demand
 + farm
 + old mansion/mine -> need repairs
-+ village house
++ village house/inn
 + mansion upgrades
 	office room
 	stables
@@ -148,6 +147,7 @@ investments:
 + upgrades takes time
 + undo upgrades
 + see active events
++ brewery/vineyard -> inn bonus
 
 skills:
 + management
