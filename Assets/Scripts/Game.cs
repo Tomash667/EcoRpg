@@ -139,7 +139,7 @@ public class Game : MonoBehaviour
                     Shop();
                 if (Input.GetKeyDown(KeyCode.X))
                     EnterSewers();
-                if (Input.GetKeyDown(KeyCode.H) && player.HaveProperty("House"))
+                if (Input.GetKeyDown(KeyCode.H) && (player.HaveProperty("House") || player.HaveProperty("Mansion")))
                     EnterHouse();
                 break;
             case TileType.Village:
@@ -153,6 +153,8 @@ public class Game : MonoBehaviour
                     Forage();
                 break;
             case TileType.Sewers:
+            case TileType.House:
+            case TileType.Mansion:
                 if (Input.GetKeyDown(KeyCode.X))
                     ExitToCity();
                 break;
@@ -160,10 +162,6 @@ public class Game : MonoBehaviour
             case TileType.Mine:
                 if (Input.GetKeyDown(KeyCode.W))
                     Work();
-                break;
-            case TileType.House:
-                if (Input.GetKeyDown(KeyCode.X))
-                    ExitToCity();
                 break;
             }
         }
@@ -554,8 +552,16 @@ public class Game : MonoBehaviour
 
     public void EnterHouse()
     {
-        lastAction = "You enter your house.";
-        world.sublocation = 2;
+        if (player.HaveProperty("House"))
+        {
+            lastAction = "You enter your house.";
+            world.sublocation = 2;
+        }
+        else
+        {
+            lastAction = "You enter your mansion.";
+            world.sublocation = 3;
+        }
         AddTime(minutes: 5);
         OnChangeLocation();
     }
@@ -1164,6 +1170,14 @@ public class Game : MonoBehaviour
                 ally.hp = ally.hpMax;
             lastAction += "You rest in your house.";
         }
+        else if ((location == TileType.City && player.HaveProperty("Mansion")) || location == TileType.Mansion)
+        {
+            player.hp = player.hpMax;
+            player.energy = 100;
+            foreach (Hero ally in allies)
+                ally.hp = ally.hpMax;
+            lastAction += "You rest in your mansion.";
+        }
         else if ((location == TileType.City || location == TileType.Village) && player.gold > 0)
         {
             player.hp = player.hpMax;
@@ -1436,6 +1450,31 @@ public class Game : MonoBehaviour
             },
             new()
             {
+                name = "Mansion",
+                desc = "don't pay for inn, 5 upkeep",
+                value = 10000,
+                upkeep = 5,
+                status = Property.Status.Active,
+                locationIndex = -1,
+                upgrades = new Property.Upgrade[]
+                {
+                    new()
+                    {
+                        name = "Alchemy lab",
+                        desc = "+25 alchemy",
+                        value = 100
+                    },
+                    new()
+                    {
+                        name = "Garden",
+                        desc = "Grow food or herbs, +2 upkeep",
+                        value = 500,
+                        upkeep = 2
+                    }
+                }
+            },
+            new()
+            {
                 name = "Horses",
                 desc = "+25% travel speel",
                 value = 500,
@@ -1594,10 +1633,17 @@ public class Game : MonoBehaviour
         buttons.Find("BtGuild").gameObject.SetActive(inCity);
         buttons.Find("BtProperties").gameObject.SetActive(inCity);
         buttons.Find("BtSewers").gameObject.SetActive(inCity);
-        buttons.Find("BtHouse").gameObject.SetActive(inCity && player.HaveProperty("House"));
+        Transform houseButton = buttons.Find("BtHouse");
+        if (inCity && (player.HaveProperty("House") || player.HaveProperty("Mansion")))
+        {
+            houseButton.gameObject.SetActive(true);
+            houseButton.GetComponentInChildren<TMP_Text>().text = player.HaveProperty("House") ? "House" : "Mansion";
+        }
+        else
+            houseButton.gameObject.SetActive(false);
 
         GameObject btMessages = buttons.Find("BtMessages").gameObject;
-        bool showMessages = inCity || inVillage || location == TileType.House;
+        bool showMessages = location.IsSafe();
         btMessages.SetActive(showMessages);
         if (showMessages)
         {
@@ -1607,13 +1653,15 @@ public class Game : MonoBehaviour
 
         buttons.Find("BtForage").gameObject.SetActive(location == TileType.Forest);
 
-        buttons.Find("BtCity").gameObject.SetActive(location == TileType.Sewers || location == TileType.House);
+        buttons.Find("BtCity").gameObject.SetActive(location == TileType.Sewers || location == TileType.House || location == TileType.Mansion);
 
         buttons.Find("BtWork2").gameObject.SetActive(location == TileType.Sawmill || location == TileType.Mine);
 
-        buttons.Find("BtStorage").gameObject.SetActive(location == TileType.House);
-        buttons.Find("BtCraft").gameObject.SetActive(location == TileType.House && player.HavePropertyUpgrade("House", "Alchemy lab"));
-        buttons.Find("BtGarden").gameObject.SetActive(location == TileType.House && player.HavePropertyUpgrade("House", "Garden"));
+        buttons.Find("BtStorage").gameObject.SetActive(location == TileType.House || location == TileType.Mansion);
+        buttons.Find("BtCraft").gameObject.SetActive((location == TileType.House && player.HavePropertyUpgrade("House", "Alchemy lab"))
+            || (location == TileType.Mansion && player.HavePropertyUpgrade("Mansion", "Alchemy lab")));
+        buttons.Find("BtGarden").gameObject.SetActive((location == TileType.House && player.HavePropertyUpgrade("House", "Garden"))
+            || (location == TileType.Mansion && player.HavePropertyUpgrade("Mansion", "Garden")));
 
         GameObject btAlly = buttons.Find("BtAlly").gameObject;
         if (allies.Count < 1)
@@ -1760,7 +1808,7 @@ public class Game : MonoBehaviour
                         player.properties.Remove(property);
                         property.events.Clear();
                         lastAction = $"You sell {property.name} for <color=#FFD700>{property.value / 2}</color> gold.";
-                        if (property.name == "House")
+                        if (property.name == "House" || property.name == "Mansion")
                         {
                             UpdateButtons();
                             gardenPlants.Clear();
@@ -1800,6 +1848,12 @@ public class Game : MonoBehaviour
                     return;
                 }
 
+                if ((property.name == "House" && player.HaveProperty("Mansion")) || (property.name == "Mansion" && player.HaveProperty("House")))
+                {
+                    ui.ShowDialog("You can't own both house and mansion. It's a law!");
+                    return;
+                }
+
                 player.AddGold(-cost);
                 player.properties.Add(property);
                 properties.Remove(property);
@@ -1825,11 +1879,13 @@ public class Game : MonoBehaviour
                     }
                 }
 
-                if (property.name == "House")
+                if (property.name == "House" || property.name == "Mansion")
                 {
                     UpdateButtons();
                     gardenPlants.Clear();
-                    gardenPlants.AddRange(new string[] { "", "" });
+                    int size = property.name == "House" ? 2 : 6;
+                    for (int i = 0; i < size; ++i)
+                        gardenPlants.Add(string.Empty);
                 }
                 AddTime(minutes: 30);
                 if (ui.CurrentDialog == propertiesScreen)
@@ -2226,7 +2282,7 @@ public class Game : MonoBehaviour
             player.RemoveItem(herb, count * 2);
             float mod;
             int alchemy = player.GetSkill(Skill.Alchemy);
-            if (world.Location == TileType.House)
+            if (world.Location == TileType.House || world.Location == TileType.Mansion)
                 alchemy += 25;
             if (alchemy >= 100)
                 mod = 1;

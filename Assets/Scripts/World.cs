@@ -113,6 +113,13 @@ public class World
                 hidden = TileType.None,
                 difficulty = 0,
                 clear = true
+            },
+            new()
+            {
+                type = TileType.Mansion,
+                hidden = TileType.None,
+                difficulty = 0,
+                clear = true
             }
         };
 

@@ -15,11 +15,10 @@ v1:
 	better heroes
 	relationship
 + multilevel dungeon
-+ well rested in house/guild personal room
++ well rested in mansion
 + dungeon different traps (damage, accuracy, targets)
 + trophies/meat from enemies
 * investments
-	mansion
 	sawmill -> cheaper build/upkeep
 	inn
 	pay to clear property takes time

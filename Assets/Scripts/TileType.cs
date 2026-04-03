@@ -12,7 +12,8 @@ public enum TileType
     Sewers,
     Village,
     Swamp,
-    House
+    House,
+    Mansion
 }
 
 public enum TileImage
@@ -48,13 +49,14 @@ public static class TileTypeMethods
             TileType.Village => "village",
             TileType.Swamp => "swamp",
             TileType.House => "house",
+            TileType.Mansion => "mansion",
             _ => $"[ERROR tileType {tileType}]"
         };
     }
 
     public static bool IsSmall(this TileType tileType)
     {
-        return tileType == TileType.Cave || tileType == TileType.Dungeon || tileType == TileType.Mine || tileType == TileType.Sewers || tileType == TileType.House;
+        return tileType == TileType.Cave || tileType == TileType.Dungeon || tileType == TileType.Mine || tileType == TileType.Sewers || tileType == TileType.House || tileType == TileType.Mansion;
     }
 
     public static bool IsClearable(this TileType tileType)
@@ -64,6 +66,6 @@ public static class TileTypeMethods
 
     public static bool IsSafe(this TileType tileType)
     {
-        return tileType == TileType.City || tileType == TileType.Village || tileType == TileType.House;
+        return tileType == TileType.City || tileType == TileType.Village || tileType == TileType.House || tileType == TileType.Mansion;
     }
 }
