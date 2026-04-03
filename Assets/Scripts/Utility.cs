@@ -55,10 +55,15 @@ public static class Utility
         return word + 's';
     }
 
-    public static string Plural(string word, int count)
+    public static string Plural(string word, int count, bool alwaysShowNumber = false)
     {
         if (count == 1)
-            return word;
+        {
+            if (alwaysShowNumber)
+                return $"1 {word}";
+            else
+                return word;
+        }
         else
             return $"{count} {Plural(word)}";
     }

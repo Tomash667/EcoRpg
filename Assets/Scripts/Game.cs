@@ -952,6 +952,8 @@ public class Game : MonoBehaviour
             foreach (var skill in player.skills.Select(kvp => (name: kvp.Key.AsString().ToUpper1(), kvp.Value.level)).OrderBy(x => x.name))
                 sb.Append($"  {skill.name}: {skill.level}\n");
         }
+        if (player.rested > 0)
+            sb.Append($"Effects:\n  Well rested ({Utility.Plural("day", player.rested, true)})");
         charText.text = sb.ToString();
 
         RefreshPlayerItems();
@@ -972,6 +974,8 @@ public class Game : MonoBehaviour
             foreach (var skill in activeAlly.skills.Select(kvp => (name: kvp.Key.AsString().ToUpper1(), kvp.Value.level)).OrderBy(x => x.name))
                 sb.Append($"  {skill.name}: {skill.level}\n");
         }
+        if (activeAlly.rested > 0)
+            sb.Append($"Effects:\n  Well rested ({Utility.Plural("day", activeAlly.rested, true)})");
         charText.text = sb.ToString();
 
         RefreshAllyItems(allyScreen);
@@ -1178,6 +1182,8 @@ public class Game : MonoBehaviour
         else if ((location == TileType.City && player.HaveProperty("Mansion")) || location == TileType.Mansion)
         {
             FullRest();
+            foreach (Hero hero in Team)
+                hero.rested = 11;
             lastAction += "You rest in your mansion.";
         }
         else if (location == TileType.City && player.HaveProperty("Inn"))
@@ -1187,14 +1193,10 @@ public class Game : MonoBehaviour
         }
         else if ((location == TileType.City || location == TileType.Village) && player.gold > 0)
         {
-            player.hp = player.hpMax;
-            player.energy = 100;
+            FullRest();
             player.AddGold(-1);
             foreach (Hero ally in allies)
-            {
-                ally.hp = ally.hpMax;
                 --ally.gold;
-            }
             lastAction += "You rest in an inn (<color=#FFD700>-1</color> gold).";
         }
         else if (location == TileType.Sawmill || location == TileType.Mine)
@@ -1321,6 +1323,13 @@ public class Game : MonoBehaviour
             AddStoredItem(Item.Get("herb"), herbs);
         if (rations > 0)
             AddStoredItem(Item.Get("rations"), rations);
+
+        // end effects
+        foreach(Hero hero in Team)
+        {
+            if (hero.rested > 0)
+                --hero.rested;
+        }
 
         world.Update();
 
@@ -1924,7 +1933,7 @@ public class Game : MonoBehaviour
         if (selectedProperty == null)
             str = string.Empty;
         else if (selectedProperty.status == Property.Status.Building)
-            str = $"<b>{selectedProperty.name}</b>\n{selectedProperty.buildTime} days left to end of construction";
+            str = $"<b>{selectedProperty.name}</b>\n{Utility.Plural("day", selectedProperty.buildTime, true)} left to end of construction";
         else
         {
             str = $"<b>{selectedProperty.name}</b>\n" +

@@ -12,7 +12,7 @@ public class Hero : ISerializationCallbackReceiver
     public Item weapon, armor, shield;
     public string name, weaponName, armorName, shieldName;
     public Class clas;
-    public int level, exp, hp, hpMax, attack, defense, dex, gold;
+    public int level, exp, hp, hpMax, attack, defense, dex, gold, rested;
     public bool female;
 
     [NonSerialized]
@@ -112,6 +112,8 @@ public class Hero : ISerializationCallbackReceiver
 
     public bool AddExp(int enemyLevel, float mod)
     {
+        if (rested > 0)
+            mod *= 1.1f;
         int newExp = (int)(GetExpReward(enemyLevel) * mod);
         exp += newExp;
         if (exp >= 1000)

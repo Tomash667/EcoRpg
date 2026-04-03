@@ -15,7 +15,6 @@ v1:
 	better heroes
 	relationship
 + multilevel dungeon
-+ well rested in mansion
 + dungeon different traps (damage, accuracy, targets)
 + trophies/meat from enemies
 * investments
