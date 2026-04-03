@@ -1460,6 +1460,13 @@ public class Game : MonoBehaviour
                         desc = "Prevents monster invasion, +1 upkeep",
                         value = 1000,
                         upkeep = 1
+                    },
+                    new()
+                    {
+                        name = "Water-powered saws",
+                        desc = "+5 income",
+                        value = 1500,
+                        income = 5
                     }
                 }
             },
@@ -1481,6 +1488,13 @@ public class Game : MonoBehaviour
                         desc = "Prevents monster invasion, +2 upkeep",
                         value = 2000,
                         upkeep = 2
+                    },
+                    new()
+                    {
+                        name = "Deep shaft expansion",
+                        desc = "+10 income",
+                        value = 3000,
+                        income = 10
                     }
                 }
             },
@@ -1503,6 +1517,13 @@ public class Game : MonoBehaviour
                         desc = "Prevents monster invasion, +2 upkeep",
                         value = 2000,
                         upkeep = 2
+                    },
+                    new()
+                    {
+                        name = "Deep shaft expansion",
+                        desc = "+15 income",
+                        value = 4000,
+                        income = 15
                     }
                 }
             },
@@ -1525,6 +1546,13 @@ public class Game : MonoBehaviour
                         desc = "Prevents monster invasion, +2 upkeep",
                         value = 2000,
                         upkeep = 2
+                    },
+                    new()
+                    {
+                        name = "Deep shaft expansion",
+                        desc = "+20 income",
+                        value = 5000,
+                        income = 20
                     }
                 }
             }
@@ -1821,7 +1849,11 @@ public class Game : MonoBehaviour
         selectedProperty = list.GetSelectedData() as Property;
 
         string str;
-        if (selectedProperty != null)
+        if (selectedProperty == null)
+            str = string.Empty;
+        else if (selectedProperty.status == Property.Status.Building)
+            str = $"<b>{selectedProperty.name}</b>\n{selectedProperty.buildTime} days left to end of construction";
+        else
         {
             str = $"<b>{selectedProperty.name}</b>\n" +
                 $"Income:{selectedProperty.Income}  Upkeep:{selectedProperty.Upkeep}  Profit:{selectedProperty.Profit}\nUpgrades: ";
@@ -1830,15 +1862,13 @@ public class Game : MonoBehaviour
             else
                 str += "(none)";
         }
-        else
-            str = string.Empty;
         propertiesScreen.transform.Find("Text2").GetComponent<TMP_Text>().text = str;
 
         Transform content = propertiesScreen.transform.Find("Upgrades/Viewport/Content");
         foreach (Transform child in content)
             Destroy(child.gameObject);
 
-        if (selectedProperty != null && selectedProperty.upgrades != null && selectedProperty.upgrades.Any(x => !x.active))
+        if (selectedProperty != null && selectedProperty.status == Property.Status.Active && selectedProperty.upgrades != null && selectedProperty.upgrades.Any(x => !x.active))
         {
             ui.AddTextHeader("Available upgrades:", content);
             foreach (Property.Upgrade upgrade in selectedProperty.upgrades.Where(x => !x.active).OrderBy(x => x.name))
@@ -1855,6 +1885,7 @@ public class Game : MonoBehaviour
                     player.AddGold(-upgrade.value);
                     upgrade.active = true;
                     selectedProperty.value += upgrade.value;
+                    selectedProperty.income += upgrade.income;
                     selectedProperty.upkeep += upgrade.upkeep;
                     lastAction = $"You buy {upgrade.name} for <color=#FFD700>{upgrade.value}</color> gold.";
                     if (upgrade.name == "Extra guards")

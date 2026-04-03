@@ -23,7 +23,6 @@ v1:
 	sawmill -> cheaper build/upkeep
 	inn
 	pay to clear property takes time
-	efficiency upgrades
 + world
 	better clear/respawn enemies - don't wait 30 days from last kill
 	show multiple notifications with date

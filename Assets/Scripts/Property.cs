@@ -16,7 +16,7 @@ public class Property
     public class Upgrade
     {
         public string name, desc;
-        public int value, upkeep;
+        public int value, income, upkeep;
         public bool active;
 
         public override string ToString()
