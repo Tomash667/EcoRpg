@@ -28,13 +28,14 @@ public class Game : MonoBehaviour
     public List<Property> properties;
     public List<ItemSlot> storedItems;
     public List<string> notifications;
+    public List<string> gardenPlants;
     [SerializeReference]
     public Quest activeQuest;
     public DragonStatus dragonStatus;
     public int day, hour, minute, guildRank, guildProgress;
 
     private GameUI ui;
-    private GameObject shop, character, allyScreen, giveAllyItems, storeItemsScreen, activeInventory, propertiesScreen, guildScreen;
+    private GameObject shop, character, allyScreen, giveAllyItems, storeItemsScreen, activeInventory, propertiesScreen, guildScreen, gardenScreen;
     private Map map;
     private TMP_Text text;
     private Hero activeAlly;
@@ -65,6 +66,7 @@ public class Game : MonoBehaviour
         storeItemsScreen = transform.Find("StoreItems").gameObject;
         propertiesScreen = transform.Find("Properties").gameObject;
         guildScreen = transform.Find("Guild").gameObject;
+        gardenScreen = transform.Find("Garden").gameObject;
         map = transform.Find("Map").GetComponent<Map>();
         map.Init();
 
@@ -1288,6 +1290,20 @@ public class Game : MonoBehaviour
                 --quest.timer;
         }
 
+        // grow garden plants
+        int herbs = 0, rations = 0;
+        foreach (string plant in gardenPlants)
+        {
+            if (plant == "Vegetables")
+                ++rations;
+            else if (plant == "Herbs")
+                ++herbs;
+        }
+        if (herbs > 0)
+            AddStoredItem(Item.Get("herb"), herbs);
+        if (rations > 0)
+            AddStoredItem(Item.Get("rations"), rations);
+
         world.Update();
 
         if (day % 10 == 0)
@@ -1408,6 +1424,13 @@ public class Game : MonoBehaviour
                         name = "Alchemy lab",
                         desc = "+25 alchemy",
                         value = 100
+                    },
+                    new()
+                    {
+                        name = "Garden",
+                        desc = "Grow food or herbs, +1 upkeep",
+                        value = 100,
+                        upkeep = 1
                     }
                 }
             },
@@ -1562,6 +1585,7 @@ public class Game : MonoBehaviour
 
         buttons.Find("BtStorage").gameObject.SetActive(location == TileType.House);
         buttons.Find("BtCraft").gameObject.SetActive(location == TileType.House && player.HavePropertyUpgrade("House", "Alchemy lab"));
+        buttons.Find("BtGarden").gameObject.SetActive(location == TileType.House && player.HavePropertyUpgrade("House", "Garden"));
 
         GameObject btAlly = buttons.Find("BtAlly").gameObject;
         if (allies.Count < 1)
@@ -1709,7 +1733,10 @@ public class Game : MonoBehaviour
                         property.events.Clear();
                         lastAction = $"You sell {property.name} for <color=#FFD700>{property.value / 2}</color> gold.";
                         if (property.name == "House")
+                        {
                             UpdateButtons();
+                            gardenPlants.Clear();
+                        }
                         AddTime(minutes: 30);
                         if (ui.CurrentDialog == propertiesScreen)
                         {
@@ -1771,7 +1798,11 @@ public class Game : MonoBehaviour
                 }
 
                 if (property.name == "House")
+                {
                     UpdateButtons();
+                    gardenPlants.Clear();
+                    gardenPlants.AddRange(new string[] { "", "" });
+                }
                 AddTime(minutes: 30);
                 if (ui.CurrentDialog == propertiesScreen)
                 {
@@ -2364,5 +2395,62 @@ public class Game : MonoBehaviour
         itemSlot.count -= count;
         if (itemSlot.count <= 0)
             storedItems.Remove(itemSlot);
+    }
+
+    public void Garden()
+    {
+        ui.ShowDialog(gardenScreen);
+        RefreshGarden();
+    }
+
+    private void RefreshGarden()
+    {
+        Transform content = gardenScreen.transform.Find("List/Viewport/Content");
+        foreach (Transform child in content)
+            Destroy(child.gameObject);
+
+        string[] choices = new string[] { "---", "Vegetables (10 gold)", "Herbs (10 herbs)" };
+
+        for (int i = 0; i < gardenPlants.Count; ++i)
+        {
+            int index = i;
+            string plant = gardenPlants[i];
+            if (plant == "")
+                plant = "Empty";
+            DropdownEntry dropdownEntry = Instantiate(ui.dropdownEntryPrefab, content).GetComponent<DropdownEntry>();
+            dropdownEntry.Init($"Plot {i + 1}: {plant}", "Change", choices, x =>
+            {
+                if (x == 1)
+                {
+                    // vegetables
+                    if (plant == "Vegetables")
+                        ui.ShowDialog("Vegetables are already planted here.");
+                    else if (player.gold < 10)
+                        ui.ShowDialog("You need 10 gold.");
+                    else
+                    {
+                        player.AddGold(-10);
+                        gardenPlants[index] = "Vegetables";
+                        RefreshGarden();
+                        UpdateText();
+                    }
+                }
+                else if (x == 2)
+                {
+                    // herbs
+                    Item herb = Item.Get("herb");
+                    if (plant == "Herbs")
+                        ui.ShowDialog("Herbs are already planted here.");
+                    else if (player.CountItem(herb) < 10)
+                        ui.ShowDialog("You need 10 herbs.");
+                    else
+                    {
+                        player.RemoveItem(herb, 10);
+                        gardenPlants[index] = "Herbs";
+                        RefreshGarden();
+                    }
+                }
+            });
+        }
     }
 }

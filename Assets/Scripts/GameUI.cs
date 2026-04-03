@@ -13,7 +13,7 @@ public class GameUI : MonoBehaviour
 #endif
 
     public Sprite[] backgrounds;
-    public GameObject itemEntryPrefab, lineSeparatorPrefab, textHeaderPrefab;
+    public GameObject itemEntryPrefab, lineSeparatorPrefab, textHeaderPrefab, dropdownEntryPrefab;
 
     [NonSerialized]
     public bool lockDialog;
