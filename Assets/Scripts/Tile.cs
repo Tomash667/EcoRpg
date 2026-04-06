@@ -81,6 +81,8 @@ public class Tile
         case TileType.Dungeon:
             if (type == TileType.Forest)
                 image = TileImage.ForestDungeon;
+            else if (type == TileType.Swamp)
+                image = TileImage.SwampDungeon;
             else
                 image = TileImage.Dungeon;
             break;

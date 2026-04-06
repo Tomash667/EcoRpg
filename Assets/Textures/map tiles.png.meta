@@ -338,6 +338,28 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: swamp dungeon
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 32
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 0af6ca8c0d044d44e8104f14f723e9fe
+      internalID: -788225319
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     customData: 
     physicsShape: []
@@ -377,6 +399,7 @@ TextureImporter:
       plains: -722268265
       sawmill: 44413607
       swamp: -1994164927
+      swamp dungeon: -788225319
       village: 1814030382
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0

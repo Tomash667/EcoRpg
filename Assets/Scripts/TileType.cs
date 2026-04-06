@@ -28,7 +28,8 @@ public enum TileImage
     Sawmill,
     Mine,
     Village,
-    Swamp
+    Swamp,
+    SwampDungeon
 }
 
 public static class TileTypeMethods

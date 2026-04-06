@@ -123,19 +123,29 @@ public class World
             }
         };
 
-        SpawnBlob(9, 16, Utility.Random(5, 7), TileType.Plains, TileType.Forest, TileType.Swamp);
-        SpawnBlob(17, 24, Utility.Random(5, 7), TileType.Plains, TileType.Forest, TileType.Swamp);
+        List<string> dungeon1 = Names.dungeon1.ToList();
+        List<string> dungeon2 = Names.dungeon2.ToList();
+        List<string> dungeon3 = Names.dungeon3.ToList();
+
+        // swamps & swamp dungeons
+        List<Tile> spawned = SpawnBlob(9, 16, Utility.Random(5, 7), TileType.Plains, TileType.Forest, TileType.Swamp);
+        SpawnHiddenLocation(spawned.RandomItem(), TileType.Dungeon, dungeon2);
+        spawned = SpawnBlob(17, 24, Utility.Random(5, 7), TileType.Plains, TileType.Forest, TileType.Swamp);
+        SpawnHiddenLocation(spawned.RandomItem(), TileType.Dungeon, dungeon3);
+
+        // sawmill & mine
         SpawnLocation(cityPos, TileType.Forest, TileType.Sawmill);
         SpawnLocation(cityPos, TileType.Mountains, TileType.Mine);
+
+        // caves with potential mines or boxx
         SpawnHiddenLocations(0, 8, 2, TileType.Mountains, TileType.Cave, Names.cave1.ToList());
-        List<Tile> spawned = SpawnHiddenLocations(9, 16, 3, TileType.Mountains, TileType.Cave, Names.cave2.ToList());
+        spawned = SpawnHiddenLocations(9, 16, 3, TileType.Mountains, TileType.Cave, Names.cave2.ToList());
         spawned[0].mine = true;
         spawned = SpawnHiddenLocations(17, 24, 3, TileType.Mountains, TileType.Cave, Names.cave3.ToList());
         spawned[0].boss = true;
         spawned[1].mine = true;
-        List<string> dungeon1 = Names.dungeon1.ToList();
-        List<string> dungeon2 = Names.dungeon2.ToList();
-        List<string> dungeon3 = Names.dungeon3.ToList();
+
+        // dungeons
         SpawnHiddenLocations(0, 8, 2, TileType.Forest, TileType.Dungeon, dungeon1);
         SpawnHiddenLocations(9, 16, 2, TileType.Forest, TileType.Dungeon, dungeon2);
         SpawnHiddenLocations(17, 24, 2, TileType.Forest, TileType.Dungeon, dungeon3);
@@ -181,21 +191,28 @@ public class World
         return spawned;
     }
 
-    private void SpawnBlob(int xMin, int xMax, int count, TileType wantedTile, TileType optionalTile, TileType targetTile)
+    private void SpawnHiddenLocation(Tile tile, TileType targetTile, List<string> names)
     {
+        tile.name = names.RandomItemPop();
+        tile.hidden = targetTile;
+    }
+
+    private List<Tile> SpawnBlob(int xMin, int xMax, int count, TileType wantedTile, TileType optionalTile, TileType targetTile)
+    {
+        Tile tile;
         List<Vector2Int> validTiles = new();
         for (int y = 0; y < sizeY; ++y)
         {
             for (int x = xMin; x <= xMax; ++x)
             {
-                Tile tile = map[x + y * sizeX];
+                tile = map[x + y * sizeX];
                 if (tile.type == wantedTile)
                     validTiles.Add(new(x, y));
             }
         }
 
         if (validTiles == null)
-            return;
+            return null;
 
         void CheckTiles(int x, int y)
         {
@@ -203,9 +220,12 @@ public class World
                 validTiles.Add(new(x, y));
         }
 
+        List<Tile> spawned = new();
         Vector2Int pt = validTiles.RandomItem();
         validTiles.Clear();
-        map[pt.x + pt.y * sizeX].SetType(targetTile);
+        tile = map[pt.x + pt.y * sizeX];
+        tile.SetType(targetTile);
+        spawned.Add(tile);
         --count;
         CheckTiles(pt.x - 1, pt.y);
         CheckTiles(pt.x + 1, pt.y);
@@ -215,13 +235,17 @@ public class World
         while (count > 0 && validTiles.Count > 0)
         {
             pt = validTiles.RandomItemPop();
-            map[pt.x + pt.y * sizeX].SetType(targetTile);
+            tile = map[pt.x + pt.y * sizeX];
+            tile.SetType(targetTile);
+            spawned.Add(tile);
             --count;
             CheckTiles(pt.x - 1, pt.y);
             CheckTiles(pt.x + 1, pt.y);
             CheckTiles(pt.x, pt.y - 1);
             CheckTiles(pt.x, pt.y + 1);
         }
+
+        return spawned;
     }
 
     public static bool IsInBounds(int x, int y)

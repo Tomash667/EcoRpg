@@ -18,7 +18,6 @@ v1:
 + world
 	better clear/respawn enemies - don't wait 30 days from last kill
 	show multiple notifications with date
-	swamp dungeon
 
 ---------------------------------------------------------------------------------------------------
 hero:
