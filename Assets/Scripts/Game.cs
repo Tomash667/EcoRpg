@@ -381,7 +381,7 @@ public class Game : MonoBehaviour
                 3 => 3,
                 _ => 1,
             };
-            Item herb = Item.Get("herb");
+            Item herb = tile.GetHerb();
             player.AddItem(herb, count);
             lastAction = $"You explore the {tile.Name} and find <b>{Utility.Plural(herb.name, count)}</b>.";
         }
@@ -2141,8 +2141,7 @@ public class Game : MonoBehaviour
         {
             if (difficulty == 1)
             {
-                int c = Utility.Rand % 10;
-                switch (c)
+                switch (Utility.Rand % 10)
                 {
                 case 0:
                     // 10%
@@ -2181,6 +2180,7 @@ public class Game : MonoBehaviour
                     quest.type = Quest.Type.Gather;
                     quest.item = Item.Get("herb");
                     quest.max = 20;
+                    quest.locationDifficulty = 1;
                     break;
                 case 2:
                 case 3:
@@ -2210,33 +2210,43 @@ public class Game : MonoBehaviour
             {
                 string mineName = (difficulty == 2 ? "Silver mine" : "Gold mine");
                 bool allowMine = properties.Any(x => x.name == mineName && x.status == Property.Status.Active);
-                int c = Utility.Rand % 5;
-                if (c < 3)
+                switch (Utility.Rand % 10)
                 {
-                    // 60%
-                    quest.type = Quest.Type.Defeat;
-                    quest.enemy = Enemy.GetRandom(difficulty);
-                    quest.max = Utility.Random(2, 2 + difficulty);
-                    quest.locationDifficulty = difficulty;
-                }
-                else if (c == 3 && (allowMine || difficulty == 2))
-                {
-                    // 0-20% (if player don't own the mine or cave can be picked)
+                case 0:
+                case 1:
+                    // 20%
                     quest.type = Quest.Type.Clear;
                     quest.locationDifficulty = difficulty == 2 ? 5 : 8;
                     quest.max = 10;
-                    if (difficulty == 2 && (!allowMine || Utility.Rand % 2 == 0))
-                        quest.location = world.FindRandomLocationIndex(x => (x.type == TileType.Cave || x.hidden == TileType.Cave) && !x.mine && x.difficulty == 2);
+                    if (!allowMine || Utility.Rand % 2 == 0)
+                        quest.location = world.FindRandomLocationIndex(x => (x.type == TileType.Cave || x.hidden == TileType.Cave) && !x.mine && !x.boss && x.difficulty == difficulty);
                     else
                         quest.location = world.FindLocationIndex(x => x.type == TileType.Mine && x.difficulty == difficulty);
-                }
-                else
-                {
-                    // 20-40% (if clear quest is unavailable)
+                    break;
+                case 2:
+                case 3:
+                    // 20%
                     quest.type = Quest.Type.Artifact;
                     quest.location = world.FindRandomLocationIndex(x => (x.type == TileType.Dungeon || x.hidden == TileType.Dungeon) && x.difficulty == difficulty);
                     quest.locationDifficulty = difficulty;
                     quest.max = 1;
+                    break;
+                case 4:
+                    // 10%
+                    if (difficulty == 3)
+                        goto case default;
+                    quest.type = Quest.Type.Gather;
+                    quest.item = Item.Get("rare herb");
+                    quest.max = 20;
+                    quest.locationDifficulty = 2;
+                    break;
+                default:
+                    // 50%
+                    quest.type = Quest.Type.Defeat;
+                    quest.enemy = Enemy.GetRandom(difficulty);
+                    quest.max = Utility.Random(2, 2 + difficulty);
+                    quest.locationDifficulty = difficulty;
+                    break;
                 }
             }
 
@@ -2260,6 +2270,7 @@ public class Game : MonoBehaviour
             }
         }
         AddTeamGold(reward);
+        activeQuest.Finish();
         activeQuest = null;
         AddTime(minutes: 15);
         if (ui.CurrentDialog == guildScreen)
@@ -2284,10 +2295,12 @@ public class Game : MonoBehaviour
             5 => 4,
             _ => 1,
         };
-        Item herb = Item.Get("herb");
+
+        Tile tile = world.CurrentTile;
+        Item herb = tile.GetHerb();
         player.energy -= 10;
         player.AddItem(herb, count);
-        lastAction = $"You forage in the {world.CurrentTile.Name} and find <b>{Utility.Plural(herb.name, count)}</b>.";
+        lastAction = $"You forage in the {tile.Name} and find <b>{Utility.Plural(herb.name, count)}</b>.";
         AddTime(hours: 1);
         UpdateText();
     }

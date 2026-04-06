@@ -25,7 +25,7 @@ public class Quest : ISerializationCallbackReceiver
             return type switch
             {
                 Type.Defeat => 25 * (enemy.level + locationDifficulty) * max,
-                Type.Gather => 250,
+                Type.Gather => locationDifficulty * 250,
                 Type.Clear => locationDifficulty * 250,
                 Type.Artifact => locationDifficulty * 500,
                 _ => 0,
@@ -95,18 +95,15 @@ public class Quest : ISerializationCallbackReceiver
     public bool IsDone()
     {
         if (type == Type.Gather)
-        {
-            Player player = Global.Player;
-            if (player.CountItem(item) >= max)
-            {
-                player.RemoveItem(item, max);
-                return true;
-            }
-            else
-                return false;
-        }
+            return Global.Player.CountItem(item) >= max;
         else
             return count >= max;
+    }
+
+    public void Finish()
+    {
+        if(type == Type.Gather)
+            Global.Player.RemoveItem(item, max);
     }
 
     private string GetLocationName()

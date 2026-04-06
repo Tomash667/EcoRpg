@@ -228,6 +228,14 @@ public class Item
         },
         new()
         {
+            name = "rare herb",
+            desc = "50 heal",
+            type = Type.Usable,
+            power = 50,
+            value = 10
+        },
+        new()
+        {
             name = "potion",
             desc = "100 heal",
             type = Type.Usable,

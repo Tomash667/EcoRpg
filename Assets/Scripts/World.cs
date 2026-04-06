@@ -128,9 +128,9 @@ public class World
         SpawnLocation(cityPos, TileType.Forest, TileType.Sawmill);
         SpawnLocation(cityPos, TileType.Mountains, TileType.Mine);
         SpawnHiddenLocations(0, 8, 2, TileType.Mountains, TileType.Cave, Names.cave1.ToList());
-        List<Tile> spawned = SpawnHiddenLocations(9, 16, 2, TileType.Mountains, TileType.Cave, Names.cave2.ToList());
+        List<Tile> spawned = SpawnHiddenLocations(9, 16, 3, TileType.Mountains, TileType.Cave, Names.cave2.ToList());
         spawned[0].mine = true;
-        spawned = SpawnHiddenLocations(17, 24, 2, TileType.Mountains, TileType.Cave, Names.cave3.ToList());
+        spawned = SpawnHiddenLocations(17, 24, 3, TileType.Mountains, TileType.Cave, Names.cave3.ToList());
         spawned[0].boss = true;
         spawned[1].mine = true;
         List<string> dungeon1 = Names.dungeon1.ToList();

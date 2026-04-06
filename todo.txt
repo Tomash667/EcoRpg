@@ -6,7 +6,6 @@ v1:
 	more active
 	cancel
 	journal - dragon quest
-	gather better herbs, magic crystals
 + elixir recipe
 + allies
 	better heroes
@@ -20,7 +19,6 @@ v1:
 + world
 	better clear/respawn enemies - don't wait 30 days from last kill
 	show multiple notifications with date
-	spawn biomes
 	swamp dungeon
 
 ---------------------------------------------------------------------------------------------------
@@ -53,6 +51,7 @@ hero:
 		defeat x enemies in region
 		capture bandits leader in forest
 		rescue
+		gather magic crystals
 	timed
 	- quest is generated for location but enemies "spawn" only after accepting
 + forage -> enemies
@@ -192,3 +191,4 @@ world:
 	marsh, bog, Fen, Wetlands
 	Mire, Quagmire, Morass, Blackwater, Rotfen, Blight Bog
 + fog "of war" around swamp
++ spawn biomes

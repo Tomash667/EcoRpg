@@ -102,4 +102,15 @@ public class Tile
         }
         type = newType;
     }
+
+    public Item GetHerb()
+    {
+        string herbName = difficulty switch
+        {
+            1 => "herb",
+            2 => Utility.Rand % 2 == 0 ? "herb" : "rare herb",
+            _ => "rare herb"
+        };
+        return Item.Get(herbName);
+    }
 }
