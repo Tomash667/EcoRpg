@@ -18,7 +18,8 @@ public class Item
     {
         None,
         Melee,
-        Bow
+        Bow,
+        Ingredient
     }
 
     public const int MaxLevelCity = 4;
@@ -223,6 +224,7 @@ public class Item
             name = "herb",
             desc = "25 heal",
             type = Type.Usable,
+            subtype = Subtype.Ingredient,
             power = 25,
             value = 5
         },
@@ -231,6 +233,7 @@ public class Item
             name = "rare herb",
             desc = "50 heal",
             type = Type.Usable,
+            subtype = Subtype.Ingredient,
             power = 50,
             value = 10
         },
@@ -365,5 +368,13 @@ public class ItemSlot : ISerializationCallbackReceiver
             return item.ToString(sellPrice);
         else
             return $"{count}x {item.ToString(sellPrice)}";
+    }
+
+    public string ToStringShort()
+    {
+        if (count == 1)
+            return item.name;
+        else
+            return $"{count}x {item.name}";
     }
 }

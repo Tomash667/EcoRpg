@@ -102,7 +102,7 @@ public class Quest : ISerializationCallbackReceiver
 
     public void Finish()
     {
-        if(type == Type.Gather)
+        if (type == Type.Gather)
             Global.Player.RemoveItem(item, max);
     }
 

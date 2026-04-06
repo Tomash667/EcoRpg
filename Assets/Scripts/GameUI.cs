@@ -137,10 +137,18 @@ public class GameUI : MonoBehaviour
         dialogs.RemoveAt(dialogs.Count - 1);
     }
 
-    public void CloseTopDialog()
+    public void CloseDialogs(Func<GameObject, bool> pred)
     {
-        dialogs[0].SetActive(false);
-        dialogs.RemoveAt(0);
+        dialogs.RemoveAll(x =>
+        {
+            if (pred(x))
+            {
+                x.SetActive(false);
+                return true;
+            }
+            else
+                return false;
+        });
     }
 
     public void UpdateBackground(int index)
@@ -151,5 +159,10 @@ public class GameUI : MonoBehaviour
     public void AddTextHeader(string text, Transform parent)
     {
         Instantiate(textHeaderPrefab, parent).transform.GetChild(0).GetComponent<TMP_Text>().text = text;
+    }
+
+    public bool IsOpen(GameObject dialog)
+    {
+        return dialogs.Contains(dialog);
     }
 }

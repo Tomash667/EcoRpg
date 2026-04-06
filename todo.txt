@@ -6,7 +6,6 @@ v1:
 	more active
 	cancel
 	journal - dragon quest
-+ elixir recipe
 + allies
 	better heroes
 	relationship

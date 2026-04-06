@@ -35,7 +35,7 @@ public class Game : MonoBehaviour
     public int day, hour, minute, guildRank, guildProgress;
 
     private GameUI ui;
-    private GameObject shop, character, allyScreen, giveAllyItems, storeItemsScreen, activeInventory, propertiesScreen, guildScreen, gardenScreen;
+    private GameObject shopScreen, characterScreen, allyScreen, giveAllyItemsScreen, storeItemsScreen, activeInventory, propertiesScreen, guildScreen, gardenScreen, craftScreen;
     private Map map;
     private TMP_Text text;
     private Hero activeAlly;
@@ -59,14 +59,15 @@ public class Game : MonoBehaviour
     {
         ui = GetComponent<GameUI>();
         text = transform.Find("Text").GetComponent<TMP_Text>();
-        shop = transform.Find("Shop").gameObject;
-        character = transform.Find("Character").gameObject;
+        shopScreen = transform.Find("Shop").gameObject;
+        characterScreen = transform.Find("Character").gameObject;
         allyScreen = transform.Find("Ally").gameObject;
-        giveAllyItems = transform.Find("GiveItems").gameObject;
+        giveAllyItemsScreen = transform.Find("GiveItems").gameObject;
         storeItemsScreen = transform.Find("StoreItems").gameObject;
         propertiesScreen = transform.Find("Properties").gameObject;
         guildScreen = transform.Find("Guild").gameObject;
         gardenScreen = transform.Find("Garden").gameObject;
+        craftScreen = transform.Find("Craft").gameObject;
         map = transform.Find("Map").GetComponent<Map>();
         map.Init();
 
@@ -631,17 +632,17 @@ public class Game : MonoBehaviour
 
     public void Shop()
     {
-        activeInventory = shop;
+        activeInventory = shopScreen;
         RefreshShopItems();
         RefreshPlayerItems();
-        ui.ShowDialog(shop);
+        ui.ShowDialog(shopScreen);
     }
 
     public void Character()
     {
-        activeInventory = character;
+        activeInventory = characterScreen;
         RefreshPlayerScreen();
-        ui.ShowDialog(character);
+        ui.ShowDialog(characterScreen);
     }
 
     public void Ally(int index)
@@ -653,7 +654,7 @@ public class Game : MonoBehaviour
 
     private void RefreshShopItems()
     {
-        Transform content = shop.transform.Find("ShopItems/Viewport/Content");
+        Transform content = shopScreen.transform.Find("ShopItems/Viewport/Content");
         foreach (Transform child in content)
             Destroy(child.gameObject);
         Item[] availableItems = (world.Location == TileType.City ? Item.cityItems : Item.villageItems);
@@ -706,7 +707,7 @@ public class Game : MonoBehaviour
         if (player.weapon != null)
         {
             ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
-            if (activeInventory == character)
+            if (activeInventory == characterScreen)
             {
                 itemEntry.Init(player.weapon.ToString(true), "Unequip", () =>
                 {
@@ -722,7 +723,7 @@ public class Game : MonoBehaviour
         if (player.armor != null)
         {
             ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
-            if (activeInventory == character)
+            if (activeInventory == characterScreen)
             {
                 itemEntry.Init(player.armor.ToString(true), "Unequip", () =>
                 {
@@ -738,7 +739,7 @@ public class Game : MonoBehaviour
         if (player.shield != null)
         {
             ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
-            if (activeInventory == character)
+            if (activeInventory == characterScreen)
             {
                 itemEntry.Init(player.shield.ToString(true), "Unequip", () =>
                 {
@@ -757,7 +758,7 @@ public class Game : MonoBehaviour
         foreach (ItemSlot itemSlot in player.items)
         {
             ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
-            if (activeInventory == character)
+            if (activeInventory == characterScreen)
             {
                 void Drop()
                 {
@@ -829,7 +830,7 @@ public class Game : MonoBehaviour
                 else
                     itemEntry.Init2(itemSlot.ToString(true), null, null, "Drop", Drop);
             }
-            else if (activeInventory == shop)
+            else if (activeInventory == shopScreen)
             {
                 itemEntry.Init(itemSlot.ToString(true), "Sell", () =>
                 {
@@ -863,7 +864,7 @@ public class Game : MonoBehaviour
                     }
                 });
             }
-            else if (activeInventory == giveAllyItems)
+            else if (activeInventory == giveAllyItemsScreen)
             {
                 if (activeAlly.WillTakeItem(itemSlot.item))
                 {
@@ -942,7 +943,7 @@ public class Game : MonoBehaviour
 
     private void RefreshPlayerScreen()
     {
-        TMP_Text charText = character.transform.Find("Text").GetComponent<TMP_Text>();
+        TMP_Text charText = characterScreen.transform.Find("Text").GetComponent<TMP_Text>();
         sb.Clear();
         sb.Append($"{player.GenderSign}{player.name}\n" +
             $"Level: {player.level} {player.clas.AsString()} ({player.ExpP}%)\n" +
@@ -981,8 +982,8 @@ public class Game : MonoBehaviour
         charText.text = sb.ToString();
 
         RefreshAllyItems(allyScreen);
-        if (activeInventory == giveAllyItems)
-            RefreshAllyItems(giveAllyItems);
+        if (activeInventory == giveAllyItemsScreen)
+            RefreshAllyItems(giveAllyItemsScreen);
     }
 
     private void RefreshAllyItems(GameObject dialog)
@@ -1264,9 +1265,7 @@ public class Game : MonoBehaviour
             player.goldWaiting = 0;
         }
 
-        GameObject topDialog = ui.TopDialog;
-        if (topDialog == propertiesScreen || topDialog == guildScreen || topDialog == character)
-            ui.CloseTopDialog();
+        ui.CloseDialogs(x => x == propertiesScreen || x == guildScreen || x == characterScreen || x == craftScreen);
     }
 
     public void OnNewDay()
@@ -1313,18 +1312,21 @@ public class Game : MonoBehaviour
         }
 
         // grow garden plants
-        int herbs = 0, rations = 0;
-        foreach (string plant in gardenPlants)
+        foreach(var plant in gardenPlants.GroupBy(x => x).Select(x => (name: x.Key, count: x.Count())))
         {
-            if (plant == "Vegetables")
-                ++rations;
-            else if (plant == "Herbs")
-                ++herbs;
+            switch(plant.name)
+            {
+            case "Vegetables":
+                AddStoredItem(Item.Get("rations"), plant.count);
+                break;
+            case "Herbs":
+                AddStoredItem(Item.Get("herb"), plant.count);
+                break;
+            case "Rare herbs":
+                AddStoredItem(Item.Get("rare herb"), plant.count);
+                break;
+            }
         }
-        if (herbs > 0)
-            AddStoredItem(Item.Get("herb"), herbs);
-        if (rations > 0)
-            AddStoredItem(Item.Get("rations"), rations);
 
         // end effects
         foreach (Hero hero in Team)
@@ -1728,7 +1730,7 @@ public class Game : MonoBehaviour
             }
             AddTime(minutes: 30);
             if (ui.TopDialog == guildScreen)
-                UpdateGuild();
+                RefreshGuild();
             UpdateText();
         });
     }
@@ -1766,10 +1768,10 @@ public class Game : MonoBehaviour
 
     public void GiveAllyItems()
     {
-        activeInventory = giveAllyItems;
-        ui.ShowDialog(giveAllyItems);
+        activeInventory = giveAllyItemsScreen;
+        ui.ShowDialog(giveAllyItemsScreen);
         RefreshPlayerItems();
-        RefreshAllyItems(giveAllyItems);
+        RefreshAllyItems(giveAllyItemsScreen);
     }
 
     public void GiveAllyGold()
@@ -1792,12 +1794,12 @@ public class Game : MonoBehaviour
     public void ManageProperties()
     {
         selectedProperty = null;
-        UpdateProperties();
-        UpdatePropertyDetails();
+        RefreshProperties();
+        RefreshPropertyDetails();
         ui.ShowDialog(propertiesScreen);
     }
 
-    private void UpdateProperties()
+    private void RefreshProperties()
     {
         propertiesScreen.transform.Find("Text").GetComponent<TMP_Text>().text = lastAction ?? string.Empty;
         lastAction = null;
@@ -1846,9 +1848,9 @@ public class Game : MonoBehaviour
                             if (selectedProperty == property)
                             {
                                 selectedProperty = null;
-                                UpdatePropertyDetails();
+                                RefreshPropertyDetails();
                             }
-                            UpdateProperties();
+                            RefreshProperties();
                         }
                         UpdateText();
                     });
@@ -1918,15 +1920,15 @@ public class Game : MonoBehaviour
                 if (ui.CurrentDialog == propertiesScreen)
                 {
                     selectedProperty = property;
-                    UpdateProperties();
-                    UpdatePropertyDetails();
+                    RefreshProperties();
+                    RefreshPropertyDetails();
                 }
                 UpdateText();
             });
         }
     }
 
-    public void UpdatePropertyDetails()
+    public void RefreshPropertyDetails()
     {
         ItemEntryList list = propertiesScreen.transform.Find("List").GetComponent<ItemEntryList>();
         selectedProperty = list.GetSelectedData() as Property;
@@ -1979,8 +1981,8 @@ public class Game : MonoBehaviour
                     AddTime(minutes: 30);
                     if (ui.CurrentDialog == propertiesScreen)
                     {
-                        UpdateProperties();
-                        UpdatePropertyDetails();
+                        RefreshProperties();
+                        RefreshPropertyDetails();
                     }
                     UpdateText();
                 });
@@ -1990,11 +1992,11 @@ public class Game : MonoBehaviour
 
     public void Guild()
     {
-        UpdateGuild();
+        RefreshGuild();
         ui.ShowDialog(guildScreen);
     }
 
-    private void UpdateGuild()
+    private void RefreshGuild()
     {
         string guildText;
         if (!string.IsNullOrEmpty(lastAction))
@@ -2096,7 +2098,7 @@ public class Game : MonoBehaviour
                     }
                     AddTime(minutes: 15);
                     if (ui.CurrentDialog == guildScreen)
-                        UpdateGuild();
+                        RefreshGuild();
                     UpdateText();
                 });
             }
@@ -2127,7 +2129,7 @@ public class Game : MonoBehaviour
                     property.RemoveEvent("Infested");
                     AddTime(minutes: 15);
                     if (ui.CurrentDialog == guildScreen)
-                        UpdateGuild();
+                        RefreshGuild();
                     UpdateText();
                 });
             }
@@ -2274,7 +2276,7 @@ public class Game : MonoBehaviour
         activeQuest = null;
         AddTime(minutes: 15);
         if (ui.CurrentDialog == guildScreen)
-            UpdateGuild();
+            RefreshGuild();
         UpdateText();
     }
 
@@ -2307,23 +2309,38 @@ public class Game : MonoBehaviour
 
     public void Craft()
     {
-        Item herb = Item.Get("herb");
-        int herbCount = player.CountItem(herb);
-        ui.ShowInput($"How many potions do you want to craft? You have {Utility.Plural(herb.name, herbCount)} (2 herbs = 1 potion)", count =>
+        RefreshCraft();
+        ui.ShowDialog(craftScreen);
+    }
+
+    private void RefreshCraft()
+    {
+        // text
+        craftScreen.transform.Find("Text").GetComponent<TMP_Text>().text = lastAction ?? string.Empty;
+
+        // ingredients
+        Transform content = craftScreen.transform.Find("Ingredients/Viewport/Content");
+        foreach (Transform child in content)
+            Destroy(child.gameObject);
+
+        foreach(ItemSlot itemSlot in player.items.Where(x => x.item.subtype == Item.Subtype.Ingredient))
         {
-            if (count <= 0)
-                return true;
-            if (count * 2 > herbCount)
-            {
-                ui.ShowDialog($"You don't have {Utility.Plural(herb.name, count * 2)}.");
-                return false;
-            }
-            Item potion = Item.Get("potion");
-            player.RemoveItem(herb, count * 2);
+            ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
+            itemEntry.Init(itemSlot.ToStringShort());
+        }
+
+        // potions
+        int alchemy = player.GetSkill(Skill.Alchemy);
+        if (world.Location == TileType.House || world.Location == TileType.Mansion)
+            alchemy += 25;
+        content = craftScreen.transform.Find("List/Viewport/Content");
+        foreach (Transform child in content)
+            Destroy(child.gameObject);
+
+        void Brew(Recipe recipe, int count)
+        {
+            player.RemoveItem(recipe.ingredient, count * 2);
             float mod;
-            int alchemy = player.GetSkill(Skill.Alchemy);
-            if (world.Location == TileType.House || world.Location == TileType.Mansion)
-                alchemy += 25;
             if (alchemy >= 100)
                 mod = 1;
             else if (alchemy >= 75)
@@ -2335,15 +2352,43 @@ public class Game : MonoBehaviour
             else
                 mod = 0;
             int extra = (int)(count * mod);
-            player.AddItem(potion, count + extra);
-            lastAction = $"You created {Utility.Plural(potion.name, count + extra)}.";
-            lastAction += player.Train(Skill.Alchemy, 0.2f * count);
+            player.AddItem(recipe.result, count + extra);
+            lastAction = $"You created {Utility.Plural(recipe.result.name, count + extra)}.";
+            lastAction += player.Train(Skill.Alchemy, recipe.trainMod * count);
             AddTime(minutes: count * 5);
-            if (ui.TopDialog == guildScreen)
-                UpdateGuild();
+            if (ui.IsOpen(craftScreen))
+                RefreshCraft();
             UpdateText();
-            return true;
-        });
+        }
+
+        foreach(Recipe recipe in Recipe.GetAvailable(alchemy))
+        {
+            ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
+            itemEntry.Init(recipe.ToString(player.CountItem(recipe.result)), "Brew", () =>
+            {
+                int possible = player.CountItem(recipe.ingredient) / recipe.ingredientCount;
+                if(possible == 0)
+                {
+                    ui.ShowDialog($"You need {Utility.Plural(recipe.ingredient.name, recipe.ingredientCount)} to brew {recipe.result.name}.");
+                    return;
+                }
+
+                if (Input.GetKey(KeyCode.LeftShift))
+                    Brew(recipe, possible);
+                else if (Input.GetKey(KeyCode.LeftControl))
+                {
+                    ui.ShowInput($"How many {Utility.Plural(recipe.result.name)} to brew (1-{possible})?", count =>
+                    {
+                        if (count <= 0)
+                            return true;
+                        Brew(recipe, Mathf.Min(count, possible));
+                        return true;
+                    });
+                }
+                else
+                    Brew(recipe, 1);
+            });
+        }
     }
 
     private void AddTeamGold(int gold)
@@ -2405,7 +2450,7 @@ public class Game : MonoBehaviour
     {
         availableQuests.Clear();
         if (ui.CurrentDialog == guildScreen)
-            UpdateGuild();
+            RefreshGuild();
     }
 
     [ContextMenu("Give all")]
@@ -2453,7 +2498,7 @@ public class Game : MonoBehaviour
         lastAction = "You register as an adventurer.";
         AddTime(minutes: 15);
         if (ui.CurrentDialog == guildScreen)
-            UpdateGuild();
+            RefreshGuild();
         UpdateText();
     }
 
@@ -2536,7 +2581,7 @@ public class Game : MonoBehaviour
         foreach (Transform child in content)
             Destroy(child.gameObject);
 
-        string[] choices = new string[] { "---", "Vegetables (10 gold)", "Herbs (10 herbs)" };
+        string[] choices = new string[] { "---", "Vegetables (10 gold)", "Herbs (10 herbs)", "Rare herbs (10 herbs)" };
 
         for (int i = 0; i < gardenPlants.Count; ++i)
         {
@@ -2547,8 +2592,9 @@ public class Game : MonoBehaviour
             DropdownEntry dropdownEntry = Instantiate(ui.dropdownEntryPrefab, content).GetComponent<DropdownEntry>();
             dropdownEntry.Init($"Plot {i + 1}: {plant}", "Change", choices, x =>
             {
-                if (x == 1)
+                switch(x)
                 {
+                case 1:
                     // vegetables
                     if (plant == "Vegetables")
                         ui.ShowDialog("Vegetables are already planted here.");
@@ -2561,9 +2607,8 @@ public class Game : MonoBehaviour
                         RefreshGarden();
                         UpdateText();
                     }
-                }
-                else if (x == 2)
-                {
+                    break;
+                case 2:
                     // herbs
                     Item herb = Item.Get("herb");
                     if (plant == "Herbs")
@@ -2576,6 +2621,21 @@ public class Game : MonoBehaviour
                         gardenPlants[index] = "Herbs";
                         RefreshGarden();
                     }
+                    break;
+                case 3:
+                    // rare herbs
+                    Item rareHerb = Item.Get("rare herb");
+                    if (plant == "Rare herbs")
+                        ui.ShowDialog("Rare herbs are already planted here.");
+                    else if (player.CountItem(rareHerb) < 10)
+                        ui.ShowDialog("You need 10 rare herbs.");
+                    else
+                    {
+                        player.RemoveItem(rareHerb, 10);
+                        gardenPlants[index] = "Rare herbs";
+                        RefreshGarden();
+                    }
+                    break;
                 }
             });
         }

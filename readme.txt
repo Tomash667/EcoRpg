@@ -18,10 +18,10 @@ S - shop
 W - work
 X - exit or enter
 
-Shop:
-Click - buy/sell one
-Left Ctrl + click - pick how much to buy/sell
-Left Shift + click - sell whole stack
+Shop/Craft:
+Click - buy/sell/craft one
+Left Ctrl + click - pick how much to buy/sell/craft
+Left Shift + click - sell/craft whole stack
 
 Guild:
 R - recruit
