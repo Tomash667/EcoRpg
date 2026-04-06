@@ -10,6 +10,7 @@ public class Item
         Armor,
         Shield,
         Usable,
+        Tool,
         Other
     }
 
@@ -275,6 +276,13 @@ public class Item
             desc = "treasure",
             type = Type.Other,
             value = 50
+        },
+        new()
+        {
+            name = "alchemy set",
+            desc = "allows crafting potions anywhere",
+            type = Type.Tool,
+            value = 100
         }
     };
 
@@ -296,11 +304,12 @@ public class Item
         Get("iron shield"),
         Get("steel shield"),
         Get("dwarven shield"),
+        Get("rations"),
         Get("potion"),
         Get("elixir"),
-        Get("rations"),
         Get("tent"),
-        Get("pickaxe")
+        Get("pickaxe"),
+        Get("alchemy set")
     };
 
 
@@ -318,8 +327,8 @@ public class Item
         Get("wooden shield"),
         Get("iron shield"),
         Get("steel shield"),
-        Get("potion"),
         Get("rations"),
+        Get("potion"),
         Get("tent"),
         Get("pickaxe")
     };

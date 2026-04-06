@@ -824,6 +824,8 @@ public class Game : MonoBehaviour
                         UpdateText();
                     }, "Drop", Drop);
                 }
+                else if (itemSlot.item.type == Item.Type.Tool)
+                    itemEntry.Init2(itemSlot.ToString(true), "Use", Craft, "Drop", Drop);
                 else
                     itemEntry.Init2(itemSlot.ToString(true), null, null, "Drop", Drop);
             }
@@ -1263,7 +1265,7 @@ public class Game : MonoBehaviour
         }
 
         GameObject topDialog = ui.TopDialog;
-        if (topDialog == propertiesScreen || topDialog == guildScreen)
+        if (topDialog == propertiesScreen || topDialog == guildScreen || topDialog == character)
             ui.CloseTopDialog();
     }
 
@@ -1325,7 +1327,7 @@ public class Game : MonoBehaviour
             AddStoredItem(Item.Get("rations"), rations);
 
         // end effects
-        foreach(Hero hero in Team)
+        foreach (Hero hero in Team)
         {
             if (hero.rested > 0)
                 --hero.rested;

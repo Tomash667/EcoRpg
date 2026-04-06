@@ -7,10 +7,7 @@ v1:
 	cancel
 	journal - dragon quest
 	gather better herbs, magic crystals
-+ alchemy
-	portable items
-	create potions when traveling
-	elixir recipe
++ elixir recipe
 + allies
 	better heroes
 	relationship
@@ -99,6 +96,7 @@ hero:
 + unskilled weapon use
 + class perks
 + combat enemy block/back row
++ auto collect herbs and create potions when traveling
 
 events:
 + free person for hire (foreman, geomancer etc)

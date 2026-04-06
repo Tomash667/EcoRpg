@@ -231,7 +231,9 @@ public class Hero : ISerializationCallbackReceiver
             Item.Type.Weapon => CanEquip(item) && (weapon == null || weapon.power < item.power),
             Item.Type.Armor => CanEquip(item) && (armor == null || armor.power < item.power),
             Item.Type.Shield => CanEquip(item) && (shield == null || shield.power < item.power),
-            _ => true
+            Item.Type.Usable => true,
+            Item.Type.Other => item.name == "rations",
+            _ => false
         };
     }
 
