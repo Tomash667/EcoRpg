@@ -1,3 +1,21 @@
+giant rat -> meat
+wolf -> wolf fur, meat
+giant spider -> poison sack
+tentacle monster -> ???
+bear -> bear fur, meat x2
+purple worm -> ???
+giant crocodile -> ???, meat?
+hydra -> ???, meat?
+
+wolf, rat -- 0
+bear -- 3
+tentacle monster, crocodile -- 6
+small dragon -- 7
+purple worm -- 8
+
+spider -- 5	
+hydra -- 9
+
 v1:
 + post dragon enemies
 + idle combat -> escape, use potion
@@ -11,7 +29,7 @@ v1:
 	relationship
 + multilevel dungeon
 + dungeon different traps (damage, accuracy, targets)
-+ trophies/meat from enemies
++ trophies from enemies
 * investments
 	sawmill -> cheaper build/upkeep
 	pay to clear property takes time
@@ -154,11 +172,13 @@ skills:
 + training from books/trainers
 + survival - hunting, bad terrain
 + leadership
++ cooking
 
 technology
 + blast furnace
 + printing press
 + sewers
++ paper money
 
 races:
 + demons (export sex toys, lube, sex skill teachers)
@@ -190,3 +210,7 @@ world:
 	Mire, Quagmire, Morass, Blackwater, Rotfen, Blight Bog
 + fog "of war" around swamp
 + spawn biomes
++ laylines
+	https://chatgpt.com/g/g-p-699b357f41e08191be6bf11fa9b7de95-ecorpg/c/69d61c1d-aae0-8396-a8da-0410db050de5
+	https://aistudio.google.com/prompts/1fGhK85Ij3nwgBj3ToL7wBvXHap5_Pgxh
+	https://grok.com/c/794e217a-21f5-49e3-ba34-761dfa270b31?rid=bec1eec2-cbb4-4806-b4d8-204d0b74029f

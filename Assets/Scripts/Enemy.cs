@@ -6,8 +6,8 @@ public class Enemy
     public string name;
     public Vector2Int gold;
     public (TileType tileType, int difficulty)[] locations;
-    public int level, hp, attack, def, dex;
-    public bool quest = true;
+    public (Item item, float chance)[] drops;
+    public int level, hp, attack, def, dex, difficulty;
 
     public static Enemy Get(string name)
     {
@@ -24,7 +24,7 @@ public class Enemy
 
     public static Enemy GetRandom(int difficulty)
     {
-        return enemies.RandomItem(x => x.quest && x.locations != null && x.locations.Any(y => y.difficulty == difficulty));
+        return enemies.RandomItem(x => x.difficulty == difficulty);
     }
 
     public static Enemy[] enemies = new Enemy[]
@@ -33,6 +33,7 @@ public class Enemy
         {
             name = "bandit",
             locations = new[] { (TileType.City, 1), (TileType.Village, 1) },
+            difficulty = 1,
             level = 0,
             hp = 60,
             attack = 15,
@@ -49,22 +50,25 @@ public class Enemy
             attack = 15,
             def = 3,
             dex = 6,
-            quest = false
+            drops = new[] { (Item.Get("meat"), 0.5f) }
         },
         new()
         {
             name = "wolf",
             locations = new[] { (TileType.Forest, 1) },
+            difficulty = 1,
             level = 0,
             hp = 60,
             attack = 15,
             def = 3,
-            dex = 6
+            dex = 6,
+            drops = new[] { (Item.Get("meat"), 0.5f) }
         },
         new()
         {
             name = "elf",
             locations = new[] { (TileType.Forest, 1), (TileType.Sawmill, 1) },
+            difficulty = 1,
             level = 1,
             hp = 80,
             attack = 20,
@@ -76,6 +80,7 @@ public class Enemy
         {
             name = "orc",
             locations = new[] { (TileType.Forest, 2), (TileType.Sawmill, 1) },
+            difficulty = 1,
             level = 2,
             hp = 110,
             attack = 27,
@@ -87,6 +92,7 @@ public class Enemy
         {
             name = "dryad",
             locations = new[] { (TileType.Forest, 2) },
+            difficulty = 1,
             level = 3,
             hp = 120,
             attack = 30,
@@ -98,6 +104,7 @@ public class Enemy
         {
             name = "giant spider",
             locations = new[] { (TileType.Forest, 3), (TileType.Cave, 2), (TileType.Mine, 2) },
+            difficulty = 2,
             level = 5,
             hp = 160,
             attack = 40,
@@ -108,16 +115,19 @@ public class Enemy
         {
             name = "tentacle monster",
             locations = new[] { (TileType.Forest, 3) },
+            difficulty = 2,
             level = 6,
             hp = 180,
             attack = 45,
             def = 9,
-            dex = 18
+            dex = 18,
+            drops = new[] { (Item.Get("meat"), 2.5f) }
         },
         new()
         {
             name = "harpy",
             locations = new[] { (TileType.Mountains, 1) },
+            difficulty = 1,
             level = 2,
             hp = 100,
             attack = 25,
@@ -129,6 +139,7 @@ public class Enemy
         {
             name = "minotaur",
             locations = new[] { (TileType.Mountains, 2) },
+            difficulty = 2,
             level = 4,
             hp = 160,
             attack = 40,
@@ -140,37 +151,44 @@ public class Enemy
         {
             name = "small dragon",
             locations = new[] { (TileType.Mountains, 3) },
+            difficulty = 3,
             level = 7,
             hp = 200,
             attack = 50,
             def = 10,
             dex = 20,
-            gold = new(80, 120)
+            gold = new(80, 120),
+            drops = new[] { (Item.Get("meat"), 1.5f) }
         },
         new()
         {
             name = "bear",
             locations = new[] { (TileType.Cave, 1), (TileType.Mine, 1) },
+            difficulty = 1,
             level = 3,
             hp = 130,
             attack = 32,
             def = 6,
-            dex = 10
+            dex = 10,
+            drops = new[] { (Item.Get("meat"), 1.5f) }
         },
         new()
         {
             name = "purple worm",
             locations = new[] { (TileType.Cave, 3), (TileType.Mine, 3) },
+            difficulty = 3,
             level = 8,
             hp = 220,
             attack = 55,
             def = 11,
-            dex = 22
+            dex = 22,
+            drops = new[] { (Item.Get("meat"), 3.25f) }
         },
         new()
         {
             name = "skeleton",
             locations = new[] { (TileType.Dungeon, 1) },
+            difficulty = 1,
             level = 3,
             hp = 120,
             attack = 30,
@@ -182,6 +200,7 @@ public class Enemy
         {
             name = "zombie",
             locations = new[] { (TileType.Dungeon, 1) },
+            difficulty = 1,
             level = 3,
             hp = 130,
             attack = 32,
@@ -193,6 +212,7 @@ public class Enemy
         {
             name = "mummy",
             locations = new[] { (TileType.Dungeon, 2) },
+            difficulty = 2,
             level = 5,
             hp = 180,
             attack = 45,
@@ -204,6 +224,7 @@ public class Enemy
         {
             name = "vampire",
             locations = new[] { (TileType.Dungeon, 2) },
+            difficulty = 2,
             level = 6,
             hp = 180,
             attack = 45,
@@ -215,6 +236,7 @@ public class Enemy
         {
             name = "demon",
             locations = new[] { (TileType.Dungeon, 3) },
+            difficulty = 3,
             level = 9,
             hp = 240,
             attack = 60,
@@ -226,6 +248,7 @@ public class Enemy
         {
             name = "lich",
             locations = new[] { (TileType.Dungeon, 3) },
+            difficulty = 3,
             level = 10,
             hp = 240,
             attack = 70,
@@ -241,8 +264,7 @@ public class Enemy
             attack = 55,
             def = 11,
             dex = 22,
-            gold = new(90, 135),
-            quest = false
+            gold = new(90, 135)
         },
         new()
         {
@@ -252,28 +274,31 @@ public class Enemy
             attack = 90,
             def = 18,
             dex = 26,
-            gold = new(10000, 10000),
-            quest = false
+            gold = new(10000, 10000)
         },
         new()
         {
             name = "giant crocodile",
             locations = new[] { (TileType.Swamp, 2) },
+            difficulty = 2,
             level = 6,
             hp = 180,
             attack = 45,
             def = 8,
-            dex = 18
+            dex = 18,
+            drops = new[] { (Item.Get("meat"), 2.5f) }
         },
         new()
         {
             name = "hydra",
             locations = new[] { (TileType.Swamp, 3) },
+            difficulty = 3,
             level = 9,
             hp = 240,
             attack = 55,
             def = 11,
-            dex = 24
-        },
+            dex = 24,
+            drops = new[] { (Item.Get("meat"), 3.5f) }
+        }
     };
 }

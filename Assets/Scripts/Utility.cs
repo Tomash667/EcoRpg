@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
 
 public static class Utility
@@ -16,12 +17,18 @@ public static class Utility
         ["dragon-man"] = "dragon-men",
         ["elf"] = "elves",
         ["harpy"] = "harpies",
+        ["meat"] = "meat",
         ["mummy"] = "mummies",
         ["rations"] = "rations",
         ["wolf"] = "wolves"
     };
 
     public static int Rand => UnityEngine.Random.Range(0, int.MaxValue);
+
+    public static float Random()
+    {
+        return UnityEngine.Random.Range(0f, 1f);
+    }
 
     public static int Random(int a, int b)
     {
@@ -74,5 +81,29 @@ public static class Utility
             return word;
         else
             return $"{counter[count - 1]} {Plural(word)}";
+    }
+
+    public static string PrettyList(this IList<string> items)
+    {
+        if (items.Count == 1)
+            return items[0];
+        else if (items.Count == 2)
+            return $"{items[0]} and {items[1]}";
+        else
+        {
+            StringBuilder sb = new();
+            int index = 0;
+            foreach (string item in items)
+            {
+                if (index > 0 && index < items.Count - 1)
+                    sb.Append(", ");
+                else if (index == items.Count - 1)
+                    sb.Append(" and ");
+
+                sb.Append(item);
+                ++index;
+            }
+            return sb.ToString();
+        }
     }
 }

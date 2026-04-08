@@ -254,19 +254,57 @@ public class Game : MonoBehaviour
                     }
                 }
 
-                // gold
+                // gold & items
+                List<string> items = new();
                 int gold = 0;
-                for (int i = 0; i < count; ++i)
-                    gold += enemy.gold.Random();
+                if(enemy.gold != Vector2Int.zero)
+                { 
+                    for (int i = 0; i < count; ++i)
+                        gold += enemy.gold.Random();
+                    gold = Utility.Round(gold);
+                }
+                if(enemy.drops != null)
+                {
+                    foreach(var drop in enemy.drops)
+                    {
+                        int itemCount = (int)drop.chance;
+                        itemCount *= count;
+                        float itemChance = drop.chance - itemCount;
+                        if(itemChance > 0)
+                        {
+                            for(int i=0; i<count; ++i)
+                            {
+                                if (Utility.Random() < itemChance)
+                                    ++itemCount;
+                            }
+                        }
+                        if(itemCount > 0)
+                        {
+                            items.Add(Utility.Plural(drop.item.name, itemCount));
+                            player.AddItem(drop.item, itemCount);
+                        }
+                    }
+                }
+                string pickups;
+                if (items.Count > 0)
+                {
+                    if (gold > 0)
+                        items.Add($"<color=#FFD700>{gold}</color> gold");
+                    pickups = Utility.PrettyList(items);
+                }
+                else if (gold > 0)
+                    pickups = $"<color=#FFD700>{gold}</color> gold";
+                else
+                    pickups = null;
                 if (enemy.name == "dragon")
                 {
                     dragonStatus = DragonStatus.Defeated;
                     lastAction += " With a final blow, the dragon falls. Its roar fades into silence, and the cavern grows still. The beast is slain—its hoard and your legend now yours to claim. " +
-                        $"You found <color=#FFD700>{gold}</color> gold.";
+                        $"You found {pickups}.";
                     tile.clear = true;
                 }
-                else if (gold > 0)
-                    lastAction += $" You win (<color=#FFD700>{gold}</color> gold found).";
+                else if (pickups != null)
+                    lastAction += $" You win ({pickups} found).";
                 else
                     lastAction += $" You win.";
                 AddTeamGold(gold);
@@ -1687,6 +1725,7 @@ public class Game : MonoBehaviour
         buttons.Find("BtWork2").gameObject.SetActive(location == TileType.Sawmill || location == TileType.Mine);
 
         buttons.Find("BtStorage").gameObject.SetActive(location == TileType.House || location == TileType.Mansion);
+        buttons.Find("BtCook").gameObject.SetActive(location == TileType.House || location == TileType.Mansion);
         buttons.Find("BtCraft").gameObject.SetActive((location == TileType.House && player.HavePropertyUpgrade("House", "Alchemy lab"))
             || (location == TileType.Mansion && player.HavePropertyUpgrade("Mansion", "Alchemy lab")));
         buttons.Find("BtGarden").gameObject.SetActive((location == TileType.House && player.HavePropertyUpgrade("House", "Garden"))
@@ -2014,8 +2053,6 @@ public class Game : MonoBehaviour
         {
             guildScreen.transform.Find("BtFinishQuest").gameObject.SetActive(false);
             guildScreen.transform.Find("BtJoin").gameObject.SetActive(true);
-            guildScreen.transform.Find("BtRecruit").GetComponent<Button>().interactable = false;
-            guildScreen.transform.Find("BtCraft").GetComponent<Button>().interactable = false;
         }
         else
         {
@@ -2025,6 +2062,7 @@ public class Game : MonoBehaviour
             guildScreen.transform.Find("BtJoin").gameObject.SetActive(false);
         }
         guildScreen.transform.Find("BtRecruit").GetComponent<Button>().interactable = guildRank != 0;
+        guildScreen.transform.Find("BtCook").GetComponent<Button>().interactable = guildRank != 0;
         guildScreen.transform.Find("BtCraft").GetComponent<Button>().interactable = guildRank != 0;
 
         availableQuests ??= new();
@@ -2639,5 +2677,30 @@ public class Game : MonoBehaviour
                 }
             });
         }
+    }
+
+    public void Cook()
+    {
+        Item meat = Item.Get("meat");
+        int meatCount = player.CountItem(meat);
+        ui.ShowInput($"How many meat you want to cook? You have {meatCount} pieces of meat.", count =>
+        {
+            if (count <= 0)
+                return true;
+            if (count > meatCount)
+            {
+                ui.ShowDialog($"You don't have {count} pieces of meat.");
+                return false;
+            }
+            Item rations = Item.Get("rations");
+            player.RemoveItem(meat, count);
+            player.AddItem(rations, count);
+            lastAction = $"You cooked {count} pieces of meat into rations.";
+            AddTime(minutes: count * 5);
+            if (ui.TopDialog == guildScreen)
+                RefreshGuild();
+            UpdateText();
+            return true;
+        });
     }
 }

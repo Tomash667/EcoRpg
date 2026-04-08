@@ -262,6 +262,13 @@ public class Item
         },
         new()
         {
+            name = "meat",
+            desc = "can be cooked",
+            type = Type.Other,
+            value = 4
+        },
+        new()
+        {
             name = "tent",
             desc = "better rest outside",
             type = Type.Other,
