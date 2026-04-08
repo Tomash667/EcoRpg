@@ -50,7 +50,7 @@ public class Enemy
             attack = 15,
             def = 3,
             dex = 6,
-            drops = new[] { (Item.Get("meat"), 0.5f) }
+            drops = new[] { (Item.Get("meat"), 0.5f), (Item.Get("trophy"), 0.1f) }
         },
         new()
         {
@@ -62,7 +62,7 @@ public class Enemy
             attack = 15,
             def = 3,
             dex = 6,
-            drops = new[] { (Item.Get("meat"), 0.5f) }
+            drops = new[] { (Item.Get("meat"), 0.5f), (Item.Get("trophy"), 0.1f) }
         },
         new()
         {
@@ -109,7 +109,8 @@ public class Enemy
             hp = 160,
             attack = 40,
             def = 8,
-            dex = 16
+            dex = 16,
+            drops = new[] { (Item.Get("trophy"), 0.75f) }
         },
         new()
         {
@@ -121,7 +122,7 @@ public class Enemy
             attack = 45,
             def = 9,
             dex = 18,
-            drops = new[] { (Item.Get("meat"), 2.5f) }
+            drops = new[] { (Item.Get("meat"), 2.5f), (Item.Get("trophy"), 0.8f) }
         },
         new()
         {
@@ -170,7 +171,7 @@ public class Enemy
             attack = 32,
             def = 6,
             dex = 10,
-            drops = new[] { (Item.Get("meat"), 1.5f) }
+            drops = new[] { (Item.Get("meat"), 1.5f), (Item.Get("trophy"), 0.5f) }
         },
         new()
         {
@@ -182,7 +183,7 @@ public class Enemy
             attack = 55,
             def = 11,
             dex = 22,
-            drops = new[] { (Item.Get("meat"), 3.25f) }
+            drops = new[] { (Item.Get("meat"), 3.25f), (Item.Get("trophy"), 1.05f) }
         },
         new()
         {
@@ -286,7 +287,7 @@ public class Enemy
             attack = 45,
             def = 8,
             dex = 18,
-            drops = new[] { (Item.Get("meat"), 2.5f) }
+            drops = new[] { (Item.Get("meat"), 2.5f), (Item.Get("trophy"), 0.8f) }
         },
         new()
         {
@@ -298,7 +299,7 @@ public class Enemy
             attack = 55,
             def = 11,
             dex = 24,
-            drops = new[] { (Item.Get("meat"), 3.5f) }
+            drops = new[] { (Item.Get("meat"), 3.5f), (Item.Get("trophy"), 1.2f) }
         }
     };
 }

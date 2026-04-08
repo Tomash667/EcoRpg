@@ -297,6 +297,13 @@ public class Item
         },
         new()
         {
+            name = "trophy",
+            desc = "treasure",
+            type = Type.Other,
+            value = 200
+        },
+        new()
+        {
             name = "alchemy set",
             desc = "allows crafting potions anywhere",
             type = Type.Tool,
