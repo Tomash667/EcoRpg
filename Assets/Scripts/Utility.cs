@@ -60,7 +60,7 @@ public static class Utility
         if(spacePos != -1)
         {
             string start = word[0..spacePos];
-            string end = word[(spacePos+1)..^1];
+            string end = word[(spacePos+1)..];
             return $"{start} {Plural(end)}";
         }
         if (plurals.TryGetValue(word, out string plural))

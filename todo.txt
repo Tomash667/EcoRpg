@@ -1,3 +1,15 @@
+meet text?
+
+idle combat:
+team at top
+enemies at bottom
+generic image
+healthbar
+attack -> move forward, animation on enemy, dodge jump away
+shoot arrow
+front/back row
+block
+
 v1:
 + post dragon enemies
 + idle combat -> escape, use potion
@@ -110,6 +122,10 @@ ui:
 + shop tabs
 + drag/scale map
 + background for guild/garden
++ combat portairs
++ combat sounds
++ combat different attacks anim
++ interact portair
 	
 investments:
 + cottage/big house

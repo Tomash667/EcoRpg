@@ -37,6 +37,7 @@ public class Game : MonoBehaviour
     private GameUI ui;
     private GameObject shopScreen, characterScreen, allyScreen, giveAllyItemsScreen, storeItemsScreen, activeInventory, propertiesScreen, guildScreen, gardenScreen, craftScreen;
     private Map map;
+    private Combat combatScreen;
     private TMP_Text text;
     private Hero activeAlly;
     private Property selectedProperty;
@@ -68,6 +69,7 @@ public class Game : MonoBehaviour
         guildScreen = transform.Find("Guild").gameObject;
         gardenScreen = transform.Find("Garden").gameObject;
         craftScreen = transform.Find("Craft").gameObject;
+        combatScreen = transform.Find("Combat").GetComponent<Combat>();
         map = transform.Find("Map").GetComponent<Map>();
         map.Init();
 
@@ -238,6 +240,11 @@ public class Game : MonoBehaviour
             }
 
             lastAction = $"You explore the {tile.Name} and <b>{Utility.PluralText(enemy.name, count)}</b> attack you.";
+
+            combatScreen.Init(enemy, count);
+            ui.lockDialog = true;
+            ui.ShowDialog(combatScreen.gameObject);
+
             if (Combat(enemy, count))
             {
                 if (activeQuest != null)

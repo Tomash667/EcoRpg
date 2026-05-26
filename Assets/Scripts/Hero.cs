@@ -41,6 +41,7 @@ public class Hero : ISerializationCallbackReceiver
         }
     }
     public int ExpP => exp / 10;
+    public float hpp => ((float)hp) / hpMax;
     public int HpP
     {
         get
@@ -120,7 +121,7 @@ public class Hero : ISerializationCallbackReceiver
         {
             exp -= 1000;
             ++level;
-            float hpRatio = (float)hp / hpMax;
+            float hpRatio = hpp;
             hpMax += 20;
             hp = (int)(hpRatio * hpMax);
             attack += 5;
@@ -443,7 +444,6 @@ public class Hero : ISerializationCallbackReceiver
 
     public void ApplyHealing()
     {
-        float hpp = ((float)hp) / hpMax;
         if (hpp < 0.5f)
         {
             ItemSlot potion = FindHealingItem();
