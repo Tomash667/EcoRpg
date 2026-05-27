@@ -56,7 +56,7 @@ public class Hero : ISerializationCallbackReceiver
     }
     public char GenderSign => female ? '♀' : '♂';
     public string He => female ? "She" : "He";
-    public string him => female ? "her" : "him";
+    public virtual string him => female ? "her" : "him";
 
     public void Init()
     {

@@ -10,6 +10,18 @@ public static class Extensions
         return char.ToUpper(str[0]) + str[1..];
     }
 
+    public static int IndexOf<T>(this IEnumerable<T> items, T value)
+    {
+        int index = 0;
+        foreach (T item in items)
+        {
+            if (EqualityComparer<T>.Default.Equals(item, value))
+                return index;
+            ++index;
+        }
+        return -1;
+    }
+
     public static T RandomItem<T>(this IList<T> items)
     {
         if (items.Count == 0)

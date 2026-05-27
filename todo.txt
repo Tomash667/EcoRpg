@@ -1,14 +1,9 @@
-meet text?
-
 idle combat:
-team at top
-enemies at bottom
-generic image
-healthbar
 attack -> move forward, animation on enemy, dodge jump away
 shoot arrow
 front/back row
 block
+heal
 
 v1:
 + post dragon enemies
@@ -48,6 +43,7 @@ hero:
 + luxury
 + lose consequences
 + interactive combat
++ combat use potion in your turn, not after damage
 + player history
 	isekaied
 	noble

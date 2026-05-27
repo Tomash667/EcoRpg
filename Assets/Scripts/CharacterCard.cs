@@ -5,6 +5,7 @@ using UnityEngine.UI;
 public class CharacterCard : MonoBehaviour
 {
     public Sprite enemySprite;
+    public int index;
 
     public void Init(string text, float hp, bool enemy)
     {

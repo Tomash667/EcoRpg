@@ -3,11 +3,33 @@ using UnityEngine;
 
 public class Enemy
 {
+    public enum Pronoun
+    {
+        He,
+        She,
+        It
+    }
+
     public string name;
     public Vector2Int gold;
     public (TileType tileType, int difficulty)[] locations;
     public (Item item, float chance)[] drops;
     public int level, hp, attack, def, dex, difficulty;
+    public Pronoun pronoun;
+
+    public string him
+    {
+        get
+        {
+            return pronoun switch
+            {
+                Pronoun.He => "him",
+                Pronoun.She => "her",
+                Pronoun.It => "it",
+                _ => ""
+            };
+        }
+    }
 
     public static Enemy Get(string name)
     {
@@ -39,7 +61,8 @@ public class Enemy
             attack = 15,
             def = 3,
             dex = 6,
-            gold = new(10, 15)
+            gold = new(10, 15),
+            pronoun = Pronoun.He
         },
         new()
         {
@@ -50,7 +73,8 @@ public class Enemy
             attack = 15,
             def = 3,
             dex = 6,
-            drops = new[] { (Item.Get("meat"), 0.5f), (Item.Get("trophy"), 0.1f) }
+            drops = new[] { (Item.Get("meat"), 0.5f), (Item.Get("trophy"), 0.1f) },
+            pronoun = Pronoun.It
         },
         new()
         {
@@ -62,7 +86,8 @@ public class Enemy
             attack = 15,
             def = 3,
             dex = 6,
-            drops = new[] { (Item.Get("meat"), 0.5f), (Item.Get("trophy"), 0.1f) }
+            drops = new[] { (Item.Get("meat"), 0.5f), (Item.Get("trophy"), 0.1f) },
+            pronoun = Pronoun.It
         },
         new()
         {
@@ -74,7 +99,8 @@ public class Enemy
             attack = 20,
             def = 3,
             dex = 9,
-            gold = new(20, 30)
+            gold = new(20, 30),
+            pronoun = Pronoun.She
         },
         new()
         {
@@ -86,7 +112,8 @@ public class Enemy
             attack = 27,
             def = 5,
             dex = 8,
-            gold = new(30, 45)
+            gold = new(30, 45),
+            pronoun = Pronoun.He
         },
         new()
         {
@@ -98,7 +125,8 @@ public class Enemy
             attack = 30,
             def = 5,
             dex = 13,
-            gold = new(40, 60)
+            gold = new(40, 60),
+            pronoun = Pronoun.She
         },
         new()
         {
@@ -110,7 +138,8 @@ public class Enemy
             attack = 40,
             def = 8,
             dex = 16,
-            drops = new[] { (Item.Get("trophy"), 0.75f) }
+            drops = new[] { (Item.Get("trophy"), 0.75f) },
+            pronoun = Pronoun.It
         },
         new()
         {
@@ -122,7 +151,8 @@ public class Enemy
             attack = 45,
             def = 9,
             dex = 18,
-            drops = new[] { (Item.Get("meat"), 2.5f), (Item.Get("trophy"), 0.8f) }
+            drops = new[] { (Item.Get("meat"), 2.5f), (Item.Get("trophy"), 0.8f) },
+            pronoun = Pronoun.It
         },
         new()
         {
@@ -134,7 +164,8 @@ public class Enemy
             attack = 25,
             def = 4,
             dex = 11,
-            gold = new(30, 45)
+            gold = new(30, 45),
+            pronoun = Pronoun.She
         },
         new()
         {
@@ -146,7 +177,8 @@ public class Enemy
             attack = 40,
             def = 6,
             dex = 12,
-            gold = new(50, 75)
+            gold = new(50, 75),
+            pronoun = Pronoun.He
         },
         new()
         {
@@ -159,7 +191,8 @@ public class Enemy
             def = 10,
             dex = 20,
             gold = new(80, 120),
-            drops = new[] { (Item.Get("meat"), 1.5f) }
+            drops = new[] { (Item.Get("meat"), 1.5f) },
+            pronoun = Pronoun.It
         },
         new()
         {
@@ -171,7 +204,8 @@ public class Enemy
             attack = 32,
             def = 6,
             dex = 10,
-            drops = new[] { (Item.Get("meat"), 1.5f), (Item.Get("trophy"), 0.5f) }
+            drops = new[] { (Item.Get("meat"), 1.5f), (Item.Get("trophy"), 0.5f) },
+            pronoun = Pronoun.It
         },
         new()
         {
@@ -183,7 +217,8 @@ public class Enemy
             attack = 55,
             def = 11,
             dex = 22,
-            drops = new[] { (Item.Get("meat"), 3.25f), (Item.Get("trophy"), 1.05f) }
+            drops = new[] { (Item.Get("meat"), 3.25f), (Item.Get("trophy"), 1.05f) },
+            pronoun = Pronoun.It
         },
         new()
         {
@@ -195,7 +230,8 @@ public class Enemy
             attack = 30,
             def = 6,
             dex = 12,
-            gold = new(40, 60)
+            gold = new(40, 60),
+            pronoun = Pronoun.It
         },
         new()
         {
@@ -207,7 +243,8 @@ public class Enemy
             attack = 32,
             def = 6,
             dex = 8,
-            gold = new(40, 60)
+            gold = new(40, 60),
+            pronoun = Pronoun.It
         },
         new()
         {
@@ -219,7 +256,8 @@ public class Enemy
             attack = 45,
             def = 9,
             dex = 10,
-            gold = new(60, 90)
+            gold = new(60, 90),
+            pronoun = Pronoun.It
         },
         new()
         {
@@ -231,7 +269,8 @@ public class Enemy
             attack = 45,
             def = 8,
             dex = 20,
-            gold = new(70, 105)
+            gold = new(70, 105),
+            pronoun = Pronoun.He
         },
         new()
         {
@@ -243,7 +282,8 @@ public class Enemy
             attack = 60,
             def = 12,
             dex = 24,
-            gold = new(100, 150)
+            gold = new(100, 150),
+            pronoun = Pronoun.He
         },
         new()
         {
@@ -255,7 +295,8 @@ public class Enemy
             attack = 70,
             def = 12,
             dex = 26,
-            gold = new(110, 165)
+            gold = new(110, 165),
+            pronoun = Pronoun.He
         },
         new()
         {
@@ -265,7 +306,8 @@ public class Enemy
             attack = 55,
             def = 11,
             dex = 22,
-            gold = new(90, 135)
+            gold = new(90, 135),
+            pronoun = Pronoun.He
         },
         new()
         {
@@ -275,7 +317,8 @@ public class Enemy
             attack = 90,
             def = 18,
             dex = 26,
-            gold = new(10000, 10000)
+            gold = new(10000, 10000),
+            pronoun = Pronoun.It
         },
         new()
         {
@@ -287,7 +330,8 @@ public class Enemy
             attack = 45,
             def = 8,
             dex = 18,
-            drops = new[] { (Item.Get("meat"), 2.5f), (Item.Get("trophy"), 0.8f) }
+            drops = new[] { (Item.Get("meat"), 2.5f), (Item.Get("trophy"), 0.8f) },
+            pronoun = Pronoun.It
         },
         new()
         {
@@ -299,7 +343,8 @@ public class Enemy
             attack = 55,
             def = 11,
             dex = 24,
-            drops = new[] { (Item.Get("meat"), 3.5f), (Item.Get("trophy"), 1.2f) }
+            drops = new[] { (Item.Get("meat"), 3.5f), (Item.Get("trophy"), 1.2f) },
+            pronoun = Pronoun.It
         }
     };
 }

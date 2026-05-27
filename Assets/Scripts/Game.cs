@@ -70,6 +70,7 @@ public class Game : MonoBehaviour
         gardenScreen = transform.Find("Garden").gameObject;
         craftScreen = transform.Find("Craft").gameObject;
         combatScreen = transform.Find("Combat").GetComponent<Combat>();
+        combatScreen.Init();
         map = transform.Find("Map").GetComponent<Map>();
         map.Init();
 
@@ -239,139 +240,10 @@ public class Game : MonoBehaviour
                     enemy = Enemy.Get("dragon-man");
             }
 
-            lastAction = $"You explore the {tile.Name} and <b>{Utility.PluralText(enemy.name, count)}</b> attack you.";
-
             combatScreen.Init(enemy, count);
             ui.lockDialog = true;
             ui.ShowDialog(combatScreen.gameObject);
-
-            if (Combat(enemy, count))
-            {
-                if (activeQuest != null)
-                {
-                    if (activeQuest.type == Quest.Type.Defeat)
-                    {
-                        if (activeQuest.enemy == enemy)
-                            activeQuest.count += count;
-                    }
-                    else if (activeQuest.type == Quest.Type.Clear)
-                    {
-                        if (activeQuest.location == world.CurrentLocationIndex)
-                            activeQuest.count += count;
-                    }
-                }
-
-                // gold & items
-                List<string> items = new();
-                int gold = 0;
-                if(enemy.gold != Vector2Int.zero)
-                { 
-                    for (int i = 0; i < count; ++i)
-                        gold += enemy.gold.Random();
-                    gold = Utility.Round(gold);
-                }
-                if(enemy.drops != null)
-                {
-                    foreach(var drop in enemy.drops)
-                    {
-                        int itemCount = (int)drop.chance;
-                        itemCount *= count;
-                        float itemChance = drop.chance - itemCount;
-                        if(itemChance > 0)
-                        {
-                            for(int i=0; i<count; ++i)
-                            {
-                                if (Utility.Random() < itemChance)
-                                    ++itemCount;
-                            }
-                        }
-                        if(itemCount > 0)
-                        {
-                            items.Add(Utility.Plural(drop.item.name, itemCount));
-                            player.AddItem(drop.item, itemCount);
-                        }
-                    }
-                }
-                string pickups;
-                if (items.Count > 0)
-                {
-                    if (gold > 0)
-                        items.Add($"<color=#FFD700>{gold}</color> gold");
-                    pickups = Utility.PrettyList(items);
-                }
-                else if (gold > 0)
-                    pickups = $"<color=#FFD700>{gold}</color> gold";
-                else
-                    pickups = null;
-                if (enemy.name == "dragon")
-                {
-                    dragonStatus = DragonStatus.Defeated;
-                    lastAction += " With a final blow, the dragon falls. Its roar fades into silence, and the cavern grows still. The beast is slain—its hoard and your legend now yours to claim. " +
-                        $"You found {pickups}.";
-                    tile.clear = true;
-                }
-                else if (pickups != null)
-                    lastAction += $" You win ({pickups} found).";
-                else
-                    lastAction += $" You win.";
-                AddTeamGold(gold);
-
-                // exp
-                float ratio;
-                if (allies.Count == 0)
-                    ratio = 1f;
-                else
-                    ratio = 1f / (allies.Count + 1);
-                if (player.AddExp(enemy.level, ratio * count))
-                    lastAction += $" You are now level {player.level}.";
-                foreach (Hero ally in allies)
-                {
-                    if (ally.AddExp(enemy.level, ratio * count))
-                        lastAction += $" {ally.name} is now level {ally.level}.";
-                }
-
-                // quest
-                tile.defeatedEnemies += count;
-                if (tile.defeatedEnemies >= 10 && !tile.boss && tile.type.IsClearable())
-                {
-                    tile.clear = true;
-                    if (tile.type == TileType.Cave)
-                    {
-                        tile.timer = 30;
-                        if (tile.mine)
-                        {
-                            Property property = properties.FirstOrDefault(x => x.locationIndex == world.CurrentLocationIndex);
-                            if (property != null)
-                            {
-                                property.status = Property.Status.Cleared;
-                                lastAction += " You can build a <b>mine</b> here.";
-                            }
-                        }
-                    }
-                    else if (tile.type == TileType.Mine || tile.type == TileType.Sawmill)
-                    {
-                        lastAction += " You <b>cleared</b> this place.";
-                        Property property = properties.FirstOrDefault(x => x.locationIndex == world.CurrentLocationIndex);
-                        property?.RemoveEvent("Infested");
-                    }
-                }
-            }
-            else
-            {
-                lastAction += " You run away <color=red>defeated<color>.";
-                if (enemy.name == "dragon")
-                    tile.defeatedEnemies -= 5;
-            }
-
-            // heal after combat
-            if (player.hp < 1)
-                player.hp = 1;
-            foreach (Hero ally in allies)
-            {
-                if (ally.hp < 1)
-                    ally.hp = 1;
-                ally.ApplyHealing();
-            }
+            return;
         }
         else if (c == 8 && (tile.type == TileType.Forest || tile.type == TileType.Mountains || tile.type == TileType.Plains))
         {
@@ -387,7 +259,7 @@ public class Game : MonoBehaviour
             lastAction = target == player
                 ? $"You explore the {tile.Name} and step on a <color=red>trap</color>."
                 : $"You explore the {tile.Name} and {target.name} step on a <color=red>trap</color>.";
-            if (AttackChance(10, target.dex))
+            if (Combat.AttackChance(10, target.dex))
             {
                 target.hp -= Mathf.Max(15 + tile.difficulty * 5 + Utility.Random(0, 5), 0);
                 if (target.hp < 1)
@@ -456,6 +328,148 @@ public class Game : MonoBehaviour
             lastAction = $"You explore the {tile.Name} but find nothing interesting.";
 
         if (isSmall)
+            AddTime(minutes: 30);
+        else
+            AddTime(hours: 1);
+        UpdateText();
+    }
+
+    public void PostCombat(bool win, Enemy enemy, int count)
+    {
+        Tile tile = world.CurrentTile;
+
+        ui.lockDialog = false;
+        ui.CloseDialog();
+
+        if (win)
+        {
+            if (activeQuest != null)
+            {
+                if (activeQuest.type == Quest.Type.Defeat)
+                {
+                    if (activeQuest.enemy == enemy)
+                        activeQuest.count += count;
+                }
+                else if (activeQuest.type == Quest.Type.Clear)
+                {
+                    if (activeQuest.location == world.CurrentLocationIndex)
+                        activeQuest.count += count;
+                }
+            }
+
+            // gold & items
+            List<string> items = new();
+            int gold = 0;
+            if (enemy.gold != Vector2Int.zero)
+            {
+                for (int i = 0; i < count; ++i)
+                    gold += enemy.gold.Random();
+                gold = Utility.Round(gold);
+            }
+            if (enemy.drops != null)
+            {
+                foreach (var (item, chance) in enemy.drops)
+                {
+                    int itemCount = (int)chance;
+                    itemCount *= count;
+                    float itemChance = chance - itemCount;
+                    if (itemChance > 0)
+                    {
+                        for (int i = 0; i < count; ++i)
+                        {
+                            if (Utility.Random() < itemChance)
+                                ++itemCount;
+                        }
+                    }
+                    if (itemCount > 0)
+                    {
+                        items.Add(Utility.Plural(item.name, itemCount));
+                        player.AddItem(item, itemCount);
+                    }
+                }
+            }
+            string pickups;
+            if (items.Count > 0)
+            {
+                if (gold > 0)
+                    items.Add($"<color=#FFD700>{gold}</color> gold");
+                pickups = Utility.PrettyList(items);
+            }
+            else if (gold > 0)
+                pickups = $"<color=#FFD700>{gold}</color> gold";
+            else
+                pickups = null;
+            if (enemy.name == "dragon")
+            {
+                dragonStatus = DragonStatus.Defeated;
+                lastAction += " With a final blow, the dragon falls. Its roar fades into silence, and the cavern grows still. The beast is slain—its hoard and your legend now yours to claim. " +
+                    $"You found {pickups}.";
+                tile.clear = true;
+            }
+            else if (pickups != null)
+                lastAction += $" You win ({pickups} found).";
+            else
+                lastAction += $" You win.";
+            AddTeamGold(gold);
+
+            // exp
+            float ratio;
+            if (allies.Count == 0)
+                ratio = 1f;
+            else
+                ratio = 1f / (allies.Count + 1);
+            if (player.AddExp(enemy.level, ratio * count))
+                lastAction += $" You are now level {player.level}.";
+            foreach (Hero ally in allies)
+            {
+                if (ally.AddExp(enemy.level, ratio * count))
+                    lastAction += $" {ally.name} is now level {ally.level}.";
+            }
+
+            // quest
+            tile.defeatedEnemies += count;
+            if (tile.defeatedEnemies >= 10 && !tile.boss && tile.type.IsClearable())
+            {
+                tile.clear = true;
+                if (tile.type == TileType.Cave)
+                {
+                    tile.timer = 30;
+                    if (tile.mine)
+                    {
+                        Property property = properties.FirstOrDefault(x => x.locationIndex == world.CurrentLocationIndex);
+                        if (property != null)
+                        {
+                            property.status = Property.Status.Cleared;
+                            lastAction += " You can build a <b>mine</b> here.";
+                        }
+                    }
+                }
+                else if (tile.type == TileType.Mine || tile.type == TileType.Sawmill)
+                {
+                    lastAction += " You <b>cleared</b> this place.";
+                    Property property = properties.FirstOrDefault(x => x.locationIndex == world.CurrentLocationIndex);
+                    property?.RemoveEvent("Infested");
+                }
+            }
+        }
+        else
+        {
+            lastAction += " You run away <color=red>defeated<color>.";
+            if (enemy.name == "dragon")
+                tile.defeatedEnemies -= 5;
+        }
+
+        // heal after combat
+        if (player.hp < 1)
+            player.hp = 1;
+        foreach (Hero ally in allies)
+        {
+            if (ally.hp < 1)
+                ally.hp = 1;
+            ally.ApplyHealing();
+        }
+
+        if (tile.type.IsSmall())
             AddTime(minutes: 30);
         else
             AddTime(hours: 1);
@@ -1090,108 +1104,6 @@ public class Game : MonoBehaviour
         text.text = sb.ToString();
     }
 
-    private bool Combat(Enemy enemy, int enemyCount)
-    {
-        List<int> order = new() { -1 };
-        List<int> enemyHp = new();
-        player.InitCombat();
-        int index = -2;
-        foreach (Hero ally in allies)
-        {
-            order.Add(index);
-            ally.InitCombat();
-            --index;
-        }
-        for (int i = 0; i < enemyCount; ++i)
-        {
-            order.Add(i);
-            enemyHp.Add(enemy.hp);
-        }
-        order = order.Select(x =>
-        {
-            int dex;
-            if (x == -1)
-                dex = player.dex;
-            else if (x < -1)
-                dex = allies[-x - 2].dex;
-            else
-                dex = enemy.dex;
-            dex += Utility.Rand % 5;
-            return (x, dex);
-        }).OrderByDescending(x => x.dex).Select(x => x.x).ToList();
-        index = 0;
-
-        while (true)
-        {
-            int unitIndex = order[index];
-            if (unitIndex < 0)
-            {
-                Hero hero = unitIndex == -1 ? player : allies[-unitIndex - 2];
-                if (!hero.backRow)
-                    hero.canBlock = true;
-                if (hero.wasteTurn)
-                    hero.wasteTurn = false;
-                else if (hero.hp > 0)
-                {
-                    int enemyIndex = enemyHp.Select((hp, index) => (hp, index)).RandomItem(x => x.hp > 0).index;
-                    if (AttackChance(hero.dex, enemy.dex))
-                    {
-                        enemyHp[enemyIndex] -= Mathf.Max(hero.Attack - enemy.def, 0);
-                        if (enemyHp.All(x => x <= 0))
-                            return true;
-                    }
-                }
-            }
-            else if (enemyHp[unitIndex] > 0)
-            {
-                Hero hero = Team.RandomItem(x => x.hp > 0);
-                if (hero.backRow)
-                {
-                    // front row heroes can block attack once per round
-                    Hero blockingHero = Team.RandomItem(x => x.hp > 0 && x.canBlock);
-                    if (blockingHero != null)
-                    {
-                        hero = blockingHero;
-                        hero.canBlock = false;
-                    }
-                }
-
-                if (AttackChance(enemy.dex, hero.dex))
-                {
-                    hero.hp -= Mathf.Max(enemy.attack - hero.Defense, 0);
-                    if (hero.hp <= 0)
-                    {
-                        ItemSlot potion;
-                        if (!hero.wasteTurn && (potion = hero.FindHealingItem()) != null && hero.hp + potion.item.power > 0)
-                        {
-                            // hero use potion and waste turn
-                            hero.hp = Mathf.Min(hero.hp + potion.item.power, hero.hpMax);
-                            hero.RemoveItem(potion);
-                            hero.wasteTurn = true;
-                        }
-                        else if (Team.All(x => x.hp <= 0))
-                        {
-                            // lost
-                            return false;
-                        }
-                    }
-                }
-            }
-
-            ++index;
-            if (index == order.Count)
-                index = 0;
-        }
-    }
-
-    private bool AttackChance(int myDex, int targetDex)
-    {
-        int chance = 75 + (myDex - targetDex) * 5;
-        if (chance < 10)
-            chance = 10;
-        return Utility.Random(0, 100) < chance;
-    }
-
     private void AddTime(int hours = 0, int minutes = 0)
     {
         minute += minutes;
@@ -1357,9 +1269,9 @@ public class Game : MonoBehaviour
         }
 
         // grow garden plants
-        foreach(var plant in gardenPlants.GroupBy(x => x).Select(x => (name: x.Key, count: x.Count())))
+        foreach (var plant in gardenPlants.GroupBy(x => x).Select(x => (name: x.Key, count: x.Count())))
         {
-            switch(plant.name)
+            switch (plant.name)
             {
             case "Vegetables":
                 AddStoredItem(Item.Get("rations"), plant.count);
@@ -2368,7 +2280,7 @@ public class Game : MonoBehaviour
         foreach (Transform child in content)
             Destroy(child.gameObject);
 
-        foreach(ItemSlot itemSlot in player.items.Where(x => x.item.subtype == Item.Subtype.Ingredient))
+        foreach (ItemSlot itemSlot in player.items.Where(x => x.item.subtype == Item.Subtype.Ingredient))
         {
             ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
             itemEntry.Init(itemSlot.ToStringShort());
@@ -2406,13 +2318,13 @@ public class Game : MonoBehaviour
             UpdateText();
         }
 
-        foreach(Recipe recipe in Recipe.GetAvailable(alchemy))
+        foreach (Recipe recipe in Recipe.GetAvailable(alchemy))
         {
             ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
             itemEntry.Init(recipe.ToString(player.CountItem(recipe.result)), "Brew", () =>
             {
                 int possible = player.CountItem(recipe.ingredient) / recipe.ingredientCount;
-                if(possible == 0)
+                if (possible == 0)
                 {
                     ui.ShowDialog($"You need {Utility.Plural(recipe.ingredient.name, recipe.ingredientCount)} to brew {recipe.result.name}.");
                     return;
@@ -2637,7 +2549,7 @@ public class Game : MonoBehaviour
             DropdownEntry dropdownEntry = Instantiate(ui.dropdownEntryPrefab, content).GetComponent<DropdownEntry>();
             dropdownEntry.Init($"Plot {i + 1}: {plant}", "Change", choices, x =>
             {
-                switch(x)
+                switch (x)
                 {
                 case 1:
                     // vegetables
@@ -2709,5 +2621,11 @@ public class Game : MonoBehaviour
             UpdateText();
             return true;
         });
+    }
+
+    public void SetText(string txt)
+    {
+        lastAction = txt;
+        UpdateText();
     }
 }
