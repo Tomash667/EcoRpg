@@ -1,9 +1,10 @@
 idle combat:
-attack -> move forward, animation on enemy, dodge jump away
+hit animation on enemy
 shoot arrow
 front/back row
 block
 heal
+defeated -> escape anim
 
 v1:
 + post dragon enemies

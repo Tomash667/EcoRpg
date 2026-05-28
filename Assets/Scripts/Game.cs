@@ -402,14 +402,14 @@ public class Game : MonoBehaviour
             if (enemy.name == "dragon")
             {
                 dragonStatus = DragonStatus.Defeated;
-                lastAction += " With a final blow, the dragon falls. Its roar fades into silence, and the cavern grows still. The beast is slain—its hoard and your legend now yours to claim. " +
+                lastAction = "With a final blow, the dragon falls. Its roar fades into silence, and the cavern grows still. The beast is slain—its hoard and your legend now yours to claim. " +
                     $"You found {pickups}.";
                 tile.clear = true;
             }
             else if (pickups != null)
-                lastAction += $" You win ({pickups} found).";
+                lastAction = $"You win fight with <b>{Utility.PluralText(enemy.name, count)}</b> ({pickups} found).";
             else
-                lastAction += $" You win.";
+                lastAction = $"You win fight with <b>{Utility.PluralText(enemy.name, count)}</b>.";
             AddTeamGold(gold);
 
             // exp
@@ -454,7 +454,7 @@ public class Game : MonoBehaviour
         }
         else
         {
-            lastAction += " You run away <color=red>defeated<color>.";
+            lastAction = $"You run away <color=red>defeated<color> from {Utility.PluralText(enemy.name, count)}.";
             if (enemy.name == "dragon")
                 tile.defeatedEnemies -= 5;
         }

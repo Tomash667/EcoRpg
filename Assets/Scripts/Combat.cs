@@ -140,7 +140,9 @@ public class Combat : MonoBehaviour
                     AppendText(hero is Player
                         ? $"You miss {enemy.name}."
                         : $"{hero.name} misses {enemy.name}.");
+                    cards.First(x => x.index == enemyIndex).Dodge();
                 }
+                GetCard(hero).Attack();
             }
         }
         else if (enemyHp[unitIndex] > 0)
@@ -191,11 +193,14 @@ public class Combat : MonoBehaviour
                 }
                 else
                     AppendText($"{enemy.name.ToUpper1()} hits {(hero is Player ? "you" : hero.name)} for {dmg} damage.");
-                int index = -game.Team.IndexOf(hero) - 1;
-                cards.First(x => x.index == index).SetHp(hero.hpp);
+                GetCard(hero).SetHp(hero.hpp);
             }
             else
+            {
                 AppendText($"{enemy.name.ToUpper1()} misses {(hero is Player ? "you" : hero.name)}.");
+                GetCard(hero).Dodge();
+            }
+            cards.First(x => x.index == unitIndex).Attack();
         }
 
         ++combatIndex;
@@ -218,5 +223,11 @@ public class Combat : MonoBehaviour
             textParts.RemoveAt(0);
         text.text = string.Join('\n', textParts);
         game.SetText(null);
+    }
+
+    private CharacterCard GetCard(Hero hero)
+    {
+        int index = -game.Team.IndexOf(hero) - 1;
+        return cards.First(x => x.index == index);
     }
 }
