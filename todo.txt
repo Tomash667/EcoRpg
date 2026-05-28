@@ -1,8 +1,5 @@
 idle combat:
-hit animation on enemy
-shoot arrow
 front/back row
-block
 heal
 defeated -> escape anim
 
@@ -102,6 +99,8 @@ hero:
 + class perks
 + combat enemy block/back row
 + auto collect herbs and create potions when traveling
++ enemy ranged attacks/block
++ enemy special attacks
 
 events:
 + free person for hire (foreman, geomancer etc)

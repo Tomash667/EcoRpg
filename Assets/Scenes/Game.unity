@@ -3699,6 +3699,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   characterCardPrefab: {fileID: 1138348367545467064, guid: 54d18d353c023294a8fe6364bfd33207, type: 3}
+  arrowPrefab: {fileID: 1321948706528110639, guid: 734aa3f8968517a41aa3eb731b5a0ae0, type: 3}
 --- !u!1 &229327641
 GameObject:
   m_ObjectHideFlags: 0

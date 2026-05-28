@@ -5,14 +5,15 @@ using UnityEngine;
 
 public class Combat : MonoBehaviour
 {
-    public GameObject characterCardPrefab;
+    public GameObject characterCardPrefab, arrowPrefab;
 
     private readonly Vector2[] teamPos = new Vector2[] { new(0, -125), new(-200, -125), new(200, -125) };
     private readonly Vector2[] enemyPos = new Vector2[] { new(0, 200), new(-200, 200), new(200, 200) };
 
     private readonly List<string> textParts = new();
     private readonly List<CharacterCard> cards = new();
-    private List<int> order = new(), enemyHp = new();
+    private readonly List<int> enemyHp = new();
+    private List<int> order = new();
     private Game game;
     private Enemy enemy;
     private TMP_Text text;
@@ -109,12 +110,13 @@ public class Combat : MonoBehaviour
             {
                 timer = 0.5f;
                 int enemyIndex = enemyHp.Select((hp, index) => (hp, index)).RandomItem(x => x.hp > 0).index;
+                CharacterCard targetCard = cards.First(x => x.index == enemyIndex);
                 if (AttackChance(hero.dex, enemy.dex))
                 {
                     int dmg = Mathf.Max(hero.Attack - enemy.def, 0);
                     int hp = enemyHp[enemyIndex] -= dmg;
                     float hpp = ((float)hp) / enemy.hp;
-                    cards.First(x => x.index == enemyIndex).SetHp(hpp);
+                    targetCard.Damage(hpp);
                     if (hp <= 0)
                     {
                         // hit hits
@@ -140,26 +142,36 @@ public class Combat : MonoBehaviour
                     AppendText(hero is Player
                         ? $"You miss {enemy.name}."
                         : $"{hero.name} misses {enemy.name}.");
-                    cards.First(x => x.index == enemyIndex).Dodge();
+                    targetCard.Dodge();
                 }
-                GetCard(hero).Attack();
+                CharacterCard heroCard = GetCard(hero);
+                if(hero.weapon != null && hero.weapon.subtype == Item.Subtype.Bow)
+                {
+                    Arrow2 arrow = Instantiate(arrowPrefab, transform).GetComponent<Arrow2>();
+                    arrow.Shoot(heroCard.position, targetCard.position);
+                }
+                else
+                    heroCard.Attack();
             }
         }
         else if (enemyHp[unitIndex] > 0)
         {
             Hero hero = game.Team.RandomItem(x => x.hp > 0);
+            bool isBlocking = false;
             if (hero.backRow)
             {
                 // front row heroes can block attack once per round
-                Hero blockingHero = game.Team.RandomItem(x => x.hp > 0 && x.canBlock);
+                Hero blockingHero = game.Team.RandomItem(x => x.hp > 0 && x.canBlock && x.shield != null);
                 if (blockingHero != null)
                 {
                     hero = blockingHero;
                     hero.canBlock = false;
+                    isBlocking = true;
                 }
             }
 
             timer = 0.5f;
+            CharacterCard heroCard = GetCard(hero);
             if (AttackChance(enemy.dex, hero.dex))
             {
                 int dmg = Mathf.Max(enemy.attack - hero.Defense, 0);
@@ -193,12 +205,19 @@ public class Combat : MonoBehaviour
                 }
                 else
                     AppendText($"{enemy.name.ToUpper1()} hits {(hero is Player ? "you" : hero.name)} for {dmg} damage.");
-                GetCard(hero).SetHp(hero.hpp);
+
+                if (isBlocking)
+                    heroCard.Block(hero.hpp);
+                else
+                    heroCard.Damage(hero.hpp);
             }
             else
             {
                 AppendText($"{enemy.name.ToUpper1()} misses {(hero is Player ? "you" : hero.name)}.");
-                GetCard(hero).Dodge();
+                if (isBlocking)
+                    heroCard.Block();
+                else
+                    heroCard.Dodge();
             }
             cards.First(x => x.index == unitIndex).Attack();
         }

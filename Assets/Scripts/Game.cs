@@ -2420,9 +2420,14 @@ public class Game : MonoBehaviour
         {
             while (hero.level < 10)
                 hero.AddExp(hero.level, 4f);
-            hero.weapon = Item.Get("magic sword");
+            if (hero.clas == Class.Warrior)
+            {
+                hero.weapon = Item.Get("magic sword");
+                hero.shield = Item.Get("magic shield");
+            }
+            else
+                hero.weapon = Item.Get("magic bow");
             hero.armor = Item.Get("magic armor");
-            hero.shield = Item.Get("magic shield");
             hero.AddItem(Item.Get("elixir"), 100);
             hero.AddItem(Item.Get("rations"), 1000 - hero.CountItem(Item.Get("rations")));
             hero.gold = Mathf.Max(hero.gold, 100000);
