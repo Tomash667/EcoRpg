@@ -454,7 +454,7 @@ public class Game : MonoBehaviour
         }
         else
         {
-            lastAction = $"You run away <color=red>defeated<color> from {Utility.PluralText(enemy.name, count)}.";
+            lastAction = $"You run away <color=red>defeated</color> from {Utility.PluralText(enemy.name, count)}.";
             if (enemy.name == "dragon")
                 tile.defeatedEnemies -= 5;
         }

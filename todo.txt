@@ -1,9 +1,6 @@
-idle combat:
-front/back row
-heal
-defeated -> escape anim
-
 v1:
+- too easy with lots of potions
+- trophy gold is not split
 + post dragon enemies
 + idle combat -> escape, use potion
 + harder to gain guild rank
@@ -41,7 +38,6 @@ hero:
 + luxury
 + lose consequences
 + interactive combat
-+ combat use potion in your turn, not after damage
 + player history
 	isekaied
 	noble
@@ -97,10 +93,15 @@ hero:
 + hero sword/spear/bow/shield
 + unskilled weapon use
 + class perks
-+ combat enemy block/back row
 + auto collect herbs and create potions when traveling
-+ enemy ranged attacks/block
-+ enemy special attacks
++ combat
+	enemy block
+	enemy back row
+	enemy ranged attacks
+	enemy special attacks
+	order to target enemy
+	delay log to match cards
+	hero use potion while hp > 0
 
 events:
 + free person for hire (foreman, geomancer etc)

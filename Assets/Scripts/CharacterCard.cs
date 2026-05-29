@@ -11,7 +11,9 @@ public class CharacterCard : MonoBehaviour
         Dodge,
         Damage,
         Block,
-        BlockDamage
+        BlockDamage,
+        Escape,
+        Heal
     }
 
     public Sprite enemySprite;
@@ -113,6 +115,7 @@ public class CharacterCard : MonoBehaviour
                 if (timer >= 0.15f)
                 {
                     actionState = 1;
+                    transform.GetChild(4).gameObject.SetActive(true);
                     if (action == Action.BlockDamage)
                     {
                         transform.GetChild(5).gameObject.SetActive(true);
@@ -120,19 +123,45 @@ public class CharacterCard : MonoBehaviour
                     }
                 }
                 RectTransform rectTransform = transform as RectTransform;
-                rectTransform.anchoredPosition = new Vector2(rectTransform.anchoredPosition.x, Mathf.Lerp(prevPos, prevPos + 50f * dir, timer / 0.15f));
+                rectTransform.anchoredPosition = new Vector2(rectTransform.anchoredPosition.x, Mathf.Lerp(prevPos, prevPos + 25f * dir, timer / 0.15f));
             }
             else if (actionState == 1)
             {
                 if (timer >= 0.35f)
                 {
-                    action = Action.None;
                     if (action == Action.BlockDamage)
                         transform.GetChild(5).gameObject.SetActive(false);
                     transform.GetChild(4).gameObject.SetActive(false);
+                    action = Action.None;
                 }
                 RectTransform rectTransform = transform as RectTransform;
-                rectTransform.anchoredPosition = new Vector2(rectTransform.anchoredPosition.x, Mathf.Lerp(prevPos + 50f * dir, prevPos, (timer - 0.15f) / 0.2f));
+                rectTransform.anchoredPosition = new Vector2(rectTransform.anchoredPosition.x, Mathf.Lerp(prevPos + 25f * dir, prevPos, (timer - 0.15f) / 0.2f));
+            }
+            break;
+        case Action.Escape:
+            {
+                RectTransform rectTransform = transform as RectTransform;
+                rectTransform.anchoredPosition = new Vector2(rectTransform.anchoredPosition.x, rectTransform.anchoredPosition.y - 600f * dir * Time.deltaTime);
+            }
+            break;
+        case Action.Heal:
+            timer += Time.deltaTime;
+            if (actionState == 0)
+            {
+                if (timer >= 0.15f)
+                {
+                    transform.GetChild(6).gameObject.SetActive(true);
+                    SetHp(nextHp);
+                    actionState = 1;
+                }
+            }
+            else if (actionState == 1)
+            {
+                if (timer >= 0.35f)
+                {
+                    transform.GetChild(6).gameObject.SetActive(false);
+                    action = Action.None;
+                }
             }
             break;
         }
@@ -174,6 +203,18 @@ public class CharacterCard : MonoBehaviour
         actionState = 0;
         timer = 0;
         prevPos = (transform as RectTransform).anchoredPosition.y;
-        transform.GetChild(4).gameObject.SetActive(true);
+    }
+
+    public void Escape()
+    {
+        action = Action.Escape;
+    }
+
+    public void Heal(float nextHp)
+    {
+        this.nextHp = nextHp;
+        action = Action.Heal;
+        actionState = 0;
+        timer = 0;
     }
 }

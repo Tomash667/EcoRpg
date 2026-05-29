@@ -5,6 +5,14 @@ using UnityEngine;
 
 public class Combat : MonoBehaviour
 {
+    private enum CombatResult
+    {
+        None,
+        Win,
+        Defeat,
+        DefeatEscaping
+    }
+
     public GameObject characterCardPrefab, arrowPrefab;
 
     private readonly Vector2[] teamPos = new Vector2[] { new(0, -125), new(-200, -125), new(200, -125) };
@@ -17,8 +25,9 @@ public class Combat : MonoBehaviour
     private Game game;
     private Enemy enemy;
     private TMP_Text text;
+    private CombatResult combatResult;
     private float timer;
-    private int combatIndex, combatResult;
+    private int combatIndex;
 
     public void Init()
     {
@@ -40,12 +49,16 @@ public class Combat : MonoBehaviour
         textParts.Clear();
 
         int index = 0;
+        bool multiRow = game.Team.Any(x => x.BackRow != game.player.BackRow);
         foreach (Hero hero in game.Team)
         {
             CharacterCard card = Instantiate(characterCardPrefab, container).GetComponent<CharacterCard>();
             card.Init(hero.name, hero.hpp, false);
             RectTransform transform = card.GetComponent<RectTransform>();
-            transform.anchoredPosition = teamPos[index];
+            Vector2 pos = teamPos[index];
+            if (multiRow && !hero.BackRow)
+                pos.y += 25;
+            transform.anchoredPosition = pos;
             ++index;
             order.Add(-index);
             card.index = -index;
@@ -91,10 +104,20 @@ public class Combat : MonoBehaviour
         if (timer > 0)
             return;
 
-        if (combatResult != 0)
+        if (combatResult != CombatResult.None)
         {
-            transform.parent.Find("Buttons").gameObject.SetActive(true);
-            game.PostCombat(combatResult == 1, enemy, enemyHp.Count);
+            if (combatResult == CombatResult.Defeat)
+            {
+                combatResult = CombatResult.DefeatEscaping;
+                timer = 1f;
+                foreach (CharacterCard card in cards.Where(x => x.index < 0))
+                    card.Escape();
+            }
+            else
+            {
+                transform.parent.Find("Buttons").gameObject.SetActive(true);
+                game.PostCombat(combatResult == CombatResult.Win, enemy, enemyHp.Count);
+            }
             return;
         }
 
@@ -102,11 +125,11 @@ public class Combat : MonoBehaviour
         if (unitIndex < 0)
         {
             Hero hero = unitIndex == -1 ? game.player : game.allies[-unitIndex - 2];
-            if (!hero.backRow)
+            CharacterCard heroCard = GetCard(hero);
+            if (!hero.BackRow)
                 hero.canBlock = true;
-            if (hero.wasteTurn)
-                hero.wasteTurn = false;
-            else if (hero.hp > 0)
+
+            if (hero.hp > 0)
             {
                 timer = 0.5f;
                 int enemyIndex = enemyHp.Select((hp, index) => (hp, index)).RandomItem(x => x.hp > 0).index;
@@ -127,7 +150,7 @@ public class Combat : MonoBehaviour
                         {
                             AppendText("You win!");
                             timer = 1;
-                            combatResult = 1;
+                            combatResult = CombatResult.Win;
                         }
                     }
                     else
@@ -144,8 +167,7 @@ public class Combat : MonoBehaviour
                         : $"{hero.name} misses {enemy.name}.");
                     targetCard.Dodge();
                 }
-                CharacterCard heroCard = GetCard(hero);
-                if(hero.weapon != null && hero.weapon.subtype == Item.Subtype.Bow)
+                if (hero.weapon != null && hero.weapon.subtype == Item.Subtype.Bow)
                 {
                     Arrow2 arrow = Instantiate(arrowPrefab, transform).GetComponent<Arrow2>();
                     arrow.Shoot(heroCard.position, targetCard.position);
@@ -153,12 +175,28 @@ public class Combat : MonoBehaviour
                 else
                     heroCard.Attack();
             }
+            else
+            {
+                ItemSlot potion;
+                if ((potion = hero.FindHealingItem()) != null && hero.hp + potion.item.power > 0)
+                {
+                    // hero use potion
+                    int prevHp = hero.hp;
+                    hero.hp = Mathf.Min(hero.hp + potion.item.power, hero.hpMax);
+                    hero.RemoveItem(potion);
+                    AppendText(hero is Player
+                        ? $"You use {potion.item.name} and get healed for {hero.hp - prevHp}."
+                        : $"{hero.name} use {potion.item.name} and get healed for {hero.hp - prevHp}.");
+                    heroCard.Heal(hero.hpp);
+                    timer = 0.5f;
+                }
+            }
         }
         else if (enemyHp[unitIndex] > 0)
         {
             Hero hero = game.Team.RandomItem(x => x.hp > 0);
             bool isBlocking = false;
-            if (hero.backRow)
+            if (hero.BackRow)
             {
                 // front row heroes can block attack once per round
                 Hero blockingHero = game.Team.RandomItem(x => x.hp > 0 && x.canBlock && x.shield != null);
@@ -178,29 +216,13 @@ public class Combat : MonoBehaviour
                 hero.hp -= dmg;
                 if (hero.hp <= 0)
                 {
-                    ItemSlot potion;
-                    if (!hero.wasteTurn && (potion = hero.FindHealingItem()) != null && hero.hp + potion.item.power > 0)
+                    AppendText($"{enemy.name.ToUpper1()} hits {(hero is Player ? "you" : hero.name)} for {dmg} damage and defeats {hero.him}.");
+                    if (game.Team.All(x => x.hp <= 0))
                     {
-                        // hero use potion and waste turn
-                        int prevHp = hero.hp;
-                        hero.hp = Mathf.Min(hero.hp + potion.item.power, hero.hpMax);
-                        hero.RemoveItem(potion);
-                        hero.wasteTurn = true;
-                        AppendText($"{enemy.name.ToUpper1()} hits {(hero is Player ? "you" : hero.name)} for {dmg} damage.");
-                        AppendText(hero is Player
-                            ? $"You use {potion.item.name} and get healed for {hero.hp - prevHp}."
-                            : $"{hero.name} use {potion.item.name} and get healed for {hero.hp - prevHp}.");
-                    }
-                    else
-                    {
-                        AppendText($"{enemy.name.ToUpper1()} hits {(hero is Player ? "you" : hero.name)} for {dmg} damage and defeats {hero.him}.");
-                        if (game.Team.All(x => x.hp <= 0))
-                        {
-                            // lost
-                            AppendText("You lost!");
-                            combatResult = 2;
-                            timer = 1;
-                        }
+                        // lost
+                        AppendText("You lost!");
+                        combatResult = CombatResult.Defeat;
+                        timer = 0.5f;
                     }
                 }
                 else

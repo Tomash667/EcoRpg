@@ -16,7 +16,7 @@ public class Hero : ISerializationCallbackReceiver
     public bool female;
 
     [NonSerialized]
-    public bool wasteTurn, backRow, canBlock;
+    public bool canBlock;
 
     public int Attack
     {
@@ -54,6 +54,7 @@ public class Hero : ISerializationCallbackReceiver
             return result;
         }
     }
+    public bool BackRow => clas == Class.Archer;
     public char GenderSign => female ? '♀' : '♂';
     public string He => female ? "She" : "He";
     public virtual string him => female ? "her" : "him";
@@ -98,17 +99,10 @@ public class Hero : ISerializationCallbackReceiver
 
     public void InitCombat()
     {
-        wasteTurn = false;
         if (clas == Class.Warrior)
-        {
-            backRow = false;
             canBlock = true;
-        }
         else
-        {
-            backRow = true;
             canBlock = false;
-        }
     }
 
     public bool AddExp(int enemyLevel, float mod)
