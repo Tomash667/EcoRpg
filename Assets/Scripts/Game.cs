@@ -334,14 +334,14 @@ public class Game : MonoBehaviour
         UpdateText();
     }
 
-    public void PostCombat(bool win, Enemy enemy, int count)
+    public void PostCombat(Combat.Result result, Enemy enemy, int count)
     {
         Tile tile = world.CurrentTile;
 
         ui.lockDialog = false;
         ui.CloseDialog();
 
-        if (win)
+        if (result == Combat.Result.Win)
         {
             if (activeQuest != null)
             {
@@ -454,7 +454,11 @@ public class Game : MonoBehaviour
         }
         else
         {
-            lastAction = $"You run away <color=red>defeated</color> from {Utility.PluralText(enemy.name, count)}.";
+            if (result == Combat.Result.Escape)
+                lastAction = $"You run away from {Utility.PluralText(enemy.name, count)}.";
+            else
+                lastAction = $"You run away <color=red>defeated</color> from {Utility.PluralText(enemy.name, count)}.";
+
             if (enemy.name == "dragon")
                 tile.defeatedEnemies -= 5;
         }

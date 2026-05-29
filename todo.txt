@@ -1,8 +1,5 @@
 v1:
-- too easy with lots of potions
-- trophy gold is not split
 + post dragon enemies
-+ idle combat -> escape, use potion
 + harder to gain guild rank
 + quests
 	more active
@@ -22,6 +19,7 @@ v1:
 
 ---------------------------------------------------------------------------------------------------
 hero:
+- treasure/trophy gold is not split
 + classes
 	tank
 	rogue
@@ -102,6 +100,8 @@ hero:
 	order to target enemy
 	delay log to match cards
 	hero use potion while hp > 0
+	escape chance
+	enemy escape
 
 events:
 + free person for hire (foreman, geomancer etc)

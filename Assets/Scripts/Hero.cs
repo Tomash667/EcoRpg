@@ -16,6 +16,7 @@ public class Hero : ISerializationCallbackReceiver
     public bool female;
 
     [NonSerialized]
+    public int potionTimer, potionsUsed;
     public bool canBlock;
 
     public int Attack
@@ -99,6 +100,8 @@ public class Hero : ISerializationCallbackReceiver
 
     public void InitCombat()
     {
+        potionTimer = 0;
+        potionsUsed = 0;
         if (clas == Class.Warrior)
             canBlock = true;
         else
