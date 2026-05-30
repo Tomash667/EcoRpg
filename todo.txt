@@ -1,6 +1,6 @@
 v1:
+- when traveling location name is one behind
 + post dragon enemies
-+ harder to gain guild rank
 + quests
 	more active
 	cancel
@@ -114,6 +114,7 @@ events:
 + cooldown so same events don't happen all the time
 	
 ui:
+- don't split ui to 3 lines if not needed
 + item icons
 + property icons (infested, buffed)
 + shop tabs

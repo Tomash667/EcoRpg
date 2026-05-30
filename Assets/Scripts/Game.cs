@@ -18,8 +18,9 @@ public class Game : MonoBehaviour
     }
 
     private const int MaxAllies = 2;
+    private const int MaxGuildRank = 4;
 
-    private static readonly string[] GuildRanks = new[] { "None", "Copper", "Silver", "Gold" };
+    private static readonly string[] GuildRanks = new[] { "None", "Copper", "Silver", "Gold", "Diamond" };
 
     public World world;
     public Player player;
@@ -32,7 +33,8 @@ public class Game : MonoBehaviour
     [SerializeReference]
     public Quest activeQuest;
     public DragonStatus dragonStatus;
-    public int day, hour, minute, guildRank, guildProgress;
+    public float guildProgress;
+    public int day, hour, minute, guildRank;
 
     private GameUI ui;
     private GameObject shopScreen, characterScreen, allyScreen, giveAllyItemsScreen, storeItemsScreen, activeInventory, propertiesScreen, guildScreen, gardenScreen, craftScreen;
@@ -2115,6 +2117,8 @@ public class Game : MonoBehaviour
                     {
                     case 1:
                         quest.location = world.FindLocationIndex(x => x.type == TileType.City, 1);
+                        quest.difficultyMod = 1f;
+                        quest.difficultyMod = 0.5f;
                         break;
                     case 2:
                         if (player.HaveProperty("Sawmill"))
@@ -2122,9 +2126,13 @@ public class Game : MonoBehaviour
                             // don't generate random quest if player owned
                             quest.locationDifficulty = 1;
                             quest.location = world.FindLocationIndex(x => x.type == TileType.City, 1);
+                            quest.difficultyMod = 0.5f;
                         }
                         else
+                        {
                             quest.location = world.FindLocationIndex(x => x.type == TileType.Sawmill);
+                            quest.difficultyMod = 0.75f;
+                        }
                         break;
                     case 3:
                         if (player.HaveProperty("Iron mine"))
@@ -2132,9 +2140,13 @@ public class Game : MonoBehaviour
                             // don't generate random quest if player owned
                             quest.locationDifficulty = 1;
                             quest.location = world.FindLocationIndex(x => x.type == TileType.City, 1);
+                            quest.difficultyMod = 0.5f;
                         }
                         else
+                        {
                             quest.location = world.FindLocationIndex(x => x.type == TileType.Mine && x.difficulty == 1);
+                            quest.difficultyMod = 1f;
+                        }
                         break;
                     }
                     break;
@@ -2144,6 +2156,7 @@ public class Game : MonoBehaviour
                     quest.item = Item.Get("herb");
                     quest.max = 20;
                     quest.locationDifficulty = 1;
+                    quest.difficultyMod = 0.25f;
                     break;
                 case 2:
                 case 3:
@@ -2151,6 +2164,7 @@ public class Game : MonoBehaviour
                     quest.type = Quest.Type.Artifact;
                     quest.location = world.FindRandomLocationIndex(x => (x.type == TileType.Dungeon || x.hidden == TileType.Dungeon) && x.difficulty == difficulty);
                     quest.locationDifficulty = difficulty;
+                    quest.difficultyMod = 1f;
                     quest.max = 1;
                     break;
                 case 4:
@@ -2158,6 +2172,7 @@ public class Game : MonoBehaviour
                     quest.type = Quest.Type.Clear;
                     quest.location = world.FindRandomLocationIndex(x => (x.type == TileType.Cave || x.hidden == TileType.Cave) && !x.mine && x.difficulty == 1);
                     quest.locationDifficulty = 3;
+                    quest.difficultyMod = 1f;
                     quest.max = 10;
                     break;
                 default:
@@ -2166,6 +2181,7 @@ public class Game : MonoBehaviour
                     quest.enemy = Enemy.GetRandom(difficulty);
                     quest.max = Utility.Random(2, 3);
                     quest.locationDifficulty = difficulty;
+                    quest.difficultyMod = Mathf.Lerp(0.1f, 0.5f, quest.enemy.level / 3f);
                     break;
                 }
             }
@@ -2185,6 +2201,7 @@ public class Game : MonoBehaviour
                         quest.location = world.FindRandomLocationIndex(x => (x.type == TileType.Cave || x.hidden == TileType.Cave) && !x.mine && !x.boss && x.difficulty == difficulty);
                     else
                         quest.location = world.FindLocationIndex(x => x.type == TileType.Mine && x.difficulty == difficulty);
+                    quest.difficultyMod = 1f;
                     break;
                 case 2:
                 case 3:
@@ -2192,6 +2209,7 @@ public class Game : MonoBehaviour
                     quest.type = Quest.Type.Artifact;
                     quest.location = world.FindRandomLocationIndex(x => (x.type == TileType.Dungeon || x.hidden == TileType.Dungeon) && x.difficulty == difficulty);
                     quest.locationDifficulty = difficulty;
+                    quest.difficultyMod = 1f;
                     quest.max = 1;
                     break;
                 case 4:
@@ -2202,6 +2220,7 @@ public class Game : MonoBehaviour
                     quest.item = Item.Get("rare herb");
                     quest.max = 20;
                     quest.locationDifficulty = 2;
+                    quest.difficultyMod = 0.25f;
                     break;
                 default:
                     // 50%
@@ -2209,6 +2228,10 @@ public class Game : MonoBehaviour
                     quest.enemy = Enemy.GetRandom(difficulty);
                     quest.max = Utility.Random(2, 2 + difficulty);
                     quest.locationDifficulty = difficulty;
+                    if (difficulty == 2)
+                        quest.difficultyMod = Mathf.Lerp(0.25f, 0.5f, (quest.enemy.level - 4) / 2f);
+                    else
+                        quest.difficultyMod = Mathf.Lerp(0.25f, 0.5f, (quest.enemy.level - 7) / 2f);
                     break;
                 }
             }
@@ -2222,14 +2245,23 @@ public class Game : MonoBehaviour
     {
         int reward = activeQuest.Reward;
         lastAction = $"You received <color=#FFD700>{reward}</color> gold for quest '{activeQuest.Title}'.";
-        if (activeQuest.difficulty == guildRank && guildRank != 3)
+        if (guildRank != MaxGuildRank)
         {
-            ++guildProgress;
-            if (guildProgress == 2)
+            float value = activeQuest.difficultyMod;
+            if (activeQuest.difficulty + 1 == guildRank)
+                value /= 4;
+            else if (activeQuest.difficulty < guildRank)
+                value = 0;
+
+            if (value > 0)
             {
-                ++guildRank;
-                guildProgress = 0;
-                lastAction += $" You were promoted to <b>{GuildRanks[guildRank]}</b> rank.";
+                guildProgress += value;
+                if (guildProgress >= 1f + guildRank)
+                {
+                    ++guildRank;
+                    guildProgress = 0;
+                    lastAction += $" You were promoted to <b>{GuildRanks[guildRank]}</b> rank.";
+                }
             }
         }
         AddTeamGold(reward);
