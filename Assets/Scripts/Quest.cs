@@ -9,7 +9,8 @@ public class Quest : ISerializationCallbackReceiver
         Defeat,
         Clear,
         Gather,
-        Artifact
+        Artifact,
+        Unique
     }
 
     public Enemy enemy;
@@ -44,6 +45,7 @@ public class Quest : ISerializationCallbackReceiver
                 Type.Clear => $"Clear {GetLocationName()} - {Mathf.Min(100 * count / max, 100)}%",
                 Type.Gather => $"Gather {Global.Player.CountItem(item)}/{max} {Utility.Plural(item.name)}",
                 Type.Artifact => count == 0 ? $"Find artifact in {GetLocationName()}" : $"Bring artifact from {GetLocationName()} to guild",
+                Type.Unique => "Defeat dragon in far cave",
                 _ => string.Empty
             };
         }
@@ -58,12 +60,13 @@ public class Quest : ISerializationCallbackReceiver
                 Type.Clear => $"Clear {GetLocationName()}",
                 Type.Gather => $"Gather {Utility.Plural(item.name, max)}",
                 Type.Artifact => $"Find artifact in {GetLocationName()}",
+                Type.Unique => "Defeat dragon in far cave",
                 _ => string.Empty
             };
         }
     }
     public string TitleReward => $"{Title} ({Reward} gold)";
-    public string TextReward => $"{Text} ({Reward} gold)";
+    public string TextReward => type != Type.Unique ? $"{Text} ({Reward} gold)" : Text;
 
     public void OnBeforeSerialize()
     {

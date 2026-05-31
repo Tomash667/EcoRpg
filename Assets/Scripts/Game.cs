@@ -5,7 +5,6 @@ using System.Text;
 using TMPro;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -409,6 +408,9 @@ public class Game : MonoBehaviour
                 dragonStatus = DragonStatus.Defeated;
                 lastAction = "With a final blow, the dragon falls. Its roar fades into silence, and the cavern grows still. The beast is slain—its hoard and your legend now yours to claim. " +
                     $"You found {pickups}.";
+                Quest quest = activeQuests.FirstOrDefault(x => x.type == Quest.Type.Unique);
+                if (quest != null)
+                    RemoveQuest(quest);
                 tile.clear = true;
             }
             else if (pickups != null)
@@ -1408,7 +1410,13 @@ public class Game : MonoBehaviour
         map.Build();
         day = 1;
         hour = 8;
-        activeQuests = new();
+        activeQuests = new()
+        {
+            new()
+            {
+                type = Quest.Type.Unique
+            }
+        };
         properties = new()
         {
             new()
@@ -2020,10 +2028,11 @@ public class Game : MonoBehaviour
         foreach (Transform child in content)
             Destroy(child.gameObject);
 
-        if (activeQuests.Count > 0)
+        int acceptedQuests = activeQuests.Count(x => x.type != Quest.Type.Unique);
+        if (acceptedQuests != 0)
         {
-            ui.AddTextHeader($"Accepted quests ({activeQuests.Count}/{guildRank}):", content);
-            foreach (Quest quest in activeQuests)
+            ui.AddTextHeader($"Accepted quests ({acceptedQuests}/{guildRank}):", content);
+            foreach (Quest quest in activeQuests.Where(x => x.type != Quest.Type.Unique))
             {
                 ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
                 if (quest.IsDone())
@@ -2031,6 +2040,7 @@ public class Game : MonoBehaviour
                 else
                     itemEntry.Init(quest.TextReward);
             }
+            Instantiate(ui.lineSeparatorPrefab, content);
         }
 
         if (guildRank != 0)
@@ -2047,7 +2057,7 @@ public class Game : MonoBehaviour
             }
 
             ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
-            if (activeQuests.Count < guildRank && !unavailable)
+            if (acceptedQuests < guildRank && !unavailable)
             {
                 itemEntry.Init(quest.TitleReward, "Pick", () =>
                 {
@@ -2286,8 +2296,12 @@ public class Game : MonoBehaviour
     {
         bool isTracked = quest.tracked;
         activeQuests.Remove(quest);
-        if (isTracked && activeQuests.Count > 0)
-            activeQuests[0].tracked = true;
+        if (isTracked)
+        {
+            quest = activeQuests.FirstOrDefault(x => x.type != Quest.Type.Unique);
+            if (quest != null)
+                quest.tracked = true;
+        }
     }
 
     public void Forage()

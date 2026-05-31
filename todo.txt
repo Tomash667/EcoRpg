@@ -1,8 +1,6 @@
 v1:
 + post dragon enemies
-+ quests
-	cancel
-	journal - dragon quest (don't auto track)
++ cancel quest
 + allies
 	better heroes
 	relationship
