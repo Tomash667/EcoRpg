@@ -5,6 +5,7 @@ using System.Text;
 using TMPro;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -25,19 +26,17 @@ public class Game : MonoBehaviour
     public World world;
     public Player player;
     public List<Hero> allies;
-    public List<Quest> availableQuests;
+    public List<Quest> availableQuests, activeQuests;
     public List<Property> properties;
     public List<ItemSlot> storedItems;
     public List<string> notifications;
     public List<string> gardenPlants;
-    [SerializeReference]
-    public Quest activeQuest;
     public DragonStatus dragonStatus;
     public float guildProgress;
     public int day, hour, minute, guildRank;
 
     private GameUI ui;
-    private GameObject shopScreen, characterScreen, allyScreen, giveAllyItemsScreen, storeItemsScreen, activeInventory, propertiesScreen, guildScreen, gardenScreen, craftScreen;
+    private GameObject shopScreen, characterScreen, journalScreen, allyScreen, giveAllyItemsScreen, storeItemsScreen, activeInventory, propertiesScreen, guildScreen, gardenScreen, craftScreen;
     private Map map;
     private Combat combatScreen;
     private TMP_Text text;
@@ -64,6 +63,7 @@ public class Game : MonoBehaviour
         text = transform.Find("Text").GetComponent<TMP_Text>();
         shopScreen = transform.Find("Shop").gameObject;
         characterScreen = transform.Find("Character").gameObject;
+        journalScreen = transform.Find("Journal").gameObject;
         allyScreen = transform.Find("Ally").gameObject;
         giveAllyItemsScreen = transform.Find("GiveItems").gameObject;
         storeItemsScreen = transform.Find("StoreItems").gameObject;
@@ -101,8 +101,8 @@ public class Game : MonoBehaviour
                 {
                     if (Input.GetKeyDown(KeyCode.C))
                         Craft();
-                    if (activeQuest != null && activeQuest.IsDone() && Input.GetKeyDown(KeyCode.F))
-                        FinishQuest();
+                    if (Input.GetKeyDown(KeyCode.K))
+                        Cook();
                     if (Input.GetKeyDown(KeyCode.R))
                         Recruit();
                 }
@@ -125,6 +125,8 @@ public class Game : MonoBehaviour
                 Ally(1);
             if (Input.GetKeyDown(KeyCode.C))
                 Character();
+            if (Input.GetKeyDown(KeyCode.J))
+                Journal();
             if (Input.GetKeyDown(KeyCode.E))
                 Explore();
             if (Input.GetKeyDown(KeyCode.R))
@@ -213,9 +215,10 @@ public class Game : MonoBehaviour
             Item item = Item.items.RandomItem(x => x.level == level);
             int gold = Utility.Round(Utility.Random(level * 100, level * 200));
             lastAction = $"You explore the {tile.Name} and find <b>treasure room</b>. Inside chest you find <color=#FFD700>{gold}</color> gold and <b>{item.name}</b>.";
-            if (activeQuest != null && activeQuest.type == Quest.Type.Artifact && activeQuest.location == world.CurrentLocationIndex)
+            Quest quest = activeQuests.FirstOrDefault(x => x.type == Quest.Type.Artifact && x.location == world.CurrentLocationIndex);
+            if (quest != null)
             {
-                activeQuest.count = 1;
+                quest.count = 1;
                 lastAction += $" You also find an <b>artifact</b>.";
             }
             AddTeamGold(gold);
@@ -345,17 +348,17 @@ public class Game : MonoBehaviour
 
         if (result == Combat.Result.Win)
         {
-            if (activeQuest != null)
+            foreach (Quest quest in activeQuests)
             {
-                if (activeQuest.type == Quest.Type.Defeat)
+                if (quest.type == Quest.Type.Defeat)
                 {
-                    if (activeQuest.enemy == enemy)
-                        activeQuest.count += count;
+                    if (quest.enemy == enemy)
+                        quest.count += count;
                 }
-                else if (activeQuest.type == Quest.Type.Clear)
+                else if (quest.type == Quest.Type.Clear)
                 {
-                    if (activeQuest.location == world.CurrentLocationIndex)
-                        activeQuest.count += count;
+                    if (quest.location == world.CurrentLocationIndex)
+                        quest.count += count;
                 }
             }
 
@@ -1097,6 +1100,7 @@ public class Game : MonoBehaviour
         sb.Append('\n');
         foreach (Hero ally in allies)
             sb.Append($"{ally.name} ({ally.HpP}%)   ");
+        Quest activeQuest = activeQuests.FirstOrDefault(x => x.tracked);
         if (activeQuest != null)
             sb.Append($"Quest: {activeQuest.Text}\n");
         else
@@ -1404,6 +1408,7 @@ public class Game : MonoBehaviour
         map.Build();
         day = 1;
         hour = 8;
+        activeQuests = new();
         properties = new()
         {
             new()
@@ -1863,10 +1868,11 @@ public class Game : MonoBehaviour
                     // remove quests assigned to this location
                     if (property.locationIndex != -1)
                     {
-                        if (activeQuest != null && activeQuest.type == Quest.Type.Clear && activeQuest.location == property.locationIndex)
+                        Quest quest = activeQuests.FirstOrDefault(x => x.type == Quest.Type.Clear && x.location == property.locationIndex);
+                        if (quest != null)
                         {
-                            lastAction += $" Quest '{activeQuest.Title}' is reassigned to other party.";
-                            activeQuest = null;
+                            lastAction += $" Quest '{quest.Title}' is reassigned to other party.";
+                            RemoveQuest(quest);
                         }
                         availableQuests.RemoveAll(x => x.type == Quest.Type.Clear && x.location == property.locationIndex);
                     }
@@ -1970,22 +1976,10 @@ public class Game : MonoBehaviour
         }
         else
             guildText = string.Empty;
-
-        guildText += $"Your rank: {GuildRanks[guildRank]}\nCurrent quest: {(activeQuest != null ? activeQuest.Text : "none")}";
+        guildText += $"Your rank: {GuildRanks[guildRank]}";
         guildScreen.transform.Find("Text").GetComponent<TMP_Text>().text = guildText;
 
-        if (guildRank == 0)
-        {
-            guildScreen.transform.Find("BtFinishQuest").gameObject.SetActive(false);
-            guildScreen.transform.Find("BtJoin").gameObject.SetActive(true);
-        }
-        else
-        {
-            Transform finishQuestTransform = guildScreen.transform.Find("BtFinishQuest");
-            finishQuestTransform.gameObject.SetActive(true);
-            finishQuestTransform.GetComponent<Button>().interactable = activeQuest != null && activeQuest.IsDone();
-            guildScreen.transform.Find("BtJoin").gameObject.SetActive(false);
-        }
+        guildScreen.transform.Find("BtJoin").GetComponent<Button>().interactable = guildRank == 0;
         guildScreen.transform.Find("BtRecruit").GetComponent<Button>().interactable = guildRank != 0;
         guildScreen.transform.Find("BtCook").GetComponent<Button>().interactable = guildRank != 0;
         guildScreen.transform.Find("BtCraft").GetComponent<Button>().interactable = guildRank != 0;
@@ -2026,6 +2020,19 @@ public class Game : MonoBehaviour
         foreach (Transform child in content)
             Destroy(child.gameObject);
 
+        if (activeQuests.Count > 0)
+        {
+            ui.AddTextHeader($"Accepted quests ({activeQuests.Count}/{guildRank}):", content);
+            foreach (Quest quest in activeQuests)
+            {
+                ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
+                if (quest.IsDone())
+                    itemEntry.Init(quest.TextReward, "Finish", () => FinishQuest(quest));
+                else
+                    itemEntry.Init(quest.TextReward);
+            }
+        }
+
         if (guildRank != 0)
             ui.AddTextHeader("Available quests:", content);
 
@@ -2040,13 +2047,15 @@ public class Game : MonoBehaviour
             }
 
             ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
-            if (activeQuest == null && !unavailable)
+            if (activeQuests.Count < guildRank && !unavailable)
             {
                 itemEntry.Init(quest.TitleReward, "Pick", () =>
                 {
-                    activeQuest = quest;
+                    activeQuests.Add(quest);
+                    if (!activeQuests.Any(x => x.tracked))
+                        quest.tracked = true;
                     availableQuests.Remove(quest);
-                    lastAction = $"You accepted quest '{activeQuest.Title}'.";
+                    lastAction = $"You accepted quest '{quest.Title}'.";
                     if (quest.type == Quest.Type.Artifact)
                     {
                         Tile tile = world.GetLocation(quest.location);
@@ -2236,21 +2245,21 @@ public class Game : MonoBehaviour
                 }
             }
 
-            if (availableQuests.All(x => !x.IsSimilar(quest)) && (activeQuest == null || !activeQuest.IsSimilar(quest)))
+            if (availableQuests.All(x => !x.IsSimilar(quest)) && activeQuests.All(x => !x.IsSimilar(quest)))
                 return quest;
         }
     }
 
-    public void FinishQuest()
+    public void FinishQuest(Quest quest)
     {
-        int reward = activeQuest.Reward;
-        lastAction = $"You received <color=#FFD700>{reward}</color> gold for quest '{activeQuest.Title}'.";
+        int reward = quest.Reward;
+        lastAction = $"You received <color=#FFD700>{reward}</color> gold for quest '{quest.Title}'.";
         if (guildRank != MaxGuildRank)
         {
-            float value = activeQuest.difficultyMod;
-            if (activeQuest.difficulty + 1 == guildRank)
+            float value = quest.difficultyMod;
+            if (quest.difficulty + 1 == guildRank)
                 value /= 4;
-            else if (activeQuest.difficulty < guildRank)
+            else if (quest.difficulty < guildRank)
                 value = 0;
 
             if (value > 0)
@@ -2265,12 +2274,20 @@ public class Game : MonoBehaviour
             }
         }
         AddTeamGold(reward);
-        activeQuest.Finish();
-        activeQuest = null;
+        quest.Finish();
+        RemoveQuest(quest);
         AddTime(minutes: 15);
         if (ui.CurrentDialog == guildScreen)
             RefreshGuild();
         UpdateText();
+    }
+
+    private void RemoveQuest(Quest quest)
+    {
+        bool isTracked = quest.tracked;
+        activeQuests.Remove(quest);
+        if (isTracked && activeQuests.Count > 0)
+            activeQuests[0].tracked = true;
     }
 
     public void Forage()
@@ -2668,5 +2685,37 @@ public class Game : MonoBehaviour
     {
         lastAction = txt;
         UpdateText();
+    }
+
+    public void Journal()
+    {
+        RefreshJournal();
+        ui.ShowDialog(journalScreen);
+    }
+
+    private void RefreshJournal()
+    {
+        Transform content = journalScreen.transform.Find("List/Viewport/Content");
+        foreach (Transform child in content)
+            Destroy(child.gameObject);
+
+        foreach (Quest quest in activeQuests)
+        {
+            ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
+            if (quest.tracked)
+                itemEntry.Init(quest.TextReward);
+            else
+            {
+                itemEntry.Init(quest.TextReward, "Track", () =>
+                {
+                    Quest prevQuest = activeQuests.FirstOrDefault(x => x.tracked);
+                    if (prevQuest != null)
+                        prevQuest.tracked = false;
+                    quest.tracked = true;
+                    RefreshJournal();
+                    UpdateText();
+                });
+            }
+        }
     }
 }

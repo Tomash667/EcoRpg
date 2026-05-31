@@ -11,6 +11,7 @@ E - explore
 F - forage
 G - guild
 H - house
+J - journal
 P - properties
 R - rest
 T - travel
@@ -26,7 +27,7 @@ Left Shift + click - sell/craft whole stack
 Guild:
 R - recruit
 C - craft
-F - finish quest
+K - cook
 
 Map:
 Click - travel

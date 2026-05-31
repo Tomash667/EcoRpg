@@ -1,10 +1,8 @@
 v1:
-- when traveling location name is one behind
 + post dragon enemies
 + quests
-	more active
 	cancel
-	journal - dragon quest
+	journal - dragon quest (don't auto track)
 + allies
 	better heroes
 	relationship
@@ -51,6 +49,7 @@ hero:
 		gather magic crystals
 	timed
 	- quest is generated for location but enemies "spawn" only after accepting
+	tracked -> show on map arrow or smth
 + forage -> enemies
 + allies
 	soft limit

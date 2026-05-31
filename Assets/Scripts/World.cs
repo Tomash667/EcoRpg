@@ -477,11 +477,9 @@ public class World
                     currentPt = nextPt;
                     travelDist -= isDiagonal ? 15 : 10;
                     dist -= isDiagonal ? 15 : 10;
+                    game.UpdateTravel();
                     if (currentPt != pt)
-                    {
-                        game.UpdateTravel();
                         yield return new WaitForSeconds(0.1f);
-                    }
                     break;
                 }
 

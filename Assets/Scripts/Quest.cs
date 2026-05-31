@@ -18,6 +18,7 @@ public class Quest : ISerializationCallbackReceiver
     public string enemyName, itemName;
     public float difficultyMod;
     public int location, count, max, locationDifficulty, difficulty, timer;
+    public bool tracked;
 
     public int Reward
     {
@@ -40,7 +41,7 @@ public class Quest : ISerializationCallbackReceiver
             return type switch
             {
                 Type.Defeat => $"Defeat {count}/{max} {Utility.Plural(enemy.name)}",
-                Type.Clear => $"Clear {GetLocationName()} ({Mathf.Min(100 * count / max, 100)}%)",
+                Type.Clear => $"Clear {GetLocationName()} - {Mathf.Min(100 * count / max, 100)}%",
                 Type.Gather => $"Gather {Global.Player.CountItem(item)}/{max} {Utility.Plural(item.name)}",
                 Type.Artifact => count == 0 ? $"Find artifact in {GetLocationName()}" : $"Bring artifact from {GetLocationName()} to guild",
                 _ => string.Empty
@@ -62,6 +63,7 @@ public class Quest : ISerializationCallbackReceiver
         }
     }
     public string TitleReward => $"{Title} ({Reward} gold)";
+    public string TextReward => $"{Text} ({Reward} gold)";
 
     public void OnBeforeSerialize()
     {
