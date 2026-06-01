@@ -2036,9 +2036,9 @@ public class Game : MonoBehaviour
             {
                 ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
                 if (quest.IsDone())
-                    itemEntry.Init(quest.TextReward, "Finish", () => FinishQuest(quest));
+                    itemEntry.Init2(quest.TextReward, "Finish", () => FinishQuest(quest), "Cancel", () => CancelQuest(quest));
                 else
-                    itemEntry.Init(quest.TextReward);
+                    itemEntry.Init2(quest.TextReward, null, null, "Cancel", () => CancelQuest(quest));
             }
             Instantiate(ui.lineSeparatorPrefab, content);
         }
@@ -2260,7 +2260,7 @@ public class Game : MonoBehaviour
         }
     }
 
-    public void FinishQuest(Quest quest)
+    private void FinishQuest(Quest quest)
     {
         int reward = quest.Reward;
         lastAction = $"You received <color=#FFD700>{reward}</color> gold for quest '{quest.Title}'.";
@@ -2285,6 +2285,16 @@ public class Game : MonoBehaviour
         }
         AddTeamGold(reward);
         quest.Finish();
+        RemoveQuest(quest);
+        AddTime(minutes: 15);
+        if (ui.CurrentDialog == guildScreen)
+            RefreshGuild();
+        UpdateText();
+    }
+
+    private void CancelQuest(Quest quest)
+    {
+        lastAction = $"You canceled quest '{quest.Title}'.";
         RemoveQuest(quest);
         AddTime(minutes: 15);
         if (ui.CurrentDialog == guildScreen)

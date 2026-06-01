@@ -1,6 +1,5 @@
 v1:
 + post dragon enemies
-+ cancel quest
 + allies
 	better heroes
 	relationship
@@ -48,6 +47,7 @@ hero:
 	timed
 	- quest is generated for location but enemies "spawn" only after accepting
 	tracked -> show on map arrow or smth
+	cancel quest -> lose reputation
 + forage -> enemies
 + allies
 	soft limit
@@ -121,6 +121,9 @@ ui:
 + combat sounds
 + combat different attacks anim
 + interact portair
++ better UI for two button ItemEntry
++ cancel quest confirm
++ permanent action confirm (drop, ?)
 	
 investments:
 + cottage/big house
