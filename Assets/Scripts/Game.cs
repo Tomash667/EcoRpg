@@ -28,7 +28,7 @@ public class Game : MonoBehaviour
     public List<Quest> availableQuests, activeQuests;
     public List<Property> properties;
     public List<ItemSlot> storedItems;
-    public List<string> notifications;
+    public List<Notification> notifications;
     public List<string> gardenPlants;
     public DragonStatus dragonStatus;
     public float guildProgress;
@@ -692,6 +692,9 @@ public class Game : MonoBehaviour
 
             foreach (Hero ally in allies)
                 ally.BuyItems();
+
+            foreach (Notification notification in notifications.Where(x => x.status == Notification.Status.Waiting))
+                notification.status = Notification.Status.Available;
         }
 
         ui.UpdateBackground((int)tile.type);
@@ -1346,10 +1349,13 @@ public class Game : MonoBehaviour
 
     private void AddNotification(string str)
     {
-        notifications ??= new();
-        notifications.Add(str);
-        if (world.Location.IsSafe())
+        Notification notification = new() { text = str, day = day, status = Notification.Status.Waiting };
+        notifications.Add(notification);
+        if (!world.isTraveling && world.Location.IsSafe())
+        {
+            notification.status = Notification.Status.Available;
             UpdateButtons();
+        }
     }
 
     public int CountTeamItem(Item item)
@@ -1417,6 +1423,7 @@ public class Game : MonoBehaviour
                 type = Quest.Type.Unique
             }
         };
+        notifications = new();
         properties = new()
         {
             new()
@@ -1647,13 +1654,24 @@ public class Game : MonoBehaviour
         else
             houseButton.gameObject.SetActive(false);
 
-        GameObject btMessages = buttons.Find("BtMessages").gameObject;
-        bool showMessages = location.IsSafe();
-        btMessages.SetActive(showMessages);
-        if (showMessages)
+        Transform btJournal = buttons.Find("BtJournal");
+        int notificationsAvailable = notifications.Count(x => x.status == Notification.Status.Available);
+        if (notificationsAvailable > 0)
         {
-            btMessages.GetComponent<Button>().interactable = notifications.Count > 0;
-            btMessages.GetComponentInChildren<TMP_Text>().text = notifications.Count > 0 ? $"Messages ({notifications.Count})" : "Messages";
+            btJournal.Find("Text1").gameObject.SetActive(false);
+            btJournal.Find("Text2").gameObject.SetActive(true);
+            btJournal.Find("Image").gameObject.SetActive(true);
+            TMP_Text counter = btJournal.Find("Counter").GetComponent<TMP_Text>();
+            counter.text = notificationsAvailable.ToString();
+            counter.gameObject.SetActive(true);
+            btJournal.Find("").gameObject.SetActive(true);
+        }
+        else
+        {
+            btJournal.Find("Text1").gameObject.SetActive(true);
+            btJournal.Find("Text2").gameObject.SetActive(false);
+            btJournal.Find("Image").gameObject.SetActive(false);
+            btJournal.Find("Counter").gameObject.SetActive(false);
         }
 
         buttons.Find("BtForage").gameObject.SetActive(location == TileType.Forest);
@@ -2524,13 +2542,6 @@ public class Game : MonoBehaviour
         UpdateButtons();
     }
 
-    public void ShowNotification()
-    {
-        ui.ShowDialog(notifications[0]);
-        notifications.RemoveAt(0);
-        UpdateButtons();
-    }
-
     public void JoinGuild()
     {
         guildRank = 1;
@@ -2719,6 +2730,32 @@ public class Game : MonoBehaviour
 
     private void RefreshJournal()
     {
+        bool notificationChanges = false;
+
+        // notifications
+        sb.Clear();
+        if (notifications.Any(x => x.status != Notification.Status.Waiting))
+        {
+            foreach (Notification notification in notifications.Where(x => x.status != Notification.Status.Waiting))
+            {
+                if (notification.status == Notification.Status.Available)
+                    sb.Append("<b>");
+                sb.Append($"Day {notification.day} - {notification.text}");
+                if (notification.status == Notification.Status.Available)
+                {
+                    sb.Append("</b>");
+                    notification.status = Notification.Status.Read;
+                    notificationChanges = true;
+                }
+                sb.Append("\n");
+            }
+        }
+        else
+            sb.Append("...");
+        journalScreen.transform.Find("Notifications/Viewport/Content/Text").GetComponent<TMP_Text>().text = sb.ToString();
+        journalScreen.transform.Find("Notifications").GetComponent<ScrollRect>().verticalNormalizedPosition = 0f;
+
+        // active quests
         Transform content = journalScreen.transform.Find("List/Viewport/Content");
         foreach (Transform child in content)
             Destroy(child.gameObject);
@@ -2741,5 +2778,8 @@ public class Game : MonoBehaviour
                 });
             }
         }
+
+        if (notificationChanges)
+            UpdateButtons();
     }
 }

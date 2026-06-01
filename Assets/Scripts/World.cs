@@ -14,6 +14,8 @@ public class World
     public Tile[] sublocations;
     public Vector2Int currentPt;
     public int sublocation; // 0-none, 1-sewers, 2-house
+    [NonSerialized]
+    public bool isTraveling;
 
     public Tile CurrentTile => sublocation == 0 ? map[currentPt.x + currentPt.y * sizeX] : sublocations[sublocation];
     public int CurrentLocationIndex => CalculateIndex(currentPt.x, currentPt.y, sublocation);
@@ -429,6 +431,8 @@ public class World
             game.player.energy = Mathf.Min(game.player.energy + (haveTent ? 100 : 75), 100);
         }
 
+        isTraveling = true;
+
         if (sublocation != 0)
         {
             if (sublocation == 1)
@@ -487,6 +491,8 @@ public class World
                 yield return new WaitForSeconds(0.1f);
             }
         }
+
+        isTraveling = false;
     }
 
     private void RevealHiddenLocations(Vector2Int pos, bool updateMap)

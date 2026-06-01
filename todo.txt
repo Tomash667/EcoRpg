@@ -8,9 +8,7 @@ v1:
 * investments
 	sawmill -> cheaper build/upkeep
 	pay to clear property takes time
-+ world
-	better clear/respawn enemies - don't wait 30 days from last kill
-	show multiple notifications with date
++ world - better clear/respawn enemies - don't wait 30 days from last kill
 
 ---------------------------------------------------------------------------------------------------
 hero:
