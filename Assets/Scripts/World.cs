@@ -13,7 +13,7 @@ public class World
     public Tile[] map;
     public Tile[] sublocations;
     public Vector2Int currentPt;
-    public int sublocation; // 0-none, 1-sewers, 2-house
+    public int sublocation; // 0-none, 1-sewers, 2-house, 3-mansion
     [NonSerialized]
     public bool isTraveling;
 
@@ -580,16 +580,60 @@ public class World
             tile.timer--;
             if (tile.timer == 0)
             {
-                tile.clear = false;
-                tile.defeatedEnemies = 0;
-                if (tile.mine)
+                int index = Array.IndexOf(map, tile);
+                Quest quest = Global.Game.activeQuests.FirstOrDefault(x => x.type == Quest.Type.Clear && x.location == index);
+                if (tile.clear)
                 {
-                    int index = Array.IndexOf(map, tile);
-                    Property property = Global.Game.properties.FirstOrDefault(x => x.locationIndex == index);
-                    if (property != null)
-                        property.status = Property.Status.None;
+                    tile.clear = false;
+                    tile.defeatedEnemies = 0;
+                    if (quest != null)
+                        quest.count = 0;
+                    if (tile.mine)
+                    {
+                        Property property = Global.Game.properties.FirstOrDefault(x => x.locationIndex == index);
+                        if (property != null)
+                            property.status = Property.Status.None;
+                    }
+                }
+                else
+                {
+                    --tile.defeatedEnemies;
+                    if (quest != null && quest.count > 0)
+                        --quest.count;
+                    if (tile.defeatedEnemies != 0)
+                        tile.timer = 3;
                 }
             }
+        }
+
+        Vector2Int cityPos = new(2, sizeY / 2);
+        for (int i = 0; i < sublocations.Length; ++i)
+        {
+            Tile tile = sublocations[i];
+            if (tile.timer <= 0)
+                continue;
+            tile.timer--;
+            if (tile.timer == 0)
+            {
+                int index = CalculateIndex(cityPos.x, cityPos.y, i);
+                Quest quest = Global.Game.activeQuests.FirstOrDefault(x => x.type == Quest.Type.Clear && x.location == index);
+                if (tile.clear)
+                {
+                    tile.clear = false;
+                    tile.defeatedEnemies = 0;
+                    if (quest != null)
+                        quest.count = 0;
+                }
+                else
+                {
+                    --tile.defeatedEnemies;
+                    if (quest != null && quest.count > 0)
+                        --quest.count;
+                    if (tile.defeatedEnemies != 0)
+                        tile.timer = 3;
+                }
+            }
+
         }
     }
 }

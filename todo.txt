@@ -1,4 +1,5 @@
 v1:
++ harder dragon
 + post dragon enemies
 + allies
 	better heroes
@@ -8,7 +9,6 @@ v1:
 * investments
 	sawmill -> cheaper build/upkeep
 	pay to clear property takes time
-+ world - better clear/respawn enemies - don't wait 30 days from last kill
 
 ---------------------------------------------------------------------------------------------------
 hero:
@@ -44,8 +44,10 @@ hero:
 		gather magic crystals
 	timed
 	- quest is generated for location but enemies "spawn" only after accepting
+		you can accept & cancel to have enemies
 	tracked -> show on map arrow or smth
 	cancel quest -> lose reputation
+	generate new quest over time, not instantly when accepted
 + forage -> enemies
 + allies
 	soft limit
@@ -207,3 +209,4 @@ world:
 	https://chatgpt.com/g/g-p-699b357f41e08191be6bf11fa9b7de95-ecorpg/c/69d61c1d-aae0-8396-a8da-0410db050de5
 	https://aistudio.google.com/prompts/1fGhK85Ij3nwgBj3ToL7wBvXHap5_Pgxh
 	https://grok.com/c/794e217a-21f5-49e3-ba34-761dfa270b31?rid=bec1eec2-cbb4-4806-b4d8-204d0b74029f
++ number of enemies in dungeon depends on defeatedEnemies not on treasureFound

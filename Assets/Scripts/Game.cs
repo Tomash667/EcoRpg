@@ -412,6 +412,7 @@ public class Game : MonoBehaviour
                 if (quest != null)
                     RemoveQuest(quest);
                 tile.clear = true;
+                tile.timer = 0;
             }
             else if (pickups != null)
                 lastAction = $"You win fight with <b>{Utility.PluralText(enemy.name, count)}</b> ({pickups} found).";
@@ -435,7 +436,10 @@ public class Game : MonoBehaviour
 
             // quest
             tile.defeatedEnemies += count;
-            if (tile.defeatedEnemies >= 10 && !tile.boss && tile.type.IsClearable())
+            if (tile.timer == 0 && !tile.clear)
+                tile.timer = 3;
+
+            if (!tile.boss && tile.type.IsClearable() && tile.defeatedEnemies >= 10)
             {
                 tile.clear = true;
                 if (tile.type == TileType.Cave)
@@ -453,10 +457,13 @@ public class Game : MonoBehaviour
                 }
                 else if (tile.type == TileType.Mine || tile.type == TileType.Sawmill)
                 {
+                    tile.timer = 0;
                     lastAction += " You <b>cleared</b> this place.";
                     Property property = properties.FirstOrDefault(x => x.locationIndex == world.CurrentLocationIndex);
                     property?.RemoveEvent("Infested");
                 }
+                else
+                    tile.timer = 30;
             }
         }
         else
