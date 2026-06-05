@@ -6,9 +6,7 @@ v1:
 	relationship
 + multilevel dungeon
 + dungeon different traps (damage, accuracy, targets)
-* investments
-	sawmill -> cheaper build/upkeep
-	pay to clear property takes time
+* investments - pay to clear property takes time
 
 ---------------------------------------------------------------------------------------------------
 hero:
@@ -144,6 +142,7 @@ investments:
 + news/events travel speed
 + send city guards to clear mine -> need influence
 + supply & demand
++ resources: wood, iron, silver, gold
 + farm
 + old mansion/mine -> need repairs
 + village house/inn

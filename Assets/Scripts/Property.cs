@@ -46,7 +46,7 @@ public class Property
     public List<Event> events = new();
     public Upgrade[] upgrades;
     public Status status;
-    public int value, infestedCost, income, upkeep, buildPrice, buildTime, locationIndex;
+    public int value, infestedCost, income, upkeep, upkeepDiscount, buildPrice, buildPriceDiscount, buildTime, locationIndex;
 
     public int Income
     {
@@ -66,20 +66,35 @@ public class Property
         get
         {
             if (events.Count == 0 || events[0].name != "Infested")
-                return upkeep;
+            {
+                if (upkeepDiscount != 0 && Global.Player.HaveProperty("Sawmill", true))
+                    return upkeep - upkeepDiscount;
+                else
+                    return upkeep;
+            }
             else
                 return upkeep / 2;
         }
     }
     public int Profit => Income - Upkeep;
-    public string Desc => desc.Replace("PROFIT", Profit.ToString());
+    public int BuildPrice
+    {
+        get
+        {
+            if (buildPriceDiscount != 0 && Global.Player.HaveProperty("Sawmill", true))
+                return buildPrice - buildPriceDiscount;
+            else
+                return buildPrice;
+        }
+    }
+    public string Desc => desc.Replace("PROFIT", Profit.ToString()).Replace("UPKEEP", upkeep.ToString());
 
     public string ToString(DescStatus status)
     {
         return status switch
         {
             DescStatus.Sell => $"{name} ({Desc}, {value / 2} gold)",
-            DescStatus.Build => $"{name} ({buildTime} days to build, {Desc}, {buildPrice} gold)",
+            DescStatus.Build => $"{name} ({buildTime} days to build, {Desc}, {BuildPrice} gold)",
             DescStatus.Building => $"{name} ({Utility.Plural("day", buildTime)} left, {Desc})",
             DescStatus.Infested => $"{name} (<color=red>{Desc}, {value / 2} gold</color>)",
             _ => $"{name} ({Desc}, {value} gold)"

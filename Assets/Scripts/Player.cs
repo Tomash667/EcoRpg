@@ -26,9 +26,16 @@ public class Player : Hero
         goldReceived += value;
     }
 
-    public bool HaveProperty(string name)
+    public bool HaveProperty(string name, bool isActive = false)
     {
-        return properties.Any(x => x.name == name);
+        Property property = properties.FirstOrDefault(x => x.name == name);
+        if (property == null)
+            return false;
+
+        if (isActive)
+            return !property.events.Any(x => x.name == "Infested");
+        else
+            return true;
     }
 
     public bool HavePropertyUpgrade(string propertyName, string upgradeName)

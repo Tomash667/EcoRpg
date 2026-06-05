@@ -1460,7 +1460,7 @@ public class Game : MonoBehaviour
             new()
             {
                 name = "Mansion",
-                desc = "don't pay for inn, better rest, 5 upkeep",
+                desc = "don't pay for inn, better rest, UPKEEP upkeep",
                 value = 10000,
                 upkeep = 5,
                 status = Property.Status.Active,
@@ -1493,7 +1493,7 @@ public class Game : MonoBehaviour
             new()
             {
                 name = "Sawmill",
-                desc = "PROFIT gold/day",
+                desc = "PROFIT gold/day, reduce mines upkeep and build cost",
                 value = 5000,
                 infestedCost = 500,
                 income = 10,
@@ -1526,6 +1526,7 @@ public class Game : MonoBehaviour
                 infestedCost = 750,
                 income = 20,
                 upkeep = 10,
+                upkeepDiscount = 2,
                 status = Property.Status.Active,
                 locationIndex = world.FindLocationIndex(x => x.type == TileType.Mine),
                 upgrades = new Property.Upgrade[]
@@ -1554,7 +1555,9 @@ public class Game : MonoBehaviour
                 infestedCost = 1500,
                 income = 35,
                 upkeep = 10,
+                upkeepDiscount = 2,
                 buildPrice = 6000,
+                buildPriceDiscount = 500,
                 buildTime = 20,
                 locationIndex = world.FindLocationIndex(x => x.hidden == TileType.Cave && x.mine && x.difficulty == 2),
                 upgrades = new Property.Upgrade[]
@@ -1583,7 +1586,9 @@ public class Game : MonoBehaviour
                 infestedCost = 2000,
                 income = 60,
                 upkeep = 10,
+                upkeepDiscount = 2,
                 buildPrice = 7500,
+                buildPriceDiscount = 500,
                 buildTime = 30,
                 locationIndex = world.FindLocationIndex(x => x.hidden == TileType.Cave && x.mine && x.difficulty == 3),
                 upgrades = new Property.Upgrade[]
@@ -1872,7 +1877,7 @@ public class Game : MonoBehaviour
             ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
             itemEntry.Init(property.ToString(build ? Property.DescStatus.Build : Property.DescStatus.Buy), build ? "Build" : "Buy", () =>
             {
-                int cost = build ? property.buildPrice : property.value;
+                int cost = build ? property.BuildPrice : property.value;
                 if (player.gold < cost)
                 {
                     ui.ShowDialog($"You need {cost} gold to {(build ? "build" : "buy")} {property.name.ToLower()}.");
