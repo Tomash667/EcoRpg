@@ -6,7 +6,6 @@ v1:
 	relationship
 + multilevel dungeon
 + dungeon different traps (damage, accuracy, targets)
-* investments - pay to clear property takes time
 
 ---------------------------------------------------------------------------------------------------
 hero:
@@ -154,6 +153,8 @@ investments:
 + undo upgrades
 + see active events
 + brewery/vineyard -> inn bonus
++ fix prices: adventurers one time infestation cost the same amount as full time guards
++ hire mercenaries that you can move between locations
 
 skills:
 + management

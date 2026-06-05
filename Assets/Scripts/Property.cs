@@ -9,7 +9,7 @@ public class Property
     public class Event
     {
         public string name;
-        public int timer;
+        public int timer, state;
     }
 
     [Serializable]

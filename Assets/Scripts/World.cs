@@ -404,6 +404,48 @@ public class World
         return days;
     }
 
+    public int CalculateTravelDaysNonTeam(Vector2Int pt)
+    {
+        Game game = Global.Game;
+        Vector2Int currentTmpPt = currentPt;
+        int dist = CalculateDistance(currentPt, pt);
+        float speed = 2.5f * 1.25f; // rations + horse
+        float travelDist = 0;
+        int days = 0, hour = game.hour;
+
+        void NextDay()
+        {
+            hour = 8;
+            ++days;
+        }
+
+        while (dist > 0)
+        {
+            Vector2Int dir = (pt - currentTmpPt).Normalized();
+            Vector2Int nextPt = currentTmpPt + dir;
+            bool isDiagonal = dir.x != 0 && dir.y != 0;
+
+            while (true)
+            {
+                travelDist += speed;
+                ++hour;
+                if (hour == 24)
+                    NextDay();
+                if (travelDist >= (isDiagonal ? 15 : 10))
+                {
+                    currentTmpPt = nextPt;
+                    travelDist -= isDiagonal ? 15 : 10;
+                    dist -= isDiagonal ? 15 : 10;
+                    break;
+                }
+            }
+        }
+
+        if (days < 1)
+            days = 1;
+        return days;
+    }
+
     public IEnumerator Travel(Vector2Int pt)
     {
         Game game = Global.Game;

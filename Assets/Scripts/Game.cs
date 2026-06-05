@@ -1257,7 +1257,19 @@ public class Game : MonoBehaviour
                 {
                     Property.Event even = p.events[0];
                     if (even.name == "Infested")
+                    {
+                        if (even.timer != -1)
+                        {
+                            --even.timer;
+                            if (even.timer == 0)
+                            {
+                                world.GetLocation(p.locationIndex).clear = true;
+                                AddNotification($"{p.name} infestation has been cleared by {(even.state == 0 ? "adventurers" : "guards")}.");
+                                p.events.Clear();
+                            }
+                        }
                         return -p.upkeep / 2;
+                    }
                     else
                     {
                         --even.timer;
@@ -1948,8 +1960,14 @@ public class Game : MonoBehaviour
             str = $"<b>{selectedProperty.name}</b>\n{Utility.Plural("day", selectedProperty.buildTime, true)} left to end of construction";
         else
         {
-            str = $"<b>{selectedProperty.name}</b>\n" +
-                $"Income:{selectedProperty.Income}  Upkeep:{selectedProperty.Upkeep}  Profit:{selectedProperty.Profit}\nUpgrades: ";
+            Property.Event even = selectedProperty.events.FirstOrDefault(x => x.name == "Infested");
+            if (even == null)
+                str = $"<b>{selectedProperty.name}</b>\n";
+            else if (even.timer == -1)
+                str = $"<b>{selectedProperty.name} (infested)</b>\n";
+            else
+                str = $"<b>{selectedProperty.name} ({Utility.Plural("day", even.timer, true)} to clear)</b>\n";
+            str += $"Income:{selectedProperty.Income}  Upkeep:{selectedProperty.Upkeep}  Profit:{selectedProperty.Profit}\nUpgrades: ";
             if (selectedProperty.upgrades != null && selectedProperty.upgrades.Any(x => x.active))
                 str += string.Join(", ", selectedProperty.upgrades.Where(x => x.active).Select(x => x.name).OrderBy(x => x));
             else
@@ -1983,8 +2001,14 @@ public class Game : MonoBehaviour
                     lastAction = $"You buy {upgrade.name.ToLower()} for <color=#FFD700>{upgrade.value}</color> gold.";
                     if (upgrade.name == "Extra guards")
                     {
-                        if (selectedProperty.RemoveEvent("Infested"))
-                            lastAction += $" That will take care of monsters infestation.";
+                        Property.Event even = selectedProperty.events.FirstOrDefault(e => e.name == "Infested" && e.timer == -1);
+                        if (even != null)
+                        {
+                            int days = world.CalculateTravelDaysNonTeam(World.IndexToPoint(selectedProperty.locationIndex));
+                            even.timer = days;
+                            even.state = 1;
+                            lastAction += $" They will take care of monsters infestation in {Utility.Plural("day", days, true)}.";
+                        }
                     }
                     AddTime(minutes: 30);
                     if (ui.CurrentDialog == propertiesScreen)
@@ -2119,7 +2143,7 @@ public class Game : MonoBehaviour
         }
 
         // add player paid quests
-        Property[] infestedProperties = player.properties.Where(p => p.events.Any(e => e.name == "Infested")).ToArray();
+        Property[] infestedProperties = player.properties.Where(p => p.events.Any(e => e.name == "Infested" && e.timer == -1)).ToArray();
         if (infestedProperties.Length > 0)
         {
             Instantiate(ui.lineSeparatorPrefab, content);
@@ -2127,7 +2151,8 @@ public class Game : MonoBehaviour
             {
                 Property property = prop;
                 ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
-                itemEntry.Init($"Clear {property.name.ToLower()} ({property.infestedCost} gold)", "Pay", () =>
+                int days = world.CalculateTravelDaysNonTeam(World.IndexToPoint(property.locationIndex));
+                itemEntry.Init($"Clear {property.name.ToLower()} ({Utility.Plural("day", days, true)}, {property.infestedCost} gold)", "Pay", () =>
                 {
                     if (player.gold < property.infestedCost)
                     {
@@ -2136,9 +2161,9 @@ public class Game : MonoBehaviour
                     }
 
                     player.AddGold(-property.infestedCost);
-                    lastAction = $"You pay <color=#FFD700>{property.infestedCost}</color> gold to adventurers to clear the {property.name.ToLower()}.";
-                    world.GetLocation(property.locationIndex).clear = true;
-                    property.RemoveEvent("Infested");
+                    prop.events.First(e => e.name == "Infested").timer = days;
+                    lastAction = $"You pay <color=#FFD700>{property.infestedCost}</color> gold to adventurers to clear the {property.name.ToLower()}. " +
+                        $"It will take them {Utility.Plural("day", days, true)}.";
                     AddTime(minutes: 15);
                     if (ui.CurrentDialog == guildScreen)
                         RefreshGuild();
@@ -2765,7 +2790,7 @@ public class Game : MonoBehaviour
         else
             sb.Append("...");
         journalScreen.transform.Find("Notifications/Viewport/Content/Text").GetComponent<TMP_Text>().text = sb.ToString();
-        journalScreen.transform.Find("Notifications").GetComponent<ScrollRect>().verticalNormalizedPosition = 0f;
+        StartCoroutine(MoveScrollRectToPos(journalScreen.transform.Find("Notifications").GetComponent<ScrollRect>(), 0f));
 
         // active quests
         Transform content = journalScreen.transform.Find("List/Viewport/Content");
@@ -2793,5 +2818,11 @@ public class Game : MonoBehaviour
 
         if (notificationChanges)
             UpdateButtons();
+    }
+
+    private IEnumerator MoveScrollRectToPos(ScrollRect scrollRect, float pos)
+    {
+        yield return new WaitForEndOfFrame();
+        scrollRect.verticalNormalizedPosition = pos;
     }
 }
