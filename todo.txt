@@ -1,10 +1,15 @@
++ multilevel dungeon
+dungeon with 1-3 levels
+find stairs
+go up/down
+level visible in UI
+
 v1:
 + harder dragon
 + post dragon enemies
 + allies
 	better heroes
 	relationship
-+ multilevel dungeon
 + dungeon different traps (damage, accuracy, targets)
 
 ---------------------------------------------------------------------------------------------------
@@ -96,6 +101,7 @@ hero:
 	hero use potion while hp > 0
 	escape chance
 	enemy escape
++ more interesting dungeon exploring - random d20 rooms, explored%
 
 events:
 + free person for hire (foreman, geomancer etc)
