@@ -1,9 +1,3 @@
-+ multilevel dungeon
-dungeon with 1-3 levels
-find stairs
-go up/down
-level visible in UI
-
 v1:
 + harder dragon
 + post dragon enemies
@@ -161,6 +155,7 @@ investments:
 + brewery/vineyard -> inn bonus
 + fix prices: adventurers one time infestation cost the same amount as full time guards
 + hire mercenaries that you can move between locations
++ bureaucracy (manager needs to work more)
 
 skills:
 + management

@@ -7,6 +7,7 @@ Defeat dragon, get rich.
 Shortcuts:
 1-2 - manage ally
 C - character screen
+D - go down
 E - explore
 F - forage
 G - guild
@@ -15,6 +16,7 @@ J - journal
 P - properties
 R - rest
 T - travel
+U - go up
 S - shop
 W - work
 X - exit or enter

@@ -171,7 +171,8 @@ public class Map : MonoBehaviour
         Tile tile = world.map[targetPt.x + targetPt.y * World.sizeX];
         string str;
 #if UNITY_EDITOR
-        str = $"Rations: {Global.Game.CountTeamItem(Item.Get("rations"))}\nTarget: {tile.Name.ToUpper1()} [{World.CalculateIndex(targetPt.x, targetPt.y, 0)}]\nDistance: {dist}km\nTravel time: {daysText}";
+        str = $"Rations: {Global.Game.CountTeamItem(Item.Get("rations"))}\nTarget: {tile.Name.ToUpper1()} [{World.CalculateIndex(targetPt.x, targetPt.y, 0)}]\nDistance: {dist}km\n" +
+            $"Travel time: {daysText}\nLevels: {tile.levels}";
 #else
         str = $"Rations: {Global.Game.CountTeamItem(Item.Get("rations"))}\nTarget: {tile.Name.ToUpper1()}\nDistance: {dist}km\nTravel time: {daysText}";
 #endif

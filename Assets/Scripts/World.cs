@@ -14,6 +14,7 @@ public class World
     public Tile[] sublocations;
     public Vector2Int currentPt;
     public int sublocation; // 0-none, 1-sewers, 2-house, 3-mansion
+    public int level;
     [NonSerialized]
     public bool isTraveling;
 
@@ -128,12 +129,17 @@ public class World
         List<string> dungeon1 = Names.dungeon1.ToList();
         List<string> dungeon2 = Names.dungeon2.ToList();
         List<string> dungeon3 = Names.dungeon3.ToList();
+        List<Tile> spawnedDungeon1 = new(), spawnedDungeon2 = new(), spawnedDungeon3 = new();
 
         // swamps & swamp dungeons
         List<Tile> spawned = SpawnBlob(9, 16, Utility.Random(5, 7), TileType.Plains, TileType.Forest, TileType.Swamp);
-        SpawnHiddenLocation(spawned.RandomItem(), TileType.Dungeon, dungeon2);
+        Tile dungeon = spawned.RandomItem();
+        SpawnHiddenLocation(dungeon, TileType.Dungeon, dungeon2);
+        spawnedDungeon2.Add(dungeon);
         spawned = SpawnBlob(17, 24, Utility.Random(5, 7), TileType.Plains, TileType.Forest, TileType.Swamp);
-        SpawnHiddenLocation(spawned.RandomItem(), TileType.Dungeon, dungeon3);
+        dungeon = spawned.RandomItem();
+        SpawnHiddenLocation(dungeon, TileType.Dungeon, dungeon3);
+        spawnedDungeon3.Add(dungeon);
 
         // sawmill & mine
         SpawnLocation(cityPos, TileType.Forest, TileType.Sawmill);
@@ -145,18 +151,41 @@ public class World
         spawned[0].mine = true;
         spawned = SpawnHiddenLocations(17, 24, 3, TileType.Mountains, TileType.Cave, Names.cave3.ToList());
         spawned[0].boss = true;
+        spawned[0].levels = 2;
         spawned[1].mine = true;
 
         // dungeons
-        SpawnHiddenLocations(0, 8, 2, TileType.Forest, TileType.Dungeon, dungeon1);
-        SpawnHiddenLocations(9, 16, 2, TileType.Forest, TileType.Dungeon, dungeon2);
-        SpawnHiddenLocations(17, 24, 2, TileType.Forest, TileType.Dungeon, dungeon3);
-        SpawnHiddenLocations(0, 8, 2, TileType.Plains, TileType.Dungeon, dungeon1);
-        SpawnHiddenLocations(9, 16, 2, TileType.Plains, TileType.Dungeon, dungeon2);
-        SpawnHiddenLocations(17, 24, 2, TileType.Plains, TileType.Dungeon, dungeon3);
+        spawnedDungeon1.AddRange(SpawnHiddenLocations(0, 8, 2, TileType.Forest, TileType.Dungeon, dungeon1));
+        spawnedDungeon2.AddRange(SpawnHiddenLocations(9, 16, 2, TileType.Forest, TileType.Dungeon, dungeon2));
+        spawnedDungeon3.AddRange(SpawnHiddenLocations(17, 24, 2, TileType.Forest, TileType.Dungeon, dungeon3));
+        spawnedDungeon1.AddRange(SpawnHiddenLocations(0, 8, 2, TileType.Plains, TileType.Dungeon, dungeon1));
+        spawnedDungeon2.AddRange(SpawnHiddenLocations(9, 16, 2, TileType.Plains, TileType.Dungeon, dungeon2));
+        spawnedDungeon3.AddRange(SpawnHiddenLocations(17, 24, 2, TileType.Plains, TileType.Dungeon, dungeon3));
+
+        // set dungeon levels
+        // -- difficulty 1 (50% level 1, 50% level 2)
+        spawnedDungeon1.Shuffle();
+        for (int i = 0; i < 2; ++i)
+        {
+            spawnedDungeon1[i].levels = 1;
+            spawnedDungeon1[2 + i].levels = 2;
+        }
+        // -- difficulty 2 (20% level 1, 60% level 2, 20% level 3)
+        spawnedDungeon2.Shuffle();
+        spawnedDungeon2[0].levels = 1;
+        spawnedDungeon2[1].levels = 3;
+        for (int i = 2; i < 5; ++i)
+            spawnedDungeon2[i].levels = 2;
+        // -- difficulty 3 (40% level 2, 60% level 3)
+        spawnedDungeon3.Shuffle();
+        for (int i = 0; i < 2; ++i)
+            spawnedDungeon3[i].levels = 2;
+        for (int i = 2; i < 5; ++i)
+            spawnedDungeon3[i].levels = 3;
 
         RevealHiddenLocations(cityPos, false);
         currentPt = cityPos;
+        level = 0;
     }
 
     private void SpawnLocation(Vector2Int wantedPos, TileType wantedTile, TileType targetTile)

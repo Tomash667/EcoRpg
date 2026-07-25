@@ -130,8 +130,21 @@ public class Game : MonoBehaviour
                 Explore();
             if (Input.GetKeyDown(KeyCode.R))
                 Rest();
-            if (Input.GetKeyDown(KeyCode.T))
-                Travel();
+            if (world.level == 0)
+            {
+                if (Input.GetKeyDown(KeyCode.T))
+                    Travel();
+            }
+            else
+            {
+                if (Input.GetKeyDown(KeyCode.U))
+                    GoUp();
+            }
+            if (world.level < world.CurrentTile.foundLevel)
+            {
+                if (Input.GetKeyDown(KeyCode.D))
+                    GoDown();
+            }
 
             switch (world.CurrentTile.type)
             {
@@ -208,7 +221,7 @@ public class Game : MonoBehaviour
 #endif
 
         Enemy enemy;
-        if (tile.type == TileType.Dungeon && !tile.foundTreasure && tile.defeatedEnemies >= 10)
+        if (tile.type == TileType.Dungeon && !tile.foundTreasure && tile.defeatedEnemies >= 10 && world.level + 1 == tile.levels)
         {
             int level = tile.difficulty + 2;
             Item item = Item.items.RandomItem(x => x.level == level);
@@ -224,6 +237,13 @@ public class Game : MonoBehaviour
             player.AddItem(item);
             tile.foundTreasure = true;
         }
+        else if (world.level + 1 < tile.levels && tile.foundLevel == world.level && tile.defeatedEnemies >= 10)
+        {
+            lastAction = $"You find stairs leading to level {world.level + 2}.";
+            ++tile.foundLevel;
+            tile.defeatedEnemies = 0;
+            UpdateButtons();
+        }
         else if (c < chance && (enemy = Enemy.GetRandom(tile.type, tile.difficulty)) != null)
         {
             int count = (Utility.Rand % 4) switch
@@ -235,7 +255,7 @@ public class Game : MonoBehaviour
 
             if (tile.boss)
             {
-                if (tile.defeatedEnemies >= 10)
+                if (tile.defeatedEnemies >= 10 && world.level + 1 == tile.levels)
                 {
                     enemy = Enemy.Get("dragon");
                     count = 1;
@@ -435,7 +455,8 @@ public class Game : MonoBehaviour
             }
 
             // quest
-            tile.defeatedEnemies += count;
+            if (world.level == tile.foundLevel)
+                tile.defeatedEnemies += count;
             if (tile.timer == 0 && !tile.clear)
                 tile.timer = 3;
 
@@ -663,6 +684,24 @@ public class Game : MonoBehaviour
             AddTime(minutes: 5);
         world.sublocation = 0;
         OnChangeLocation();
+    }
+
+    public void GoUp()
+    {
+        --world.level;
+        lastAction = $"You go upstairs to level {world.level + 1}.";
+        AddTime(minutes: 30);
+        UpdateText();
+        UpdateButtons();
+    }
+
+    public void GoDown()
+    {
+        ++world.level;
+        lastAction = $"You go downstairs to level {world.level + 1}.";
+        AddTime(minutes: 30);
+        UpdateText();
+        UpdateButtons();
     }
 
     private void OnEnterLocation()
@@ -1103,7 +1142,10 @@ public class Game : MonoBehaviour
     private void UpdateText()
     {
         sb.Clear();
-        sb.Append($"{world.CurrentTile.Name.ToUpper1()}   Day: {day} {hour}:{minute:00}   Health: {player.hp}/{player.hpMax}   Energy: {player.energy}/100   Gold: {player.gold}");
+        string name = world.CurrentTile.Name.ToUpper1();
+        if (world.level != 0)
+            name += $", level {world.level + 1}";
+        sb.Append($"{name}   Day: {day} {hour}:{minute:00}   Health: {player.hp}/{player.hpMax}   Energy: {player.energy}/100   Gold: {player.gold}");
         if (player.goldReceived != 0)
         {
             sb.Append($"({player.goldReceived:+0;-0})");
@@ -1677,6 +1719,9 @@ public class Game : MonoBehaviour
         }
         else
             houseButton.gameObject.SetActive(false);
+        buttons.Find("BtTravel").gameObject.SetActive(world.level == 0);
+        buttons.Find("BtGoUp").gameObject.SetActive(world.level != 0);
+        buttons.Find("BtGoDown").gameObject.SetActive(world.level < world.CurrentTile.foundLevel);
 
         Transform btJournal = buttons.Find("BtJournal");
         int notificationsAvailable = notifications.Count(x => x.status == Notification.Status.Available);
