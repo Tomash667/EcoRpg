@@ -2,6 +2,14 @@ using System;
 using System.Linq;
 using UnityEngine;
 
+public enum Price
+{
+    None,
+    Buy,
+    Sell,
+    Enchant
+}
+
 public class Item
 {
     public enum Type
@@ -24,26 +32,60 @@ public class Item
 
     public const int MaxLevelCity = 4;
     public const int MaxLevelVillage = 3;
+    public const int MaxLevelEnchant = 8;
 
     public string name, desc;
     public Type type;
     public Subtype subtype;
     public int level, power, value;
 
-    public string ToString(bool sellPrice)
+    public bool CanEnchant()
     {
-        int price = sellPrice ? value / 2 : value;
-        return type switch
+        return (type == Type.Weapon || type == Type.Armor || type == Type.Shield) && level < MaxLevelEnchant;
+    }
+
+    public string ToString(Price price)
+    {
+        string priceText = price switch
         {
-            Type.Weapon => $"{name.ToUpper1()} ({power} attack, {price} gold)",
-            Type.Armor or Type.Shield => $"{name.ToUpper1()} ({power} defense, {price} gold)",
-            _ => $"{name.ToUpper1()} ({desc}, {price} gold)"
+            Price.Buy => $", {value} gold",
+            Price.Sell => $", {value / 2} gold",
+            Price.Enchant => $", {GetEnchantCost(this)} gold to enchant",
+            _ => string.Empty
         };
+        string itemDesc = type switch
+        {
+            Type.Weapon => $"{power} attack",
+            Type.Armor or Type.Shield => $"{power} defense",
+            _ => desc
+        };
+        return $"{name.ToUpper1()} ({itemDesc}{priceText})";
     }
 
     public static Item Get(string name)
     {
         return items.First(x => x.name == name);
+    }
+
+    public static Item GetEnchanted(Item item)
+    {
+        int level;
+        if (item.level < 5)
+            level = 5;
+        else
+            level = item.level + 1;
+        return items.First(x => x.type == item.type && x.subtype == item.subtype && x.level == level);
+    }
+
+    public static int GetEnchantCost(Item item)
+    {
+        return item.level switch
+        {
+            5 => 10000,
+            6 => 20000,
+            7 => 30000,
+            _ => 10000
+        };
     }
 
     public static readonly Item[] items = new Item[]
@@ -93,7 +135,33 @@ public class Item
             power = 25,
             value = 5000
         },
-
+        new()
+        {
+            name = "magic sword +1",
+            type = Type.Weapon,
+            subtype = Subtype.Melee,
+            level = 6,
+            power = 30,
+            value = 15000
+        },
+        new()
+        {
+            name = "magic sword +2",
+            type = Type.Weapon,
+            subtype = Subtype.Melee,
+            level = 7,
+            power = 35,
+            value = 35000
+        },
+        new()
+        {
+            name = "magic sword +3",
+            type = Type.Weapon,
+            subtype = Subtype.Melee,
+            level = 8,
+            power = 40,
+            value = 65000
+        },
         new()
         {
             name = "short bow",
@@ -141,6 +209,33 @@ public class Item
         },
         new()
         {
+            name = "magic bow +1",
+            type = Type.Weapon,
+            subtype = Subtype.Bow,
+            level = 6,
+            power = 60,
+            value = 20000
+        },
+        new()
+        {
+            name = "magic bow +2",
+            type = Type.Weapon,
+            subtype = Subtype.Bow,
+            level = 7,
+            power = 70,
+            value = 40000
+        },
+        new()
+        {
+            name = "magic bow +3",
+            type = Type.Weapon,
+            subtype = Subtype.Bow,
+            level = 8,
+            power = 80,
+            value = 70000
+        },
+        new()
+        {
             name = "leather armor",
             type = Type.Armor,
             level = 1,
@@ -181,6 +276,30 @@ public class Item
         },
         new()
         {
+            name = "magic armor +1",
+            type = Type.Armor,
+            level = 6,
+            power = 12,
+            value = 15000
+        },
+        new()
+        {
+            name = "magic armor +2",
+            type = Type.Armor,
+            level = 7,
+            power = 14,
+            value = 35000
+        },
+        new()
+        {
+            name = "magic armor +3",
+            type = Type.Armor,
+            level = 8,
+            power = 16,
+            value = 65000
+        },
+        new()
+        {
             name = "wooden shield",
             type = Type.Shield,
             level = 1,
@@ -218,6 +337,30 @@ public class Item
             level = 5,
             power = 5,
             value = 5000
+        },
+        new()
+        {
+            name = "magic shield +1",
+            type = Type.Shield,
+            level = 6,
+            power = 6,
+            value = 15000
+        },
+        new()
+        {
+            name = "magic shield +2",
+            type = Type.Shield,
+            level = 7,
+            power = 7,
+            value = 35000
+        },
+        new()
+        {
+            name = "magic shield +3",
+            type = Type.Shield,
+            level = 8,
+            power = 8,
+            value = 65000
         },
         new()
         {
@@ -376,12 +519,12 @@ public class ItemSlot : ISerializationCallbackReceiver
         item = Item.Get(name);
     }
 
-    public string ToString(bool sellPrice)
+    public string ToString(Price price)
     {
         if (count == 1)
-            return item.ToString(sellPrice);
+            return item.ToString(price);
         else
-            return $"{count}x {item.ToString(sellPrice)}";
+            return $"{count}x {item.ToString(price)}";
     }
 
     public string ToStringShort()

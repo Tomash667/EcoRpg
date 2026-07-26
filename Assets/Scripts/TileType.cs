@@ -13,7 +13,9 @@ public enum TileType
     Village,
     Swamp,
     House,
-    Mansion
+    Mansion,
+    MageTower,
+    DarkDimension
 }
 
 public enum TileImage
@@ -29,7 +31,8 @@ public enum TileImage
     Mine,
     Village,
     Swamp,
-    SwampDungeon
+    SwampDungeon,
+    MageTower
 }
 
 public static class TileTypeMethods
@@ -51,13 +54,21 @@ public static class TileTypeMethods
             TileType.Swamp => "swamp",
             TileType.House => "house",
             TileType.Mansion => "mansion",
+            TileType.MageTower => "mage tower",
+            TileType.DarkDimension => "dark dimension",
             _ => $"[ERROR tileType {tileType}]"
         };
     }
 
     public static bool IsSmall(this TileType tileType)
     {
-        return tileType == TileType.Cave || tileType == TileType.Dungeon || tileType == TileType.Mine || tileType == TileType.Sewers || tileType == TileType.House || tileType == TileType.Mansion;
+        return tileType == TileType.Cave
+            || tileType == TileType.Dungeon
+            || tileType == TileType.Mine
+            || tileType == TileType.Sewers
+            || tileType == TileType.House
+            || tileType == TileType.Mansion
+            || tileType == TileType.MageTower;
     }
 
     public static bool IsClearable(this TileType tileType)

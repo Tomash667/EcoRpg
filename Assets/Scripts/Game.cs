@@ -35,7 +35,8 @@ public class Game : MonoBehaviour
     public int day, hour, minute, guildRank;
 
     private GameUI ui;
-    private GameObject shopScreen, characterScreen, journalScreen, allyScreen, giveAllyItemsScreen, storeItemsScreen, activeInventory, propertiesScreen, guildScreen, gardenScreen, craftScreen;
+    private GameObject shopScreen, characterScreen, journalScreen, allyScreen, giveAllyItemsScreen, storeItemsScreen, activeInventory, propertiesScreen, guildScreen, gardenScreen, craftScreen,
+        enchantItemsScreen;
     private Map map;
     private Combat combatScreen;
     private TMP_Text text;
@@ -74,6 +75,7 @@ public class Game : MonoBehaviour
         combatScreen.Init();
         map = transform.Find("Map").GetComponent<Map>();
         map.Init();
+        enchantItemsScreen = transform.Find("EnchantItems").gameObject;
 
         Global global = Global.Instance;
         global.game = this;
@@ -863,7 +865,7 @@ public class Game : MonoBehaviour
         foreach (Item item in availableItems)
         {
             ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
-            itemEntry.Init(item.ToString(false), "Buy", () =>
+            itemEntry.Init(item.ToString(Price.Buy), "Buy", () =>
             {
                 if (Input.GetKey(KeyCode.LeftControl))
                 {
@@ -911,15 +913,31 @@ public class Game : MonoBehaviour
             ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
             if (activeInventory == characterScreen)
             {
-                itemEntry.Init(player.weapon.ToString(true), "Unequip", () =>
+                itemEntry.Init(player.weapon.ToString(Price.None), "Unequip", () =>
                 {
                     player.AddItem(player.weapon);
                     player.weapon = null;
                     RefreshPlayerScreen();
                 });
             }
+            else if (activeInventory == enchantItemsScreen && player.weapon.level < Item.MaxLevelEnchant)
+            {
+                itemEntry.Init(player.weapon.ToString(Price.Enchant), "Enchant", () =>
+                {
+                    int cost = Item.GetEnchantCost(player.weapon);
+                    if (player.gold < cost)
+                        ui.ShowDialog($"You need {cost} gold to enchant {player.weapon.name}.");
+                    else
+                    {
+                        player.weapon = Item.GetEnchanted(player.weapon);
+                        player.AddGold(-cost);
+                        RefreshPlayerItems();
+                        UpdateText();
+                    }
+                });
+            }
             else
-                itemEntry.Init(player.weapon.ToString(true));
+                itemEntry.Init(player.weapon.ToString(activeInventory == shopScreen ? Price.Sell : Price.None));
         }
 
         if (player.armor != null)
@@ -927,15 +945,31 @@ public class Game : MonoBehaviour
             ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
             if (activeInventory == characterScreen)
             {
-                itemEntry.Init(player.armor.ToString(true), "Unequip", () =>
+                itemEntry.Init(player.armor.ToString(Price.None), "Unequip", () =>
                 {
                     player.AddItem(player.armor);
                     player.armor = null;
                     RefreshPlayerScreen();
                 });
             }
+            else if (activeInventory == enchantItemsScreen && player.armor.level < Item.MaxLevelEnchant)
+            {
+                itemEntry.Init(player.armor.ToString(Price.Enchant), "Enchant", () =>
+                {
+                    int cost = Item.GetEnchantCost(player.armor);
+                    if (player.gold < cost)
+                        ui.ShowDialog($"You need {cost} gold to enchant {player.armor.name}.");
+                    else
+                    {
+                        player.armor = Item.GetEnchanted(player.armor);
+                        player.AddGold(-cost);
+                        RefreshPlayerItems();
+                        UpdateText();
+                    }
+                });
+            }
             else
-                itemEntry.Init(player.armor.ToString(true));
+                itemEntry.Init(player.armor.ToString(activeInventory == shopScreen ? Price.Sell : Price.None));
         }
 
         if (player.shield != null)
@@ -943,15 +977,31 @@ public class Game : MonoBehaviour
             ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
             if (activeInventory == characterScreen)
             {
-                itemEntry.Init(player.shield.ToString(true), "Unequip", () =>
+                itemEntry.Init(player.shield.ToString(Price.None), "Unequip", () =>
                 {
                     player.AddItem(player.shield);
                     player.shield = null;
                     RefreshPlayerScreen();
                 });
             }
+            else if (activeInventory == enchantItemsScreen && player.shield.level < Item.MaxLevelEnchant)
+            {
+                itemEntry.Init(player.shield.ToString(Price.Enchant), "Enchant", () =>
+                {
+                    int cost = Item.GetEnchantCost(player.shield);
+                    if (player.gold < cost)
+                        ui.ShowDialog($"You need {cost} gold to enchant {player.shield.name}.");
+                    else
+                    {
+                        player.shield = Item.GetEnchanted(player.shield);
+                        player.AddGold(-cost);
+                        RefreshPlayerItems();
+                        UpdateText();
+                    }
+                });
+            }
             else
-                itemEntry.Init(player.shield.ToString(true));
+                itemEntry.Init(player.shield.ToString(activeInventory == shopScreen ? Price.Sell : Price.None));
         }
 
         if ((player.weapon != null || player.armor != null || player.shield != null) && player.items.Count > 0)
@@ -993,7 +1043,7 @@ public class Game : MonoBehaviour
 
                 if (player.CanEquip(itemSlot.item))
                 {
-                    itemEntry.Init2(itemSlot.ToString(true), "Equip", () =>
+                    itemEntry.Init2(itemSlot.ToString(Price.None), "Equip", () =>
                     {
                         switch (itemSlot.item.type)
                         {
@@ -1019,7 +1069,7 @@ public class Game : MonoBehaviour
                 }
                 else if (itemSlot.item.type == Item.Type.Usable)
                 {
-                    itemEntry.Init2(itemSlot.ToString(true), "Use", () =>
+                    itemEntry.Init2(itemSlot.ToString(Price.None), "Use", () =>
                     {
                         player.hp = Mathf.Min(player.hp + itemSlot.item.power, player.hpMax);
                         player.RemoveItem(itemSlot);
@@ -1028,13 +1078,13 @@ public class Game : MonoBehaviour
                     }, "Drop", Drop);
                 }
                 else if (itemSlot.item.type == Item.Type.Tool)
-                    itemEntry.Init2(itemSlot.ToString(true), "Use", Craft, "Drop", Drop);
+                    itemEntry.Init2(itemSlot.ToString(Price.None), "Use", Craft, "Drop", Drop);
                 else
-                    itemEntry.Init2(itemSlot.ToString(true), null, null, "Drop", Drop);
+                    itemEntry.Init2(itemSlot.ToString(Price.None), null, null, "Drop", Drop);
             }
             else if (activeInventory == shopScreen)
             {
-                itemEntry.Init(itemSlot.ToString(true), "Sell", () =>
+                itemEntry.Init(itemSlot.ToString(Price.Sell), "Sell", () =>
                 {
                     if (Input.GetKey(KeyCode.LeftShift))
                     {
@@ -1070,7 +1120,7 @@ public class Game : MonoBehaviour
             {
                 if (activeAlly.WillTakeItem(itemSlot.item))
                 {
-                    itemEntry.Init(itemSlot.ToString(true), "Give", () =>
+                    itemEntry.Init(itemSlot.ToString(Price.None), "Give", () =>
                     {
                         if (itemSlot.item.type == Item.Type.Weapon || itemSlot.item.type == Item.Type.Armor || itemSlot.item.type == Item.Type.Shield
                             || !(Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.LeftControl)))
@@ -1104,11 +1154,11 @@ public class Game : MonoBehaviour
                     });
                 }
                 else
-                    itemEntry.Init(itemSlot.ToString(true));
+                    itemEntry.Init(itemSlot.ToString(Price.None));
             }
-            else
+            else if (activeInventory == storeItemsScreen)
             {
-                itemEntry.Init(itemSlot.ToString(true), "Store", () =>
+                itemEntry.Init(itemSlot.ToString(Price.None), "Store", () =>
                 {
                     if (Input.GetKey(KeyCode.LeftShift))
                     {
@@ -1139,6 +1189,29 @@ public class Game : MonoBehaviour
                         RefreshStoredItems();
                     }
                 });
+            }
+            else if (activeInventory == enchantItemsScreen)
+            {
+                if (itemSlot.item.CanEnchant())
+                {
+                    itemEntry.Init(itemSlot.item.ToString(Price.Enchant), "Enchant", () =>
+                    {
+                        int cost = Item.GetEnchantCost(itemSlot.item);
+                        if (player.gold < cost)
+                            ui.ShowDialog($"You need {cost} gold to enchant {itemSlot.item.name}.");
+                        else
+                        {
+                            Item item = itemSlot.item;
+                            player.RemoveItem(itemSlot);
+                            player.AddItem(Item.GetEnchanted(item));
+                            player.AddGold(-cost);
+                            RefreshPlayerItems();
+                            UpdateText();
+                        }
+                    });
+                }
+                else
+                    itemEntry.Init(itemSlot.ToString(Price.None));
             }
         }
     }
@@ -1197,19 +1270,19 @@ public class Game : MonoBehaviour
         if (activeAlly.weapon != null)
         {
             ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
-            itemEntry.Init(activeAlly.weapon.ToString(true));
+            itemEntry.Init(activeAlly.weapon.ToString(Price.None));
         }
 
         if (activeAlly.armor != null)
         {
             ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
-            itemEntry.Init(activeAlly.armor.ToString(true));
+            itemEntry.Init(activeAlly.armor.ToString(Price.None));
         }
 
         if (activeAlly.shield != null)
         {
             ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
-            itemEntry.Init(activeAlly.shield.ToString(true));
+            itemEntry.Init(activeAlly.shield.ToString(Price.None));
         }
 
         if ((activeAlly.weapon != null || activeAlly.armor != null || activeAlly.shield != null) && activeAlly.items.Count > 0)
@@ -1218,7 +1291,7 @@ public class Game : MonoBehaviour
         foreach (ItemSlot itemSlot in activeAlly.items)
         {
             ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
-            itemEntry.Init(itemSlot.ToString(true));
+            itemEntry.Init(itemSlot.ToString(Price.None));
         }
     }
 
@@ -1805,6 +1878,8 @@ public class Game : MonoBehaviour
         buttons.Find("BtTravel").gameObject.SetActive(world.level == 0);
         buttons.Find("BtGoUp").gameObject.SetActive(world.level != 0);
         buttons.Find("BtGoDown").gameObject.SetActive(world.level < world.CurrentTile.foundLevel);
+        buttons.Find("BtEnchantItems").gameObject.SetActive(location == TileType.MageTower);
+        buttons.Find("BtEnterPortal").gameObject.SetActive(location == TileType.MageTower);
 
         Transform btJournal = buttons.Find("BtJournal");
         int notificationsAvailable = notifications.Count(x => x.status == Notification.Status.Available);
@@ -2734,7 +2809,7 @@ public class Game : MonoBehaviour
         foreach (ItemSlot itemSlot in storedItems)
         {
             ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
-            itemEntry.Init(itemSlot.ToString(false), "Take", () =>
+            itemEntry.Init(itemSlot.ToString(Price.None), "Take", () =>
             {
                 if (Input.GetKey(KeyCode.LeftShift))
                 {
@@ -2952,5 +3027,17 @@ public class Game : MonoBehaviour
     {
         yield return new WaitForEndOfFrame();
         scrollRect.verticalNormalizedPosition = pos;
+    }
+
+    public void EnchantItems()
+    {
+        activeInventory = enchantItemsScreen;
+        RefreshPlayerItems();
+        ui.ShowDialog(enchantItemsScreen);
+    }
+
+    public void EnterPortal()
+    {
+
     }
 }

@@ -101,6 +101,9 @@ public class Tile
         case TileType.Swamp:
             image = TileImage.Swamp;
             break;
+        case TileType.MageTower:
+            image = TileImage.MageTower;
+            break;
         }
         type = newType;
     }

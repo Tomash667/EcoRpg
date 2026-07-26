@@ -137,7 +137,7 @@ public static class Utility
     public static string PrettyGroup(IEnumerable<string> items)
     {
         var groups = items.GroupBy(x => x).ToArray();
-        if(groups.Length == 1)
+        if (groups.Length == 1)
             return PluralText(groups[0].Key, groups[0].Count());
         else if (groups.Length == 2)
             return $"{PluralText(groups[0].Key, groups[0].Count())} and {PluralText(groups[1].Key, groups[1].Count())}";

@@ -13,7 +13,7 @@ public class World
     public Tile[] map;
     public Tile[] sublocations;
     public Vector2Int currentPt;
-    public int sublocation; // 0-none, 1-sewers, 2-house, 3-mansion
+    public int sublocation; // 0-none, 1-sewers, 2-house, 3-mansion, 4-dark dimension
     public int level;
     [NonSerialized]
     public bool isTraveling;
@@ -94,8 +94,10 @@ public class World
             }
         }
 
+        // city
         map[cityPos.x + cityPos.y * sizeX].SetType(TileType.City);
 
+        // village
         tile = map[villagePos.x + villagePos.y * sizeX];
         tile.SetType(TileType.Village);
         tile.difficulty = 1;
@@ -123,6 +125,13 @@ public class World
                 hidden = TileType.None,
                 difficulty = 0,
                 clear = true
+            },
+            new()
+            {
+                type = TileType.DarkDimension,
+                hidden = TileType.None,
+                difficulty = 4,
+                clear = false
             }
         };
 
@@ -183,6 +192,9 @@ public class World
         for (int i = 2; i < 5; ++i)
             spawnedDungeon3[i].levels = 3;
 
+        // mage tower
+        SpawnHiddenLocations(20, 24, 1, TileType.Plains, TileType.MageTower, null);
+
         RevealHiddenLocations(cityPos, false);
         currentPt = cityPos;
         level = 0;
@@ -213,7 +225,8 @@ public class World
         while (count > 0 && validTiles.Count > 0)
         {
             Tile tile = validTiles.RandomItemPop();
-            tile.name = names.RandomItemPop();
+            if (names != null)
+                tile.name = names.RandomItemPop();
             tile.hidden = targetTile;
             spawned.Add(tile);
             --count;
