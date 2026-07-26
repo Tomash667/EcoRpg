@@ -57,6 +57,7 @@ public class Hero : ISerializationCallbackReceiver
     }
     public bool BackRow => clas == Class.Archer;
     public char GenderSign => female ? '♀' : '♂';
+    public virtual string nameYou => name;
     public string He => female ? "She" : "He";
     public virtual string him => female ? "her" : "him";
 

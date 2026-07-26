@@ -10,6 +10,7 @@ public class Player : Hero
     [NonSerialized]
     public int goldReceived;
 
+    public override string nameYou => "you";
     public override string him => "you";
 
     public new void Init()

@@ -283,21 +283,92 @@ public class Game : MonoBehaviour
             lastAction = target == player
                 ? $"You explore the {tile.Name} and step on a <color=red>trap</color>."
                 : $"You explore the {tile.Name} and {target.name} step on a <color=red>trap</color>.";
-            if (Combat.AttackChance(10, target.dex))
+            if (tile.difficulty == 1)
             {
-                target.hp -= Mathf.Max(15 + tile.difficulty * 5 + Utility.Random(0, 5), 0);
-                if (target.hp < 1)
-                    target.hp = 1;
-                if (target == player)
-                    lastAction += " A shooting arrow hits you.";
-                else
+                if (Combat.AttackChance(10, target.dex))
                 {
-                    target.ApplyHealing();
-                    lastAction += $" A shooting arrow hits {target.him}.";
+                    target.hp -= Utility.Random(20, 25);
+                    if (target.hp < 1)
+                        target.hp = 1;
+                    if (target == player)
+                        lastAction += " A shooting arrow hits you.";
+                    else
+                    {
+                        target.ApplyHealing();
+                        lastAction += $" A shooting arrow hits {target.him}.";
+                    }
+                }
+                else
+                    lastAction += target == player ? " You dodge a shooting arrow." : $" {target.He} dodges a shooting arrow.";
+            }
+            else if (tile.difficulty == 2)
+            {
+                List<Hero> dodged = new(), hit = new();
+                foreach (Hero hero in Team)
+                {
+                    if (Combat.AttackChance(15, hero.dex))
+                    {
+                        hero.hp -= Utility.Random(25, 30);
+                        if (hero.hp < 1)
+                            hero.hp = 1;
+                        if (hero != player)
+                            hero.ApplyHealing();
+                        hit.Add(hero);
+                    }
+                    else
+                        dodged.Add(hero);
+                }
+
+                if (dodged.Count > 0)
+                {
+                    if (dodged.Count == Team.Count() && dodged.Count > 1)
+                        lastAction += " Everone jump away from a pit.";
+                    else
+                        lastAction += $" {Utility.PrettyList(dodged.Select(x => x.nameYou)).ToUpper1()} {Utility.S("jump", dodged.Count == 1 && dodged[0] != player)} away from a pit.";
+                }
+
+                if (hit.Count > 0)
+                {
+                    if (hit.Count == Team.Count() && hit.Count > 1)
+                        lastAction += " Everyone fall into a pit.";
+                    else
+                        lastAction += $" {Utility.PrettyList(hit.Select(x => x.nameYou)).ToUpper1()} {Utility.S("fall", hit.Count == 1 && hit[0] != player)} into a pit.";
                 }
             }
             else
-                lastAction += target == player ? " You dodge a shooting arrow." : $" {target.He} dodges a shooting arrow.";
+            {
+                List<Hero> dodged = new(), hit = new();
+                foreach (Hero hero in Team)
+                {
+                    if (Combat.AttackChance(20, hero.dex))
+                    {
+                        hero.hp -= Utility.Random(30, 40);
+                        if (hero.hp < 1)
+                            hero.hp = 1;
+                        if (hero != player)
+                            hero.ApplyHealing();
+                        hit.Add(hero);
+                    }
+                    else
+                        dodged.Add(hero);
+                }
+
+                if (dodged.Count > 0)
+                {
+                    if (dodged.Count == Team.Count() && dodged.Count > 1)
+                        lastAction += " Everone jump away from an explosion.";
+                    else
+                        lastAction += $" {Utility.PrettyList(dodged.Select(x => x.nameYou)).ToUpper1()} {Utility.S("jump", dodged.Count == 1 && dodged[0] != player)} away from an explosion.";
+                }
+
+                if (hit.Count > 0)
+                {
+                    if (hit.Count == Team.Count() && hit.Count > 1)
+                        lastAction += " Everyone are caught in an explosion.";
+                    else
+                        lastAction += $" {Utility.PrettyList(hit.Select(x => x.nameYou)).ToUpper1()} {Utility.S("are", hit.Count == 1 && hit[0] != player, "is")} caught in an explosion.";
+                }
+            }
         }
         else if (c == 9 && tile.type == TileType.Dungeon && (!tile.foundTreasure || Utility.Rand % 2 == 0))
         {

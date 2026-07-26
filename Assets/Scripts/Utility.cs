@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using UnityEngine;
 
@@ -54,6 +55,19 @@ public static class Utility
             return "a";
     }
 
+    public static string S(string word, bool addS, string optional = null)
+    {
+        if (addS)
+        {
+            if (optional != null)
+                return optional;
+            else
+                return word + 's';
+        }
+        else
+            return word;
+    }
+
     public static string Plural(string word)
     {
         int spacePos = word.LastIndexOf(' ');
@@ -91,7 +105,7 @@ public static class Utility
             return $"{counter[count - 1]} {Plural(word)}";
     }
 
-    public static string PrettyList(this IList<string> items)
+    public static string PrettyList(IList<string> items)
     {
         if (items.Count == 1)
             return items[0];
@@ -113,5 +127,10 @@ public static class Utility
             }
             return sb.ToString();
         }
+    }
+
+    public static string PrettyList(IEnumerable<string> items)
+    {
+        return PrettyList(items.ToArray());
     }
 }

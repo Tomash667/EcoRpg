@@ -4,7 +4,6 @@ v1:
 + allies
 	better heroes
 	relationship
-+ dungeon different traps (damage, accuracy, targets)
 
 ---------------------------------------------------------------------------------------------------
 hero:
@@ -96,6 +95,7 @@ hero:
 	escape chance
 	enemy escape
 + more interesting dungeon exploring - random d20 rooms, explored%
++ dungeon types - less/more traps, less/more monsters, trap types
 
 events:
 + free person for hire (foreman, geomancer etc)
