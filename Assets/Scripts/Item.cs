@@ -44,13 +44,34 @@ public class Item
         return (type == Type.Weapon || type == Type.Armor || type == Type.Shield) && level < MaxLevelEnchant;
     }
 
+    public Item GetEnchanted()
+    {
+        int nextLevel;
+        if (level < 5)
+            nextLevel = 5;
+        else
+            nextLevel = level + 1;
+        return items.First(x => x.type == type && x.subtype == subtype && x.level == nextLevel);
+    }
+
+    public int GetEnchantCost()
+    {
+        return level switch
+        {
+            5 => 10000,
+            6 => 20000,
+            7 => 30000,
+            _ => 10000
+        };
+    }
+
     public string ToString(Price price)
     {
         string priceText = price switch
         {
             Price.Buy => $", {value} gold",
             Price.Sell => $", {value / 2} gold",
-            Price.Enchant => $", {GetEnchantCost(this)} gold to enchant",
+            Price.Enchant => $", {GetEnchantCost()} gold to enchant",
             _ => string.Empty
         };
         string itemDesc = type switch
@@ -65,27 +86,6 @@ public class Item
     public static Item Get(string name)
     {
         return items.First(x => x.name == name);
-    }
-
-    public static Item GetEnchanted(Item item)
-    {
-        int level;
-        if (item.level < 5)
-            level = 5;
-        else
-            level = item.level + 1;
-        return items.First(x => x.type == item.type && x.subtype == item.subtype && x.level == level);
-    }
-
-    public static int GetEnchantCost(Item item)
-    {
-        return item.level switch
-        {
-            5 => 10000,
-            6 => 20000,
-            7 => 30000,
-            _ => 10000
-        };
     }
 
     public static readonly Item[] items = new Item[]

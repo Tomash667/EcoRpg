@@ -827,6 +827,11 @@ public class Game : MonoBehaviour
             foreach (Notification notification in notifications.Where(x => x.status == Notification.Status.Waiting))
                 notification.status = Notification.Status.Available;
         }
+        else if (tile.type == TileType.MageTower)
+        {
+            foreach (Hero ally in allies)
+                ally.EnchantItems();
+        }
 
         ui.UpdateBackground((int)tile.type);
         UpdateButtons();
@@ -924,12 +929,12 @@ public class Game : MonoBehaviour
             {
                 itemEntry.Init(player.weapon.ToString(Price.Enchant), "Enchant", () =>
                 {
-                    int cost = Item.GetEnchantCost(player.weapon);
+                    int cost = player.weapon.GetEnchantCost();
                     if (player.gold < cost)
                         ui.ShowDialog($"You need {cost} gold to enchant {player.weapon.name}.");
                     else
                     {
-                        player.weapon = Item.GetEnchanted(player.weapon);
+                        player.weapon = player.weapon.GetEnchanted();
                         player.AddGold(-cost);
                         RefreshPlayerItems();
                         UpdateText();
@@ -956,12 +961,12 @@ public class Game : MonoBehaviour
             {
                 itemEntry.Init(player.armor.ToString(Price.Enchant), "Enchant", () =>
                 {
-                    int cost = Item.GetEnchantCost(player.armor);
+                    int cost = player.armor.GetEnchantCost();
                     if (player.gold < cost)
                         ui.ShowDialog($"You need {cost} gold to enchant {player.armor.name}.");
                     else
                     {
-                        player.armor = Item.GetEnchanted(player.armor);
+                        player.armor = player.armor.GetEnchanted();
                         player.AddGold(-cost);
                         RefreshPlayerItems();
                         UpdateText();
@@ -988,12 +993,12 @@ public class Game : MonoBehaviour
             {
                 itemEntry.Init(player.shield.ToString(Price.Enchant), "Enchant", () =>
                 {
-                    int cost = Item.GetEnchantCost(player.shield);
+                    int cost = player.shield.GetEnchantCost();
                     if (player.gold < cost)
                         ui.ShowDialog($"You need {cost} gold to enchant {player.shield.name}.");
                     else
                     {
-                        player.shield = Item.GetEnchanted(player.shield);
+                        player.shield = player.shield.GetEnchanted();
                         player.AddGold(-cost);
                         RefreshPlayerItems();
                         UpdateText();
@@ -1196,14 +1201,14 @@ public class Game : MonoBehaviour
                 {
                     itemEntry.Init(itemSlot.item.ToString(Price.Enchant), "Enchant", () =>
                     {
-                        int cost = Item.GetEnchantCost(itemSlot.item);
+                        int cost = itemSlot.item.GetEnchantCost();
                         if (player.gold < cost)
                             ui.ShowDialog($"You need {cost} gold to enchant {itemSlot.item.name}.");
                         else
                         {
                             Item item = itemSlot.item;
                             player.RemoveItem(itemSlot);
-                            player.AddItem(Item.GetEnchanted(item));
+                            player.AddItem(item.GetEnchanted());
                             player.AddGold(-cost);
                             RefreshPlayerItems();
                             UpdateText();
@@ -1383,6 +1388,11 @@ public class Game : MonoBehaviour
         {
             FullRest();
             lastAction += "You rest in a barracks.";
+        }
+        else if (location == TileType.MageTower)
+        {
+            FullRest();
+            lastAction += "You rest in a guest room.";
         }
         else
         {
@@ -2007,6 +2017,8 @@ public class Game : MonoBehaviour
             activeAlly.gold += count;
             if (world.Location.IsSafe())
                 activeAlly.BuyItems();
+            else if (world.Location == TileType.MageTower)
+                activeAlly.EnchantItems();
             RefreshAllyScreen();
             UpdateText();
             return true;
@@ -2700,6 +2712,8 @@ public class Game : MonoBehaviour
             ally.gold += share;
             if (world.Location.IsSafe())
                 ally.BuyItems();
+            else if (world.Location == TileType.MageTower)
+                ally.EnchantItems();
         }
 
         gold -= share * allies.Count;

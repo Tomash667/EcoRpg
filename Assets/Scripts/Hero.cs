@@ -458,6 +458,68 @@ public class Hero : ISerializationCallbackReceiver
         }
     }
 
+    public void EnchantItems()
+    {
+        int weaponLevel = weapon?.level ?? 0, armorLevel = armor?.level ?? 0, shieldLevel = shield?.level ?? 0;
+        while ((weaponLevel != 0 && weaponLevel < Item.MaxLevelEnchant) || (armorLevel != 0 && armorLevel < Item.MaxLevelEnchant) || (shieldLevel != 0 && shieldLevel < Item.MaxLevelEnchant))
+        {
+            int minLevel = Mathf.Min(weaponLevel, armorLevel, shieldLevel);
+            List<Item.Type> typesToBuy = new();
+            if (weaponLevel == minLevel)
+                typesToBuy.Add(Item.Type.Weapon);
+            if (armorLevel == minLevel)
+                typesToBuy.Add(Item.Type.Armor);
+            if (shieldLevel == minLevel)
+                typesToBuy.Add(Item.Type.Shield);
+
+            switch (typesToBuy.RandomItem())
+            {
+            case Item.Type.Weapon:
+                {
+                    int cost = weapon.GetEnchantCost();
+                    if (gold >= cost)
+                    {
+                        // enchant
+                        gold -= cost;
+                        weapon = weapon.GetEnchanted();
+                        weaponLevel = weapon.level;
+                    }
+                    else
+                        return; // can't afford
+                }
+                break;
+            case Item.Type.Armor:
+                {
+                    int cost = armor.GetEnchantCost();
+                    if (gold >= cost)
+                    {
+                        // enchant
+                        gold -= cost;
+                        armor = armor.GetEnchanted();
+                        armorLevel = armor.level;
+                    }
+                    else
+                        return; // can't afford
+                }
+                break;
+            case Item.Type.Shield:
+                {
+                    int cost = shield.GetEnchantCost();
+                    if (gold >= cost)
+                    {
+                        // enchant
+                        gold -= cost;
+                        shield = shield.GetEnchanted();
+                        shieldLevel = shield.level;
+                    }
+                    else
+                        return; // can't afford
+                }
+                break;
+            }
+        }
+    }
+
     public void ApplyHealing()
     {
         if (hpp < 0.5f)

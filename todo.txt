@@ -1,5 +1,12 @@
 v1:
 + post dragon enemies
+	mage tower
+		portal (after dragon)
+	dark dimension
+		skittering horror (dex)
+		hulking horror (hp/def)
+		deadly horror (diamond cannon)
+		unnammed horror (66 kills -> boss; lose -11) + 2 random horrors
 + allies
 	better heroes
 	relationship
@@ -95,6 +102,7 @@ hero:
 	enemy escape
 + more interesting dungeon exploring - random d20 rooms, explored%
 + dungeon types - less/more traps, less/more monsters, trap types
++ rest in dangerous place -> attacked chance
 
 events:
 + free person for hire (foreman, geomancer etc)
@@ -120,6 +128,8 @@ ui:
 + better UI for two button ItemEntry
 + cancel quest confirm
 + permanent action confirm (drop, ?)
++ background music
++ vsync
 	
 investments:
 + cottage/big house
