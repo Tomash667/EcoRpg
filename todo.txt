@@ -1,12 +1,4 @@
 v1:
-+ post dragon enemies
-	mage tower
-		portal (after dragon)
-	dark dimension
-		skittering horror (dex)
-		hulking horror (hp/def)
-		deadly horror (diamond cannon)
-		unnammed horror (66 kills -> boss; lose -11) + 2 random horrors
 + allies
 	better heroes
 	relationship
@@ -130,6 +122,7 @@ ui:
 + permanent action confirm (drop, ?)
 + background music
 + vsync
++ make combat card background fit text
 	
 investments:
 + cottage/big house

@@ -132,7 +132,7 @@ public class Game : MonoBehaviour
                 Explore();
             if (Input.GetKeyDown(KeyCode.R))
                 Rest();
-            if (world.level == 0)
+            if (world.level == 0 && world.Location != TileType.DarkDimension)
             {
                 if (Input.GetKeyDown(KeyCode.T))
                     Travel();
@@ -271,6 +271,21 @@ public class Game : MonoBehaviour
                     enemy = Enemy.Get("dragon-man");
                     for (int i = 0; i < count; ++i)
                         enemyList.Add(enemy);
+                }
+            }
+            else if (tile.type == TileType.DarkDimension)
+            {
+                if (tile.defeatedEnemies >= 13)
+                {
+                    enemyList.Add(Enemy.Get("nameless horror"));
+                    for (int i = 0; i < 2; ++i)
+                        enemyList.Add(Enemy.GetRandom(TileType.DarkDimension, 4));
+                }
+                else
+                {
+                    enemyList.Add(enemy);
+                    for (int i = 1; i < count; ++i)
+                        enemyList.Add(Enemy.GetRandom(TileType.DarkDimension, 4));
                 }
             }
             else
@@ -544,6 +559,8 @@ public class Game : MonoBehaviour
                 tile.defeatedEnemies += enemyList.Count;
             if (tile.timer == 0 && !tile.clear)
                 tile.timer = 3;
+            if (tile.type == TileType.DarkDimension && enemyList.Any(x => x.name == "nameless horror"))
+                tile.defeatedEnemies = 0;
 
             if (!tile.boss && tile.type.IsClearable() && tile.defeatedEnemies >= 10)
             {
@@ -581,6 +598,8 @@ public class Game : MonoBehaviour
 
             if (enemyList.Any(x => x.name == "dragon"))
                 tile.defeatedEnemies -= 5;
+            if (tile.type == TileType.DarkDimension && enemyList.Any(x => x.name == "nameless horror"))
+                tile.defeatedEnemies = 0;
         }
 
         // heal after combat
@@ -1885,11 +1904,12 @@ public class Game : MonoBehaviour
         }
         else
             houseButton.gameObject.SetActive(false);
-        buttons.Find("BtTravel").gameObject.SetActive(world.level == 0);
+        buttons.Find("BtTravel").gameObject.SetActive(world.level == 0 && location != TileType.DarkDimension);
         buttons.Find("BtGoUp").gameObject.SetActive(world.level != 0);
         buttons.Find("BtGoDown").gameObject.SetActive(world.level < world.CurrentTile.foundLevel);
         buttons.Find("BtEnchantItems").gameObject.SetActive(location == TileType.MageTower);
         buttons.Find("BtEnterPortal").gameObject.SetActive(location == TileType.MageTower);
+        buttons.Find("BtEnterPortal2").gameObject.SetActive(location == TileType.DarkDimension);
 
         Transform btJournal = buttons.Find("BtJournal");
         int notificationsAvailable = notifications.Count(x => x.status == Notification.Status.Available);
@@ -3052,6 +3072,24 @@ public class Game : MonoBehaviour
 
     public void EnterPortal()
     {
+        if (dragonStatus == DragonStatus.None)
+        {
+            lastAction = "The portal is sealed by dragon seal.";
+            UpdateText();
+            return;
+        }
 
+        if (world.sublocation != 4)
+        {
+            lastAction = "You enter the portal and arrive in dark dimension.";
+            world.sublocation = 4;
+        }
+        else
+        {
+            lastAction = "You enter the portal and arrive back in mage tower.";
+            world.sublocation = 0;
+        }
+        OnChangeLocation();
+        AddTime(minutes: 15);
     }
 }

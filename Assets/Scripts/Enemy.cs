@@ -345,6 +345,53 @@ public class Enemy
             dex = 24,
             drops = new[] { (Item.Get("meat"), 3.5f), (Item.Get("trophy"), 1.2f) },
             pronoun = Pronoun.It
+        },
+        new()
+        {
+            name = "skittering horror",
+            locations = new[] { (TileType.DarkDimension, 4) },
+            level = 13,
+            hp = 320,
+            attack = 80,
+            def = 15,
+            dex = 40,
+            gold = new(140, 210),
+            pronoun = Pronoun.It
+        },
+        new()
+        {
+            name = "hulking horror",
+            locations = new[] { (TileType.DarkDimension, 4) },
+            level = 13,
+            hp = 400,
+            attack = 80,
+            def = 18,
+            dex = 32,
+            gold = new(140, 210),
+            pronoun = Pronoun.It
+        },
+        new()
+        {
+            name = "deadly horror",
+            locations = new[] { (TileType.DarkDimension, 4) },
+            level = 13,
+            hp = 320,
+            attack = 100,
+            def = 15,
+            dex = 32,
+            gold = new(140, 210),
+            pronoun = Pronoun.It
+        },
+        new()
+        {
+            name = "nameless horror",
+            level = 20,
+            hp = 460,
+            attack = 115,
+            def = 22,
+            dex = 46,
+            gold = new(420, 630),
+            pronoun = Pronoun.It
         }
     };
 }
