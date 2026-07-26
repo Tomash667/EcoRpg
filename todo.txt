@@ -1,5 +1,4 @@
 v1:
-+ harder dragon
 + post dragon enemies
 + allies
 	better heroes
@@ -88,7 +87,7 @@ hero:
 	enemy block
 	enemy back row
 	enemy ranged attacks
-	enemy special attacks
+	enemy special attacks (dragon breath, ...)
 	order to target enemy
 	delay log to match cards
 	hero use potion while hp > 0

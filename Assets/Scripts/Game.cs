@@ -253,18 +253,31 @@ public class Game : MonoBehaviour
                 _ => 1,
             };
 
+            List<Enemy> enemyList = new();
             if (tile.boss)
             {
                 if (tile.defeatedEnemies >= 10 && world.level + 1 == tile.levels)
                 {
                     enemy = Enemy.Get("dragon");
-                    count = 1;
+                    enemyList.Add(enemy);
+                    enemy = Enemy.Get("dragon-man");
+                    for (int i = 0; i < 2; ++i)
+                        enemyList.Add(enemy);
                 }
                 else
+                {
                     enemy = Enemy.Get("dragon-man");
+                    for (int i = 0; i < count; ++i)
+                        enemyList.Add(enemy);
+                }
+            }
+            else
+            {
+                for (int i = 0; i < count; ++i)
+                    enemyList.Add(enemy);
             }
 
-            combatScreen.Init(enemy, count);
+            combatScreen.Init(enemyList);
             ui.lockDialog = true;
             ui.ShowDialog(combatScreen.gameObject);
             return;
@@ -429,7 +442,7 @@ public class Game : MonoBehaviour
         UpdateText();
     }
 
-    public void PostCombat(Combat.Result result, Enemy enemy, int count)
+    public void PostCombat(Combat.Result result, List<Enemy> enemyList)
     {
         Tile tile = world.CurrentTile;
 
@@ -441,48 +454,47 @@ public class Game : MonoBehaviour
             foreach (Quest quest in activeQuests)
             {
                 if (quest.type == Quest.Type.Defeat)
-                {
-                    if (quest.enemy == enemy)
-                        quest.count += count;
-                }
+                    quest.count += enemyList.Count(x => x == quest.enemy);
                 else if (quest.type == Quest.Type.Clear)
                 {
                     if (quest.location == world.CurrentLocationIndex)
-                        quest.count += count;
+                        quest.count += enemyList.Count;
                 }
             }
 
             // gold & items
             List<string> items = new();
             int gold = 0;
-            if (enemy.gold != Vector2Int.zero)
+            List<ItemSlot> drops = new();
+            foreach (Enemy enemy in enemyList)
             {
-                for (int i = 0; i < count; ++i)
+                if (enemy.gold != Vector2Int.zero)
                     gold += enemy.gold.Random();
-                gold = Utility.Round(gold);
-            }
-            if (enemy.drops != null)
-            {
-                foreach (var (item, chance) in enemy.drops)
+                if (enemy.drops != null)
                 {
-                    int itemCount = (int)chance;
-                    itemCount *= count;
-                    float itemChance = chance - itemCount;
-                    if (itemChance > 0)
+                    foreach (var (item, chance) in enemy.drops)
                     {
-                        for (int i = 0; i < count; ++i)
+                        int itemCount = (int)chance;
+                        float itemChance = chance - itemCount;
+                        if (itemChance > 0 && Utility.Random() < itemChance)
+                            ++itemCount;
+                        if (itemCount > 0)
                         {
-                            if (Utility.Random() < itemChance)
-                                ++itemCount;
+                            ItemSlot itemSlot = drops.FirstOrDefault(x => x.item == item);
+                            if (itemSlot != null)
+                                itemSlot.count += itemCount;
+                            else
+                                drops.Add(new ItemSlot { item = item, count = itemCount });
                         }
-                    }
-                    if (itemCount > 0)
-                    {
-                        items.Add(Utility.Plural(item.name, itemCount));
-                        player.AddItem(item, itemCount);
                     }
                 }
             }
+            foreach (ItemSlot itemSlot in drops)
+            {
+                items.Add(Utility.Plural(itemSlot.item.name, itemSlot.count));
+                player.AddItem(itemSlot.item, itemSlot.count);
+            }
+            gold = Utility.Round(gold);
             string pickups;
             if (items.Count > 0)
             {
@@ -494,7 +506,7 @@ public class Game : MonoBehaviour
                 pickups = $"<color=#FFD700>{gold}</color> gold";
             else
                 pickups = null;
-            if (enemy.name == "dragon")
+            if (enemyList.Any(x => x.name == "dragon"))
             {
                 dragonStatus = DragonStatus.Defeated;
                 lastAction = "With a final blow, the dragon falls. Its roar fades into silence, and the cavern grows still. The beast is slain—its hoard and your legend now yours to claim. " +
@@ -506,9 +518,9 @@ public class Game : MonoBehaviour
                 tile.timer = 0;
             }
             else if (pickups != null)
-                lastAction = $"You win fight with <b>{Utility.PluralText(enemy.name, count)}</b> ({pickups} found).";
+                lastAction = $"You win fight with <b>{Utility.PrettyGroup(enemyList.Select(x => x.name))}</b> ({pickups} found).";
             else
-                lastAction = $"You win fight with <b>{Utility.PluralText(enemy.name, count)}</b>.";
+                lastAction = $"You win fight with <b>{Utility.PrettyGroup(enemyList.Select(x => x.name))}</b>.";
             AddTeamGold(gold);
 
             // exp
@@ -517,17 +529,17 @@ public class Game : MonoBehaviour
                 ratio = 1f;
             else
                 ratio = 1f / (allies.Count + 1);
-            if (player.AddExp(enemy.level, ratio * count))
+            if (player.AddExp(enemyList, ratio))
                 lastAction += $" You are now level {player.level}.";
             foreach (Hero ally in allies)
             {
-                if (ally.AddExp(enemy.level, ratio * count))
+                if (ally.AddExp(enemyList, ratio))
                     lastAction += $" {ally.name} is now level {ally.level}.";
             }
 
             // quest
             if (world.level == tile.foundLevel)
-                tile.defeatedEnemies += count;
+                tile.defeatedEnemies += enemyList.Count;
             if (tile.timer == 0 && !tile.clear)
                 tile.timer = 3;
 
@@ -561,11 +573,11 @@ public class Game : MonoBehaviour
         else
         {
             if (result == Combat.Result.Escape)
-                lastAction = $"You run away from {Utility.PluralText(enemy.name, count)}.";
+                lastAction = $"You run away from {Utility.PrettyGroup(enemyList.Select(x => x.name))}.";
             else
-                lastAction = $"You run away <color=red>defeated</color> from {Utility.PluralText(enemy.name, count)}.";
+                lastAction = $"You run away <color=red>defeated</color> from {Utility.PrettyGroup(enemyList.Select(x => x.name))}.";
 
-            if (enemy.name == "dragon")
+            if (enemyList.Any(x => x.name == "dragon"))
                 tile.defeatedEnemies -= 5;
         }
 
@@ -2666,8 +2678,8 @@ public class Game : MonoBehaviour
 
         foreach (Hero hero in Team)
         {
-            while (hero.level < 10)
-                hero.AddExp(hero.level, 4f);
+            if (hero.level < 10)
+                hero.SetLevel(10);
             if (hero.clas == Class.Warrior)
             {
                 hero.weapon = Item.Get("magic sword");

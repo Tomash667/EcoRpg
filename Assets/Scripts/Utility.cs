@@ -133,4 +133,29 @@ public static class Utility
     {
         return PrettyList(items.ToArray());
     }
+
+    public static string PrettyGroup(IEnumerable<string> items)
+    {
+        var groups = items.GroupBy(x => x).ToArray();
+        if(groups.Length == 1)
+            return PluralText(groups[0].Key, groups[0].Count());
+        else if (groups.Length == 2)
+            return $"{PluralText(groups[0].Key, groups[0].Count())} and {PluralText(groups[1].Key, groups[1].Count())}";
+        else
+        {
+            StringBuilder sb = new();
+            int index = 0;
+            foreach (var group in groups)
+            {
+                if (index > 0 && index < groups.Length - 1)
+                    sb.Append(", ");
+                else if (index == groups.Length - 1)
+                    sb.Append(" and ");
+
+                sb.Append(PluralText(group.Key, group.Count()));
+                ++index;
+            }
+            return sb.ToString();
+        }
+    }
 }

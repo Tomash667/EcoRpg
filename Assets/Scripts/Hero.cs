@@ -16,7 +16,10 @@ public class Hero : ISerializationCallbackReceiver
     public bool female;
 
     [NonSerialized]
+    public CharacterCard card;
+    [NonSerialized]
     public int potionTimer, potionsUsed;
+    [NonSerialized]
     public bool canBlock;
 
     public int Attack
@@ -109,11 +112,26 @@ public class Hero : ISerializationCallbackReceiver
             canBlock = false;
     }
 
-    public bool AddExp(int enemyLevel, float mod)
+    public void SetLevel(int newLevel)
+    {
+        int dif = newLevel - level;
+        float hpRatio = hpp;
+        hpMax += dif * 20;
+        hp = (int)(hpRatio * hpMax);
+        attack += dif * 5;
+        defense += dif;
+        dex += dif * 2;
+        level = newLevel;
+    }
+
+    public bool AddExp(List<Enemy> enemyList, float mod)
     {
         if (rested > 0)
             mod *= 1.1f;
-        int newExp = (int)(GetExpReward(enemyLevel) * mod);
+        int newExp = 0;
+        foreach (Enemy enemy in enemyList)
+            newExp += GetExpReward(enemy.level);
+        newExp = (int)(newExp * mod);
         exp += newExp;
         if (exp >= 1000)
         {

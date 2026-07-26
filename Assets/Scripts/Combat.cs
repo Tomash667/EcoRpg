@@ -21,17 +21,23 @@ public class Combat : MonoBehaviour
         Heal
     }
 
+    private class Unit
+    {
+        public Enemy enemy;
+        public CharacterCard card;
+        public int hp;
+    }
+
     public GameObject characterCardPrefab, arrowPrefab;
 
     private readonly Vector2[] teamPos = new Vector2[] { new(0, -125), new(-200, -125), new(200, -125) };
     private readonly Vector2[] enemyPos = new Vector2[] { new(0, 200), new(-200, 200), new(200, 200) };
 
     private readonly List<string> textParts = new();
-    private readonly List<CharacterCard> cards = new();
-    private readonly List<int> enemyHp = new();
+    private readonly List<Unit> enemies = new();
+    private List<Enemy> enemyList;
     private List<int> order = new();
     private Game game;
-    private Enemy enemy;
     private TMP_Text text;
     private GameObject arrow;
     private Result result;
@@ -45,18 +51,17 @@ public class Combat : MonoBehaviour
         arrow = transform.Find("Arrow").gameObject;
     }
 
-    public void Init(Enemy enemy, int count)
+    public void Init(List<Enemy> enemyList)
     {
         game = Global.Game;
-        this.enemy = enemy;
+        this.enemyList = enemyList;
 
         Transform container = transform.GetChild(1);
         foreach (Transform child in container)
             Destroy(child.gameObject);
 
         order.Clear();
-        enemyHp.Clear();
-        cards.Clear();
+        enemies.Clear();
         textParts.Clear();
 
         int index = 0;
@@ -73,20 +78,20 @@ public class Combat : MonoBehaviour
             ++index;
             order.Add(-index);
             card.index = -index;
-            cards.Add(card);
             hero.InitCombat();
+            hero.card = card;
         }
 
-        for (int i = 0; i < count; ++i)
+        for (int i = 0; i < enemyList.Count; ++i)
         {
+            Enemy enemy = enemyList[i];
             CharacterCard card = Instantiate(characterCardPrefab, container).GetComponent<CharacterCard>();
             card.Init(enemy.name, 1f, true);
             RectTransform transform = card.GetComponent<RectTransform>();
             transform.anchoredPosition = enemyPos[i];
             order.Add(i);
             card.index = i;
-            cards.Add(card);
-            enemyHp.Add(enemy.hp);
+            enemies.Add(new Unit { enemy = enemy, card = card, hp = enemy.hp });
         }
 
         order = order.Select(x =>
@@ -97,7 +102,7 @@ public class Combat : MonoBehaviour
             else if (x < -1)
                 dex = game.allies[-x - 2].dex;
             else
-                dex = enemy.dex;
+                dex = enemies[x].enemy.dex;
             dex += Utility.Rand % 5;
             return (x, dex);
         }).OrderByDescending(x => x.dex).Select(x => x.x).ToList();
@@ -108,7 +113,7 @@ public class Combat : MonoBehaviour
         action = Action.None;
 
         transform.parent.Find("Buttons").gameObject.SetActive(false);
-        AppendText($"You explore the {Global.World.CurrentTile.Name} and <b>{Utility.PluralText(enemy.name, count)}</b> attack you.");
+        AppendText($"You explore the {Global.World.CurrentTile.Name} and <b>{Utility.PrettyGroup(enemyList.Select(x => x.name))}</b> {Utility.S("attack", enemyList.Count == 1)} you.");
     }
 
     private void Update()
@@ -123,13 +128,13 @@ public class Combat : MonoBehaviour
             {
                 result = Result.DefeatEscaping;
                 timer = 1f;
-                foreach (CharacterCard card in cards.Where(x => x.index < 0))
-                    card.Escape();
+                foreach (Hero hero in game.Team)
+                    hero.card.Escape();
             }
             else
             {
                 transform.parent.Find("Buttons").gameObject.SetActive(true);
-                game.PostCombat(result, enemy, enemyHp.Count);
+                game.PostCombat(result, enemyList);
             }
             return;
         }
@@ -158,8 +163,8 @@ public class Combat : MonoBehaviour
                 // escape from combat
                 result = Result.Escape;
                 timer = 1f;
-                foreach (CharacterCard card in cards.Where(x => x.index < 0))
-                    card.Escape();
+                foreach (Hero hero2 in game.Team)
+                    hero2.card.Escape();
                 arrow.SetActive(false);
                 action = Action.None;
                 return;
@@ -180,21 +185,19 @@ public class Combat : MonoBehaviour
         if (hero.hp > 0)
         {
             timer = 0.5f;
-            int enemyIndex = enemyHp.Select((hp, index) => (hp, index)).RandomItem(x => x.hp > 0).index;
-            CharacterCard targetCard = cards.First(x => x.index == enemyIndex);
-            if (AttackChance(hero.dex, enemy.dex))
+            Unit target = enemies.RandomItem(x => x.hp > 0);
+            if (AttackChance(hero.dex, target.enemy.dex))
             {
-                int dmg = Mathf.Max(hero.Attack - enemy.def, 0);
-                int hp = enemyHp[enemyIndex] -= dmg;
-                float hpp = ((float)hp) / enemy.hp;
-                targetCard.Damage(hpp);
-                if (hp <= 0)
+                int dmg = Mathf.Max(hero.Attack - target.enemy.def, 0);
+                target.hp -= dmg;
+                float hpp = ((float)target.hp) / target.enemy.hp;
+                target.card.Damage(hpp);
+                if (target.hp <= 0)
                 {
-                    // hit hits
                     AppendText(hero is Player
-                        ? $"You hit {enemy.name} for {dmg} damage and defeat {enemy.him}."
-                        : $"{hero.name} hits {enemy.name} for {dmg} damage and defeat {enemy.him}.");
-                    if (enemyHp.All(x => x <= 0))
+                        ? $"You hit {target.enemy.name} for {dmg} damage and defeat {target.enemy.him}."
+                        : $"{hero.name} hits {target.enemy.name} for {dmg} damage and defeat {target.enemy.him}.");
+                    if (enemies.All(x => x.hp <= 0))
                     {
                         AppendText("You win!");
                         timer = 1;
@@ -204,26 +207,25 @@ public class Combat : MonoBehaviour
                 else
                 {
                     AppendText(hero is Player
-                        ? $"You hit {enemy.name} for {dmg} damage."
-                        : $"{hero.name} hits {enemy.name} for {dmg} damage.");
+                        ? $"You hit {target.enemy.name} for {dmg} damage."
+                        : $"{hero.name} hits {target.enemy.name} for {dmg} damage.");
                 }
             }
             else
             {
                 AppendText(hero is Player
-                    ? $"You miss {enemy.name}."
-                    : $"{hero.name} misses {enemy.name}.");
-                targetCard.Dodge();
+                    ? $"You miss {target.enemy.name}."
+                    : $"{hero.name} misses {target.enemy.name}.");
+                target.card.Dodge();
             }
 
-            CharacterCard heroCard = GetCard(hero);
             if (hero.weapon != null && hero.weapon.subtype == Item.Subtype.Bow)
             {
                 Arrow2 arrow = Instantiate(arrowPrefab, transform).GetComponent<Arrow2>();
-                arrow.Shoot(heroCard.position, targetCard.position);
+                arrow.Shoot(hero.card.position, target.card.position);
             }
             else
-                heroCard.Attack();
+                hero.card.Attack();
         }
         else if (hero.potionTimer == 0)
         {
@@ -237,7 +239,6 @@ public class Combat : MonoBehaviour
 
     private void HeroUsePotion(Hero hero, ItemSlot potion)
     {
-        // hero use potion
         int prevHp = hero.hp;
         hero.hp = Mathf.Min(hero.hp + potion.item.power, hero.hpMax);
         hero.RemoveItem(potion);
@@ -245,13 +246,14 @@ public class Combat : MonoBehaviour
         AppendText(hero is Player
             ? $"You use {potion.item.name} and get healed for {hero.hp - prevHp}."
             : $"{hero.name} use {potion.item.name} and get healed for {hero.hp - prevHp}.");
-        GetCard(hero).Heal(hero.hpp);
+        hero.card.Heal(hero.hpp);
         timer = 0.5f;
     }
 
     private void EnemyAction(int unitIndex)
     {
-        if (enemyHp[unitIndex] <= 0)
+        Unit me = enemies[unitIndex];
+        if (me.hp <= 0)
             return;
 
         Hero hero = game.Team.RandomItem(x => x.hp > 0);
@@ -269,15 +271,14 @@ public class Combat : MonoBehaviour
         }
 
         timer = 0.5f;
-        CharacterCard heroCard = GetCard(hero);
-        if (AttackChance(enemy.dex, hero.dex))
+        if (AttackChance(me.enemy.dex, hero.dex))
         {
-            int dmg = Mathf.Max(enemy.attack - hero.Defense, 0);
+            int dmg = Mathf.Max(me.enemy.attack - hero.Defense, 0);
             hero.hp -= dmg;
             if (hero.hp <= 0)
             {
                 hero.potionTimer = hero.potionsUsed;
-                AppendText($"{enemy.name.ToUpper1()} hits {(hero is Player ? "you" : hero.name)} for {dmg} damage and defeats {hero.him}.");
+                AppendText($"{me.enemy.name.ToUpper1()} hits {(hero is Player ? "you" : hero.name)} for {dmg} damage and defeats {hero.him}.");
                 if (game.Team.All(x => x.hp <= 0))
                 {
                     // lost
@@ -287,22 +288,22 @@ public class Combat : MonoBehaviour
                 }
             }
             else
-                AppendText($"{enemy.name.ToUpper1()} hits {(hero is Player ? "you" : hero.name)} for {dmg} damage.");
+                AppendText($"{me.enemy.name.ToUpper1()} hits {(hero is Player ? "you" : hero.name)} for {dmg} damage.");
 
             if (isBlocking)
-                heroCard.Block(hero.hpp);
+                hero.card.Block(hero.hpp);
             else
-                heroCard.Damage(hero.hpp);
+                hero.card.Damage(hero.hpp);
         }
         else
         {
-            AppendText($"{enemy.name.ToUpper1()} misses {(hero is Player ? "you" : hero.name)}.");
+            AppendText($"{me.enemy.name.ToUpper1()} misses {(hero is Player ? "you" : hero.name)}.");
             if (isBlocking)
-                heroCard.Block();
+                hero.card.Block();
             else
-                heroCard.Dodge();
+                hero.card.Dodge();
         }
-        cards.First(x => x.index == unitIndex).Attack();
+        me.card.Attack();
     }
 
     public static bool AttackChance(int myDex, int targetDex)
@@ -320,12 +321,6 @@ public class Combat : MonoBehaviour
             textParts.RemoveAt(0);
         text.text = string.Join('\n', textParts);
         game.SetText(null);
-    }
-
-    private CharacterCard GetCard(Hero hero)
-    {
-        int index = -game.Team.IndexOf(hero) - 1;
-        return cards.First(x => x.index == index);
     }
 
     public void Escape()
