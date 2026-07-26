@@ -1,7 +1,5 @@
 v1:
-+ allies
-	better heroes
-	relationship
++ allies relationship
 
 ---------------------------------------------------------------------------------------------------
 hero:

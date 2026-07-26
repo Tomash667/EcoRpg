@@ -1970,9 +1970,17 @@ public class Game : MonoBehaviour
             return;
         }
 
-        Hero hero = SpawnHero();
-        string className = hero.clas.AsString();
-        ui.ShowConfirm($"You meet <b>{hero.name}</b> and talk with {hero.him} about adventurers. {hero.He} is {Utility.A(className)} <b>{className}</b>. Do you want to recruit {hero.him}?", yes =>
+        int level = Mathf.Max(Utility.Random(-3, 1) + guildRank, 0);
+        Hero hero = SpawnHero(level);
+        // Novice(0) -> Apprentice(2) -> Journeyman(4) -> Adept(8) -> Expert(12) -> Master(16) -> Grandmaster(20)
+        string levelName = (level / 2) switch
+        {
+            1 => "apprentice",
+            2 => "journeyman",
+            _ => "novice",
+        };
+        ui.ShowConfirm($"You meet <b>{hero.name}</b> and talk with {hero.him} about adventurers. " +
+            $"{hero.He} is {Utility.A(levelName)} <b>{levelName} {hero.clas.AsString()}</b>. Do you want to recruit {hero.him}?", yes =>
         {
             if (yes)
             {
@@ -1987,10 +1995,10 @@ public class Game : MonoBehaviour
         });
     }
 
-    private Hero SpawnHero()
+    private Hero SpawnHero(int level = 0)
     {
         Hero hero = new();
-        hero.Init();
+        hero.Init(level);
         while (true)
         {
             if (!Team.Any(x => x.name == hero.name))

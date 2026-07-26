@@ -64,7 +64,7 @@ public class Hero : ISerializationCallbackReceiver
     public string He => female ? "She" : "He";
     public virtual string him => female ? "her" : "him";
 
-    public void Init()
+    public void Init(int startLevel = 0)
     {
         female = Utility.Rand % 2 == 0;
         name = (female ? Names.femaleNames : Names.maleNames).RandomItem();
@@ -78,6 +78,27 @@ public class Hero : ISerializationCallbackReceiver
         else
             weapon = Item.Get("short bow");
         armor = Item.Get("leather armor");
+        if (startLevel > 0)
+        {
+            SetLevel(startLevel);
+            int equipmentLevel = 1 + level / 2;
+            int weaponLevel = equipmentLevel, armorLevel = equipmentLevel;
+            if (level % 2 == 1)
+            {
+                if (Utility.Rand % 2 == 0)
+                    ++weaponLevel;
+                else
+                    ++armorLevel;
+            }
+            if (weaponLevel != 1)
+            {
+                weapon = Item.items.First(x => x.type == Item.Type.Weapon && x.subtype == weapon.subtype && x.level == weaponLevel);
+                if (shield != null)
+                    shield = Item.items.First(x => x.type == Item.Type.Shield && x.level == weaponLevel);
+            }
+            if (armorLevel != 1)
+                armor = Item.items.First(x => x.type == Item.Type.Armor && x.level == armorLevel);
+        }
         AddItem(Item.Get("potion"));
         AddItem(Item.Get("rations"), 3);
     }

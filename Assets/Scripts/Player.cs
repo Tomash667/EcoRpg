@@ -13,7 +13,7 @@ public class Player : Hero
     public override string nameYou => "you";
     public override string him => "you";
 
-    public new void Init()
+    public void Init()
     {
         properties = new();
         InitCommon();
