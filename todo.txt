@@ -1,6 +1,4 @@
 v1:
-+ allies relationship
-
 ---------------------------------------------------------------------------------------------------
 hero:
 - treasure/trophy gold is not split
@@ -93,6 +91,12 @@ hero:
 + more interesting dungeon exploring - random d20 rooms, explored%
 + dungeon types - less/more traps, less/more monsters, trap types
 + rest in dangerous place -> attacked chance
++ ally traits
+	adventurous -> dislike not doing anything
+	lazy
++ romance
++ talk with allies random events
++ negative affections effects (complain, quit)
 
 events:
 + free person for hire (foreman, geomancer etc)

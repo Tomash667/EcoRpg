@@ -533,11 +533,28 @@ public class Game : MonoBehaviour
                     RemoveQuest(quest);
                 tile.clear = true;
                 tile.timer = 0;
+                ChangeTeamAffection(10);
+                foreach (Hero ally in allies)
+                {
+                    ally.bored = 0;
+                    ally.winToday = true;
+                }
             }
-            else if (pickups != null)
-                lastAction = $"You win fight with <b>{Utility.PrettyGroup(enemyList.Select(x => x.name))}</b> ({pickups} found).";
             else
-                lastAction = $"You win fight with <b>{Utility.PrettyGroup(enemyList.Select(x => x.name))}</b>.";
+            {
+                if (pickups != null)
+                    lastAction = $"You win fight with <b>{Utility.PrettyGroup(enemyList.Select(x => x.name))}</b> ({pickups} found).";
+                else
+                    lastAction = $"You win fight with <b>{Utility.PrettyGroup(enemyList.Select(x => x.name))}</b>.";
+                ChangeTeamAffection(1, ally =>
+                {
+                    ally.bored = 0;
+                    if (ally.winToday)
+                        return false;
+                    ally.winToday = true;
+                    return true;
+                });
+            }
             AddTeamGold(gold);
 
             // exp
@@ -600,6 +617,15 @@ public class Game : MonoBehaviour
                 tile.defeatedEnemies -= 5;
             if (tile.type == TileType.DarkDimension && enemyList.Any(x => x.name == "nameless horror"))
                 tile.defeatedEnemies = 0;
+
+            ChangeTeamAffection(-1, ally =>
+            {
+                ally.bored = 0;
+                if (ally.loseToday)
+                    return false;
+                ally.loseToday = true;
+                return true;
+            });
         }
 
         // heal after combat
@@ -828,6 +854,8 @@ public class Game : MonoBehaviour
 
     private void OnChangeLocation()
     {
+        CheckBoredAllies();
+
         Tile tile = world.CurrentTile;
         if (tile.type.IsSafe())
         {
@@ -1149,6 +1177,7 @@ public class Game : MonoBehaviour
                         if (itemSlot.item.type == Item.Type.Weapon || itemSlot.item.type == Item.Type.Armor || itemSlot.item.type == Item.Type.Shield
                             || !(Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.LeftControl)))
                         {
+                            IncreaseAffectionFromValue(activeAlly, itemSlot.item.value);
                             activeAlly.GiveItem(itemSlot.item);
                             player.RemoveItem(itemSlot);
                             RefreshPlayerItems();
@@ -1156,6 +1185,7 @@ public class Game : MonoBehaviour
                         }
                         else if (Input.GetKey(KeyCode.LeftShift))
                         {
+                            IncreaseAffectionFromValue(activeAlly, itemSlot.item.value * itemSlot.count);
                             activeAlly.GiveItem(itemSlot.item, itemSlot.count);
                             player.RemoveItem(itemSlot, itemSlot.count);
                             RefreshPlayerItems();
@@ -1168,6 +1198,7 @@ public class Game : MonoBehaviour
                                 if (count <= 0)
                                     return true;
                                 count = Mathf.Min(count, itemSlot.count);
+                                IncreaseAffectionFromValue(activeAlly, itemSlot.item.value * count);
                                 activeAlly.GiveItem(itemSlot.item, count);
                                 player.RemoveItem(itemSlot, count);
                                 RefreshPlayerItems();
@@ -1269,7 +1300,8 @@ public class Game : MonoBehaviour
             $"Level: {activeAlly.level} {activeAlly.clas.AsString()} ({activeAlly.ExpP}%)\n" +
             $"Attack: {activeAlly.Attack}\n" +
             $"Defense: {activeAlly.Defense}\n" +
-            $"Gold: {activeAlly.gold}\n");
+            $"Gold: {activeAlly.gold}\n" +
+            $"Affection: {activeAlly.affection}\n");
         if (activeAlly.skills.Count > 0)
         {
             sb.Append("Skills:\n");
@@ -1461,6 +1493,7 @@ public class Game : MonoBehaviour
         }
 
         OnNewDay();
+        CheckBoredAllies();
 
         if (player.goldWaiting != 0 && location.IsSafe())
         {
@@ -1472,6 +1505,28 @@ public class Game : MonoBehaviour
         }
 
         ui.CloseDialogs(x => x == propertiesScreen || x == guildScreen || x == characterScreen || x == craftScreen);
+    }
+
+    private void CheckBoredAllies()
+    {
+        List<(Hero ally, int count)> changes = null;
+        foreach (Hero ally in allies)
+        {
+            if (ally.bored >= 30)
+            {
+                int count = ally.bored / 30;
+                ally.bored -= count * 30;
+                ally.affection -= count;
+                changes ??= new();
+                changes.Add((ally, count));
+            }
+        }
+
+        if (changes != null)
+        {
+            foreach (var group in changes.GroupBy(x => x.count))
+                lastAction += $" {Utility.PrettyList(group.Select(x => x.ally.name))} {(group.Count() == 1 ? "is" : "are")} bored (-{group.Key} affection).";
+        }
     }
 
     public void OnNewDay()
@@ -1546,12 +1601,22 @@ public class Game : MonoBehaviour
             }
         }
 
-        // end effects
+        // update heroes
         foreach (Hero hero in Team)
         {
             if (hero.rested > 0)
                 --hero.rested;
+            ++hero.bored;
+            hero.winToday = false;
+            hero.loseToday = false;
+            hero.questToday = false;
+            hero.lastGift = 0;
         }
+
+        if (allies.Count == 0)
+            player.affection = 0;
+        else
+            player.affection = allies.Max(x => x.affection);
 
         world.Update();
 
@@ -2043,6 +2108,7 @@ public class Game : MonoBehaviour
                 return true;
             player.AddGold(-count);
             activeAlly.gold += count;
+            IncreaseAffectionFromValue(activeAlly, count);
             if (world.Location.IsSafe())
                 activeAlly.BuyItems();
             else if (world.Location == TileType.MageTower)
@@ -2581,6 +2647,13 @@ public class Game : MonoBehaviour
                 }
             }
         }
+        ChangeTeamAffection(5, ally =>
+        {
+            if (ally.questToday)
+                return false;
+            ally.questToday = true;
+            return true;
+        });
         AddTeamGold(reward);
         quest.Finish();
         RemoveQuest(quest);
@@ -3099,5 +3172,64 @@ public class Game : MonoBehaviour
         }
         OnChangeLocation();
         AddTime(minutes: 15);
+    }
+
+    private void ChangeAffection(Hero ally, int value)
+    {
+        if (value > 0)
+        {
+            if (ally.affection == 100)
+                return;
+        }
+        else
+        {
+            if (ally.affection == -100)
+                return;
+        }
+
+        ally.affection = Mathf.Clamp(ally.affection + value, -100, 100);
+    }
+
+    private void IncreaseAffectionFromValue(Hero ally, int value)
+    {
+        int affectionGain = ally.ValueToAffectionGain(value);
+        int actualAffectionGain = affectionGain - ally.lastGift;
+        if (actualAffectionGain > 0)
+        {
+            ally.lastGift = affectionGain;
+            ChangeAffection(ally, actualAffectionGain);
+        }
+    }
+
+    private void ChangeTeamAffection(int value, System.Func<Hero, bool> pred = null)
+    {
+        List<(Hero ally, int change)> changes = null;
+        foreach (Hero ally in allies)
+        {
+            if (pred != null && !pred(ally))
+                continue;
+            if (value > 0)
+            {
+                if (ally.affection == 100)
+                    continue;
+            }
+            else
+            {
+                if (ally.affection == -100)
+                    continue;
+            }
+
+            int prev = ally.affection;
+            ally.affection = Mathf.Clamp(ally.affection + value, -100, 100);
+            int actualChange = ally.affection - prev;
+            changes ??= new();
+            changes.Add((ally, actualChange));
+        }
+
+        if (changes != null)
+        {
+            foreach (var group in changes.GroupBy(x => x.change))
+                lastAction += $" {Utility.PrettyList(group.Select(x => x.ally.name))} affection {(value > 0 ? "increased" : "decreased")} ({group.Key:+0;-#}).";
+        }
     }
 }

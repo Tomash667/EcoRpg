@@ -12,8 +12,8 @@ public class Hero : ISerializationCallbackReceiver
     public Item weapon, armor, shield;
     public string name, weaponName, armorName, shieldName;
     public Class clas;
-    public int level, exp, hp, hpMax, attack, defense, dex, gold, rested;
-    public bool female;
+    public int level, exp, hp, hpMax, attack, defense, dex, gold, rested, affection, bored, lastGift;
+    public bool female, winToday, loseToday, questToday;
 
     [NonSerialized]
     public CharacterCard card;
@@ -29,6 +29,8 @@ public class Hero : ISerializationCallbackReceiver
             int value = attack;
             if (weapon != null)
                 value += weapon.power;
+            float affectionMod = 1f + 0.05f * (affection / 25);
+            value = (int)(value * affectionMod);
             return value;
         }
     }
@@ -41,6 +43,8 @@ public class Hero : ISerializationCallbackReceiver
                 value += armor.power;
             if (shield != null)
                 value += shield.power;
+            float affectionMod = 1f + 0.05f * (affection / 25);
+            value = (int)(value * affectionMod);
             return value;
         }
     }
@@ -606,5 +610,21 @@ public class Hero : ISerializationCallbackReceiver
             3 => 2.5f + (5f - 2.5f) * ((valueFloat - 60) / 20),
             _ => 5f
         };
+    }
+
+    public int ValueToAffectionGain(int value)
+    {
+        if (value >= 25000)
+            return 5;
+        else if (value >= 5000)
+            return 4;
+        else if (value >= 1000)
+            return 3;
+        else if (value >= 250)
+            return 2;
+        else if (value >= 50)
+            return 1;
+        else
+            return 0;
     }
 }
