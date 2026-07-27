@@ -5806,6 +5806,7 @@ MonoBehaviour:
   itemEntryPrefab: {fileID: 2579810614886435678, guid: 1e7d6d85b98bb324b882676534c862ec, type: 3}
   lineSeparatorPrefab: {fileID: 2275101242891038866, guid: e842a63905d6cea4c808270fb33cd9c3, type: 3}
   textHeaderPrefab: {fileID: 0}
+  dropdownEntryPrefab: {fileID: 0}
 --- !u!1 &1424797878
 GameObject:
   m_ObjectHideFlags: 0
@@ -6523,7 +6524,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: v0.1
+  m_text: v0.2
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}

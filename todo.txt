@@ -1,5 +1,76 @@
+v2:
 hero:
 - treasure/trophy gold is not split
++ lose consequences
++ forage -> enemies
++ quests
+	gather magic crystals
+	- quest is generated for location but enemies "spawn" only after accepting
+		you can accept & cancel to have enemies
+	tracked -> show on map arrow or smth
+	cancel quest -> lose reputation
+	generate new quest over time, not instantly when accepted
++ allies
+	recruit chance
+	initial skills
++ damage type - fire
++ more enemies??
++ skip time
++ train
++ forage -> find food
++ guild register event
++ combat
+	enemy block
+	enemy back row
+	enemy ranged attacks
+	enemy special attacks (dragon breath, ...)
+	order to target enemy
+	delay log to match cards
+	hero use potion while hp > 0
++ rest in dangerous place -> attacked chance
++ negative affections effects (complain, quit)
+
+events:
++ cooldown so same events don't happen all the time
+
+ui:
+- don't split ui to 3 lines if not needed
++ item icons
++ property icons (infested, buffed)
++ shop tabs
++ drag/scale map
++ background for guild/garden
++ combat portairs
++ make combat card background fit text
++ group up level up text
++ fog of war
+
+investments:
++ manage mine/sawmill efficency
++ hire manager
++ office in city
++ farm
++ village house/inn
++ mansion upgrades
+	office room
+	stables
++ different text when entering mine being build or when finished while inside
++ see active events
++ fix prices: adventurers one time infestation cost the same amount as full time guards
++ quest to get into investing
+
+skills:
++ management
+
+world:
++ regions (difficulty)
++ lakes
++ cancel travel
++ smoother travel
++ second village
+---------------------------------------------------------------------------------------------------
+hero:
++ longer main quest
 + classes
 	tank
 	rogue
@@ -14,7 +85,6 @@ hero:
 + cursed (bad luck, impotence, reduced stats)
 + hire npc for skills, not combat (like M&M)
 + luxury
-+ lose consequences
 + interactive combat
 + player history
 	isekaied
@@ -28,20 +98,11 @@ hero:
 		defeat x enemies in region
 		capture bandits leader in forest
 		rescue
-		gather magic crystals
 	timed
-	- quest is generated for location but enemies "spawn" only after accepting
-		you can accept & cancel to have enemies
-	tracked -> show on map arrow or smth
-	cancel quest -> lose reputation
-	generate new quest over time, not instantly when accepted
-+ forage -> enemies
 + allies
 	soft limit
-	recruit chance
 	leave and take from guild
 	ally guild rank
-	initial skills
 + damage type
 	holy vs undead
 	poison
@@ -65,36 +126,22 @@ hero:
 	ghost
 	swamp dragon, bog titan, bog rats, swamp leeches, mud crab, swamp hag, bog zombie, will-o-wisps, snake	
 + guild rank benefits (cheaper hire for quests, shop, sleep)
-+ skip time
-+ train
-+ forage -> find food
 + hunt for deers etc
-+ guild register event
-+ upkeep/taxes (house/mansion/horses)
 + light/heavy armor
 + hero sword/spear/bow/shield
 + unskilled weapon use
 + class perks
 + auto collect herbs and create potions when traveling
 + combat
-	enemy block
-	enemy back row
-	enemy ranged attacks
-	enemy special attacks (dragon breath, ...)
-	order to target enemy
-	delay log to match cards
-	hero use potion while hp > 0
 	escape chance
 	enemy escape
 + more interesting dungeon exploring - random d20 rooms, explored%
 + dungeon types - less/more traps, less/more monsters, trap types
-+ rest in dangerous place -> attacked chance
 + ally traits
 	adventurous -> dislike not doing anything
 	lazy
 + romance
 + talk with allies random events
-+ negative affections effects (complain, quit)
 
 events:
 + free person for hire (foreman, geomancer etc)
@@ -104,16 +151,8 @@ events:
 	bad (tunnel collapse, flooding, forged deed, cursed -> bad luck)
 + travel events
 + spotted enemy
-+ cooldown so same events don't happen all the time
 	
 ui:
-- don't split ui to 3 lines if not needed
-+ item icons
-+ property icons (infested, buffed)
-+ shop tabs
-+ drag/scale map
-+ background for guild/garden
-+ combat portairs
 + combat sounds
 + combat different attacks anim
 + interact portair
@@ -122,15 +161,11 @@ ui:
 + permanent action confirm (drop, ?)
 + background music
 + vsync
-+ make combat card background fit text
-+ group up level up text
-+ fog of war
-	
+
 investments:
 + cottage/big house
 + manage mine/sawmill
 	safety
-	efficency
 	corruption
 + sawmill upgrades
 	make charcoal
@@ -146,23 +181,14 @@ investments:
 + send city guards to clear mine -> need influence
 + supply & demand
 + resources: wood, iron, silver, gold
-+ farm
 + old mansion/mine -> need repairs
-+ village house/inn
-+ mansion upgrades
-	office room
-	stables
-+ different text when entering mine being build or when finished while inside
 + upgrades takes time
 + undo upgrades
-+ see active events
 + brewery/vineyard -> inn bonus
-+ fix prices: adventurers one time infestation cost the same amount as full time guards
 + hire mercenaries that you can move between locations
 + bureaucracy (manager needs to work more)
 
 skills:
-+ management
 + haggle
 + forage
 + alchemy more recipes
@@ -185,7 +211,6 @@ races:
 
 world:
 + king -> duke -> baron -> village elder
-+ regions
 + countries
 + continents
 + buy region map
@@ -193,14 +218,12 @@ world:
 + region statistics: safety, population
 + rain -> flood (depends on rain strength, paved roads, sewers, dungeons)
 + pathfinding
-+ roads, rivers, bridges, lakes, sea, difficult terrain
++ roads, rivers, bridges, sea, difficult terrain
 + travel speed (faster horse/beast, magic)
 	bad terrain -> mountains, swamp
 + teleport
-+ cancel travel
 + new location types (desert)
 + harder to find locations - need explore
-+ smoother travel
 + locations that require exploring to discover
 + hamlet spawning next to mine
 + multiple villages/cities
