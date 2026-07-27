@@ -67,6 +67,7 @@ public class Hero : ISerializationCallbackReceiver
     public virtual string nameYou => name;
     public string He => female ? "She" : "He";
     public virtual string him => female ? "her" : "him";
+    public string Portrait => $"Portraits/{(female ? "female" : "male")} {clas.AsString()}";
 
     public void Init(int startLevel = 0)
     {

@@ -69,7 +69,7 @@ public class Combat : MonoBehaviour
         foreach (Hero hero in game.Team)
         {
             CharacterCard card = Instantiate(characterCardPrefab, container).GetComponent<CharacterCard>();
-            card.Init(hero.name, hero.hpp, false);
+            card.Init(hero.name, hero.hpp, false, Resources.Load<Sprite>(hero.Portrait));
             RectTransform transform = card.GetComponent<RectTransform>();
             Vector2 pos = teamPos[index];
             if (multiRow && !hero.BackRow)

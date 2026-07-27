@@ -25,12 +25,14 @@ public class CharacterCard : MonoBehaviour
 
     public Vector2 position => (transform as RectTransform).anchoredPosition;
 
-    public void Init(string text, float hp, bool enemy)
+    public void Init(string text, float hp, bool enemy, Sprite sprite = null)
     {
         dir = enemy ? -1 : 1;
         transform.GetChild(2).GetComponent<TMP_Text>().text = text;
         if (hp != 1)
             SetHp(hp);
+        if(sprite != null)
+            transform.GetChild(0).GetComponent<Image>().sprite = sprite;
         if (enemy)
             transform.GetChild(0).GetComponent<Image>().sprite = enemySprite;
     }
