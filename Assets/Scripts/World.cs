@@ -104,7 +104,7 @@ public class World
 
         sublocations = new Tile[]
         {
-            null,
+            new(),
             new()
             {
                 type = TileType.Sewers,

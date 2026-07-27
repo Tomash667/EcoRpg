@@ -1,5 +1,3 @@
-v1:
----------------------------------------------------------------------------------------------------
 hero:
 - treasure/trophy gold is not split
 + classes
@@ -125,6 +123,8 @@ ui:
 + background music
 + vsync
 + make combat card background fit text
++ group up level up text
++ fog of war
 	
 investments:
 + cottage/big house

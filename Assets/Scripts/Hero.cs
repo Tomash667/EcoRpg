@@ -485,8 +485,10 @@ public class Hero : ISerializationCallbackReceiver
 
     public void EnchantItems()
     {
-        int weaponLevel = weapon?.level ?? 0, armorLevel = armor?.level ?? 0, shieldLevel = shield?.level ?? 0;
-        while ((weaponLevel != 0 && weaponLevel < Item.MaxLevelEnchant) || (armorLevel != 0 && armorLevel < Item.MaxLevelEnchant) || (shieldLevel != 0 && shieldLevel < Item.MaxLevelEnchant))
+        int weaponLevel = weapon?.level ?? Item.MaxLevelEnchant,
+            armorLevel = armor?.level ?? Item.MaxLevelEnchant,
+            shieldLevel = shield?.level ?? Item.MaxLevelEnchant;
+        while (weaponLevel < Item.MaxLevelEnchant || armorLevel < Item.MaxLevelEnchant || shieldLevel < Item.MaxLevelEnchant)
         {
             int minLevel = Mathf.Min(weaponLevel, armorLevel, shieldLevel);
             List<Item.Type> typesToBuy = new();
