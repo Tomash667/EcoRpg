@@ -37,6 +37,7 @@ public class Game : MonoBehaviour
     private GameUI ui;
     private GameObject shopScreen, characterScreen, journalScreen, allyScreen, giveAllyItemsScreen, storeItemsScreen, activeInventory, propertiesScreen, guildScreen, gardenScreen, craftScreen,
         enchantItemsScreen;
+    private RectTransform[] alliesHealthRect;
     private Map map;
     private Combat combatScreen;
     private TMP_Text text;
@@ -76,6 +77,7 @@ public class Game : MonoBehaviour
         map = transform.Find("Map").GetComponent<Map>();
         map.Init();
         enchantItemsScreen = transform.Find("EnchantItems").gameObject;
+        alliesHealthRect = new[] { transform.Find("Buttons/BtAlly/Health") as RectTransform, transform.Find("Buttons/BtAlly2/Health") as RectTransform };
 
         Global global = Global.Instance;
         global.game = this;
@@ -1307,7 +1309,8 @@ public class Game : MonoBehaviour
         sb.Append($"{player.GenderSign}{player.name}\n" +
             $"Level: {player.level} {player.clas.AsString()} ({player.ExpP}%)\n" +
             $"Attack: {player.Attack}\n" +
-            $"Defense: {player.Defense}\n");
+            $"Defense: {player.Defense}\n" +
+            $"Health: {player.hp}/{player.hpMax}\n");
         if (player.skills.Count > 0)
         {
             sb.Append("Skills:\n");
@@ -1329,6 +1332,7 @@ public class Game : MonoBehaviour
             $"Level: {activeAlly.level} {activeAlly.clas.AsString()} ({activeAlly.ExpP}%)\n" +
             $"Attack: {activeAlly.Attack}\n" +
             $"Defense: {activeAlly.Defense}\n" +
+            $"Health: {activeAlly.hp}/{activeAlly.hpMax}\n" +
             $"Gold: {activeAlly.gold}\n" +
             $"Affection: {activeAlly.affection}\n");
         if (activeAlly.skills.Count > 0)
@@ -1392,14 +1396,9 @@ public class Game : MonoBehaviour
             sb.Append($"({player.goldReceived:+0;-0})");
             player.goldReceived = 0;
         }
-        sb.Append('\n');
-        foreach (Hero ally in allies)
-            sb.Append($"{ally.name} ({ally.HpP}%)   ");
         Quest activeQuest = activeQuests.FirstOrDefault(x => x.tracked);
         if (activeQuest != null)
-            sb.Append($"Quest: {activeQuest.Text}\n");
-        else
-            sb.Append('\n');
+            sb.Append($"\nQuest: {activeQuest.Text}\n");
         if (!string.IsNullOrEmpty(lastAction))
         {
             sb.Append('\n');
@@ -1407,6 +1406,17 @@ public class Game : MonoBehaviour
         }
         lastAction = null;
         text.text = sb.ToString();
+
+        // allies health
+        for (int i = 0; i < allies.Count; ++i)
+        {
+            float hp = allies[i].hpp;
+            if (hp < 0)
+                hp = 0;
+            else if (hp > 0 && hp < 0.01f)
+                hp = 0.01f;
+            alliesHealthRect[i].sizeDelta = new Vector2(156f * hp, 5f);
+        }
     }
 
     private void AddTime(int hours = 0, int minutes = 0)

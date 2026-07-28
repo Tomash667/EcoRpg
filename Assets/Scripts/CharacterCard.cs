@@ -37,6 +37,8 @@ public class CharacterCard : MonoBehaviour
     {
         if (hp < 0)
             hp = 0;
+        else if (hp > 0 && hp < 0.01f)
+            hp = 0.01f;
         transform.GetChild(0).GetComponent<Image>().color = hp > 0 ? Color.white : new(0.25f, 0, 0);
         RectTransform rectTransform = transform.GetChild(3).GetComponent<RectTransform>();
         rectTransform.sizeDelta = new Vector2(141.87f * hp, 6.0632f);

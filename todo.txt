@@ -1,3 +1,5 @@
+- combat arrow sometimes appear in wrong position
+
 v2:
 hero:
 - treasure/trophy gold is not split
@@ -158,6 +160,7 @@ ui:
 + permanent action confirm (drop, ?)
 + background music
 + vsync
++ player healthbar, fixed top ui
 
 investments:
 + cottage/big house
@@ -196,6 +199,7 @@ skills:
 + survival - hunting, bad terrain
 + leadership
 + cooking
++ artifacts that increase skill (self writing pen, golden pickaxe/axe, etc)
 
 technology
 + blast furnace
