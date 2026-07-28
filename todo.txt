@@ -39,7 +39,6 @@ ui:
 + property icons (infested, buffed)
 + shop tabs
 + drag/scale map
-+ background for guild/garden
 + make combat card background fit text
 + fog of war
 
