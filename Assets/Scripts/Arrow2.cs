@@ -10,6 +10,7 @@ public class Arrow2 : MonoBehaviour
         this.from = from;
         this.to = to;
         Vector2 dir = (to - from).normalized;
+        (transform as RectTransform).anchoredPosition = from;
         transform.rotation = Quaternion.LookRotation(Vector3.forward, dir);
     }
 

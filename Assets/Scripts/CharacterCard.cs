@@ -27,7 +27,7 @@ public class CharacterCard : MonoBehaviour
     public void Init(string text, float hp, bool enemy, Sprite sprite)
     {
         dir = enemy ? -1 : 1;
-        transform.GetChild(2).GetComponent<TMP_Text>().text = text;
+        transform.GetChild(1).GetChild(0).GetComponent<TMP_Text>().text = text;
         if (hp != 1)
             SetHp(hp);
         transform.GetChild(0).GetComponent<Image>().sprite = sprite;
@@ -40,7 +40,7 @@ public class CharacterCard : MonoBehaviour
         else if (hp > 0 && hp < 0.01f)
             hp = 0.01f;
         transform.GetChild(0).GetComponent<Image>().color = hp > 0 ? Color.white : new(0.25f, 0, 0);
-        RectTransform rectTransform = transform.GetChild(3).GetComponent<RectTransform>();
+        RectTransform rectTransform = transform.GetChild(2).GetComponent<RectTransform>();
         rectTransform.sizeDelta = new Vector2(141.87f * hp, 6.0632f);
     }
 
@@ -93,7 +93,7 @@ public class CharacterCard : MonoBehaviour
             {
                 if (timer >= 0.15f)
                 {
-                    transform.GetChild(5).gameObject.SetActive(true);
+                    transform.GetChild(4).gameObject.SetActive(true);
                     SetHp(nextHp);
                     actionState = 1;
                 }
@@ -102,7 +102,7 @@ public class CharacterCard : MonoBehaviour
             {
                 if (timer >= 0.35f)
                 {
-                    transform.GetChild(5).gameObject.SetActive(false);
+                    transform.GetChild(4).gameObject.SetActive(false);
                     action = Action.None;
                 }
             }
@@ -115,10 +115,10 @@ public class CharacterCard : MonoBehaviour
                 if (timer >= 0.15f)
                 {
                     actionState = 1;
-                    transform.GetChild(4).gameObject.SetActive(true);
+                    transform.GetChild(3).gameObject.SetActive(true);
                     if (action == Action.BlockDamage)
                     {
-                        transform.GetChild(5).gameObject.SetActive(true);
+                        transform.GetChild(4).gameObject.SetActive(true);
                         SetHp(nextHp);
                     }
                 }
@@ -130,8 +130,8 @@ public class CharacterCard : MonoBehaviour
                 if (timer >= 0.35f)
                 {
                     if (action == Action.BlockDamage)
-                        transform.GetChild(5).gameObject.SetActive(false);
-                    transform.GetChild(4).gameObject.SetActive(false);
+                        transform.GetChild(4).gameObject.SetActive(false);
+                    transform.GetChild(3).gameObject.SetActive(false);
                     action = Action.None;
                 }
                 RectTransform rectTransform = transform as RectTransform;
@@ -150,7 +150,7 @@ public class CharacterCard : MonoBehaviour
             {
                 if (timer >= 0.15f)
                 {
-                    transform.GetChild(6).gameObject.SetActive(true);
+                    transform.GetChild(5).gameObject.SetActive(true);
                     SetHp(nextHp);
                     actionState = 1;
                 }
@@ -159,7 +159,7 @@ public class CharacterCard : MonoBehaviour
             {
                 if (timer >= 0.35f)
                 {
-                    transform.GetChild(6).gameObject.SetActive(false);
+                    transform.GetChild(5).gameObject.SetActive(false);
                     action = Action.None;
                 }
             }

@@ -1,5 +1,3 @@
-- combat arrow sometimes appear in wrong position
-
 v2:
 hero:
 - treasure/trophy gold is not split
@@ -38,10 +36,9 @@ events:
 ui:
 - don't split ui to 3 lines if not needed
 + item icons
-+ property icons (infested, buffed)
++ property icons (normal, building, infested, buffed)
 + shop tabs
 + drag/scale map
-+ make combat card background fit text
 + fog of war
 
 investments:
