@@ -16,7 +16,6 @@ public class CharacterCard : MonoBehaviour
         Heal
     }
 
-    public Sprite enemySprite;
     public int index;
 
     private Action action;
@@ -25,16 +24,13 @@ public class CharacterCard : MonoBehaviour
 
     public Vector2 position => (transform as RectTransform).anchoredPosition;
 
-    public void Init(string text, float hp, bool enemy, Sprite sprite = null)
+    public void Init(string text, float hp, bool enemy, Sprite sprite)
     {
         dir = enemy ? -1 : 1;
         transform.GetChild(2).GetComponent<TMP_Text>().text = text;
         if (hp != 1)
             SetHp(hp);
-        if(sprite != null)
-            transform.GetChild(0).GetComponent<Image>().sprite = sprite;
-        if (enemy)
-            transform.GetChild(0).GetComponent<Image>().sprite = enemySprite;
+        transform.GetChild(0).GetComponent<Image>().sprite = sprite;
     }
 
     public void SetHp(float hp)

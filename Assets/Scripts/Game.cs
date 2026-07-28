@@ -3232,4 +3232,26 @@ public class Game : MonoBehaviour
                 lastAction += $" {Utility.PrettyList(group.Select(x => x.ally.name))} affection {(value > 0 ? "increased" : "decreased")} ({group.Key:+0;-#}).";
         }
     }
+
+    [ContextMenu("Test images")]
+    private void TestImages()
+    {
+        foreach (Class clas in ClassMethods.all)
+        {
+            string path = $"Portraits/male {clas.AsString()}";
+            if (Resources.Load<Sprite>(path) == null)
+                Debug.LogError($"Missing '{path}'.");
+
+            path = $"Portraits/female {clas.AsString()}";
+            if (Resources.Load<Sprite>(path) == null)
+                Debug.LogError($"Missing '{path}'.");
+        }
+
+        foreach (Enemy enemy in Enemy.enemies)
+        {
+            string path = $"Portraits/{enemy.name}";
+            if (Resources.Load<Sprite>(path) == null)
+                Debug.LogError($"Missing '{path}'.");
+        }
+    }
 }

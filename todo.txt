@@ -40,7 +40,6 @@ ui:
 + shop tabs
 + drag/scale map
 + background for guild/garden
-+ combat portairs
 + make combat card background fit text
 + group up level up text
 + fog of war

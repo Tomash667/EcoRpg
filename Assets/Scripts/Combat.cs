@@ -86,7 +86,7 @@ public class Combat : MonoBehaviour
         {
             Enemy enemy = enemyList[i];
             CharacterCard card = Instantiate(characterCardPrefab, container).GetComponent<CharacterCard>();
-            card.Init(enemy.name, 1f, true);
+            card.Init(enemy.name, 1f, true, Resources.Load<Sprite>(enemy.Portrait));
             RectTransform transform = card.GetComponent<RectTransform>();
             transform.anchoredPosition = enemyPos[i];
             order.Add(i);

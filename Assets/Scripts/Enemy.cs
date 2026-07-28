@@ -30,6 +30,7 @@ public class Enemy
             };
         }
     }
+    public string Portrait => $"Portraits/{name}";
 
     public static Enemy Get(string name)
     {
