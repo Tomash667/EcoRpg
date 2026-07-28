@@ -41,7 +41,6 @@ ui:
 + drag/scale map
 + background for guild/garden
 + make combat card background fit text
-+ group up level up text
 + fog of war
 
 investments:

@@ -351,13 +351,20 @@ public class Game : MonoBehaviour
 
                 if (dodged.Count > 0)
                 {
-                    if (dodged.Count == Team.Count() && dodged.Count > 1)
-                        lastAction += " Everone jump away from a pit.";
+                    if (hit.Count > 0)
+                    {
+                        lastAction += $" {Utility.PrettyList(dodged.Select(x => x.nameYou)).ToUpper1()} {Utility.S("jump", dodged.Count == 1 && dodged[0] != player)} away " +
+                            $"but {Utility.PrettyList(hit.Select(x => x.nameYou))} {Utility.S("fall", hit.Count == 1 && hit[0] != player)} into a pit.";
+                    }
                     else
-                        lastAction += $" {Utility.PrettyList(dodged.Select(x => x.nameYou)).ToUpper1()} {Utility.S("jump", dodged.Count == 1 && dodged[0] != player)} away from a pit.";
+                    {
+                        if (dodged.Count == Team.Count() && dodged.Count > 1)
+                            lastAction += " Everone jump away from a pit.";
+                        else
+                            lastAction += $" {Utility.PrettyList(dodged.Select(x => x.nameYou)).ToUpper1()} {Utility.S("jump", dodged.Count == 1 && dodged[0] != player)} away from a pit.";
+                    }
                 }
-
-                if (hit.Count > 0)
+                else
                 {
                     if (hit.Count == Team.Count() && hit.Count > 1)
                         lastAction += " Everyone fall into a pit.";
@@ -385,13 +392,20 @@ public class Game : MonoBehaviour
 
                 if (dodged.Count > 0)
                 {
-                    if (dodged.Count == Team.Count() && dodged.Count > 1)
-                        lastAction += " Everone jump away from an explosion.";
+                    if (hit.Count > 0)
+                    {
+                        lastAction += $" {Utility.PrettyList(dodged.Select(x => x.nameYou)).ToUpper1()} {Utility.S("jump", dodged.Count == 1 && dodged[0] != player)} away " +
+                            $"but {Utility.PrettyList(hit.Select(x => x.nameYou))} {Utility.S("are", hit.Count == 1 && hit[0] != player, "is")} caught in an explosion.";
+                    }
                     else
-                        lastAction += $" {Utility.PrettyList(dodged.Select(x => x.nameYou)).ToUpper1()} {Utility.S("jump", dodged.Count == 1 && dodged[0] != player)} away from an explosion.";
+                    {
+                        if (dodged.Count == Team.Count() && dodged.Count > 1)
+                            lastAction += " Everone jump away from an explosion.";
+                        else
+                            lastAction += $" {Utility.PrettyList(dodged.Select(x => x.nameYou)).ToUpper1()} {Utility.S("jump", dodged.Count == 1 && dodged[0] != player)} away from an explosion.";
+                    }
                 }
-
-                if (hit.Count > 0)
+                else
                 {
                     if (hit.Count == Team.Count() && hit.Count > 1)
                         lastAction += " Everyone are caught in an explosion.";
@@ -558,17 +572,32 @@ public class Game : MonoBehaviour
             AddTeamGold(gold);
 
             // exp
+            List<Hero> levelups = null;
             float ratio;
             if (allies.Count == 0)
                 ratio = 1f;
             else
                 ratio = 1f / (allies.Count + 1);
             if (player.AddExp(enemyList, ratio))
-                lastAction += $" You are now level {player.level}.";
+            {
+                levelups ??= new();
+                levelups.Add(player);
+            }
             foreach (Hero ally in allies)
             {
                 if (ally.AddExp(enemyList, ratio))
-                    lastAction += $" {ally.name} is now level {ally.level}.";
+                {
+                    levelups ??= new();
+                    levelups.Add(ally);
+                }
+            }
+            if (levelups != null)
+            {
+                foreach (var group in levelups.GroupBy(x => x.level))
+                {
+                    string isAre = group.Count() > 1 || group.First() is Player ? "are" : "is";
+                    lastAction += $" {Utility.PrettyList(group.Select(x => x.nameYou)).ToUpper1()} {isAre} now level {group.Key}.";
+                }
             }
 
             // quest
