@@ -59,6 +59,17 @@ public class ItemEntry : MonoBehaviour, IPointerDownHandler
         }
     }
 
+    public void SetImage(Sprite sprite)
+    {
+        Image image = transform.GetChild(3).GetComponent<Image>();
+        image.sprite = sprite;
+        image.gameObject.SetActive(true);
+
+        RectTransform rectTransform = transform.GetChild(0) as RectTransform;
+        rectTransform.anchoredPosition = new(265.77f, -24f);
+        rectTransform.sizeDelta = new(483.14f, 48f);
+    }
+
     private void InitCommon()
     {
         list = transform.GetComponentInParent<ItemEntryList>(true);

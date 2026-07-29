@@ -42,6 +42,14 @@ public class Property
         Infested
     }
 
+    public enum Image
+    {
+        Ok,
+        Buff,
+        Infested,
+        Building
+    }
+
     public string name, desc;
     public List<Event> events = new();
     public Upgrade[] upgrades;
@@ -117,5 +125,16 @@ public class Property
     public bool RemoveEvent(string eventName)
     {
         return events.RemoveFirst(x => x.name == eventName);
+    }
+
+    public Image GetImage()
+    {
+        if (status != Status.Active)
+            return Image.Building;
+        if (HaveEvent("Infested"))
+            return Image.Infested;
+        if (HaveEvent("Buff"))
+            return Image.Buff;
+        return Image.Ok;
     }
 }

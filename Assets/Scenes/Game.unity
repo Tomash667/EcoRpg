@@ -21855,6 +21855,11 @@ MonoBehaviour:
   - {fileID: 21300000, guid: a4192e4844b28b04f9d930b6c2b7dc78, type: 3}
   - {fileID: 21300000, guid: 6a0fcd47e9881f44bb4814ff49042dfd, type: 3}
   - {fileID: 21300000, guid: d9ae19f52998221419ffeb02ea383c25, type: 3}
+  propertyImage:
+  - {fileID: -635325461, guid: 3fbe4f8cb52276e4e83ef357029fdb57, type: 3}
+  - {fileID: -2062628698, guid: 3fbe4f8cb52276e4e83ef357029fdb57, type: 3}
+  - {fileID: 1291281329, guid: 3fbe4f8cb52276e4e83ef357029fdb57, type: 3}
+  - {fileID: 1622142898, guid: 3fbe4f8cb52276e4e83ef357029fdb57, type: 3}
   itemEntryPrefab: {fileID: 2579810614886435678, guid: 1e7d6d85b98bb324b882676534c862ec, type: 3}
   lineSeparatorPrefab: {fileID: 2275101242891038866, guid: e842a63905d6cea4c808270fb33cd9c3, type: 3}
   textHeaderPrefab: {fileID: 2579810614886435678, guid: dd5ecc6fc02366a4ebc26e54b4329b9d, type: 3}

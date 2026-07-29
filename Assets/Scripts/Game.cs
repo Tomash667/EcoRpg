@@ -2186,6 +2186,7 @@ public class Game : MonoBehaviour
             foreach (Property property in player.properties.OrderBy(x => x.value).ThenBy(x => x.name))
             {
                 ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
+                itemEntry.SetImage(ui.propertyImage[(int)property.GetImage()]);
                 itemEntry.data = property;
                 itemEntry.canSelect = true;
                 if (property == selectedProperty)
@@ -2293,6 +2294,7 @@ public class Game : MonoBehaviour
                 }
                 UpdateText();
             });
+            itemEntry.SetImage(ui.propertyImage[(int)property.GetImage()]);
         }
     }
 
@@ -2495,6 +2497,7 @@ public class Game : MonoBehaviour
         if (infestedProperties.Length > 0)
         {
             Instantiate(ui.lineSeparatorPrefab, content);
+            ui.AddTextHeader("Quests to offer:", content);
             foreach (Property prop in infestedProperties)
             {
                 Property property = prop;
