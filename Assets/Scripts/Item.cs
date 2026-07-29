@@ -27,7 +27,21 @@ public class Item
         None,
         Melee,
         Bow,
-        Ingredient
+        Ingredient,
+        Treasure
+    }
+
+    public enum Icon
+    {
+        Sword,
+        Bow,
+        Shield,
+        Armor,
+        Potion,
+        Tool,
+        Herb,
+        Food,
+        Treasure
     }
 
     public const int MaxLevelCity = 4;
@@ -63,6 +77,34 @@ public class Item
             7 => 30000,
             _ => 10000
         };
+    }
+
+    public Icon GetIcon()
+    {
+        switch (type)
+        {
+        case Type.Weapon:
+            if (subtype == Subtype.Melee)
+                return Icon.Sword;
+            else
+                return Icon.Bow;
+        case Type.Shield:
+            return Icon.Shield;
+        case Type.Armor:
+            return Icon.Armor;
+        case Type.Usable:
+            if (subtype == Subtype.Ingredient)
+                return Icon.Herb;
+            else
+                return Icon.Potion;
+        case Type.Tool:
+            return Icon.Tool;
+        default:
+            if (subtype == Subtype.Treasure)
+                return Icon.Treasure;
+            else
+                return Icon.Food;
+        }
     }
 
     public string ToString(Price price)
@@ -414,14 +456,14 @@ public class Item
         {
             name = "tent",
             desc = "better rest outside",
-            type = Type.Other,
+            type = Type.Tool,
             value = 100
         },
         new()
         {
             name = "pickaxe",
             desc = "miner's tool",
-            type = Type.Other,
+            type = Type.Tool,
             value = 25
         },
         new()
@@ -429,6 +471,7 @@ public class Item
             name = "silver nugget",
             desc = "treasure",
             type = Type.Other,
+            subtype = Subtype.Treasure,
             value = 25
         },
         new()
@@ -436,6 +479,7 @@ public class Item
             name = "gold nugget",
             desc = "treasure",
             type = Type.Other,
+            subtype = Subtype.Treasure,
             value = 50
         },
         new()
@@ -443,6 +487,7 @@ public class Item
             name = "trophy",
             desc = "treasure",
             type = Type.Other,
+            subtype = Subtype.Treasure,
             value = 200
         },
         new()

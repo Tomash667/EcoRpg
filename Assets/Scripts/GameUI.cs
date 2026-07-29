@@ -13,7 +13,8 @@ public class GameUI : MonoBehaviour
 #endif
 
     public Sprite[] backgrounds;
-    public Sprite[] propertyImage;
+    public Sprite[] propertyIcons;
+    public Sprite[] itemIcons;
     public GameObject itemEntryPrefab, lineSeparatorPrefab, textHeaderPrefab, dropdownEntryPrefab;
 
     [NonSerialized]

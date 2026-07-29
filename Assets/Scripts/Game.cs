@@ -982,6 +982,7 @@ public class Game : MonoBehaviour
                 else
                     ui.ShowDialog($"You need {item.value} gold to buy {item.name}.");
             });
+            itemEntry.SetImage(ui.itemIcons[(int)item.GetIcon()]);
         }
     }
 
@@ -1021,6 +1022,7 @@ public class Game : MonoBehaviour
             }
             else
                 itemEntry.Init(player.weapon.ToString(activeInventory == shopScreen ? Price.Sell : Price.None));
+            itemEntry.SetImage(ui.itemIcons[(int)player.weapon.GetIcon()]);
         }
 
         if (player.armor != null)
@@ -1053,6 +1055,7 @@ public class Game : MonoBehaviour
             }
             else
                 itemEntry.Init(player.armor.ToString(activeInventory == shopScreen ? Price.Sell : Price.None));
+            itemEntry.SetImage(ui.itemIcons[(int)player.armor.GetIcon()]);
         }
 
         if (player.shield != null)
@@ -1085,6 +1088,7 @@ public class Game : MonoBehaviour
             }
             else
                 itemEntry.Init(player.shield.ToString(activeInventory == shopScreen ? Price.Sell : Price.None));
+            itemEntry.SetImage(ui.itemIcons[(int)player.shield.GetIcon()]);
         }
 
         if ((player.weapon != null || player.armor != null || player.shield != null) && player.items.Count > 0)
@@ -1160,7 +1164,7 @@ public class Game : MonoBehaviour
                         UpdateText();
                     }, "Drop", Drop);
                 }
-                else if (itemSlot.item.type == Item.Type.Tool)
+                else if (itemSlot.item.type == Item.Type.Tool && itemSlot.item.name == "alchemy set")
                     itemEntry.Init2(itemSlot.ToString(Price.None), "Use", Craft, "Drop", Drop);
                 else
                     itemEntry.Init2(itemSlot.ToString(Price.None), null, null, "Drop", Drop);
@@ -1299,6 +1303,7 @@ public class Game : MonoBehaviour
                 else
                     itemEntry.Init(itemSlot.ToString(Price.None));
             }
+            itemEntry.SetImage(ui.itemIcons[(int)itemSlot.item.GetIcon()]);
         }
     }
 
@@ -1360,18 +1365,21 @@ public class Game : MonoBehaviour
         {
             ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
             itemEntry.Init(activeAlly.weapon.ToString(Price.None));
+            itemEntry.SetImage(ui.itemIcons[(int)activeAlly.weapon.GetIcon()]);
         }
 
         if (activeAlly.armor != null)
         {
             ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
             itemEntry.Init(activeAlly.armor.ToString(Price.None));
+            itemEntry.SetImage(ui.itemIcons[(int)activeAlly.armor.GetIcon()]);
         }
 
         if (activeAlly.shield != null)
         {
             ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
             itemEntry.Init(activeAlly.shield.ToString(Price.None));
+            itemEntry.SetImage(ui.itemIcons[(int)activeAlly.shield.GetIcon()]);
         }
 
         if ((activeAlly.weapon != null || activeAlly.armor != null || activeAlly.shield != null) && activeAlly.items.Count > 0)
@@ -1381,6 +1389,7 @@ public class Game : MonoBehaviour
         {
             ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
             itemEntry.Init(itemSlot.ToString(Price.None));
+            itemEntry.SetImage(ui.itemIcons[(int)itemSlot.item.GetIcon()]);
         }
     }
 
@@ -2186,7 +2195,7 @@ public class Game : MonoBehaviour
             foreach (Property property in player.properties.OrderBy(x => x.value).ThenBy(x => x.name))
             {
                 ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
-                itemEntry.SetImage(ui.propertyImage[(int)property.GetImage()]);
+                itemEntry.SetImage(ui.propertyIcons[(int)property.GetImage()]);
                 itemEntry.data = property;
                 itemEntry.canSelect = true;
                 if (property == selectedProperty)
@@ -2294,7 +2303,7 @@ public class Game : MonoBehaviour
                 }
                 UpdateText();
             });
-            itemEntry.SetImage(ui.propertyImage[(int)property.GetImage()]);
+            itemEntry.SetImage(ui.propertyIcons[(int)property.GetImage()]);
         }
     }
 
@@ -2774,6 +2783,7 @@ public class Game : MonoBehaviour
         {
             ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
             itemEntry.Init(itemSlot.ToStringShort());
+            itemEntry.SetImage(ui.itemIcons[(int)itemSlot.item.GetIcon()]);
         }
 
         // potions
@@ -2835,6 +2845,7 @@ public class Game : MonoBehaviour
                 else
                     Brew(recipe, 1);
             });
+            itemEntry.SetImage(ui.itemIcons[(int)recipe.result.GetIcon()]);
         }
     }
 
@@ -2997,6 +3008,7 @@ public class Game : MonoBehaviour
                     RefreshStoredItems();
                 }
             });
+            itemEntry.SetImage(ui.itemIcons[(int)itemSlot.item.GetIcon()]);
         }
     }
 
