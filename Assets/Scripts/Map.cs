@@ -45,11 +45,13 @@ public class Map : MonoBehaviour
         {
             for (int x = 0; x < World.sizeX; ++x)
             {
-                GameObject tile = Instantiate(tilePrefab, tilesContainer);
-                RectTransform rectTransform = tile.GetComponent<RectTransform>();
+                Tile tile = map[x + y * World.sizeX];
+                GameObject tileObj = Instantiate(tilePrefab, tilesContainer);
+                RectTransform rectTransform = tileObj.GetComponent<RectTransform>();
                 rectTransform.anchoredPosition = new(gridOrigin.x + tileSize * x, gridOrigin.y - tileSize * y);
-                Image image = tile.GetComponent<Image>();
-                image.sprite = sprites[(int)map[x + y * World.sizeX].image];
+                Image image = tileObj.GetComponent<Image>();
+                image.sprite = sprites[(int)tile.image];
+                image.color = tile.discovered ? Color.white : Color.gray;
             }
         }
     }
@@ -196,6 +198,7 @@ public class Map : MonoBehaviour
         Tile tile = Global.World.map[index];
         Image image = tilesContainer.GetChild(index).GetComponent<Image>();
         image.sprite = sprites[(int)tile.image];
+        image.color = tile.discovered ? Color.white : Color.gray;
     }
 
     public void Regenerate()

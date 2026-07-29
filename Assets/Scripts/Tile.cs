@@ -7,7 +7,7 @@ public class Tile
     public TileImage image;
     public TileType type, hidden;
     public int difficulty, defeatedEnemies, timer, levels, foundLevel;
-    public bool mine, boss, foundTreasure, clear;
+    public bool mine, boss, foundTreasure, clear, discovered;
 
     public string Name => GetName(type);
     public string RealName => GetName(hidden == TileType.None ? type : hidden);

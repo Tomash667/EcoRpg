@@ -2902,7 +2902,7 @@ public class Game : MonoBehaviour
     [ContextMenu("Reveal world")]
     private void RevealWorld()
     {
-        world.RevealAllHiddenLocations();
+        world.RevealAllAreas();
     }
 
     [ContextMenu("Refresh quests")]

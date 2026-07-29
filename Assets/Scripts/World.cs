@@ -195,7 +195,7 @@ public class World
         // mage tower
         SpawnHiddenLocations(20, 24, 1, TileType.Plains, TileType.MageTower, null);
 
-        RevealHiddenLocations(cityPos, false);
+        RevealArea(cityPos, false);
         currentPt = cityPos;
         level = 0;
     }
@@ -561,7 +561,7 @@ public class World
                     NextDay();
                 if (travelDist >= (isDiagonal ? 15 : 10))
                 {
-                    RevealHiddenLocations(nextPt, true);
+                    RevealArea(nextPt, true);
                     currentPt = nextPt;
                     travelDist -= isDiagonal ? 15 : 10;
                     dist -= isDiagonal ? 15 : 10;
@@ -579,7 +579,7 @@ public class World
         isTraveling = false;
     }
 
-    private void RevealHiddenLocations(Vector2Int pos, bool updateMap)
+    private void RevealArea(Vector2Int pos, bool updateMap)
     {
         for (int y = pos.y - 1; y <= pos.y + 1; ++y)
         {
@@ -588,31 +588,37 @@ public class World
                 if (IsInBounds(x, y))
                 {
                     Tile tile = map[x + y * sizeX];
+                    if (tile.discovered)
+                        continue;
+                    tile.discovered = true;
                     if (tile.type != tile.hidden && tile.hidden != TileType.None)
                     {
                         tile.SetType(tile.hidden);
                         tile.hidden = TileType.None;
-                        if (updateMap)
-                            Global.Game.RevealLocation(new(x, y));
                     }
+                    if (updateMap)
+                        Global.Game.RevealLocation(new(x, y));
                 }
             }
         }
     }
 
-    public void RevealAllHiddenLocations()
+    public void RevealAllAreas()
     {
         for (int y = 0; y < sizeY; ++y)
         {
             for (int x = 0; x < sizeX; ++x)
             {
                 Tile tile = map[x + y * sizeX];
+                if (tile.discovered)
+                    continue;
+                tile.discovered = true;
                 if (tile.type != tile.hidden && tile.hidden != TileType.None)
                 {
                     tile.SetType(tile.hidden);
                     tile.hidden = TileType.None;
-                    Global.Game.RevealLocation(new(x, y));
                 }
+                Global.Game.RevealLocation(new(x, y));
             }
         }
     }
