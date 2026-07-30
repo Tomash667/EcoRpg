@@ -19,9 +19,10 @@ public class Map : MonoBehaviour
     private ScrollRect scrollRect;
     private Transform tilesContainer;
     private RectTransform rectTransform;
-    private Vector2 currentPos, travelPos, viewportSize;
+    private Vector2 currentPos, travelPos, viewportSize, moveViewPos;
     private Vector2Int travelPt;
-    private bool inTravel;
+    private float zoom;
+    private bool inTravel, moveView;
 
     public void Init()
     {
@@ -68,10 +69,53 @@ public class Map : MonoBehaviour
 
     private void Update()
     {
+        if (Input.mouseScrollDelta != Vector2.zero)
+        {
+            float newZoom = Mathf.Clamp(zoom + Input.mouseScrollDelta.y / 10, 0.7f, 1f);
+            if (newZoom != zoom)
+            {
+                zoom = newZoom;
+                Debug.Log(zoom);
+                tilesContainer.parent.localScale = new(zoom, zoom, zoom);
+                CenterOnPlayer();
+            }
+        }
+
         if (inTravel)
         {
             CenterOnPlayer();
             return;
+        }
+
+        if (Input.GetMouseButtonDown(1) && RectTransformUtility.RectangleContainsScreenPoint(rectTransform, Input.mousePosition))
+        {
+            moveView = true;
+            moveViewPos = Input.mousePosition;
+            cursor2.SetActive(false);
+            arrow.gameObject.SetActive(false);
+            text.text = $"Rations: {Global.Game.CountTeamItem(Item.Get("rations"))}";
+        }
+
+        if (moveView)
+        {
+            if (!Input.GetMouseButton(1))
+                moveView = false;
+            else
+            {
+                Vector2 newPos = Input.mousePosition;
+                if (moveViewPos != newPos)
+                {
+                    Vector2 dif = newPos - moveViewPos;
+                    Vector2 scrollRange = contentSize - viewportSize;
+                    Vector2 scrollPos = scrollRect.normalizedPosition;
+                    scrollPos -= new Vector2(dif.x / scrollRange.x, dif.y / scrollRange.y);
+                    scrollPos.x = Mathf.Clamp01(scrollPos.x);
+                    scrollPos.y = Mathf.Clamp01(scrollPos.y);
+                    scrollRect.normalizedPosition = scrollPos;
+                    moveViewPos = newPos;
+                }
+                return;
+            }
         }
 
         World world = Global.World;
@@ -122,15 +166,14 @@ public class Map : MonoBehaviour
 
         // transform to local position
         RectTransformUtility.ScreenPointToLocalPointInRectangle(
-            rectTransform,
-            Input.mousePosition,
+            tilesContainer.parent.transform as RectTransform,
+            pos,
             null,
             out Vector2 localPos
         );
-        localPos += viewportSize * 0.5f;
+        localPos += contentSize * 0.5f;
 
-        Vector2 scrollRange = contentSize - viewportSize;
-        Vector2 offset = scrollRect.normalizedPosition * scrollRange;
+        Vector2 offset = Vector2.zero;
         float dx = localPos.x - borderSize + offset.x;
         float dy = gridSize.y - localPos.y + borderSize - offset.y;
         pt = new Vector2Int(Mathf.FloorToInt(dx / tileSize), Mathf.FloorToInt(dy / tileSize));

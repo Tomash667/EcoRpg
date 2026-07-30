@@ -35,7 +35,6 @@ events:
 
 ui:
 - don't split ui to 3 lines if not needed
-+ drag/scale map
 
 investments:
 + manage mine/sawmill efficency
@@ -161,6 +160,8 @@ ui:
 + vsync
 + player healthbar, fixed top ui
 + shop tabs?, separate shops
++ move map - cursor stays in place
++ s&l map zoom
 
 investments:
 + cottage/big house

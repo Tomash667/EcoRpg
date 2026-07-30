@@ -1,4 +1,4 @@
-EcoRpg v0.1
+EcoRpg v0.2
 (Economic, not ecologic)
 
 Goal:
@@ -22,9 +22,9 @@ W - work
 X - exit or enter
 
 Shop/Craft:
-Click - buy/sell/craft one
-Left Ctrl + click - pick how much to buy/sell/craft
-Left Shift + click - sell/craft whole stack
+Left button - buy/sell/craft one
+Left Ctrl + Left button - pick how much to buy/sell/craft
+Left Shift + Left button - sell/craft whole stack
 
 Guild:
 R - recruit
@@ -32,8 +32,10 @@ C - craft
 K - cook
 
 Map:
-Click - travel
-Left Shift + click - travel without entering location
+Left button - travel
+Left Shift + Left button - travel without entering location
+Right button - move map
+Mouse wheel - zoom in/out map
 
 Skills:
 Alchemy - create extra potions
