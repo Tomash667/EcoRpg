@@ -50,7 +50,7 @@ public class Property
         Building
     }
 
-    public string name, desc;
+    public string name, desc, lastEvent;
     public List<Event> events = new();
     public Upgrade[] upgrades;
     public Status status;

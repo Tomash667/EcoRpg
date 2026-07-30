@@ -1399,7 +1399,7 @@ public class Game : MonoBehaviour
         string name = world.CurrentTile.Name.ToUpper1();
         if (world.level != 0)
             name += $", level {world.level + 1}";
-        sb.Append($"{name}   Day: {day} {hour}:{minute:00}   Health: {player.hp}/{player.hpMax}   Energy: {player.energy}/100   Gold: {player.gold}");
+        sb.Append($"{name}   Day: {day} {hour}:{minute:00}   HP: {player.hp}/{player.hpMax}   Energy: {player.energy}/100   Gold: {player.gold}");
         if (player.goldReceived != 0)
         {
             sb.Append($"({player.goldReceived:+0;-0})");
@@ -1668,6 +1668,7 @@ public class Game : MonoBehaviour
 
         world.Update();
 
+        // property events
         if (day % 10 == 0)
         {
             foreach (Property property in player.properties.Where(x => x.income > 0 && x.status == Property.Status.Active))
@@ -1679,29 +1680,43 @@ public class Game : MonoBehaviour
                 if (c < 2)
                 {
                     // 10%
-                    property.events.Add(new Property.Event { name = "Buff", timer = 30 });
-                    string str;
-                    if (property.name == "Sawmill")
-                        str = "Your sawmill production increased thanks to good weather.";
-                    else if (property.name == "Inn")
-                        str = "Your inn income increased thanks to festival.";
-                    else if (Utility.Rand % 2 == 0)
-                        str = $"Your {property.name.ToLower()} production increased thanks to good ore quality.";
+                    if (property.lastEvent != "Buff")
+                    {
+                        property.events.Add(new Property.Event { name = "Buff", timer = 30 });
+                        property.lastEvent = "Buff";
+                        string str;
+                        if (property.name == "Sawmill")
+                            str = "Your sawmill production increased thanks to good weather.";
+                        else if (property.name == "Inn")
+                            str = "Your inn income increased thanks to festival.";
+                        else if (Utility.Rand % 2 == 0)
+                            str = $"Your {property.name.ToLower()} production increased thanks to good ore quality.";
+                        else
+                            str = $"Your {property.name.ToLower()} production increased thanks to new ore veins.";
+                        AddNotification(str);
+                        break;
+                    }
                     else
-                        str = $"Your {property.name.ToLower()} production increased thanks to new ore veins.";
-                    AddNotification(str);
-                    break;
+                        property.lastEvent = null;
                 }
                 else if (c == 2 && property.locationIndex != -1 && !property.HaveUpgrade("Extra guards"))
                 {
                     // 5%
-                    property.events.Add(new Property.Event { name = "Infested", timer = -1 });
-                    AddNotification($"{property.name} has been taken over by monsters! Hire adventurers or deal with it yourself.");
-                    Tile tile = world.GetLocation(property.locationIndex);
-                    tile.clear = false;
-                    tile.defeatedEnemies = 0;
-                    break;
+                    if (property.lastEvent != "Infested")
+                    {
+                        property.events.Add(new Property.Event { name = "Infested", timer = -1 });
+                        property.lastEvent = "Infested";
+                        AddNotification($"{property.name} has been taken over by monsters! Hire adventurers or deal with it yourself.");
+                        Tile tile = world.GetLocation(property.locationIndex);
+                        tile.clear = false;
+                        tile.defeatedEnemies = 0;
+                        break;
+                    }
+                    else
+                        property.lastEvent = null;
                 }
+                else
+                    property.lastEvent = null;
             }
         }
     }
