@@ -49,7 +49,6 @@ skills:
 
 world:
 + regions (difficulty)
-+ lakes
 + cancel travel
 + smoother travel
 + second village
@@ -196,8 +195,12 @@ skills:
 + leadership
 + cooking
 + artifacts that increase skill (self writing pen, golden pickaxe/axe, etc)
++ swimming
 
-technology
+work:
++ fishing
+
+technology:
 + blast furnace
 + printing press
 + sewers
@@ -235,3 +238,6 @@ world:
 	https://aistudio.google.com/prompts/1fGhK85Ij3nwgBj3ToL7wBvXHap5_Pgxh
 	https://grok.com/c/794e217a-21f5-49e3-ba34-761dfa270b31?rid=bec1eec2-cbb4-4806-b4d8-204d0b74029f
 + number of enemies in dungeon depends on defeatedEnemies not on treasureFound
++ travel over lake
++ sea/ocean/big lake
++ plane of water/fire etc

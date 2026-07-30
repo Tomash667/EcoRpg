@@ -15,7 +15,8 @@ public enum TileType
     House,
     Mansion,
     MageTower,
-    DarkDimension
+    DarkDimension,
+    Lake
 }
 
 public enum TileImage
@@ -32,7 +33,8 @@ public enum TileImage
     Village,
     Swamp,
     SwampDungeon,
-    MageTower
+    MageTower,
+    Lake
 }
 
 public static class TileTypeMethods
@@ -56,6 +58,7 @@ public static class TileTypeMethods
             TileType.Mansion => "mansion",
             TileType.MageTower => "mage tower",
             TileType.DarkDimension => "dark dimension",
+            TileType.Lake => "lake",
             _ => $"[ERROR tileType {tileType}]"
         };
     }
@@ -79,5 +82,10 @@ public static class TileTypeMethods
     public static bool IsSafe(this TileType tileType)
     {
         return tileType == TileType.City || tileType == TileType.Village || tileType == TileType.House || tileType == TileType.Mansion;
+    }
+
+    public static bool IsBlocked(this TileType tileType)
+    {
+        return tileType == TileType.Lake;
     }
 }

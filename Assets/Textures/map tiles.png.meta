@@ -382,6 +382,50 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: lake
+      rect:
+        serializedVersion: 2
+        x: 32
+        y: 0
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: f5bd7fe81ab1bdb418b5f551385bb60b
+      internalID: -935227316
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: farm
+      rect:
+        serializedVersion: 2
+        x: 64
+        y: 0
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 4b98074a90cb12b44afa978f268272b9
+      internalID: -1371221141
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     customData: 
     physicsShape: []
@@ -399,10 +443,11 @@ TextureImporter:
       cave: 605992368
       city: -1763866205
       dungeon: -349523790
+      farm: -236607163
       forest: -1939850107
       forest dungeon: 603060327
+      lake: -935227316
       mage tower: 1745552250
-      map tiles_1: -236607163
       map tiles_10: 1923101346
       map tiles_11: 67019093
       map tiles_12: 272516478

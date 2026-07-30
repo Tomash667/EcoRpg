@@ -10,13 +10,37 @@ public class World
     public const int sizeX = 25, sizeY = 15;
     public const int sublocationOffset = sizeX * sizeY;
 
+    private readonly Vector2Int[] adjacient = new Vector2Int[]
+    {
+        new(-1, 0),
+        new(1, 0),
+        new(0, -1),
+        new(0, 1),
+        new(-1, -1),
+        new(-1, 1),
+        new(1, -1),
+        new(1, 1)
+    };
+
+    private class PfTile
+    {
+        public Vector2Int pos, prev;
+        public int cost, total;
+        public bool visited;
+    }
+
     public Tile[] map;
     public Tile[] sublocations;
     public Vector2Int currentPt;
     public int sublocation; // 0-none, 1-sewers, 2-house, 3-mansion, 4-dark dimension
     public int level;
+
+    [NonSerialized]
+    public int travelStep;
     [NonSerialized]
     public bool isTraveling;
+
+    private PfTile[] pfTiles;
 
     public Tile CurrentTile => sublocation == 0 ? map[currentPt.x + currentPt.y * sizeX] : sublocations[sublocation];
     public int CurrentLocationIndex => CalculateIndex(currentPt.x, currentPt.y, sublocation);
@@ -153,6 +177,12 @@ public class World
         // sawmill & mine
         SpawnLocation(cityPos, TileType.Forest, TileType.Sawmill);
         SpawnLocation(cityPos, TileType.Mountains, TileType.Mine);
+
+        // lakes
+        SpawnLocation(new(Utility.Random(0, sizeX / 2), Utility.Random(0, sizeY / 2)), TileType.Plains, TileType.Lake);
+        SpawnLocation(new(Utility.Random(sizeX / 2, sizeX - 1), Utility.Random(0, sizeY / 2)), TileType.Plains, TileType.Lake);
+        SpawnLocation(new(Utility.Random(0, sizeX / 2), Utility.Random(sizeY / 2, sizeY - 1)), TileType.Plains, TileType.Lake);
+        SpawnLocation(new(Utility.Random(sizeX / 2, sizeX - 12), Utility.Random(sizeY / 2, sizeY - 1)), TileType.Plains, TileType.Lake);
 
         // caves with potential mines or boxx
         SpawnHiddenLocations(0, 8, 2, TileType.Mountains, TileType.Cave, Names.cave1.ToList());
@@ -317,6 +347,18 @@ public class World
         return diagonalDist * 15 + straightDist * 10;
     }
 
+    public static int CalculateDistance(List<Vector2Int> path)
+    {
+        int dist = 0;
+        for (int i = 1; i < path.Count; ++i)
+        {
+            Vector2Int dir = path[i] - path[i - 1];
+            bool isDiagonal = dir.x != 0 && dir.y != 0;
+            dist += isDiagonal ? 15 : 10;
+        }
+        return dist;
+    }
+
     private Vector2Int FindMatchingTile(Vector2Int startPos, Func<Vector2Int, bool> pred)
     {
         // bounds check for startPos
@@ -380,11 +422,13 @@ public class World
             return 2.5f;
     }
 
-    public int CalculateTravelDays(Vector2Int pt)
+    public int CalculateTravelDays(List<Vector2Int> path)
     {
+        if (path.Count < 2)
+            return 0;
+
         Game game = Global.Game;
-        Vector2Int currentTmpPt = currentPt;
-        int dist = CalculateDistance(currentPt, pt);
+        int step = 1;
         int rations = game.CountTeamItem(Item.Get("rations"));
         int teamSize = game.Team.Count();
         float speed = RationsToSpeed(rations, teamSize);
@@ -411,10 +455,9 @@ public class World
                 NextDay();
         }
 
-        while (dist > 0)
+        while (step != path.Count)
         {
-            Vector2Int dir = (pt - currentTmpPt).Normalized();
-            Vector2Int nextPt = currentTmpPt + dir;
+            Vector2Int dir = path[step] - path[step - 1];
             bool isDiagonal = dir.x != 0 && dir.y != 0;
 
             while (true)
@@ -435,9 +478,8 @@ public class World
                     NextDay();
                 if (travelDist >= (isDiagonal ? 15 : 10))
                 {
-                    currentTmpPt = nextPt;
                     travelDist -= isDiagonal ? 15 : 10;
-                    dist -= isDiagonal ? 15 : 10;
+                    ++step;
                     break;
                 }
             }
@@ -448,12 +490,14 @@ public class World
 
     public int CalculateTravelDaysNonTeam(Vector2Int pt)
     {
-        Game game = Global.Game;
-        Vector2Int currentTmpPt = currentPt;
-        int dist = CalculateDistance(currentPt, pt);
+        List<Vector2Int> path = FindPath(currentPt, pt);
+        if (path == null)
+            return 0;
+
         float speed = 2.5f * 1.25f; // rations + horse
         float travelDist = 0;
-        int days = 0, hour = game.hour;
+        int step = 1;
+        int days = 0, hour = Global.Game.hour;
 
         void NextDay()
         {
@@ -461,10 +505,9 @@ public class World
             ++days;
         }
 
-        while (dist > 0)
+        while (step != path.Count)
         {
-            Vector2Int dir = (pt - currentTmpPt).Normalized();
-            Vector2Int nextPt = currentTmpPt + dir;
+            Vector2Int dir = path[step] - path[step - 1];
             bool isDiagonal = dir.x != 0 && dir.y != 0;
 
             while (true)
@@ -475,9 +518,8 @@ public class World
                     NextDay();
                 if (travelDist >= (isDiagonal ? 15 : 10))
                 {
-                    currentTmpPt = nextPt;
                     travelDist -= isDiagonal ? 15 : 10;
-                    dist -= isDiagonal ? 15 : 10;
+                    ++step;
                     break;
                 }
             }
@@ -491,8 +533,9 @@ public class World
     public IEnumerator Travel(Vector2Int pt)
     {
         Game game = Global.Game;
+        List<Vector2Int> path = FindPath(currentPt, pt);
+        int step = 1;
         Item rationsItem = Item.Get("rations");
-        int dist = CalculateDistance(currentPt, pt);
         int rations = game.CountTeamItem(rationsItem);
         int teamSize = game.Team.Count();
         float speed = RationsToSpeed(rations, teamSize);
@@ -516,6 +559,7 @@ public class World
         }
 
         isTraveling = true;
+        travelStep = 0;
 
         if (sublocation != 0)
         {
@@ -533,10 +577,9 @@ public class World
             }
         }
 
-        while (dist > 0)
+        while (step != path.Count)
         {
-            Vector2Int dir = (pt - currentPt).Normalized();
-            Vector2Int nextPt = currentPt + dir;
+            Vector2Int dir = path[step] - path[step - 1];
             bool isDiagonal = dir.x != 0 && dir.y != 0;
 
             while (true)
@@ -561,12 +604,13 @@ public class World
                     NextDay();
                 if (travelDist >= (isDiagonal ? 15 : 10))
                 {
-                    RevealArea(nextPt, true);
-                    currentPt = nextPt;
+                    currentPt += dir;
+                    RevealArea(currentPt, true);
                     travelDist -= isDiagonal ? 15 : 10;
-                    dist -= isDiagonal ? 15 : 10;
+                    ++step;
+                    ++travelStep;
                     game.UpdateTravel();
-                    if (currentPt != pt)
+                    if (step != path.Count)
                         yield return new WaitForSeconds(0.1f);
                     break;
                 }
@@ -725,5 +769,89 @@ public class World
             }
 
         }
+    }
+
+    public List<Vector2Int> FindPath(Vector2Int from, Vector2Int to)
+    {
+        if (from == to)
+            return null;
+
+        // is target is blocked return null
+        if (map[to.x + to.y * sizeX].type.IsBlocked())
+            return null;
+
+        if (pfTiles == null || pfTiles.Length == 0)
+        {
+            pfTiles = new PfTile[map.Length];
+            for (int y = 0; y < sizeY; ++y)
+            {
+                for (int x = 0; x < sizeX; ++x)
+                    pfTiles[x + y * sizeX] = new() { pos = new(x, y) };
+            }
+        }
+        else
+        {
+            foreach (PfTile t in pfTiles)
+                t.visited = false;
+        }
+
+        PfTile tile = pfTiles[from.x + from.y * sizeX];
+        tile.visited = true;
+        tile.prev = Vector2Int.zero;
+        tile.cost = 0;
+        tile.total = CalculateDistance(from, to);
+        List<PfTile> toCheck = new() { tile };
+        while (toCheck.Count > 0)
+        {
+            bool added = false;
+            tile = toCheck.Pop();
+            foreach (Vector2Int adj in adjacient)
+            {
+                Vector2Int pos = tile.pos + adj;
+                if (!IsInBounds(pos))
+                    continue;
+                PfTile tile2 = pfTiles[pos.x + pos.y * sizeX];
+                if (tile2.visited)
+                    continue;
+                if (map[pos.x + pos.y * sizeX].type.IsBlocked())
+                    continue;
+                tile2.visited = true;
+                tile2.prev = tile.pos;
+                if (pos == to)
+                {
+                    // found path
+                    List<Vector2Int> result = new();
+                    tile = tile2;
+                    while (true)
+                    {
+                        result.Add(tile.pos);
+                        if (tile.prev == from)
+                        {
+                            result.Add(tile.prev);
+                            result.Reverse();
+                            return result;
+                        }
+                        tile = pfTiles[tile.prev.x + tile.prev.y * sizeX];
+                    }
+                }
+                bool isDiagonal = adj.x != 0 && adj.y != 0;
+                tile2.cost = tile.cost + (isDiagonal ? 15 : 10);
+                tile2.total = tile2.cost + CalculateDistance(pos, to);
+                if (tile.prev != Vector2Int.zero)
+                {
+                    Vector2 prevDir = tile.pos - tile.prev;
+                    if (prevDir != adj)
+                        tile2.total++; // penalize switching directions
+                }
+                toCheck.Add(tile2);
+                added = true;
+            }
+
+            if (added)
+                toCheck.Sort((x, y) => y.total.CompareTo(x.total));
+        }
+
+        // failed
+        return null;
     }
 }

@@ -104,6 +104,9 @@ public class Tile
         case TileType.MageTower:
             image = TileImage.MageTower;
             break;
+        case TileType.Lake:
+            image = TileImage.Lake;
+            break;
         }
         type = newType;
     }

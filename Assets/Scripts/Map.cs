@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -19,9 +20,11 @@ public class Map : MonoBehaviour
     private ScrollRect scrollRect;
     private Transform tilesContainer;
     private RectTransform rectTransform;
-    private Vector2 currentPos, travelPos, viewportSize, moveViewPos;
+    private List<Vector2Int> path;
+    private Vector2 currentPos, travelPos, viewportSize, moveViewPos, lastCheckedPos;
     private Vector2Int travelPt;
-    private float zoom;
+    private float zoom = 1f;
+    private int travelStep;
     private bool inTravel, moveView;
 
     public void Init()
@@ -75,7 +78,6 @@ public class Map : MonoBehaviour
             if (newZoom != zoom)
             {
                 zoom = newZoom;
-                Debug.Log(zoom);
                 tilesContainer.parent.localScale = new(zoom, zoom, zoom);
                 CenterOnPlayer();
             }
@@ -94,6 +96,7 @@ public class Map : MonoBehaviour
             cursor2.SetActive(false);
             arrow.gameObject.SetActive(false);
             text.text = $"Rations: {Global.Game.CountTeamItem(Item.Get("rations"))}";
+            lastCheckedPos.x = -1;
         }
 
         if (moveView)
@@ -118,40 +121,62 @@ public class Map : MonoBehaviour
             }
         }
 
-        World world = Global.World;
-        if (GetTile(Input.mousePosition, out Vector2Int targetPt) && World.IsInBounds(targetPt))
-        {
-            if (Input.GetMouseButtonDown(0))
-            {
-                Global.Game.Travel(targetPt, !Input.GetKey(KeyCode.LeftShift));
-                return;
-            }
-        }
-        else
+        if (!GetTile(Input.mousePosition, out Vector2Int targetPt))
             targetPt.x = -1;
 
-        if (targetPt.x != -1 && targetPt != world.currentPt)
+        if (targetPt == lastCheckedPos)
         {
-            Vector2 targetPos = new(gridOrigin.x + tileSize * targetPt.x, gridOrigin.y - tileSize * targetPt.y);
-            cursor2.GetComponent<RectTransform>().anchoredPosition = targetPos;
-            cursor2.SetActive(true);
+            if(path != null && Input.GetMouseButtonDown(0))
+            {
+                Global.Game.Travel(targetPt, !Input.GetKey(KeyCode.LeftShift));
+            }
+            return;
+        }
 
-            arrow.gameObject.SetActive(true);
-            arrow.SetPosition(currentPos, targetPos);
+        World world = Global.World;
+        lastCheckedPos = targetPt;
+        if (targetPt.x == -1)
+            path = null;
+        else
+            path = world.FindPath(world.currentPt, targetPt);
 
-            UpdateText(world, world.currentPt, targetPt);
+        if (targetPt.x == -1)
+        {
+            // outside map
+            arrow.gameObject.SetActive(false);
+            cursor2.SetActive(false);
+            text.text = $"Rations: {Global.Game.CountTeamItem(Item.Get("rations"))}";
         }
         else
         {
-            cursor2.SetActive(false);
-            arrow.gameObject.SetActive(false);
+            Tile tile = world.map[targetPt.x + targetPt.y * World.sizeX];
             if (targetPt == world.currentPt)
             {
-                Tile tile = world.map[targetPt.x + targetPt.y * World.sizeX];
+                // same position as current
+                arrow.gameObject.SetActive(false);
+                cursor2.SetActive(false);
                 text.text = $"Rations: {Global.Game.CountTeamItem(Item.Get("rations"))}\nTarget: {tile.Name.ToUpper1()}";
             }
             else
-                text.text = $"Rations: {Global.Game.CountTeamItem(Item.Get("rations"))}";
+            {
+                // new position
+                Vector2 targetPos = new(gridOrigin.x + tileSize * targetPt.x, gridOrigin.y - tileSize * targetPt.y);
+                cursor2.GetComponent<RectTransform>().anchoredPosition = targetPos;
+                cursor2.SetActive(true);
+                if (path == null)
+                {
+                    // blocked
+                    arrow.gameObject.SetActive(false);
+                    text.text = $"Rations: {Global.Game.CountTeamItem(Item.Get("rations"))}\nTarget: {tile.Name.ToUpper1()}";
+                }
+                else
+                {
+                    // ok
+                    arrow.gameObject.SetActive(true);
+                    arrow.SetPath(path, gridOrigin, tileSize);
+                    UpdateText(world, targetPt);
+                }
+            }
         }
     }
 
@@ -177,7 +202,7 @@ public class Map : MonoBehaviour
         float dx = localPos.x - borderSize + offset.x;
         float dy = gridSize.y - localPos.y + borderSize - offset.y;
         pt = new Vector2Int(Mathf.FloorToInt(dx / tileSize), Mathf.FloorToInt(dy / tileSize));
-        return true;
+        return World.IsInBounds(pt);
     }
 
     public void BeginTravel(Vector2Int pt)
@@ -187,6 +212,7 @@ public class Map : MonoBehaviour
         cursor2.GetComponent<RectTransform>().anchoredPosition = travelPos;
         cursor2.SetActive(true);
         inTravel = true;
+        travelStep = 0;
     }
 
     public void UpdateTravel()
@@ -196,16 +222,20 @@ public class Map : MonoBehaviour
         currentPos = new(gridOrigin.x + tileSize * currentPt.x, gridOrigin.y - tileSize * currentPt.y);
         cursor.GetComponent<RectTransform>().anchoredPosition = currentPos;
 
-        arrow.gameObject.SetActive(true);
-        arrow.SetPosition(currentPos, travelPos);
+        if (world.travelStep > travelStep)
+        {
+            path.RemoveAt(0);
+            arrow.Progress();
+            ++travelStep;
+        }
 
-        UpdateText(world, currentPt, travelPt);
+        UpdateText(world, travelPt);
     }
 
-    private void UpdateText(World world, Vector2Int currentPt, Vector2Int targetPt)
+    private void UpdateText(World world, Vector2Int targetPt)
     {
-        int dist = World.CalculateDistance(currentPt, targetPt);
-        int days = world.CalculateTravelDays(targetPt);
+        int dist = World.CalculateDistance(path);
+        int days = world.CalculateTravelDays(path);
         string daysText;
         if (days == 0)
             daysText = "less then day";

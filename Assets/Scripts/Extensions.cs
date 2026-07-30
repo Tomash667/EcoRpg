@@ -53,6 +53,14 @@ public static class Extensions
         return result;
     }
 
+    public static T Pop<T>(this IList<T> items)
+    {
+        int index = items.Count - 1;
+        T result = items[index];
+        items.RemoveAt(index);
+        return result;
+    }
+
     public static int Random(this Vector2Int range)
     {
         return Utility.Random(range.x, range.y);
