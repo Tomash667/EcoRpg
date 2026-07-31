@@ -16,7 +16,7 @@ public class Map : MonoBehaviour
 
     private Arrow arrow;
     private GameObject cursor, cursor2;
-    private TMP_Text text;
+    private TMP_Text text, buttonText;
     private ScrollRect scrollRect;
     private Transform tilesContainer;
     private RectTransform rectTransform;
@@ -30,6 +30,7 @@ public class Map : MonoBehaviour
     public void Init()
     {
         text = transform.Find("Text").GetComponent<TMP_Text>();
+        buttonText = transform.Find("BtClose/Text").GetComponent<TMP_Text>();
         scrollRect = transform.Find("MapView").GetComponent<ScrollRect>();
         rectTransform = scrollRect.GetComponent<RectTransform>();
         viewportSize = transform.Find("MapView/Viewport").GetComponent<RectTransform>().rect.size;
@@ -86,6 +87,8 @@ public class Map : MonoBehaviour
         if (inTravel)
         {
             CenterOnPlayer();
+            if (Input.GetKeyDown(GameUI.escKey))
+                Global.World.cancelTravel = true;
             return;
         }
 
@@ -124,16 +127,14 @@ public class Map : MonoBehaviour
         if (!GetTile(Input.mousePosition, out Vector2Int targetPt))
             targetPt.x = -1;
 
-        if (targetPt == lastCheckedPos)
-        {
-            if (path != null && Input.GetMouseButtonDown(0))
-            {
-                Global.Game.Travel(targetPt, !Input.GetKey(KeyCode.LeftShift));
-            }
-            return;
-        }
-
         World world = Global.World;
+
+        if ((targetPt == world.currentPt || path != null) && Input.GetMouseButtonDown(0))
+            Global.Game.Travel(targetPt, !Input.GetKey(KeyCode.LeftShift));
+
+        if (targetPt == lastCheckedPos)
+            return;
+
         lastCheckedPos = targetPt;
         if (targetPt.x == -1)
             path = null;
@@ -211,6 +212,7 @@ public class Map : MonoBehaviour
         travelPos = new(gridOrigin.x + tileSize * travelPt.x, gridOrigin.y - tileSize * travelPt.y);
         cursor2.GetComponent<RectTransform>().anchoredPosition = travelPos;
         cursor2.SetActive(true);
+        buttonText.text = "Stop";
         inTravel = true;
         travelStep = 0;
     }
@@ -262,6 +264,7 @@ public class Map : MonoBehaviour
         cursor.GetComponent<RectTransform>().anchoredPosition = currentPos;
         cursor2.SetActive(false);
         arrow.gameObject.SetActive(false);
+        buttonText.text = "Cancel";
         inTravel = false;
     }
 
@@ -301,5 +304,13 @@ public class Map : MonoBehaviour
         normalized.y = Mathf.Clamp01(normalized.y);
 
         scrollRect.normalizedPosition = normalized;
+    }
+
+    public void Cancel()
+    {
+        if (inTravel)
+            Global.World.cancelTravel = true;
+        else
+            Global.UI.CloseDialog();
     }
 }

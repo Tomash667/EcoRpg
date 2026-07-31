@@ -38,7 +38,7 @@ public class World
     [NonSerialized]
     public int travelStep;
     [NonSerialized]
-    public bool isTraveling;
+    public bool isTraveling, cancelTravel;
 
     private PfTile[] pfTiles;
 
@@ -597,6 +597,7 @@ public class World
         }
 
         isTraveling = true;
+        cancelTravel = false;
         travelStep = 0;
 
         if (sublocation != 0)
@@ -615,12 +616,12 @@ public class World
             }
         }
 
-        while (step != path.Count)
+        while (step != path.Count && !cancelTravel)
         {
             Vector2Int dir = path[step] - path[step - 1];
             bool isDiagonal = dir.x != 0 && dir.y != 0;
 
-            while (true)
+            while (!cancelTravel)
             {
                 if (game.player.energy < 5)
                 {

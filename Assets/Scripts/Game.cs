@@ -34,7 +34,9 @@ public class Game : MonoBehaviour
     public float guildProgress;
     public int day, hour, minute, guildRank, freshHorses;
 
-    private GameUI ui;
+    [System.NonSerialized]
+    public GameUI ui;
+
     private GameObject shopScreen, characterScreen, journalScreen, allyScreen, giveAllyItemsScreen, storeItemsScreen, activeInventory, propertiesScreen, guildScreen, gardenScreen, craftScreen,
         enchantItemsScreen;
     private RectTransform[] alliesHealthRect;
@@ -776,7 +778,7 @@ public class Game : MonoBehaviour
         yield return world.Travel(pt);
         map.EndTravel();
         ui.lockDialog = false;
-        if (enter)
+        if (enter && !world.cancelTravel)
         {
             OnEnterLocation();
             ui.CloseDialog();
@@ -2775,6 +2777,8 @@ public class Game : MonoBehaviour
                 }
             }
         }
+        activeQuests.RemoveAll(x => x.type == Quest.Type.Artifact || x.type == Quest.Type.Clear);
+        availableQuests.RemoveAll(x => x.type == Quest.Type.Artifact || x.type == Quest.Type.Clear);
         map.Regenerate();
     }
 
