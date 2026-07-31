@@ -184,7 +184,7 @@ public class World
         SpawnLocation(new(Utility.Random(0, sizeX / 2), Utility.Random(sizeY / 2, sizeY - 1)), TileType.Plains, TileType.Lake);
         SpawnLocation(new(Utility.Random(sizeX / 2, sizeX - 12), Utility.Random(sizeY / 2, sizeY - 1)), TileType.Plains, TileType.Lake);
 
-        // caves with potential mines or boxx
+        // caves with potential mines or boss
         SpawnHiddenLocations(0, 8, 2, TileType.Mountains, TileType.Cave, Names.cave1.ToList());
         spawned = SpawnHiddenLocations(9, 16, 3, TileType.Mountains, TileType.Cave, Names.cave2.ToList());
         spawned[0].mine = true;
@@ -431,8 +431,21 @@ public class World
         int step = 1;
         int rations = game.CountTeamItem(Item.Get("rations"));
         int teamSize = game.Team.Count();
+        int freshHorses = 0;
         float speed = RationsToSpeed(rations, teamSize);
-        float speedMod = game.player.HaveProperty("Horses") ? 1.25f : 1f;
+        float speedMod;
+        if (game.player.HaveProperty("Horses"))
+        {
+            if (game.freshHorses > 0)
+            {
+                speedMod = 1.5f;
+                freshHorses = game.freshHorses;
+            }
+            else
+                speedMod = 1.25f;
+        }
+        else
+            speedMod = 1f;
         float travelDist = 0;
         int days = 0, hour = game.hour;
         int energy = game.player.energy;
@@ -446,6 +459,12 @@ public class World
             rations -= teamSize;
             speed = RationsToSpeed(rations, teamSize);
             energy = Mathf.Min(energy + (haveTent ? 100 : 75), 100);
+            if (freshHorses > 0)
+            {
+                --freshHorses;
+                if (freshHorses == 0)
+                    speedMod = 1.25f;
+            }
         }
 
         if (sublocation == 1 && game.minute + 30 >= 60)
@@ -538,8 +557,21 @@ public class World
         Item rationsItem = Item.Get("rations");
         int rations = game.CountTeamItem(rationsItem);
         int teamSize = game.Team.Count();
+        int freshHorses = 0;
         float speed = RationsToSpeed(rations, teamSize);
-        float speedMod = game.player.HaveProperty("Horses") ? 1.25f : 1f;
+        float speedMod;
+        if (game.player.HaveProperty("Horses"))
+        {
+            if (game.freshHorses > 0)
+            {
+                speedMod = 1.5f;
+                freshHorses = game.freshHorses;
+            }
+            else
+                speedMod = 1.25f;
+        }
+        else
+            speedMod = 1f;
         float travelDist = 0;
         bool haveTent = game.player.HaveItem("Tent");
         bool energyTick = false;
@@ -556,6 +588,12 @@ public class World
             foreach (Hero hero in game.Team)
                 hero.hp = hero.hpMax;
             game.player.energy = Mathf.Min(game.player.energy + (haveTent ? 100 : 75), 100);
+            if (freshHorses > 0)
+            {
+                --freshHorses;
+                if (freshHorses == 0)
+                    speedMod = 1.25f;
+            }
         }
 
         isTraveling = true;

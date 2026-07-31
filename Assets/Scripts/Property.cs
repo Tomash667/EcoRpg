@@ -51,8 +51,9 @@ public class Property
     }
 
     public string name, desc, lastEvent;
-    public List<Event> events = new();
+    public List<Event> events;
     public Upgrade[] upgrades;
+    public Func<World, int> locationIndexFunc;
     public Status status;
     public int value, infestedCost, income, upkeep, upkeepDiscount, buildPrice, buildPriceDiscount, buildTime, locationIndex;
 
@@ -137,4 +138,238 @@ public class Property
             return Image.Buff;
         return Image.Ok;
     }
+
+    public Property Copy()
+    {
+        return new()
+        {
+            name = name,
+            desc = desc,
+            events = new(),
+            upgrades = upgrades.Select(x => new Upgrade { name = name, desc = desc, value = value, income = income, upkeep = upkeep }).ToArray(),
+            status = status,
+            value = value,
+            infestedCost = infestedCost,
+            income = income,
+            upkeep = upkeep,
+            upkeepDiscount = upkeepDiscount,
+            buildPrice = buildPrice,
+            buildPriceDiscount = buildPriceDiscount,
+            buildTime = buildTime
+        };
+    }
+
+    public void Update(Property p)
+    {
+        desc = p.desc;
+        infestedCost = p.infestedCost;
+        upkeepDiscount = p.upkeepDiscount;
+        buildPrice = p.buildPrice;
+        buildPriceDiscount = p.buildPriceDiscount;
+        if (p.upgrades != null)
+        {
+            upgrades = p.upgrades.Select(x => new Upgrade
+            {
+                name = x.name,
+                desc = x.desc,
+                value = x.value,
+                income = x.income,
+                upkeep = x.upkeep,
+                active = upgrades.Any(y => y.name == x.name && y.active)
+            }).ToArray();
+        }
+    }
+
+    public static readonly Property[] properties = new Property[]
+    {
+        new()
+        {
+            name = "House",
+            desc = "don't pay for inn",
+            value = 500,
+            status = Status.Active,
+            upgrades = new Upgrade[]
+            {
+                new()
+                {
+                    name = "Alchemy lab",
+                    desc = "+25 alchemy",
+                    value = 100
+                },
+                new()
+                {
+                    name = "Garden",
+                    desc = "Grow food or herbs, +1 upkeep",
+                    value = 100,
+                    upkeep = 1
+                }
+            }
+        },
+        new()
+        {
+            name = "Mansion",
+            desc = "don't pay for inn, better rest, UPKEEP upkeep",
+            value = 10000,
+            upkeep = 5,
+            status = Status.Active,
+            upgrades = new Upgrade[]
+            {
+                new()
+                {
+                    name = "Alchemy lab",
+                    desc = "+25 alchemy",
+                    value = 100
+                },
+                new()
+                {
+                    name = "Garden",
+                    desc = "Grow food or herbs, +2 upkeep",
+                    value = 500,
+                    upkeep = 2
+                },
+                new()
+                {
+                    name = "Stables",
+                    desc = "Increased speed for 10 days after visiting city, +3 upkeep",
+                    value = 1000,
+                    upkeep = 3
+                }
+            }
+        },
+        new()
+        {
+            name = "Horses",
+            desc = "+25% travel speel",
+            value = 500,
+            status = Status.Active
+        },
+        new()
+        {
+            name = "Sawmill",
+            desc = "PROFIT gold/day, reduce mines upkeep and build cost",
+            value = 5000,
+            infestedCost = 500,
+            income = 10,
+            upkeep = 5,
+            status = Status.Active,
+            locationIndexFunc = world => world.FindLocationIndex(x => x.type == TileType.Sawmill),
+            upgrades = new Upgrade[]
+            {
+                new()
+                {
+                    name = "Extra guards",
+                    desc = "Prevents monster invasion, +1 upkeep",
+                    value = 1000,
+                    upkeep = 1
+                },
+                new()
+                {
+                    name = "Water-powered saws",
+                    desc = "+5 income",
+                    value = 1500,
+                    income = 5
+                }
+            }
+        },
+        new()
+        {
+            name = "Iron mine",
+            desc = "PROFIT gold/day",
+            value = 10000,
+            infestedCost = 750,
+            income = 20,
+            upkeep = 10,
+            upkeepDiscount = 2,
+            status = Status.Active,
+            locationIndexFunc = world => world.FindLocationIndex(x => x.type == TileType.Mine),
+            upgrades = new Upgrade[]
+            {
+                new()
+                {
+                    name = "Extra guards",
+                    desc = "Prevents monster invasion, +2 upkeep",
+                    value = 2000,
+                    upkeep = 2
+                },
+                new()
+                {
+                    name = "Deep shaft expansion",
+                    desc = "+10 income",
+                    value = 3000,
+                    income = 10
+                }
+            }
+        },
+        new()
+        {
+            name = "Silver mine",
+            desc = "PROFIT gold/day",
+            value = 25000,
+            infestedCost = 1500,
+            income = 35,
+            upkeep = 10,
+            upkeepDiscount = 2,
+            buildPrice = 6000,
+            buildPriceDiscount = 500,
+            buildTime = 20,
+            locationIndexFunc = world => world.FindLocationIndex(x => x.hidden == TileType.Cave && x.mine && x.difficulty == 2),
+            upgrades = new Upgrade[]
+            {
+                new()
+                {
+                    name = "Extra guards",
+                    desc = "Prevents monster invasion, +2 upkeep",
+                    value = 2000,
+                    upkeep = 2
+                },
+                new()
+                {
+                    name = "Deep shaft expansion",
+                    desc = "+15 income",
+                    value = 4000,
+                    income = 15
+                }
+            }
+        },
+        new()
+        {
+            name = "Gold mine",
+            desc = "PROFIT gold/day",
+            value = 50000,
+            infestedCost = 2000,
+            income = 60,
+            upkeep = 10,
+            upkeepDiscount = 2,
+            buildPrice = 7500,
+            buildPriceDiscount = 500,
+            buildTime = 30,
+            locationIndexFunc = world => world.FindLocationIndex(x => x.hidden == TileType.Cave && x.mine && x.difficulty == 3),
+            upgrades = new Upgrade[]
+            {
+                new()
+                {
+                    name = "Extra guards",
+                    desc = "Prevents monster invasion, +2 upkeep",
+                    value = 2000,
+                    upkeep = 2
+                },
+                new()
+                {
+                    name = "Deep shaft expansion",
+                    desc = "+20 income",
+                    value = 5000,
+                    income = 20
+                }
+            }
+        },
+        new()
+        {
+            name = "Inn",
+            desc = "PROFIT gold/day, free rest",
+            value = 5000,
+            income = 10,
+            upkeep = 5,
+            status = Status.Active
+        }
+    };
 }

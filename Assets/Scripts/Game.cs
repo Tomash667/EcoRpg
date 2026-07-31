@@ -32,7 +32,7 @@ public class Game : MonoBehaviour
     public List<string> gardenPlants;
     public DragonStatus dragonStatus;
     public float guildProgress;
-    public int day, hour, minute, guildRank;
+    public int day, hour, minute, guildRank, freshHorses;
 
     private GameUI ui;
     private GameObject shopScreen, characterScreen, journalScreen, allyScreen, giveAllyItemsScreen, storeItemsScreen, activeInventory, propertiesScreen, guildScreen, gardenScreen, craftScreen,
@@ -888,6 +888,10 @@ public class Game : MonoBehaviour
         CheckBoredAllies();
 
         Tile tile = world.CurrentTile;
+
+        if (tile.type == TileType.City && player.HaveProperty("Horses") && player.HavePropertyUpgrade("Mansion", "Stables"))
+            freshHorses = 10;
+
         if (tile.type.IsSafe())
         {
             if (player.goldWaiting != 0)
@@ -1322,8 +1326,14 @@ public class Game : MonoBehaviour
             foreach (var skill in player.skills.Select(kvp => (name: kvp.Key.AsString().ToUpper1(), kvp.Value.level)).OrderBy(x => x.name))
                 sb.Append($"  {skill.name}: {skill.level}\n");
         }
-        if (player.rested > 0)
-            sb.Append($"Effects:\n  Well rested ({Utility.Plural("day", player.rested, true)})");
+        if (player.rested > 0 || freshHorses > 0)
+        {
+            sb.Append("Effects:\n");
+            if (player.rested > 0)
+                sb.Append($"  Well rested ({Utility.Plural("day", player.rested, true)})\n");
+            if (freshHorses > 0)
+                sb.Append($"  Fresh horses ({Utility.Plural("day", freshHorses, true)})\n");
+        }
         charText.text = sb.ToString();
 
         RefreshPlayerItems();
@@ -1468,6 +1478,8 @@ public class Game : MonoBehaviour
             FullRest();
             foreach (Hero hero in Team)
                 hero.rested = 11;
+            if (player.HaveProperty("Horses") && player.HavePropertyUpgrade("Mansion", "Stables"))
+                freshHorses = 11;
             lastAction += "You rest in your mansion.";
         }
         else if (location == TileType.City && player.HaveProperty("Inn"))
@@ -1666,6 +1678,9 @@ public class Game : MonoBehaviour
         else
             player.affection = allies.Max(x => x.affection);
 
+        if (freshHorses > 0)
+            --freshHorses;
+
         world.Update();
 
         // property events
@@ -1798,195 +1813,16 @@ public class Game : MonoBehaviour
             }
         };
         notifications = new();
-        properties = new()
+        properties = new();
+        foreach (Property property in Property.properties)
         {
-            new()
-            {
-                name = "House",
-                desc = "don't pay for inn",
-                value = 500,
-                status = Property.Status.Active,
-                locationIndex = -1,
-                upgrades = new Property.Upgrade[]
-                {
-                    new()
-                    {
-                        name = "Alchemy lab",
-                        desc = "+25 alchemy",
-                        value = 100
-                    },
-                    new()
-                    {
-                        name = "Garden",
-                        desc = "Grow food or herbs, +1 upkeep",
-                        value = 100,
-                        upkeep = 1
-                    }
-                }
-            },
-            new()
-            {
-                name = "Mansion",
-                desc = "don't pay for inn, better rest, UPKEEP upkeep",
-                value = 10000,
-                upkeep = 5,
-                status = Property.Status.Active,
-                locationIndex = -1,
-                upgrades = new Property.Upgrade[]
-                {
-                    new()
-                    {
-                        name = "Alchemy lab",
-                        desc = "+25 alchemy",
-                        value = 100
-                    },
-                    new()
-                    {
-                        name = "Garden",
-                        desc = "Grow food or herbs, +2 upkeep",
-                        value = 500,
-                        upkeep = 2
-                    }
-                }
-            },
-            new()
-            {
-                name = "Horses",
-                desc = "+25% travel speel",
-                value = 500,
-                status = Property.Status.Active,
-                locationIndex = -1
-            },
-            new()
-            {
-                name = "Sawmill",
-                desc = "PROFIT gold/day, reduce mines upkeep and build cost",
-                value = 5000,
-                infestedCost = 500,
-                income = 10,
-                upkeep = 5,
-                status = Property.Status.Active,
-                locationIndex = world.FindLocationIndex(x => x.type == TileType.Sawmill),
-                upgrades = new Property.Upgrade[]
-                {
-                    new()
-                    {
-                        name = "Extra guards",
-                        desc = "Prevents monster invasion, +1 upkeep",
-                        value = 1000,
-                        upkeep = 1
-                    },
-                    new()
-                    {
-                        name = "Water-powered saws",
-                        desc = "+5 income",
-                        value = 1500,
-                        income = 5
-                    }
-                }
-            },
-            new()
-            {
-                name = "Iron mine",
-                desc = "PROFIT gold/day",
-                value = 10000,
-                infestedCost = 750,
-                income = 20,
-                upkeep = 10,
-                upkeepDiscount = 2,
-                status = Property.Status.Active,
-                locationIndex = world.FindLocationIndex(x => x.type == TileType.Mine),
-                upgrades = new Property.Upgrade[]
-                {
-                    new()
-                    {
-                        name = "Extra guards",
-                        desc = "Prevents monster invasion, +2 upkeep",
-                        value = 2000,
-                        upkeep = 2
-                    },
-                    new()
-                    {
-                        name = "Deep shaft expansion",
-                        desc = "+10 income",
-                        value = 3000,
-                        income = 10
-                    }
-                }
-            },
-            new()
-            {
-                name = "Silver mine",
-                desc = "PROFIT gold/day",
-                value = 25000,
-                infestedCost = 1500,
-                income = 35,
-                upkeep = 10,
-                upkeepDiscount = 2,
-                buildPrice = 6000,
-                buildPriceDiscount = 500,
-                buildTime = 20,
-                locationIndex = world.FindLocationIndex(x => x.hidden == TileType.Cave && x.mine && x.difficulty == 2),
-                upgrades = new Property.Upgrade[]
-                {
-                    new()
-                    {
-                        name = "Extra guards",
-                        desc = "Prevents monster invasion, +2 upkeep",
-                        value = 2000,
-                        upkeep = 2
-                    },
-                    new()
-                    {
-                        name = "Deep shaft expansion",
-                        desc = "+15 income",
-                        value = 4000,
-                        income = 15
-                    }
-                }
-            },
-            new()
-            {
-                name = "Gold mine",
-                desc = "PROFIT gold/day",
-                value = 50000,
-                infestedCost = 2000,
-                income = 60,
-                upkeep = 10,
-                upkeepDiscount = 2,
-                buildPrice = 7500,
-                buildPriceDiscount = 500,
-                buildTime = 30,
-                locationIndex = world.FindLocationIndex(x => x.hidden == TileType.Cave && x.mine && x.difficulty == 3),
-                upgrades = new Property.Upgrade[]
-                {
-                    new()
-                    {
-                        name = "Extra guards",
-                        desc = "Prevents monster invasion, +2 upkeep",
-                        value = 2000,
-                        upkeep = 2
-                    },
-                    new()
-                    {
-                        name = "Deep shaft expansion",
-                        desc = "+20 income",
-                        value = 5000,
-                        income = 20
-                    }
-                }
-            },
-            new()
-            {
-                name = "Inn",
-                desc = "PROFIT gold/day, free rest",
-                value = 5000,
-                income = 10,
-                upkeep = 5,
-                status = Property.Status.Active,
-                locationIndex = -1
-            },
-        };
+            Property copy = property.Copy();
+            if (property.locationIndexFunc != null)
+                copy.locationIndex = property.locationIndexFunc(world);
+            else
+                copy.locationIndex = -1;
+            properties.Add(copy);
+        }
         lastAction = "You are an adventurer seeking glory and gold. Rumors speak of a dragon lurking deep within a forgotten cave beyond the wilds. " +
             "Find its lair, face the beast, and carve your name into legend.";
     }
@@ -2234,6 +2070,8 @@ public class Game : MonoBehaviour
                             UpdateButtons();
                             gardenPlants.Clear();
                         }
+                        if (property.name == "Horses" || property.name == "Mansion")
+                            freshHorses = 0;
                         AddTime(minutes: 30);
                         if (ui.CurrentDialog == propertiesScreen)
                         {
@@ -2384,6 +2222,8 @@ public class Game : MonoBehaviour
                             lastAction += $" They will take care of monsters infestation in {Utility.Plural("day", days, true)}.";
                         }
                     }
+                    else if (upgrade.name == "Stables")
+                        freshHorses = 10;
                     AddTime(minutes: 30);
                     if (ui.CurrentDialog == propertiesScreen)
                     {
@@ -2911,6 +2751,30 @@ public class Game : MonoBehaviour
     private void RegenerateWorld()
     {
         world.Init();
+        foreach (Property property in Property.properties)
+        {
+            if (property.locationIndexFunc != null)
+            {
+                Property copy = properties.FirstOrDefault(x => x.name == property.name) ?? player.properties.FirstOrDefault(x => x.name == property.name);
+                if (copy != null)
+                {
+                    copy.locationIndex = property.locationIndexFunc(world);
+                    Tile tile = world.GetLocation(copy.locationIndex);
+                    if (tile.type == TileType.Mountains && copy.status >= Property.Status.Building)
+                    {
+                        tile.type = TileType.Cave;
+                        tile.hidden = TileType.None;
+                        tile.image = TileImage.Cave;
+                        tile.clear = true;
+                    }
+                    if (tile.type == TileType.Cave && copy.status == Property.Status.Active)
+                    {
+                        tile.type = TileType.Mine;
+                        tile.image = TileImage.Mine;
+                    }
+                }
+            }
+        }
         map.Regenerate();
     }
 
@@ -2963,6 +2827,26 @@ public class Game : MonoBehaviour
 
         UpdateText();
         UpdateButtons();
+    }
+
+    [ContextMenu("Regenerate properties")]
+    private void RegenerateProperties()
+    {
+        foreach (Property property in Property.properties)
+        {
+            Property copy = properties.FirstOrDefault(x => x.name == property.name) ?? player.properties.FirstOrDefault(x => x.name == property.name);
+            if (copy != null)
+                copy.Update(property);
+            else
+            {
+                copy = property.Copy();
+                if (property.locationIndexFunc != null)
+                    copy.locationIndex = property.locationIndexFunc(world);
+                else
+                    copy.locationIndex = -1;
+                properties.Add(copy);
+            }
+        }
     }
 
     public void JoinGuild()

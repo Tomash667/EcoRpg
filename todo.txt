@@ -1,3 +1,5 @@
+- find artifact in deep forest
+
 v2:
 hero:
 - treasure/trophy gold is not split
@@ -14,7 +16,6 @@ hero:
 	recruit chance
 	initial skills
 + damage type - fire
-+ more enemies??
 + skip time
 + train
 + forage -> find food
@@ -35,9 +36,7 @@ investments:
 + office in city
 + farm
 + village house/inn
-+ mansion upgrades
-	office room
-	stables
++ mansion upgrades - office room
 + different text when entering mine being build or when finished while inside
 + see active events
 + fix prices: adventurers one time infestation cost the same amount as full time guards
