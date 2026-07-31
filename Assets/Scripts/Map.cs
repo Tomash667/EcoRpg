@@ -126,7 +126,7 @@ public class Map : MonoBehaviour
 
         if (targetPt == lastCheckedPos)
         {
-            if(path != null && Input.GetMouseButtonDown(0))
+            if (path != null && Input.GetMouseButtonDown(0))
             {
                 Global.Game.Travel(targetPt, !Input.GetKey(KeyCode.LeftShift));
             }

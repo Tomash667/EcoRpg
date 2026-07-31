@@ -16,7 +16,7 @@ public class Arrow : MonoBehaviour
     {
         int segments = transform.childCount - 1;
         int reqSegments = path.Count - 1;
-        if(segments < reqSegments)
+        if (segments < reqSegments)
         {
             for (int i = segments; i < reqSegments; ++i)
                 Instantiate(line, transform);

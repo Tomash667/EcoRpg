@@ -38,6 +38,7 @@ Right button - move map
 Mouse wheel - zoom in/out map
 
 Skills:
-Alchemy - create extra potions
+Alchemy - create extra potions and better recipes
+Management - ???
 Mining - extra payment in mine
 Woodwork - extra payment in sawmill

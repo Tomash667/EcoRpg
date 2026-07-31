@@ -2968,7 +2968,8 @@ public class Game : MonoBehaviour
     public void JoinGuild()
     {
         guildRank = 1;
-        lastAction = "You register as an adventurer.";
+        lastAction = "You fill out form and register as adventurer. From this day forward, you are free to accept quests, earn rewards, and carve your own path through the dungeons. " +
+            "May your courage be greater than the dangers ahead, and your pack always heavy with treasure.";
         AddTime(minutes: 15);
         if (ui.CurrentDialog == guildScreen)
             RefreshGuild();

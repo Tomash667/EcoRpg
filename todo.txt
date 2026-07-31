@@ -18,7 +18,6 @@ hero:
 + skip time
 + train
 + forage -> find food
-+ guild register event
 + combat
 	enemy block
 	enemy back row
@@ -43,9 +42,6 @@ investments:
 + see active events
 + fix prices: adventurers one time infestation cost the same amount as full time guards
 + quest to get into investing
-
-skills:
-+ management
 
 world:
 + regions (difficulty)
@@ -160,6 +156,7 @@ ui:
 investments:
 + cottage/big house
 + manage mine/sawmill
+	skill
 	safety
 	corruption
 + sawmill upgrades
@@ -182,6 +179,7 @@ investments:
 + brewery/vineyard -> inn bonus
 + hire mercenaries that you can move between locations
 + bureaucracy (manager needs to work more)
++ foreman -> trains others over time
 
 skills:
 + haggle
