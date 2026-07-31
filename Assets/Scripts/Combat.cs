@@ -303,7 +303,14 @@ public class Combat : MonoBehaviour
             else
                 hero.card.Dodge();
         }
-        me.card.Attack();
+
+        if (me.enemy.attackType == Enemy.AttackType.Ranged)
+        {
+            Arrow2 arrow = Instantiate(arrowPrefab, transform).GetComponent<Arrow2>();
+            arrow.Shoot(me.card.position, hero.card.position);
+        }
+        else
+            me.card.Attack();
     }
 
     public static bool AttackChance(int myDex, int targetDex)

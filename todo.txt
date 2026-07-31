@@ -20,7 +20,6 @@ hero:
 + combat
 	enemy block
 	enemy back row
-	enemy ranged attacks
 	enemy special attacks (dragon breath, ...)
 	order to target enemy
 	delay log to match cards
@@ -235,3 +234,4 @@ world:
 + travel over lake
 + sea/ocean/big lake
 + plane of water/fire etc
++ elven village

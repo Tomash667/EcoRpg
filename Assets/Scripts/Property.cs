@@ -146,7 +146,7 @@ public class Property
             name = name,
             desc = desc,
             events = new(),
-            upgrades = upgrades.Select(x => new Upgrade { name = name, desc = desc, value = value, income = income, upkeep = upkeep }).ToArray(),
+            upgrades = upgrades?.Select(x => new Upgrade { name = name, desc = desc, value = value, income = income, upkeep = upkeep }).ToArray(),
             status = status,
             value = value,
             infestedCost = infestedCost,

@@ -22,6 +22,7 @@ public class GameUI : MonoBehaviour
 
     private List<GameObject> dialogs;
     private Func<int, bool> inputFunc;
+    private Func<string, bool> inputStrFunc;
     private Action<bool> confirmAction2;
     private Action confirmAction;
     private GameObject okDialog, confirmDialog, inputDialog;
@@ -79,6 +80,21 @@ public class GameUI : MonoBehaviour
         inputDialog.transform.GetChild(0).GetChild(0).GetComponent<TMP_Text>().text = text;
         TMP_InputField input = inputDialog.transform.GetChild(0).GetChild(1).GetComponent<TMP_InputField>();
         input.text = string.Empty;
+        input.contentType = TMP_InputField.ContentType.IntegerNumber;
+        inputDialog.transform.SetAsLastSibling();
+        inputDialog.SetActive(true);
+        input.ActivateInputField();
+        dialogs.Add(inputDialog);
+    }
+
+
+    public void ShowInput(string text, Func<string, bool> func, string def = null)
+    {
+        inputStrFunc = func;
+        inputDialog.transform.GetChild(0).GetChild(0).GetComponent<TMP_Text>().text = text;
+        TMP_InputField input = inputDialog.transform.GetChild(0).GetChild(1).GetComponent<TMP_InputField>();
+        input.text = def ?? string.Empty;
+        input.contentType = TMP_InputField.ContentType.Standard;
         inputDialog.transform.SetAsLastSibling();
         inputDialog.SetActive(true);
         input.ActivateInputField();
@@ -102,13 +118,20 @@ public class GameUI : MonoBehaviour
 
     public void ConfirmDialog()
     {
-        GameObject currentDialog = dialogs[^1];
-        if (currentDialog == inputDialog)
+        if (CurrentDialog == inputDialog)
         {
             TMP_InputField input = inputDialog.transform.GetChild(0).GetChild(1).GetComponent<TMP_InputField>();
             string text = input.text.Trim();
-            if (int.TryParse(text, out int value) && inputFunc(value))
-                CloseDialogInternal();
+            if (input.contentType == TMP_InputField.ContentType.IntegerNumber)
+            {
+                if (int.TryParse(text, out int value) && inputFunc(value) && CurrentDialog == inputDialog)
+                    CloseDialogInternal();
+            }
+            else
+            {
+                if (inputStrFunc(text) && CurrentDialog == inputDialog)
+                    CloseDialogInternal();
+            }
         }
         else
         {

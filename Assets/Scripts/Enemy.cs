@@ -10,11 +10,18 @@ public class Enemy
         It
     }
 
+    public enum AttackType
+    {
+        Normal,
+        Ranged
+    }
+
     public string name;
     public Vector2Int gold;
     public (TileType tileType, int difficulty)[] locations;
     public (Item item, float chance)[] drops;
     public int level, hp, attack, def, dex, difficulty;
+    public AttackType attackType;
     public Pronoun pronoun;
 
     public string him
@@ -35,6 +42,11 @@ public class Enemy
     public static Enemy Get(string name)
     {
         return enemies.First(x => x.name == name);
+    }
+
+    public static Enemy TryGet(string name)
+    {
+        return enemies.FirstOrDefault(x => x.name == name);
     }
 
     public static Enemy GetRandom(TileType tileType, int difficulty)
@@ -101,6 +113,7 @@ public class Enemy
             def = 3,
             dex = 9,
             gold = new(20, 30),
+            attackType = AttackType.Ranged,
             pronoun = Pronoun.She
         },
         new()

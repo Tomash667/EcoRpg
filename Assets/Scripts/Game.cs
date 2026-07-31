@@ -47,7 +47,7 @@ public class Game : MonoBehaviour
     private Property selectedProperty;
     private readonly StringBuilder sb = new();
     private System.Action<bool> choiceAction;
-    private string lastAction;
+    private string lastAction, lastTestCombat;
     private bool inChoice, traveled;
 
     public IEnumerable<Hero> Team
@@ -3211,5 +3211,52 @@ public class Game : MonoBehaviour
             if (Resources.Load<Sprite>(path) == null)
                 Debug.LogError($"Missing '{path}'.");
         }
+    }
+
+    [ContextMenu("Test combat")]
+    private void TestCombat()
+    {
+        ui.ShowInput("Test combat vs:", TestCombat, lastTestCombat);
+    }
+
+    private bool TestCombat(string enemiesStr)
+    {
+        string[] parts = enemiesStr.Split(',', System.StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim()).ToArray();
+        if (parts.Length == 0)
+            return false;
+
+        List<Enemy> enemyList = new();
+        foreach (string part in parts)
+        {
+            string[] innerParts = part.Split(' ', System.StringSplitOptions.RemoveEmptyEntries);
+            int count = 1;
+            string name;
+            if (innerParts.Length > 1 && int.TryParse(innerParts[0], out count))
+                name = string.Join(' ', innerParts.Skip(1));
+            else
+                name = part;
+
+            Enemy enemy = Enemy.TryGet(name);
+            if (enemy == null)
+            {
+                ui.ShowDialog($"Invalid enemy '{name}'.");
+                return false;
+            }
+            for (int i = 0; i < count; ++i)
+                enemyList.Add(enemy);
+        }
+
+        if (enemyList.Count > MaxAllies + 1)
+        {
+            ui.ShowDialog("Too many enemies.");
+            return false;
+        }
+
+        ui.CloseDialog();
+        lastTestCombat = enemiesStr;
+        combatScreen.Init(enemyList);
+        ui.lockDialog = true;
+        ui.ShowDialog(combatScreen.gameObject);
+        return true;
     }
 }
