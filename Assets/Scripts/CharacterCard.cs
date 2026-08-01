@@ -13,7 +13,8 @@ public class CharacterCard : MonoBehaviour
         Block,
         BlockDamage,
         Escape,
-        Heal
+        Heal,
+        PoisonDamage
     }
 
     public int index;
@@ -21,6 +22,7 @@ public class CharacterCard : MonoBehaviour
     private Action action;
     private float timer, prevPos, nextHp;
     private int actionState, dir;
+    private bool applyPoison;
 
     public Vector2 position => (transform as RectTransform).anchoredPosition;
 
@@ -42,6 +44,8 @@ public class CharacterCard : MonoBehaviour
         transform.GetChild(0).GetComponent<Image>().color = hp > 0 ? Color.white : new(0.25f, 0, 0);
         RectTransform rectTransform = transform.GetChild(2).GetComponent<RectTransform>();
         rectTransform.sizeDelta = new Vector2(141.87f * hp, 6.0632f);
+        if (hp <= 0)
+            transform.GetChild(6).gameObject.SetActive(false);
     }
 
     private void Update()
@@ -95,6 +99,11 @@ public class CharacterCard : MonoBehaviour
                 {
                     transform.GetChild(4).gameObject.SetActive(true);
                     SetHp(nextHp);
+                    if (applyPoison)
+                    {
+                        transform.GetChild(6).gameObject.SetActive(true);
+                        applyPoison = false;
+                    }
                     actionState = 1;
                 }
             }
@@ -120,6 +129,11 @@ public class CharacterCard : MonoBehaviour
                     {
                         transform.GetChild(4).gameObject.SetActive(true);
                         SetHp(nextHp);
+                        if (applyPoison)
+                        {
+                            transform.GetChild(6).gameObject.SetActive(true);
+                            applyPoison = false;
+                        }
                     }
                 }
                 RectTransform rectTransform = transform as RectTransform;
@@ -151,6 +165,7 @@ public class CharacterCard : MonoBehaviour
                 if (timer >= 0.15f)
                 {
                     transform.GetChild(5).gameObject.SetActive(true);
+                    transform.GetChild(6).gameObject.SetActive(false);
                     SetHp(nextHp);
                     actionState = 1;
                 }
@@ -162,6 +177,14 @@ public class CharacterCard : MonoBehaviour
                     transform.GetChild(5).gameObject.SetActive(false);
                     action = Action.None;
                 }
+            }
+            break;
+        case Action.PoisonDamage:
+            timer += Time.deltaTime;
+            if (timer >= 0.2f)
+            {
+                transform.GetChild(7).gameObject.SetActive(false);
+                action = Action.None;
             }
             break;
         }
@@ -191,6 +214,15 @@ public class CharacterCard : MonoBehaviour
         timer = 0;
     }
 
+    public void PoisonDamage(float nextHp)
+    {
+        SetHp(nextHp);
+        action = Action.PoisonDamage;
+        transform.GetChild(7).gameObject.SetActive(true);
+        actionState = 0;
+        timer = 0;
+    }
+
     public void Block(float nextHp = Mathf.NegativeInfinity)
     {
         if (nextHp == Mathf.NegativeInfinity)
@@ -216,5 +248,10 @@ public class CharacterCard : MonoBehaviour
         action = Action.Heal;
         actionState = 0;
         timer = 0;
+    }
+
+    public void Poison()
+    {
+        applyPoison = true;
     }
 }

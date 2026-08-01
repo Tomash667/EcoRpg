@@ -13,7 +13,8 @@ public class Enemy
     public enum AttackType
     {
         Normal,
-        Ranged
+        Ranged,
+        Poison
     }
 
     public string name;
@@ -153,6 +154,7 @@ public class Enemy
             def = 8,
             dex = 16,
             drops = new[] { (Item.Get("trophy"), 0.75f) },
+            attackType = AttackType.Poison,
             pronoun = Pronoun.It
         },
         new()
@@ -358,6 +360,7 @@ public class Enemy
             def = 11,
             dex = 24,
             drops = new[] { (Item.Get("meat"), 3.5f), (Item.Get("trophy"), 1.2f) },
+            attackType = AttackType.Poison,
             pronoun = Pronoun.It
         },
         new()
@@ -394,6 +397,7 @@ public class Enemy
             def = 15,
             dex = 32,
             gold = new(140, 210),
+            attackType = AttackType.Poison,
             pronoun = Pronoun.It
         },
         new()

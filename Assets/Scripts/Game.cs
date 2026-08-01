@@ -3229,12 +3229,15 @@ public class Game : MonoBehaviour
         foreach (string part in parts)
         {
             string[] innerParts = part.Split(' ', System.StringSplitOptions.RemoveEmptyEntries);
-            int count = 1;
+            int count;
             string name;
             if (innerParts.Length > 1 && int.TryParse(innerParts[0], out count))
                 name = string.Join(' ', innerParts.Skip(1));
             else
+            {
                 name = part;
+                count = 1;
+            }
 
             Enemy enemy = Enemy.TryGet(name);
             if (enemy == null)
@@ -3244,6 +3247,12 @@ public class Game : MonoBehaviour
             }
             for (int i = 0; i < count; ++i)
                 enemyList.Add(enemy);
+        }
+
+        if (enemyList.Count == 0)
+        {
+            ui.ShowDialog("Empty list.");
+            return false;
         }
 
         if (enemyList.Count > MaxAllies + 1)

@@ -44,6 +44,7 @@ public class Combat : MonoBehaviour
     private Action action;
     private float timer;
     private int combatIndex;
+    private bool effectTick;
 
     public void Init()
     {
@@ -111,6 +112,7 @@ public class Combat : MonoBehaviour
         timer = 0.5f;
         arrow.SetActive(false);
         action = Action.None;
+        effectTick = true;
 
         transform.parent.Find("Buttons").gameObject.SetActive(false);
         AppendText($"You explore the {Global.World.CurrentTile.Name} and <b>{Utility.PrettyGroup(enemyList.Select(x => x.name))}</b> {Utility.S("attack", enemyList.Count == 1)} you.");
@@ -140,17 +142,25 @@ public class Combat : MonoBehaviour
         }
 
         int unitIndex = order[combatIndex];
+        bool nextUnit;
         if (unitIndex < 0)
-            HeroAction(unitIndex);
+            nextUnit = HeroAction(unitIndex);
         else
+        {
             EnemyAction(unitIndex);
+            nextUnit = true;
+        }
 
-        ++combatIndex;
-        if (combatIndex == order.Count)
-            combatIndex = 0;
+        if (nextUnit)
+        {
+            ++combatIndex;
+            if (combatIndex == order.Count)
+                combatIndex = 0;
+            effectTick = true;
+        }
     }
 
-    private void HeroAction(int unitIndex)
+    private bool HeroAction(int unitIndex)
     {
         Hero hero = unitIndex == -1 ? game.player : game.allies[-unitIndex - 2];
         if (!hero.BackRow)
@@ -167,7 +177,7 @@ public class Combat : MonoBehaviour
                     hero2.card.Escape();
                 arrow.SetActive(false);
                 action = Action.None;
-                return;
+                return false;
             }
             else if (action == Action.Heal)
             {
@@ -177,13 +187,37 @@ public class Combat : MonoBehaviour
                     HeroUsePotion(hero, potion);
                     arrow.SetActive(false);
                     action = Action.None;
-                    return;
+                    return true;
                 }
             }
         }
 
         if (hero.hp > 0)
         {
+            if (effectTick && hero.poison > 0)
+            {
+                timer = 0.3f;
+                hero.hp -= hero.poison;
+                hero.card.PoisonDamage(hero.hpp);
+                if (hero.hp <= 0)
+                {
+                    hero.potionTimer = hero.potionsUsed;
+                    hero.poison = 0;
+                    AppendText($"{hero.NameYou} {Utility.S("take", hero is not Player)} {hero.poison} poison damage and {hero.isAre} defeated.");
+                    if (game.Team.All(x => x.hp <= 0))
+                    {
+                        // lost
+                        AppendText("You lost!");
+                        result = Result.Defeat;
+                        timer = 0.5f;
+                    }
+                }
+                else
+                    AppendText($"{hero.NameYou} {Utility.S("take", hero is not Player)} {hero.poison} poison damage.");
+                effectTick = false;
+                return false;
+            }
+
             timer = 0.5f;
             Unit target = enemies.RandomItem(x => x.hp > 0);
             if (AttackChance(hero.dex, target.enemy.dex))
@@ -235,6 +269,8 @@ public class Combat : MonoBehaviour
         }
         else
             hero.potionTimer--;
+
+        return true;
     }
 
     private void HeroUsePotion(Hero hero, ItemSlot potion)
@@ -243,6 +279,7 @@ public class Combat : MonoBehaviour
         hero.hp = Mathf.Min(hero.hp + potion.item.power, hero.hpMax);
         hero.RemoveItem(potion);
         hero.potionsUsed++;
+        hero.poison = 0;
         AppendText(hero is Player
             ? $"You use {potion.item.name} and get healed for {hero.hp - prevHp}."
             : $"{hero.name} use {potion.item.name} and get healed for {hero.hp - prevHp}.");
@@ -278,7 +315,8 @@ public class Combat : MonoBehaviour
             if (hero.hp <= 0)
             {
                 hero.potionTimer = hero.potionsUsed;
-                AppendText($"{me.enemy.name.ToUpper1()} hits {(hero is Player ? "you" : hero.name)} for {dmg} damage and defeats {hero.him}.");
+                hero.poison = 0;
+                AppendText($"{me.enemy.name.ToUpper1()} hits {hero.nameYou} for {dmg} damage and defeats {hero.him}.");
                 if (game.Team.All(x => x.hp <= 0))
                 {
                     // lost
@@ -288,7 +326,22 @@ public class Combat : MonoBehaviour
                 }
             }
             else
-                AppendText($"{me.enemy.name.ToUpper1()} hits {(hero is Player ? "you" : hero.name)} for {dmg} damage.");
+            {
+                string str = $"{me.enemy.name.ToUpper1()} hits {hero.nameYou} for {dmg} damage.";
+                if (me.enemy.attackType == Enemy.AttackType.Poison && dmg > 0)
+                {
+                    int poison = dmg / 5;
+                    if (poison == 0)
+                        poison = 1;
+                    if (hero.poison == 0)
+                    {
+                        str += $" {hero.nameYou} {hero.isAre} poisoned.";
+                        hero.card.Poison();
+                    }
+                    hero.poison += poison;
+                }
+                AppendText(str);
+            }
 
             if (isBlocking)
                 hero.card.Block(hero.hpp);
@@ -297,7 +350,7 @@ public class Combat : MonoBehaviour
         }
         else
         {
-            AppendText($"{me.enemy.name.ToUpper1()} misses {(hero is Player ? "you" : hero.name)}.");
+            AppendText($"{me.enemy.name.ToUpper1()} misses {hero.nameYou}.");
             if (isBlocking)
                 hero.card.Block();
             else

@@ -11,7 +11,9 @@ public class Player : Hero
     public int goldReceived;
 
     public override string nameYou => "you";
+    public override string NameYou => "You";
     public override string him => "you";
+    public override string isAre => "are";
 
     public void Init()
     {

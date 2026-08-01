@@ -20,7 +20,18 @@ hero:
 + combat
 	enemy block
 	enemy back row
-	enemy special attacks (dragon breath, ...)
+	enemy special attacks
+		small dragon - fire (1 target)
+		dragon - fire (multi target)
+		vampire - life drain
+		tentacle monster - multi attack
+		hydra - multi attack
+		hulking horror - block
+		dragon man - block
+		nameless horror - confusion
+		mummy - block
+		lich - summon mummy, damage spell
+		demon - fire (1 target)
 	order to target enemy
 	delay log to match cards
 	hero use potion while hp > 0
@@ -110,6 +121,11 @@ hero:
 + combat
 	escape chance
 	enemy escape
+	special attacks
+		tentacle monster - grab attack
+		spider - web (slow)
+		dryad - charm
+		purple worm - engulf
 + more interesting dungeon exploring - random d20 rooms, explored%
 + dungeon types - less/more traps, less/more monsters, trap types
 + ally traits

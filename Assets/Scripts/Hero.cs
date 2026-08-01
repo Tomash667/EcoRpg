@@ -18,7 +18,7 @@ public class Hero : ISerializationCallbackReceiver
     [NonSerialized]
     public CharacterCard card;
     [NonSerialized]
-    public int potionTimer, potionsUsed;
+    public int potionTimer, potionsUsed, poison;
     [NonSerialized]
     public bool canBlock;
 
@@ -65,8 +65,10 @@ public class Hero : ISerializationCallbackReceiver
     public bool BackRow => clas == Class.Archer;
     public char GenderSign => female ? '♀' : '♂';
     public virtual string nameYou => name;
+    public virtual string NameYou => name;
     public string He => female ? "She" : "He";
     public virtual string him => female ? "her" : "him";
+    public virtual string isAre => "is";
     public string Portrait => $"Portraits/{(female ? "female" : "male")} {clas.AsString()}";
 
     public void Init(int startLevel = 0)
@@ -132,6 +134,7 @@ public class Hero : ISerializationCallbackReceiver
     {
         potionTimer = 0;
         potionsUsed = 0;
+        poison = 0;
         if (clas == Class.Warrior)
             canBlock = true;
         else
