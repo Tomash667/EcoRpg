@@ -14,7 +14,8 @@ public class Enemy
     {
         Normal,
         Ranged,
-        Poison
+        Poison,
+        LifeSteal
     }
 
     public string name;
@@ -286,6 +287,7 @@ public class Enemy
             def = 8,
             dex = 20,
             gold = new(70, 105),
+            attackType = AttackType.LifeSteal,
             pronoun = Pronoun.He
         },
         new()
@@ -373,6 +375,7 @@ public class Enemy
             def = 15,
             dex = 40,
             gold = new(140, 210),
+            attackType = AttackType.LifeSteal,
             pronoun = Pronoun.It
         },
         new()

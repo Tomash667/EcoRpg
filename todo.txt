@@ -1,5 +1,7 @@
 v2:
 hero:
++ player start eq
++ slower exp gain
 - treasure/trophy gold is not split
 + lose consequences
 + forage -> enemies
@@ -23,7 +25,6 @@ hero:
 	enemy special attacks
 		small dragon - fire (1 target)
 		dragon - fire (multi target)
-		vampire - life drain
 		tentacle monster - multi attack
 		hydra - multi attack
 		hulking horror - block

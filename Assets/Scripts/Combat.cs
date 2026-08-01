@@ -26,6 +26,8 @@ public class Combat : MonoBehaviour
         public Enemy enemy;
         public CharacterCard card;
         public int hp;
+
+        public float hpp => ((float)hp) / enemy.hp;
     }
 
     public GameObject characterCardPrefab, arrowPrefab;
@@ -224,8 +226,7 @@ public class Combat : MonoBehaviour
             {
                 int dmg = Mathf.Max(hero.Attack - target.enemy.def, 0);
                 target.hp -= dmg;
-                float hpp = ((float)target.hp) / target.enemy.hp;
-                target.card.Damage(hpp);
+                target.card.Damage(target.hpp);
                 if (target.hp <= 0)
                 {
                     AppendText(hero is Player
@@ -307,6 +308,7 @@ public class Combat : MonoBehaviour
             }
         }
 
+        bool lifesteal = false;
         timer = 0.5f;
         if (AttackChance(me.enemy.dex, hero.dex))
         {
@@ -347,6 +349,16 @@ public class Combat : MonoBehaviour
                 hero.card.Block(hero.hpp);
             else
                 hero.card.Damage(hero.hpp);
+
+            if (me.enemy.attackType == Enemy.AttackType.LifeSteal && me.hp < me.enemy.hp && dmg >= 2)
+            {
+                int heal = dmg / 2;
+                int prev = me.hp;
+                me.hp = Mathf.Min(me.hp + heal, me.enemy.hp);
+                heal = me.hp - prev;
+                AppendText($"{me.enemy.name.ToUpper1()} is healed for {heal}.");
+                lifesteal = true;
+            }
         }
         else
         {
@@ -362,6 +374,8 @@ public class Combat : MonoBehaviour
             Arrow2 arrow = Instantiate(arrowPrefab, transform).GetComponent<Arrow2>();
             arrow.Shoot(me.card.position, hero.card.position);
         }
+        else if (lifesteal)
+            me.card.Attack(me.hpp);
         else
             me.card.Attack();
     }
@@ -377,7 +391,7 @@ public class Combat : MonoBehaviour
     private void AppendText(string str)
     {
         textParts.Add(str);
-        if (textParts.Count > 4)
+        if (textParts.Count > 5)
             textParts.RemoveAt(0);
         text.text = string.Join('\n', textParts);
         game.SetText(null);

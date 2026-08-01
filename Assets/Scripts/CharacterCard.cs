@@ -45,7 +45,7 @@ public class CharacterCard : MonoBehaviour
         RectTransform rectTransform = transform.GetChild(2).GetComponent<RectTransform>();
         rectTransform.sizeDelta = new Vector2(141.87f * hp, 6.0632f);
         if (hp <= 0)
-            transform.GetChild(6).gameObject.SetActive(false);
+            transform.GetChild(6).gameObject.SetActive(false); // remove poison effect
     }
 
     private void Update()
@@ -57,14 +57,29 @@ public class CharacterCard : MonoBehaviour
             if (actionState == 0)
             {
                 if (timer >= 0.15f)
+                {
+                    if (nextHp > 0)
+                    {
+                        // heal on attack
+                        transform.GetChild(5).gameObject.SetActive(true);
+                        SetHp(nextHp);
+                    }
                     actionState = 1;
+                }
                 RectTransform rectTransform = transform as RectTransform;
                 rectTransform.anchoredPosition = new Vector2(rectTransform.anchoredPosition.x, Mathf.Lerp(prevPos, prevPos + 50f * dir, timer / 0.15f));
             }
             else if (actionState == 1)
             {
                 if (timer >= 0.35f)
+                {
                     action = Action.None;
+                    if (nextHp > 0)
+                    {
+                        // heal on attack
+                        transform.GetChild(5).gameObject.SetActive(false);
+                    }
+                }
                 RectTransform rectTransform = transform as RectTransform;
                 rectTransform.anchoredPosition = new Vector2(rectTransform.anchoredPosition.x, Mathf.Lerp(prevPos + 50f * dir, prevPos, (timer - 0.15f) / 0.2f));
             }
@@ -165,7 +180,7 @@ public class CharacterCard : MonoBehaviour
                 if (timer >= 0.15f)
                 {
                     transform.GetChild(5).gameObject.SetActive(true);
-                    transform.GetChild(6).gameObject.SetActive(false);
+                    transform.GetChild(6).gameObject.SetActive(false); // remove poison effect
                     SetHp(nextHp);
                     actionState = 1;
                 }
@@ -190,8 +205,9 @@ public class CharacterCard : MonoBehaviour
         }
     }
 
-    public void Attack()
+    public void Attack(float nextHp = -1f)
     {
+        this.nextHp = nextHp;
         action = Action.Attack;
         actionState = 0;
         timer = 0;
