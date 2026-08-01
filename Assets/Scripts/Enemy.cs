@@ -18,13 +18,14 @@ public class Enemy
         LifeSteal
     }
 
-    public string name;
+    public string name, ally;
     public Vector2Int gold, attacks = new(1, 1);
     public (TileType tileType, int difficulty)[] locations;
     public (Item item, float chance)[] drops;
     public int level, hp, attack, def, dex, difficulty;
     public AttackType attackType;
     public Pronoun pronoun;
+    public bool blocks;
 
     public string him
     {
@@ -241,6 +242,7 @@ public class Enemy
         new()
         {
             name = "skeleton",
+            ally = "zombie",
             locations = new[] { (TileType.Dungeon, 1) },
             difficulty = 1,
             level = 3,
@@ -254,6 +256,7 @@ public class Enemy
         new()
         {
             name = "zombie",
+            ally = "skeleton",
             locations = new[] { (TileType.Dungeon, 1) },
             difficulty = 1,
             level = 3,
@@ -262,11 +265,13 @@ public class Enemy
             def = 6,
             dex = 8,
             gold = new(40, 60),
-            pronoun = Pronoun.It
+            pronoun = Pronoun.It,
+            blocks = true
         },
         new()
         {
             name = "mummy",
+            ally = "vampire",
             locations = new[] { (TileType.Dungeon, 2) },
             difficulty = 2,
             level = 5,
@@ -275,11 +280,13 @@ public class Enemy
             def = 9,
             dex = 10,
             gold = new(60, 90),
-            pronoun = Pronoun.It
+            pronoun = Pronoun.It,
+            blocks = true
         },
         new()
         {
             name = "vampire",
+            ally = "mummy",
             locations = new[] { (TileType.Dungeon, 2) },
             difficulty = 2,
             level = 6,
@@ -326,7 +333,8 @@ public class Enemy
             def = 11,
             dex = 22,
             gold = new(90, 135),
-            pronoun = Pronoun.He
+            pronoun = Pronoun.He,
+            blocks = true
         },
         new()
         {
@@ -390,7 +398,8 @@ public class Enemy
             def = 18,
             dex = 32,
             gold = new(140, 210),
-            pronoun = Pronoun.It
+            pronoun = Pronoun.It,
+            blocks = true
         },
         new()
         {

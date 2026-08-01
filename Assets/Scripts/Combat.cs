@@ -26,6 +26,7 @@ public class Combat : MonoBehaviour
         public Enemy enemy;
         public CharacterCard card;
         public int hp;
+        public bool canBlock;
 
         public float hpp => ((float)hp) / enemy.hp;
     }
@@ -86,16 +87,20 @@ public class Combat : MonoBehaviour
             hero.card = card;
         }
 
+        multiRow = enemyList.Any(x => x.blocks != enemyList[0].blocks);
         for (int i = 0; i < enemyList.Count; ++i)
         {
             Enemy enemy = enemyList[i];
             CharacterCard card = Instantiate(characterCardPrefab, container).GetComponent<CharacterCard>();
             card.Init(enemy.name, 1f, true, Resources.Load<Sprite>(enemy.Portrait));
             RectTransform transform = card.GetComponent<RectTransform>();
-            transform.anchoredPosition = enemyPos[i];
+            Vector2 pos = enemyPos[i];
+            if (multiRow && enemy.blocks)
+                pos.y -= 25;
+            transform.anchoredPosition = pos;
             order.Add(i);
             card.index = i;
-            enemies.Add(new Unit { enemy = enemy, card = card, hp = enemy.hp });
+            enemies.Add(new Unit { enemy = enemy, card = card, hp = enemy.hp, canBlock = enemy.blocks });
         }
 
         order = order.Select(x =>
@@ -220,11 +225,28 @@ public class Combat : MonoBehaviour
 
             timer = 0.5f;
             Unit target = enemies.RandomItem(x => x.hp > 0);
+            bool isBlocking = false;
+            if (!target.enemy.blocks)
+            {
+                // front row enemies can block attack once per round
+                Unit blockingEnemy = enemies.RandomItem(x => x.hp > 0 && x.canBlock);
+                if (blockingEnemy != null)
+                {
+                    target = blockingEnemy;
+                    target.canBlock = false;
+                    isBlocking = true;
+                }
+            }
+
             if (AttackChance(hero.dex, target.enemy.dex))
             {
                 int dmg = Mathf.Max(hero.Attack - target.enemy.def, 0);
                 target.hp -= dmg;
-                target.card.Damage(target.hpp);
+                if (isBlocking)
+                    target.card.Block(target.hpp);
+                else
+                    target.card.Damage(target.hpp);
+
                 if (target.hp <= 0)
                 {
                     AppendText(hero is Player
@@ -249,7 +271,10 @@ public class Combat : MonoBehaviour
                 AppendText(hero is Player
                     ? $"You miss {target.enemy.name}."
                     : $"{hero.name} misses {target.enemy.name}.");
-                target.card.Dodge();
+                if (isBlocking)
+                    target.card.Block();
+                else
+                    target.card.Dodge();
             }
 
             if (hero.weapon != null && hero.weapon.subtype == Item.Subtype.Bow)
@@ -297,6 +322,7 @@ public class Combat : MonoBehaviour
             effectTick = false;
             attacks = me.enemy.attacks.Random();
             hitHeroes.Clear();
+            me.canBlock = me.enemy.blocks;
         }
 
         Hero hero = game.Team.RandomItem(x => x.hp > 0 && !hitHeroes.Contains(x));

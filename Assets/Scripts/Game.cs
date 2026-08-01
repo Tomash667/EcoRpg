@@ -292,10 +292,17 @@ public class Game : MonoBehaviour
                         enemyList.Add(Enemy.GetRandom(TileType.DarkDimension, 4));
                 }
             }
-            else
+            else if (enemy.ally == null)
             {
                 for (int i = 0; i < count; ++i)
                     enemyList.Add(enemy);
+            }
+            else
+            {
+                enemyList.Add(enemy);
+                Enemy ally = Enemy.Get(enemy.ally);
+                for (int i = 1; i < count; ++i)
+                    enemyList.Add(Utility.Rand % 2 == 0 ? ally : enemy);
             }
 
             combatScreen.Init(enemyList);

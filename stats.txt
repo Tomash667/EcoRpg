@@ -15,7 +15,7 @@ cave
 	2 - giant spider (5)
 	3 - purple worm (8)
 dungeon
-	1 - skeleton (3), zomie (3)
+	1 - skeleton (3), zombie (3)
 	2 - vampire (6), mummy (5)
 	3 - demon (9), lich (10)
 swamp
