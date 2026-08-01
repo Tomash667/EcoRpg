@@ -37,6 +37,7 @@ public class Combat : MonoBehaviour
 
     private readonly List<string> textParts = new();
     private readonly List<Unit> enemies = new();
+    private readonly List<Hero> hitHeroes = new();
     private List<Enemy> enemyList;
     private List<int> order = new();
     private Game game;
@@ -45,7 +46,7 @@ public class Combat : MonoBehaviour
     private Result result;
     private Action action;
     private float timer;
-    private int combatIndex;
+    private int combatIndex, attacks;
     private bool effectTick;
 
     public void Init()
@@ -148,10 +149,7 @@ public class Combat : MonoBehaviour
         if (unitIndex < 0)
             nextUnit = HeroAction(unitIndex);
         else
-        {
-            EnemyAction(unitIndex);
-            nextUnit = true;
-        }
+            nextUnit = EnemyAction(unitIndex);
 
         if (nextUnit)
         {
@@ -288,15 +286,24 @@ public class Combat : MonoBehaviour
         timer = 0.5f;
     }
 
-    private void EnemyAction(int unitIndex)
+    private bool EnemyAction(int unitIndex)
     {
         Unit me = enemies[unitIndex];
         if (me.hp <= 0)
-            return;
+            return true;
 
-        Hero hero = game.Team.RandomItem(x => x.hp > 0);
+        if (effectTick)
+        {
+            effectTick = false;
+            attacks = me.enemy.attacks.Random();
+            hitHeroes.Clear();
+        }
+
+        Hero hero = game.Team.RandomItem(x => x.hp > 0 && !hitHeroes.Contains(x));
         bool isBlocking = false;
-        if (hero.BackRow)
+        if (hero == null)
+            return true;
+        else if (hero.BackRow)
         {
             // front row heroes can block attack once per round
             Hero blockingHero = game.Team.RandomItem(x => x.hp > 0 && x.canBlock && x.shield != null);
@@ -312,6 +319,8 @@ public class Combat : MonoBehaviour
         timer = 0.5f;
         if (AttackChance(me.enemy.dex, hero.dex))
         {
+            hitHeroes.Add(hero);
+
             int dmg = Mathf.Max(me.enemy.attack - hero.Defense, 0);
             hero.hp -= dmg;
             if (hero.hp <= 0)
@@ -378,6 +387,9 @@ public class Combat : MonoBehaviour
             me.card.Attack(me.hpp);
         else
             me.card.Attack();
+
+        --attacks;
+        return attacks <= 0;
     }
 
     public static bool AttackChance(int myDex, int targetDex)

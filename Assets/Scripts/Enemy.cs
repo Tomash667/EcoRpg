@@ -19,7 +19,7 @@ public class Enemy
     }
 
     public string name;
-    public Vector2Int gold;
+    public Vector2Int gold, attacks = new(1, 1);
     public (TileType tileType, int difficulty)[] locations;
     public (Item item, float chance)[] drops;
     public int level, hp, attack, def, dex, difficulty;
@@ -166,6 +166,7 @@ public class Enemy
             level = 6,
             hp = 180,
             attack = 45,
+            attacks = new(1, 2),
             def = 9,
             dex = 18,
             drops = new[] { (Item.Get("meat"), 2.5f), (Item.Get("trophy"), 0.8f) },
@@ -359,6 +360,7 @@ public class Enemy
             level = 9,
             hp = 240,
             attack = 55,
+            attacks = new(2, 3),
             def = 11,
             dex = 24,
             drops = new[] { (Item.Get("meat"), 3.5f), (Item.Get("trophy"), 1.2f) },
