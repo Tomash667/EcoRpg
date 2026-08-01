@@ -21,11 +21,9 @@ hero:
 + forage -> find food
 + combat
 	enemy special attacks
-		small dragon - fire (1 target)
 		dragon - fire (multi target)
 		nameless horror - confusion
 		lich - summon mummy, damage spell
-		demon - fire (1 target)
 	order to target enemy
 	delay log to match cards
 	hero use potion while hp > 0
@@ -85,9 +83,9 @@ hero:
 	ally guild rank
 + damage type
 	holy vs undead
-	poison resistance/immunity
+	fire/poison resistance/immunity
 	acid
-	hero poison weapon
+	hero fire/poison weapon
 + adventurers potential (1-broken x0.25, 3-commoner x1, 5-adventurer x1.5, 7-hero x2.25, 10-chosen one x5)
 	soft skill cap
 * tavern -> celebrate finished quest

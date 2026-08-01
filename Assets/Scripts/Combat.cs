@@ -25,7 +25,7 @@ public class Combat : MonoBehaviour
     {
         public Enemy enemy;
         public CharacterCard card;
-        public int hp;
+        public int hp, cooldown;
         public bool canBlock;
 
         public float hpp => ((float)hp) / enemy.hp;
@@ -323,8 +323,13 @@ public class Combat : MonoBehaviour
             attacks = me.enemy.attacks.Random();
             hitHeroes.Clear();
             me.canBlock = me.enemy.blocks;
+            if (me.cooldown > 0)
+                --me.cooldown;
         }
 
+        bool fireball = me.enemy.fireball && me.cooldown == 0 && Utility.Rand % 2 == 0;
+        if (fireball)
+            me.cooldown = 2;
         Hero hero = game.Team.RandomItem(x => x.hp > 0 && !hitHeroes.Contains(x));
         bool isBlocking = false;
         if (hero == null)
@@ -347,13 +352,18 @@ public class Combat : MonoBehaviour
         {
             hitHeroes.Add(hero);
 
-            int dmg = Mathf.Max(me.enemy.attack - hero.Defense, 0);
+            int def = hero.Defense;
+            if (fireball)
+                def /= 2;
+            int dmg = Mathf.Max(me.enemy.attack - def, 0);
             hero.hp -= dmg;
             if (hero.hp <= 0)
             {
                 hero.potionTimer = hero.potionsUsed;
                 hero.poison = 0;
-                AppendText($"{me.enemy.name.ToUpper1()} hits {hero.nameYou} for {dmg} damage and defeats {hero.him}.");
+                AppendText(fireball
+                    ? $"{me.enemy.name.ToUpper1()} shoots fireball at {hero.nameYou} for {dmg} damage and defeats {hero.him}."
+                    : $"{me.enemy.name.ToUpper1()} hits {hero.nameYou} for {dmg} damage and defeats {hero.him}.");
                 if (game.Team.All(x => x.hp <= 0))
                 {
                     // lost
@@ -364,7 +374,7 @@ public class Combat : MonoBehaviour
             }
             else
             {
-                string str = $"{me.enemy.name.ToUpper1()} hits {hero.nameYou} for {dmg} damage.";
+                string str = fireball ? $"{me.enemy.name.ToUpper1()} shoots fireball at {hero.nameYou} for {dmg} damage." : $"{me.enemy.name.ToUpper1()} hits {hero.nameYou} for {dmg} damage.";
                 if (me.enemy.attackType == Enemy.AttackType.Poison && dmg > 0)
                 {
                     int poison = dmg / 5;
@@ -397,14 +407,22 @@ public class Combat : MonoBehaviour
         }
         else
         {
-            AppendText($"{me.enemy.name.ToUpper1()} misses {hero.nameYou}.");
+            AppendText(fireball
+                ? $"{me.enemy.name.ToUpper1()} shoots fireball at {hero.nameYou} but misses."
+                : $"{me.enemy.name.ToUpper1()} misses {hero.nameYou}.");
             if (isBlocking)
                 hero.card.Block();
             else
                 hero.card.Dodge();
         }
 
-        if (me.enemy.attackType == Enemy.AttackType.Ranged)
+        if (fireball)
+        {
+            Arrow2 arrow = Instantiate(arrowPrefab, transform).GetComponent<Arrow2>();
+            arrow.Shoot(me.card.position, hero.card.position);
+            arrow.SetFire();
+        }
+        else if (me.enemy.attackType == Enemy.AttackType.Ranged)
         {
             Arrow2 arrow = Instantiate(arrowPrefab, transform).GetComponent<Arrow2>();
             arrow.Shoot(me.card.position, hero.card.position);
