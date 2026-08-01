@@ -15,7 +15,8 @@ public class Enemy
         Normal,
         Ranged,
         Poison,
-        LifeSteal
+        LifeSteal,
+        Confuse
     }
 
     public string name, ally;
@@ -426,6 +427,7 @@ public class Enemy
             def = 22,
             dex = 46,
             gold = new(420, 630),
+            attackType = AttackType.Confuse,
             pronoun = Pronoun.It
         }
     };

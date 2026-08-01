@@ -1,3 +1,5 @@
+- domain reload errors about dialogs
+
 v2:
 hero:
 + player start eq
@@ -21,7 +23,6 @@ hero:
 + forage -> find food
 + combat
 	enemy special attacks
-		nameless horror - confusion
 		lich - summon mummy, damage spell
 	order to target enemy
 	delay log to match cards

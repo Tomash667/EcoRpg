@@ -18,7 +18,7 @@ public class Hero : ISerializationCallbackReceiver
     [NonSerialized]
     public CharacterCard card;
     [NonSerialized]
-    public int potionTimer, potionsUsed, poison;
+    public int potionTimer, potionsUsed, poison, confused;
     [NonSerialized]
     public bool canBlock;
 
@@ -135,6 +135,7 @@ public class Hero : ISerializationCallbackReceiver
         potionTimer = 0;
         potionsUsed = 0;
         poison = 0;
+        confused = 0;
         if (clas == Class.Warrior)
             canBlock = true;
         else
@@ -632,5 +633,15 @@ public class Hero : ISerializationCallbackReceiver
             return 1;
         else
             return 0;
+    }
+
+    public string S(string word, string optional = null)
+    {
+        if (this is Player)
+            return word;
+        else if (optional != null)
+            return optional;
+        else
+            return word + 's';
     }
 }

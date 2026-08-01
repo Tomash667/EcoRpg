@@ -3236,9 +3236,8 @@ public class Game : MonoBehaviour
         foreach (string part in parts)
         {
             string[] innerParts = part.Split(' ', System.StringSplitOptions.RemoveEmptyEntries);
-            int count;
             string name;
-            if (innerParts.Length > 1 && int.TryParse(innerParts[0], out count))
+            if (innerParts.Length > 1 && int.TryParse(innerParts[0], out int count))
                 name = string.Join(' ', innerParts.Skip(1));
             else
             {

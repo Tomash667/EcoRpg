@@ -14,15 +14,18 @@ public class CharacterCard : MonoBehaviour
         BlockDamage,
         Escape,
         Heal,
-        PoisonDamage
+        PoisonDamage,
+        Confused
     }
 
+    public Sprite[] effectSprites;
+    public GameObject effectPrefab;
     public int index;
 
     private Action action;
+    private Effect addEffect, removeEffect;
     private float timer, prevPos, nextHp;
     private int actionState, dir;
-    private bool applyPoison;
 
     public Vector2 position => (transform as RectTransform).anchoredPosition;
 
@@ -45,7 +48,12 @@ public class CharacterCard : MonoBehaviour
         RectTransform rectTransform = transform.GetChild(2).GetComponent<RectTransform>();
         rectTransform.sizeDelta = new Vector2(141.87f * hp, 6.0632f);
         if (hp <= 0)
-            transform.GetChild(6).gameObject.SetActive(false); // remove poison effect
+        {
+            // remove all effects when defeated
+            Transform effects = transform.GetChild(6);
+            for (int i = 0; i < effects.childCount; ++i)
+                Destroy(effects.GetChild(i).gameObject);
+        }
     }
 
     private void Update()
@@ -114,11 +122,8 @@ public class CharacterCard : MonoBehaviour
                 {
                     transform.GetChild(4).gameObject.SetActive(true);
                     SetHp(nextHp);
-                    if (applyPoison)
-                    {
-                        transform.GetChild(6).gameObject.SetActive(true);
-                        applyPoison = false;
-                    }
+                    if (addEffect != Effect.None)
+                        AddEffect();
                     actionState = 1;
                 }
             }
@@ -144,11 +149,8 @@ public class CharacterCard : MonoBehaviour
                     {
                         transform.GetChild(4).gameObject.SetActive(true);
                         SetHp(nextHp);
-                        if (applyPoison)
-                        {
-                            transform.GetChild(6).gameObject.SetActive(true);
-                            applyPoison = false;
-                        }
+                        if (addEffect != Effect.None)
+                            AddEffect();
                     }
                 }
                 RectTransform rectTransform = transform as RectTransform;
@@ -180,7 +182,8 @@ public class CharacterCard : MonoBehaviour
                 if (timer >= 0.15f)
                 {
                     transform.GetChild(5).gameObject.SetActive(true);
-                    transform.GetChild(6).gameObject.SetActive(false); // remove poison effect
+                    if (removeEffect != Effect.None)
+                        RemoveEffect();
                     SetHp(nextHp);
                     actionState = 1;
                 }
@@ -195,10 +198,13 @@ public class CharacterCard : MonoBehaviour
             }
             break;
         case Action.PoisonDamage:
+        case Action.Confused:
             timer += Time.deltaTime;
             if (timer >= 0.2f)
             {
-                transform.GetChild(7).gameObject.SetActive(false);
+                transform.GetChild(action == Action.PoisonDamage ? 7 : 8).gameObject.SetActive(false);
+                if (removeEffect != Effect.None)
+                    RemoveEffect();
                 action = Action.None;
             }
             break;
@@ -266,8 +272,50 @@ public class CharacterCard : MonoBehaviour
         timer = 0;
     }
 
-    public void Poison()
+    public void AddEffect(Effect effect)
     {
-        applyPoison = true;
+        addEffect = effect;
+    }
+
+    private void AddEffect()
+    {
+        Transform effects = transform.GetChild(6);
+        for (int i = 0; i < effects.childCount; ++i)
+        {
+            if (effects.GetChild(i).GetComponent<EffectIcon>().effect == addEffect)
+            {
+                // already added
+                addEffect = Effect.None;
+                return;
+            }
+        }
+        GameObject obj = Instantiate(effectPrefab, effects);
+        obj.GetComponent<EffectIcon>().effect = addEffect;
+        obj.GetComponent<Image>().sprite = effectSprites[(int)addEffect - 1];
+        addEffect = Effect.None;
+    }
+
+    public void RemoveEffect(Effect effect)
+    {
+        removeEffect = effect;
+    }
+
+    private void RemoveEffect()
+    {
+        Transform effects = transform.GetChild(6);
+        for (int i = 0; i < effects.childCount; ++i)
+        {
+            Transform child = effects.GetChild(i);
+            if (child.GetComponent<EffectIcon>().effect == removeEffect)
+                Destroy(child.gameObject);
+        }
+        removeEffect = Effect.None;
+    }
+
+    public void Confused()
+    {
+        action = Action.Confused;
+        transform.GetChild(8).gameObject.SetActive(true);
+        timer = 0;
     }
 }
