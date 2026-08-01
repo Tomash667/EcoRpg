@@ -251,7 +251,7 @@ public class Combat : MonoBehaviour
                 {
                     AppendText(hero is Player
                         ? $"You hit {target.enemy.name} for {dmg} damage and defeat {target.enemy.him}."
-                        : $"{hero.name} hits {target.enemy.name} for {dmg} damage and defeat {target.enemy.him}.");
+                        : $"{hero.name} hits {target.enemy.name} for {dmg} damage and defeats {target.enemy.him}.");
                     if (enemies.All(x => x.hp <= 0))
                     {
                         AppendText("You win!");
@@ -317,6 +317,7 @@ public class Combat : MonoBehaviour
         if (me.hp <= 0)
             return true;
 
+        timer = 0.5f;
         if (effectTick)
         {
             effectTick = false;
@@ -325,6 +326,12 @@ public class Combat : MonoBehaviour
             me.canBlock = me.enemy.blocks;
             if (me.cooldown > 0)
                 --me.cooldown;
+        }
+
+        if (me.enemy.firebreath && me.cooldown == 0 && Utility.Rand % 2 == 0)
+        {
+            EnemyFirebreath(me);
+            return true;
         }
 
         bool fireball = me.enemy.fireball && me.cooldown == 0 && Utility.Rand % 2 == 0;
@@ -347,7 +354,6 @@ public class Combat : MonoBehaviour
         }
 
         bool lifesteal = false;
-        timer = 0.5f;
         if (AttackChance(me.enemy.dex, hero.dex))
         {
             hitHeroes.Add(hero);
@@ -357,6 +363,12 @@ public class Combat : MonoBehaviour
                 def /= 2;
             int dmg = Mathf.Max(me.enemy.attack - def, 0);
             hero.hp -= dmg;
+
+            if (isBlocking)
+                hero.card.Block(hero.hpp);
+            else
+                hero.card.Damage(hero.hpp);
+
             if (hero.hp <= 0)
             {
                 hero.potionTimer = hero.potionsUsed;
@@ -369,7 +381,6 @@ public class Combat : MonoBehaviour
                     // lost
                     AppendText("You lost!");
                     result = Result.Defeat;
-                    timer = 0.5f;
                 }
             }
             else
@@ -389,11 +400,6 @@ public class Combat : MonoBehaviour
                 }
                 AppendText(str);
             }
-
-            if (isBlocking)
-                hero.card.Block(hero.hpp);
-            else
-                hero.card.Damage(hero.hpp);
 
             if (me.enemy.attackType == Enemy.AttackType.LifeSteal && me.hp < me.enemy.hp && dmg >= 2)
             {
@@ -434,6 +440,44 @@ public class Combat : MonoBehaviour
 
         --attacks;
         return attacks <= 0;
+    }
+
+    private void EnemyFirebreath(Unit me)
+    {
+        me.cooldown = 2;
+        foreach (Hero hero in game.Team.Where(x => x.hp > 0))
+        {
+            if (AttackChance(me.enemy.dex, hero.dex))
+            {
+                int def = hero.Defense / 2;
+                int dmg = Mathf.Max(me.enemy.attack - def, 0);
+                hero.hp -= dmg;
+                hero.card.Damage(hero.hpp);
+                if (hero.hp <= 0)
+                {
+                    hero.potionTimer = hero.potionsUsed;
+                    hero.poison = 0;
+                    AppendText($"{me.enemy.name.ToUpper1()} breaths fire at {hero.nameYou} for {dmg} damage and defeats {hero.him}.");
+                    if (game.Team.All(x => x.hp <= 0))
+                    {
+                        // lost
+                        AppendText("You lost!");
+                        result = Result.Defeat;
+                    }
+                }
+                else
+                    AppendText($"{me.enemy.name.ToUpper1()} breaths fire at {hero.nameYou} for {dmg} damage.");
+            }
+            else
+            {
+                AppendText($"{me.enemy.name.ToUpper1()} breaths fire at {hero.nameYou} but misses.");
+                hero.card.Dodge();
+            }
+
+            Arrow2 arrow = Instantiate(arrowPrefab, transform).GetComponent<Arrow2>();
+            arrow.Shoot(me.card.position, hero.card.position);
+            arrow.SetFire();
+        }
     }
 
     public static bool AttackChance(int myDex, int targetDex)

@@ -25,7 +25,7 @@ public class Enemy
     public int level, hp, attack, def, dex, difficulty;
     public AttackType attackType;
     public Pronoun pronoun;
-    public bool blocks, fireball;
+    public bool blocks, fireball, firebreath;
 
     public string him
     {
@@ -347,7 +347,8 @@ public class Enemy
             def = 18,
             dex = 26,
             gold = new(10000, 10000),
-            pronoun = Pronoun.It
+            pronoun = Pronoun.It,
+            firebreath = true
         },
         new()
         {

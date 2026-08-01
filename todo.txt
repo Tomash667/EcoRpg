@@ -21,7 +21,6 @@ hero:
 + forage -> find food
 + combat
 	enemy special attacks
-		dragon - fire (multi target)
 		nameless horror - confusion
 		lich - summon mummy, damage spell
 	order to target enemy
