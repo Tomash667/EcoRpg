@@ -1,5 +1,3 @@
-- domain reload errors about dialogs
-
 v2:
 hero:
 + player start eq
@@ -22,8 +20,7 @@ hero:
 + train
 + forage -> find food
 + combat
-	enemy special attacks
-		lich - summon mummy, damage spell
+	lich - summon mummy
 	order to target enemy
 	delay log to match cards
 	hero use potion while hp > 0
@@ -86,6 +83,7 @@ hero:
 	fire/poison resistance/immunity
 	acid
 	hero fire/poison weapon
+	unholy
 + adventurers potential (1-broken x0.25, 3-commoner x1, 5-adventurer x1.5, 7-hero x2.25, 10-chosen one x5)
 	soft skill cap
 * tavern -> celebrate finished quest

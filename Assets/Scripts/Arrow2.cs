@@ -3,7 +3,7 @@ using UnityEngine.UI;
 
 public class Arrow2 : MonoBehaviour
 {
-    public Sprite fireSprite;
+    public Sprite fireSprite, darkSprite;
 
     private Vector2 from, to;
     private float timer;
@@ -20,6 +20,11 @@ public class Arrow2 : MonoBehaviour
     public void SetFire()
     {
         GetComponent<Image>().sprite = fireSprite;
+    }
+
+    public void SetDark()
+    {
+        GetComponent<Image>().sprite = darkSprite;
     }
 
     private void Update()

@@ -48,7 +48,7 @@ public class Global : MonoBehaviour
     public static Game Game => Instance.game;
     public static World World => Instance.game.world;
     public static Player Player => Instance.game.player;
-    public static GameUI UI => Instance.game.ui;
+    public static GameUI UI => Instance.game.UI;
     public static TileType Location => Instance.game.world.Location;
 
     private void Init()

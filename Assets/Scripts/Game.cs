@@ -34,9 +34,7 @@ public class Game : MonoBehaviour
     public float guildProgress;
     public int day, hour, minute, guildRank, freshHorses;
 
-    [System.NonSerialized]
-    public GameUI ui;
-
+    private GameUI ui;
     private GameObject shopScreen, characterScreen, journalScreen, allyScreen, giveAllyItemsScreen, storeItemsScreen, activeInventory, propertiesScreen, guildScreen, gardenScreen, craftScreen,
         enchantItemsScreen;
     private RectTransform[] alliesHealthRect;
@@ -59,6 +57,7 @@ public class Game : MonoBehaviour
                 yield return ally;
         }
     }
+    public GameUI UI => ui;
 
     private void Awake()
     {
