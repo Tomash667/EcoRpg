@@ -20,7 +20,6 @@ hero:
 + train
 + forage -> find food
 + combat
-	lich - summon mummy
 	order to target enemy
 	delay log to match cards
 	hero use potion while hp > 0

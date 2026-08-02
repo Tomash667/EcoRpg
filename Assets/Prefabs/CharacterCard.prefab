@@ -87,6 +87,7 @@ GameObject:
   - component: {fileID: 6889250384439535538}
   - component: {fileID: 2259224841750767729}
   - component: {fileID: 2834286871670272163}
+  - component: {fileID: 5473491140159518779}
   m_Layer: 5
   m_Name: CharacterCard
   m_TagString: Untagged
@@ -177,6 +178,18 @@ MonoBehaviour:
   - {fileID: 97364921, guid: 571545d05be90ff4f972999adbf41bf6, type: 3}
   effectPrefab: {fileID: 4408351827543952735, guid: 3458631ca4436f24380aac2eeb02c0af, type: 3}
   index: 0
+--- !u!225 &5473491140159518779
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1138348367545467064}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 0
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
 --- !u!1 &1411725108576583990
 GameObject:
   m_ObjectHideFlags: 0

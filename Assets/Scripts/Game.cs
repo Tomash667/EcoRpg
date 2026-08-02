@@ -17,7 +17,7 @@ public class Game : MonoBehaviour
         Win
     }
 
-    private const int MaxAllies = 2;
+    public const int MaxTeamSize = 3;
     private const int MaxGuildRank = 4;
 
     private static readonly string[] GuildRanks = new[] { "None", "Copper", "Silver", "Gold", "Diamond" };
@@ -1936,7 +1936,7 @@ public class Game : MonoBehaviour
 
     public void Recruit()
     {
-        if (allies.Count >= MaxAllies)
+        if (allies.Count + 1 >= MaxTeamSize)
         {
             ui.ShowDialog("Your team is full.");
             return;
@@ -2805,7 +2805,7 @@ public class Game : MonoBehaviour
     [ContextMenu("Give all")]
     private void GiveAll()
     {
-        while (allies.Count < MaxAllies)
+        while (allies.Count + 1 < MaxTeamSize)
             allies.Add(SpawnHero());
 
         foreach (Hero hero in Team)
@@ -3260,7 +3260,7 @@ public class Game : MonoBehaviour
             return false;
         }
 
-        if (enemyList.Count > MaxAllies + 1)
+        if (enemyList.Count > MaxTeamSize)
         {
             ui.ShowDialog("Too many enemies.");
             return false;

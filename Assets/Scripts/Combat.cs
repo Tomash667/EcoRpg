@@ -25,8 +25,8 @@ public class Combat : MonoBehaviour
     {
         public Enemy enemy;
         public CharacterCard card;
-        public int hp, cooldown;
-        public bool canBlock;
+        public int hp, cooldown, cooldown2;
+        public bool canBlock, summoned;
 
         public float hpp => ((float)hp) / enemy.hp;
     }
@@ -371,7 +371,18 @@ public class Combat : MonoBehaviour
     {
         Unit me = enemies[unitIndex];
         if (me.hp <= 0)
+        {
+            if (me.summoned)
+            {
+                AppendText($"{me.enemy.name.ToUpper1()} crumbles into dust.");
+                me.card.Unsummon();
+                order.Remove(unitIndex);
+                enemies.Remove(me);
+                timer = 0.5f;
+                return false;
+            }
             return true;
+        }
 
         timer = 0.5f;
         if (effectTick == 0)
@@ -382,6 +393,14 @@ public class Combat : MonoBehaviour
             me.canBlock = me.enemy.blocks;
             if (me.cooldown > 0)
                 --me.cooldown;
+            if (me.cooldown2 > 0)
+                --me.cooldown2;
+        }
+
+        if (me.enemy.summon && me.cooldown2 == 0 && enemies.Count < Game.MaxTeamSize && Utility.Rand % 3 != 0)
+        {
+            EnemySummon(me);
+            return true;
         }
 
         if (me.enemy.firebreath && me.cooldown == 0 && Utility.Rand % 2 == 0)
@@ -547,6 +566,28 @@ public class Combat : MonoBehaviour
             arrow.Shoot(me.card.position, hero.card.position);
             arrow.SetFire();
         }
+    }
+
+    private void EnemySummon(Unit me)
+    {
+        Enemy enemy = Enemy.Get("mummy");
+        CharacterCard card = Instantiate(characterCardPrefab, transform.GetChild(1)).GetComponent<CharacterCard>();
+        card.Init(enemy.name, 1f, true, Resources.Load<Sprite>(enemy.Portrait));
+        RectTransform rectTransform = card.GetComponent<RectTransform>();
+        int i = enemies.Count;
+        Vector2 pos = enemyPos[i];
+        if (enemy.blocks && enemies.Any(x => x.enemy.blocks != enemy.blocks))
+            pos.y -= 25;
+        rectTransform.anchoredPosition = pos;
+        int myIndex = enemies.IndexOf(me);
+        int myOrder = order.IndexOf(myIndex);
+        order.Insert(myOrder + 1, i);
+        card.index = i;
+        card.Summon();
+        enemies.Add(new Unit { enemy = enemy, card = card, hp = enemy.hp, canBlock = enemy.blocks, summoned = true });
+        AppendText($"{me.enemy.name.ToUpper1()} summons {enemy.name}.");
+        timer = 0.5f;
+        me.cooldown2 = 3;
     }
 
     public static bool AttackChance(int myDex, int targetDex)

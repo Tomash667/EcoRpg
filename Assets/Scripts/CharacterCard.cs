@@ -15,7 +15,9 @@ public class CharacterCard : MonoBehaviour
         Escape,
         Heal,
         PoisonDamage,
-        Confused
+        Confused,
+        Summon,
+        Unsummon
     }
 
     public Sprite[] effectSprites;
@@ -208,6 +210,21 @@ public class CharacterCard : MonoBehaviour
                 action = Action.None;
             }
             break;
+        case Action.Summon:
+            timer += Time.deltaTime;
+            GetComponent<CanvasGroup>().alpha = Mathf.Clamp01(timer / 0.3f);
+            if(timer >= 0.3f)
+                action = Action.None;
+            break;
+        case Action.Unsummon:
+            timer += Time.deltaTime;
+            GetComponent<CanvasGroup>().alpha = Mathf.Clamp01(1f - timer / 0.3f);
+            if (timer >= 0.3f)
+            {
+                action = Action.None;
+                Destroy(gameObject);
+            }
+            break;
         }
     }
 
@@ -316,6 +333,19 @@ public class CharacterCard : MonoBehaviour
     {
         action = Action.Confused;
         transform.GetChild(8).gameObject.SetActive(true);
+        timer = 0;
+    }
+
+    public void Summon()
+    {
+        action = Action.Summon;
+        transform.GetComponent<CanvasGroup>().alpha = 0;
+        timer = 0;
+    }
+
+    public void Unsummon()
+    {
+        action = Action.Unsummon;
         timer = 0;
     }
 }
