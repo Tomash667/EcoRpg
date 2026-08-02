@@ -20,7 +20,7 @@ public class Player : Hero
         properties = new();
         InitCommon();
         energy = 100;
-        gold = 100;
+        gold = 25;
     }
 
     public void AddGold(int value)

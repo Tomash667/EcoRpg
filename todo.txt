@@ -1,7 +1,5 @@
 v2:
 hero:
-+ player start eq
-+ slower exp gain
 - treasure/trophy gold is not split
 + lose consequences
 + forage -> enemies
@@ -77,6 +75,10 @@ hero:
 	soft limit
 	leave and take from guild
 	ally guild rank
+	buy rations to match up player
+	traits
+		adventurous -> dislike not doing anything
+		lazy
 + damage type
 	holy vs undead
 	fire/poison resistance/immunity
@@ -118,9 +120,6 @@ hero:
 		purple worm - engulf
 + more interesting dungeon exploring - random d20 rooms, explored%
 + dungeon types - less/more traps, less/more monsters, trap types
-+ ally traits
-	adventurous -> dislike not doing anything
-	lazy
 + romance
 + talk with allies random events
 + life of alchemist

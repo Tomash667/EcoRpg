@@ -1958,6 +1958,7 @@ public class Game : MonoBehaviour
             {
                 lastAction = $"You recruit {hero.name} to your team.";
                 allies.Add(hero);
+                hero.BuyItems();
                 UpdateButtons();
             }
             AddTime(minutes: 30);

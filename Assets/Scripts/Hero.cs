@@ -48,7 +48,8 @@ public class Hero : ISerializationCallbackReceiver
             return value;
         }
     }
-    public int ExpP => exp / 10;
+    public int ExpP => exp * 100 / ExpNeed;
+    public int ExpNeed => 1000 + level * 100;
     public float hpp => ((float)hp) / hpMax;
     public int HpP
     {
@@ -77,14 +78,6 @@ public class Hero : ISerializationCallbackReceiver
         name = (female ? Names.femaleNames : Names.maleNames).RandomItem();
         clas = ClassMethods.all.RandomItem();
         InitCommon();
-        if (clas == Class.Warrior)
-        {
-            weapon = Item.Get("club");
-            shield = Item.Get("wooden shield");
-        }
-        else
-            weapon = Item.Get("short bow");
-        armor = Item.Get("leather armor");
         if (startLevel > 0)
         {
             SetLevel(startLevel);
@@ -106,8 +99,7 @@ public class Hero : ISerializationCallbackReceiver
             if (armorLevel != 1)
                 armor = Item.items.First(x => x.type == Item.Type.Armor && x.level == armorLevel);
         }
-        AddItem(Item.Get("potion"));
-        AddItem(Item.Get("rations"), 3);
+        gold = 25 * (level + 1);
     }
 
     protected void InitCommon()
@@ -128,6 +120,17 @@ public class Hero : ISerializationCallbackReceiver
             defense = 3;
             dex = 15;
         }
+
+        if (clas == Class.Warrior)
+        {
+            weapon = Item.Get("club");
+            shield = Item.Get("wooden shield");
+        }
+        else
+            weapon = Item.Get("short bow");
+        armor = Item.Get("leather armor");
+        AddItem(Item.Get("potion"));
+        AddItem(Item.Get("rations"), 3);
     }
 
     public void InitCombat()
@@ -163,9 +166,10 @@ public class Hero : ISerializationCallbackReceiver
             newExp += GetExpReward(enemy.level);
         newExp = (int)(newExp * mod);
         exp += newExp;
-        if (exp >= 1000)
+        bool gainedLevel = false;
+        while (exp >= ExpNeed)
         {
-            exp -= 1000;
+            exp = (exp - ExpNeed) * 3 / 4;
             ++level;
             float hpRatio = hpp;
             hpMax += 20;
@@ -173,10 +177,9 @@ public class Hero : ISerializationCallbackReceiver
             attack += 5;
             defense++;
             dex += 2;
-            return true;
+            gainedLevel = true;
         }
-        else
-            return false;
+        return gainedLevel;
     }
 
     private int GetExpReward(int enemyLevel)

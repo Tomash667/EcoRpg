@@ -213,7 +213,7 @@ public class CharacterCard : MonoBehaviour
         case Action.Summon:
             timer += Time.deltaTime;
             GetComponent<CanvasGroup>().alpha = Mathf.Clamp01(timer / 0.3f);
-            if(timer >= 0.3f)
+            if (timer >= 0.3f)
                 action = Action.None;
             break;
         case Action.Unsummon:
