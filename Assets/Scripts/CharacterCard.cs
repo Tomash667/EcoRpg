@@ -1,8 +1,9 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class CharacterCard : MonoBehaviour
+public class CharacterCard : MonoBehaviour, IPointerClickHandler
 {
     private enum Action
     {
@@ -347,5 +348,16 @@ public class CharacterCard : MonoBehaviour
     {
         action = Action.Unsummon;
         timer = 0;
+    }
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        if (eventData.button == PointerEventData.InputButton.Left)
+            transform.parent.parent.GetComponent<Combat>().SelectCard(index);
+    }
+
+    public void SetColor(Color color)
+    {
+        GetComponent<Image>().color = color;
     }
 }

@@ -18,7 +18,6 @@ hero:
 + train
 + forage -> find food
 + combat
-	order to target enemy
 	delay log to match cards
 	hero use potion while hp > 0
 + rest in dangerous place -> attacked chance
@@ -118,6 +117,7 @@ hero:
 		spider - web (slow)
 		dryad - charm
 		purple worm - engulf
+		heal
 + more interesting dungeon exploring - random d20 rooms, explored%
 + dungeon types - less/more traps, less/more monsters, trap types
 + romance
@@ -156,6 +156,7 @@ ui:
 + shop tabs?, separate shops
 + move map - cursor stays in place
 + s&l map zoom
++ combat key shortcuts
 
 investments:
 + cottage/big house

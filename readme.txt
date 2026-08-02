@@ -21,6 +21,9 @@ S - shop
 W - work
 X - exit or enter
 
+Combat:
+Left button - focus on enemy
+
 Shop/Craft:
 Left button - buy/sell/craft one
 Left Ctrl + Left button - pick how much to buy/sell/craft

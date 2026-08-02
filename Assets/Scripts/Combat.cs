@@ -44,6 +44,7 @@ public class Combat : MonoBehaviour
     private Game game;
     private TMP_Text text;
     private GameObject arrow;
+    private Unit playerTarget;
     private Result result;
     private Action action;
     private float timer;
@@ -120,6 +121,7 @@ public class Combat : MonoBehaviour
         arrow.SetActive(false);
         action = Action.None;
         effectTick = 0;
+        playerTarget = null;
 
         transform.parent.Find("Buttons").gameObject.SetActive(false);
         AppendText($"You explore the {Global.World.CurrentTile.Name} and <b>{Utility.PrettyGroup(enemyList.Select(x => x.name))}</b> {Utility.S("attack", enemyList.Count == 1)} you.");
@@ -291,7 +293,11 @@ public class Combat : MonoBehaviour
             }
 
             timer = 0.5f;
-            Unit target = enemies.RandomItem(x => x.hp > 0);
+            Unit target;
+            if (playerTarget != null && playerTarget.hp > 0 && (hero is Player || Utility.Rand % 2 == 0))
+                target = playerTarget;
+            else
+                target = enemies.RandomItem(x => x.hp > 0);
             bool isBlocking = false;
             if (!target.enemy.blocks)
             {
@@ -375,6 +381,11 @@ public class Combat : MonoBehaviour
             if (me.summoned)
             {
                 AppendText($"{me.enemy.name.ToUpper1()} crumbles into dust.");
+                if (me == playerTarget)
+                {
+                    me.card.SetColor(Color.white);
+                    playerTarget = null;
+                }
                 me.card.Unsummon();
                 order.Remove(unitIndex);
                 enemies.Remove(me);
@@ -636,6 +647,16 @@ public class Combat : MonoBehaviour
             RectTransform rectTransform = arrow.transform as RectTransform;
             rectTransform.anchoredPosition = new(rectTransform.anchoredPosition.x, 2.96347f);
             arrow.SetActive(true);
+        }
+    }
+
+    public void SelectCard(int index)
+    {
+        if (index >= 0)
+        {
+            playerTarget?.card.SetColor(Color.white);
+            playerTarget = enemies[index];
+            playerTarget.card.SetColor(Color.blue);
         }
     }
 }
