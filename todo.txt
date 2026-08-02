@@ -18,7 +18,6 @@ hero:
 + train
 + forage -> find food
 + combat
-	delay log to match cards
 	hero use potion while hp > 0
 + rest in dangerous place -> attacked chance
 + negative affections effects (complain, quit)
@@ -131,6 +130,7 @@ hero:
 	bash
 	multishoot
 	extra attack after defeating enemy
++ stronger enemies at lower dungeon levels
 
 events:
 + free person for hire (foreman, geomancer etc)

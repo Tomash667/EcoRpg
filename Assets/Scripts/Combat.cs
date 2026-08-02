@@ -31,12 +31,19 @@ public class Combat : MonoBehaviour
         public float hpp => ((float)hp) / enemy.hp;
     }
 
+    private class DelayedText
+    {
+        public string text;
+        public float delay;
+    }
+
     public GameObject characterCardPrefab, arrowPrefab;
 
     private readonly Vector2[] teamPos = new Vector2[] { new(0, -125), new(-200, -125), new(200, -125) };
     private readonly Vector2[] enemyPos = new Vector2[] { new(0, 200), new(-200, 200), new(200, 200) };
 
     private readonly List<string> textParts = new();
+    private readonly List<DelayedText> delayedTexts = new();
     private readonly List<Unit> enemies = new();
     private readonly List<Hero> hitHeroes = new();
     private List<Enemy> enemyList;
@@ -68,6 +75,7 @@ public class Combat : MonoBehaviour
         order.Clear();
         enemies.Clear();
         textParts.Clear();
+        delayedTexts.Clear();
 
         int index = 0;
         bool multiRow = game.Team.Any(x => x.BackRow != game.player.BackRow);
@@ -135,6 +143,18 @@ public class Combat : MonoBehaviour
         if (Input.GetKeyUp(KeyCode.Space))
             Time.timeScale = 1f;
 #endif
+
+        delayedTexts.RemoveAll(delayedText =>
+        {
+            delayedText.delay -= Time.deltaTime;
+            if (delayedText.delay <= 0)
+            {
+                AppendText(delayedText.text);
+                return true;
+            }
+            else
+                return false;
+        });
 
         timer -= Time.deltaTime;
         if (timer > 0)
@@ -228,7 +248,7 @@ public class Combat : MonoBehaviour
                     if (game.Team.All(x => x.hp <= 0))
                     {
                         // lost
-                        AppendText("You lost!");
+                        AppendText("You lost!", 0.05f);
                         result = Result.Defeat;
                         timer = 0.5f;
                     }
@@ -269,13 +289,13 @@ public class Combat : MonoBehaviour
                         int dmg = Mathf.Max(hero.Attack - targetHero.Defense, 0);
                         targetHero.card.Damage(targetHero.hpp);
                         if (targetHero.hp <= 0)
-                            AppendText($"{hero.NameYou} {hero.S("hit")} {targetHero.name} for {dmg} damage and {hero.S("defeat")} {targetHero.him}.");
+                            AppendText($"{hero.NameYou} {hero.S("hit")} {targetHero.name} for {dmg} damage and {hero.S("defeat")} {targetHero.him}.", 0.15f);
                         else
-                            AppendText($"{hero.NameYou} {hero.S("hit")} {targetHero.name} for {dmg} damage.");
+                            AppendText($"{hero.NameYou} {hero.S("hit")} {targetHero.name} for {dmg} damage.", 0.15f);
                     }
                     else
                     {
-                        AppendText($"{hero.NameYou} {hero.S("miss", "misses")} {targetHero.nameYou}.");
+                        AppendText($"{hero.NameYou} {hero.S("miss", "misses")} {targetHero.nameYou}.", 0.15f);
                         targetHero.card.Dodge();
                     }
 
@@ -322,20 +342,20 @@ public class Combat : MonoBehaviour
 
                 if (target.hp <= 0)
                 {
-                    AppendText($"{hero.NameYou} {hero.S("hit")} {target.enemy.name} for {dmg} damage and {hero.S("defeat")} {target.enemy.him}.");
+                    AppendText($"{hero.NameYou} {hero.S("hit")} {target.enemy.name} for {dmg} damage and {hero.S("defeat")} {target.enemy.him}.", 0.15f);
                     if (enemies.All(x => x.hp <= 0))
                     {
-                        AppendText("You win!");
+                        AppendText("You win!", 0.2f);
                         timer = 1;
                         result = Result.Win;
                     }
                 }
                 else
-                    AppendText($"{hero.NameYou} {hero.S("hit")} {target.enemy.name} for {dmg} damage.");
+                    AppendText($"{hero.NameYou} {hero.S("hit")} {target.enemy.name} for {dmg} damage.", 0.15f);
             }
             else
             {
-                AppendText($"{hero.NameYou} {hero.S("miss", "misses")} {target.enemy.name}.");
+                AppendText($"{hero.NameYou} {hero.S("miss", "misses")} {target.enemy.name}.", 0.15f);
                 if (isBlocking)
                     target.card.Block();
                 else
@@ -367,7 +387,7 @@ public class Combat : MonoBehaviour
         hero.RemoveItem(potion);
         hero.potionsUsed++;
         hero.poison = 0;
-        AppendText($"{hero.NameYou} {hero.S("use")} {potion.item.name} and {hero.S("get")} healed for {hero.hp - prevHp}.");
+        AppendText($"{hero.NameYou} {hero.S("use")} {potion.item.name} and {hero.S("get")} healed for {hero.hp - prevHp}.", 0.15f);
         hero.card.Heal(hero.hpp);
         hero.card.RemoveEffect(Effect.Poison);
         timer = 0.5f;
@@ -380,7 +400,7 @@ public class Combat : MonoBehaviour
         {
             if (me.summoned)
             {
-                AppendText($"{me.enemy.name.ToUpper1()} crumbles into dust.");
+                AppendText($"{me.enemy.name.ToUpper1()} crumbles into dust.", 0.15f);
                 if (me == playerTarget)
                 {
                     me.card.SetColor(Color.white);
@@ -464,11 +484,11 @@ public class Combat : MonoBehaviour
                 hero.poison = 0;
                 AppendText(spellName != null
                     ? $"{me.enemy.name.ToUpper1()} shoots {spellName} at {hero.nameYou} for {dmg} damage and defeats {hero.him}."
-                    : $"{me.enemy.name.ToUpper1()} hits {hero.nameYou} for {dmg} damage and defeats {hero.him}.");
+                    : $"{me.enemy.name.ToUpper1()} hits {hero.nameYou} for {dmg} damage and defeats {hero.him}.", 0.15f);
                 if (game.Team.All(x => x.hp <= 0))
                 {
                     // lost
-                    AppendText("You lost!");
+                    AppendText("You lost!", 0.2f);
                     result = Result.Defeat;
                 }
             }
@@ -494,7 +514,7 @@ public class Combat : MonoBehaviour
                     hero.card.AddEffect(Effect.Confused);
                 }
 
-                AppendText(str);
+                AppendText(str, 0.15f);
             }
 
             if (me.enemy.attackType == Enemy.AttackType.LifeSteal && me.hp < me.enemy.hp && dmg >= 2)
@@ -503,7 +523,7 @@ public class Combat : MonoBehaviour
                 int prev = me.hp;
                 me.hp = Mathf.Min(me.hp + heal, me.enemy.hp);
                 heal = me.hp - prev;
-                AppendText($"{me.enemy.name.ToUpper1()} is healed for {heal}.");
+                AppendText($"{me.enemy.name.ToUpper1()} is healed for {heal}.", 0.15f);
                 lifesteal = true;
             }
         }
@@ -511,7 +531,7 @@ public class Combat : MonoBehaviour
         {
             AppendText(spellName != null
                 ? $"{me.enemy.name.ToUpper1()} shoots {spellName} at {hero.nameYou} but misses."
-                : $"{me.enemy.name.ToUpper1()} misses {hero.nameYou}.");
+                : $"{me.enemy.name.ToUpper1()} misses {hero.nameYou}.", 0.15f);
             if (isBlocking)
                 hero.card.Block();
             else
@@ -556,20 +576,20 @@ public class Combat : MonoBehaviour
                 {
                     hero.potionTimer = hero.potionsUsed + 1;
                     hero.poison = 0;
-                    AppendText($"{me.enemy.name.ToUpper1()} breaths fire at {hero.nameYou} for {dmg} damage and defeats {hero.him}.");
+                    AppendText($"{me.enemy.name.ToUpper1()} breaths fire at {hero.nameYou} for {dmg} damage and defeats {hero.him}.", 0.15f);
                     if (game.Team.All(x => x.hp <= 0))
                     {
                         // lost
-                        AppendText("You lost!");
+                        AppendText("You lost!", 0.2f);
                         result = Result.Defeat;
                     }
                 }
                 else
-                    AppendText($"{me.enemy.name.ToUpper1()} breaths fire at {hero.nameYou} for {dmg} damage.");
+                    AppendText($"{me.enemy.name.ToUpper1()} breaths fire at {hero.nameYou} for {dmg} damage.", 0.15f);
             }
             else
             {
-                AppendText($"{me.enemy.name.ToUpper1()} breaths fire at {hero.nameYou} but misses.");
+                AppendText($"{me.enemy.name.ToUpper1()} breaths fire at {hero.nameYou} but misses.", 0.15f);
                 hero.card.Dodge();
             }
 
@@ -596,7 +616,7 @@ public class Combat : MonoBehaviour
         card.index = i;
         card.Summon();
         enemies.Add(new Unit { enemy = enemy, card = card, hp = enemy.hp, canBlock = enemy.blocks, summoned = true });
-        AppendText($"{me.enemy.name.ToUpper1()} summons {enemy.name}.");
+        AppendText($"{me.enemy.name.ToUpper1()} summons {enemy.name}.", 0.15f);
         timer = 0.5f;
         me.cooldown2 = 3;
     }
@@ -609,13 +629,18 @@ public class Combat : MonoBehaviour
         return Utility.Random(0, 100) < chance;
     }
 
-    private void AppendText(string str)
+    private void AppendText(string str, float delay = 0)
     {
-        textParts.Add(str);
-        if (textParts.Count > 5)
-            textParts.RemoveAt(0);
-        text.text = string.Join('\n', textParts);
-        game.SetText(null);
+        if (delay > 0)
+            delayedTexts.Add(new() { text = str, delay = delay });
+        else
+        {
+            textParts.Add(str);
+            if (textParts.Count > 5)
+                textParts.RemoveAt(0);
+            text.text = string.Join('\n', textParts);
+            game.SetText(null);
+        }
     }
 
     public void Escape()
