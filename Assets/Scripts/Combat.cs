@@ -131,6 +131,7 @@ public class Combat : MonoBehaviour
         effectTick = 0;
         playerTarget = null;
 
+        transform.Find("BtHeal").GetComponentInChildren<TMP_Text>().text = "Heal";
         transform.parent.Find("Buttons").gameObject.SetActive(false);
         AppendText($"You explore the {Global.World.CurrentTile.Name} and <b>{Utility.PrettyGroup(enemyList.Select(x => x.name))}</b> {Utility.S("attack", enemyList.Count == 1)} you.");
     }
@@ -203,7 +204,11 @@ public class Combat : MonoBehaviour
             if (!hero.BackRow)
                 hero.canBlock = true;
             if (hero.potionTimer > 0)
+            {
                 --hero.potionTimer;
+                if (hero is Player)
+                    transform.Find("BtHeal").GetComponentInChildren<TMP_Text>().text = $"Heal ({hero.potionTimer})";
+            }
         }
 
         if (hero is Player && action != Action.None && (hero.confused == 0 || Utility.Rand % 2 == 0))
@@ -222,7 +227,7 @@ public class Combat : MonoBehaviour
             else if (action == Action.Heal)
             {
                 ItemSlot potion;
-                if ((hero.hp > 0 || hero.potionTimer == 0) && (potion = hero.FindHealingItem()) != null && hero.hp + potion.item.power > 0)
+                if (hero.potionTimer == 0 && (hero.hp > 0 || hero.potionTimer == 0) && (potion = hero.FindHealingItem()) != null && hero.hp + potion.item.power > 0)
                 {
                     HeroUsePotion(hero, potion);
                     arrow.SetActive(false);
@@ -242,7 +247,7 @@ public class Combat : MonoBehaviour
                 hero.card.PoisonDamage(hero.hpp);
                 if (hero.hp <= 0)
                 {
-                    hero.potionTimer = hero.potionsUsed + 1;
+                    hero.confused = 0;
                     hero.poison = 0;
                     AppendText($"{hero.NameYou} {hero.S("take")} {hero.poison} poison damage and {hero.isAre} defeated.");
                     if (game.Team.All(x => x.hp <= 0))
@@ -289,7 +294,11 @@ public class Combat : MonoBehaviour
                         int dmg = Mathf.Max(hero.Attack - targetHero.Defense, 0);
                         targetHero.card.Damage(targetHero.hpp);
                         if (targetHero.hp <= 0)
+                        {
+                            targetHero.confused = 0;
+                            targetHero.poison = 0;
                             AppendText($"{hero.NameYou} {hero.S("hit")} {targetHero.name} for {dmg} damage and {hero.S("defeat")} {targetHero.him}.", 0.15f);
+                        }
                         else
                             AppendText($"{hero.NameYou} {hero.S("hit")} {targetHero.name} for {dmg} damage.", 0.15f);
                     }
@@ -310,6 +319,12 @@ public class Combat : MonoBehaviour
                     timer = 0.5f;
                     return true;
                 }
+            }
+
+            if (HeroShouldUsePotion(hero))
+            {
+                HeroUsePotion(hero);
+                return true;
             }
 
             timer = 0.5f;
@@ -380,16 +395,49 @@ public class Combat : MonoBehaviour
         return true;
     }
 
-    private void HeroUsePotion(Hero hero, ItemSlot potion)
+    private bool HeroShouldUsePotion(Hero hero)
     {
+        if (hero is Player
+            || hero.hpp > 0.5f
+            || hero.potionTimer != 0
+            || game.Team.Count(x => x.hp > 0) > 1) // if there are other heroes attack and heal when defeated
+            return false;
+
+        ItemSlot potion = hero.FindHealingItem();
+        if (potion == null)
+            return false;
+
+        // if can defeat enemy with one hit, do it
+        if (enemies.Count(x => x.hp > 0) == 1)
+        {
+            Unit target = enemies.First(x => x.hp > 0);
+            if (CalculateAvgDamage(hero, target) >= target.hp)
+                return false;
+        }
+
+        // if enemies can defeat hero in one turn, heal
+        // unless healing doesn't matter
+        int enemiesDmg = enemies.Where(x => x.hp > 0).Sum(x => CalculateAvgDamage(x, hero));
+        if (enemiesDmg >= hero.hp && Mathf.Min(hero.hp + potion.item.power, hero.hpMax) > enemiesDmg)
+            return true;
+
+        return false;
+    }
+
+    private void HeroUsePotion(Hero hero, ItemSlot potion = null)
+    {
+        potion ??= hero.FindHealingItem();
         int prevHp = hero.hp;
         hero.hp = Mathf.Min(hero.hp + potion.item.power, hero.hpMax);
         hero.RemoveItem(potion);
         hero.potionsUsed++;
+        hero.potionTimer = hero.potionsUsed + 1;
         hero.poison = 0;
         AppendText($"{hero.NameYou} {hero.S("use")} {potion.item.name} and {hero.S("get")} healed for {hero.hp - prevHp}.", 0.15f);
         hero.card.Heal(hero.hpp);
         hero.card.RemoveEffect(Effect.Poison);
+        if (hero is Player)
+            transform.Find("BtHeal").GetComponentInChildren<TMP_Text>().text = $"Heal ({hero.potionTimer})";
         timer = 0.5f;
     }
 
@@ -480,7 +528,7 @@ public class Combat : MonoBehaviour
 
             if (hero.hp <= 0)
             {
-                hero.potionTimer = hero.potionsUsed + 1;
+                hero.confused = 0;
                 hero.poison = 0;
                 AppendText(spellName != null
                     ? $"{me.enemy.name.ToUpper1()} shoots {spellName} at {hero.nameYou} for {dmg} damage and defeats {hero.him}."
@@ -574,7 +622,7 @@ public class Combat : MonoBehaviour
                 hero.card.Damage(hero.hpp);
                 if (hero.hp <= 0)
                 {
-                    hero.potionTimer = hero.potionsUsed + 1;
+                    hero.confused = 0;
                     hero.poison = 0;
                     AppendText($"{me.enemy.name.ToUpper1()} breaths fire at {hero.nameYou} for {dmg} damage and defeats {hero.him}.", 0.15f);
                     if (game.Team.All(x => x.hp <= 0))
@@ -627,6 +675,30 @@ public class Combat : MonoBehaviour
         if (chance < 10)
             chance = 10;
         return Utility.Random(0, 100) < chance;
+    }
+
+    private float AttackChanceFloat(int myDex, int targetDex)
+    {
+        int chance = 75 + (myDex - targetDex) * 5;
+        chance = Mathf.Clamp(chance, 10, 100);
+        return ((float)chance) / 100;
+    }
+
+    private int CalculateAvgDamage(Hero hero, Unit target)
+    {
+        float hitRatio = AttackChanceFloat(hero.dex, target.enemy.dex);
+        int dmg = Mathf.Min(hero.Attack - target.enemy.def, 0);
+        return Mathf.RoundToInt(hitRatio * dmg);
+    }
+
+    private int CalculateAvgDamage(Unit me, Hero hero)
+    {
+        float hitRatio = AttackChanceFloat(me.enemy.dex, hero.dex);
+        int def = hero.Defense;
+        if ((me.enemy.fireball || me.enemy.firebreath || me.enemy.darkbolt) && me.cooldown <= 1)
+            def /= 2;
+        int dmg = Mathf.Min(me.enemy.attack - def, 0);
+        return Mathf.RoundToInt(hitRatio * dmg);
     }
 
     private void AppendText(string str, float delay = 0)

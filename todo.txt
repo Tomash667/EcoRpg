@@ -17,8 +17,6 @@ hero:
 + skip time
 + train
 + forage -> find food
-+ combat
-	hero use potion while hp > 0
 + rest in dangerous place -> attacked chance
 + negative affections effects (complain, quit)
 
@@ -117,6 +115,9 @@ hero:
 		dryad - charm
 		purple worm - engulf
 		heal
+		guard - extra block and def
+	enemy use potion
+	boss second phase
 + more interesting dungeon exploring - random d20 rooms, explored%
 + dungeon types - less/more traps, less/more monsters, trap types
 + romance
