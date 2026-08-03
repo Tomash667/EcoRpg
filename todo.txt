@@ -2,7 +2,6 @@ v2:
 hero:
 - treasure/trophy gold is not split
 + lose consequences
-+ forage -> enemies
 + quests
 	- quest is generated for location but enemies "spawn" only after accepting
 		you can accept & cancel to have enemies
@@ -14,7 +13,6 @@ hero:
 	initial skills
 + skip time
 + train
-+ forage -> find food
 + rest in dangerous place -> attacked chance
 + negative affections effects (complain, quit)
 

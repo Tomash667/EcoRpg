@@ -255,62 +255,7 @@ public class Game : MonoBehaviour
         }
         else if (c < chance && (enemy = Enemy.GetRandom(tile.type, tile.difficulty)) != null)
         {
-            int count = (Utility.Rand % 4) switch
-            {
-                1 or 2 => 2,
-                3 => 3,
-                _ => 1,
-            };
-
-            List<Enemy> enemyList = new();
-            if (tile.boss)
-            {
-                if (tile.defeatedEnemies >= 10 && world.level + 1 == tile.levels)
-                {
-                    enemy = Enemy.Get("dragon");
-                    enemyList.Add(enemy);
-                    enemy = Enemy.Get("dragon-man");
-                    for (int i = 0; i < 2; ++i)
-                        enemyList.Add(enemy);
-                }
-                else
-                {
-                    enemy = Enemy.Get("dragon-man");
-                    for (int i = 0; i < count; ++i)
-                        enemyList.Add(enemy);
-                }
-            }
-            else if (tile.type == TileType.DarkDimension)
-            {
-                if (tile.defeatedEnemies >= 13)
-                {
-                    enemyList.Add(Enemy.Get("nameless horror"));
-                    for (int i = 0; i < 2; ++i)
-                        enemyList.Add(Enemy.GetRandom(TileType.DarkDimension, 4));
-                }
-                else
-                {
-                    enemyList.Add(enemy);
-                    for (int i = 1; i < count; ++i)
-                        enemyList.Add(Enemy.GetRandom(TileType.DarkDimension, 4));
-                }
-            }
-            else if (enemy.ally == null)
-            {
-                for (int i = 0; i < count; ++i)
-                    enemyList.Add(enemy);
-            }
-            else
-            {
-                enemyList.Add(enemy);
-                Enemy ally = Enemy.Get(enemy.ally);
-                for (int i = 1; i < count; ++i)
-                    enemyList.Add(Utility.Rand % 2 == 0 ? ally : enemy);
-            }
-
-            combatScreen.Init(enemyList);
-            ui.lockDialog = true;
-            ui.ShowDialog(combatScreen.gameObject);
+            StartCombat(enemy, "explore");
             return;
         }
         else if (c == 8 && (tile.type == TileType.Forest || tile.type == TileType.Mountains || tile.type == TileType.Plains))
@@ -518,6 +463,67 @@ public class Game : MonoBehaviour
         UpdateText();
     }
 
+    public void StartCombat(Enemy enemy, string startAction)
+    {
+        int count = (Utility.Rand % 4) switch
+        {
+            1 or 2 => 2,
+            3 => 3,
+            _ => 1,
+        };
+
+        List<Enemy> enemyList = new();
+        Tile tile = world.CurrentTile;
+        if (tile.boss)
+        {
+            if (tile.defeatedEnemies >= 10 && world.level + 1 == tile.levels)
+            {
+                enemy = Enemy.Get("dragon");
+                enemyList.Add(enemy);
+                enemy = Enemy.Get("dragon-man");
+                for (int i = 0; i < 2; ++i)
+                    enemyList.Add(enemy);
+            }
+            else
+            {
+                enemy = Enemy.Get("dragon-man");
+                for (int i = 0; i < count; ++i)
+                    enemyList.Add(enemy);
+            }
+        }
+        else if (tile.type == TileType.DarkDimension)
+        {
+            if (tile.defeatedEnemies >= 13)
+            {
+                enemyList.Add(Enemy.Get("nameless horror"));
+                for (int i = 0; i < 2; ++i)
+                    enemyList.Add(Enemy.GetRandom(TileType.DarkDimension, 4));
+            }
+            else
+            {
+                enemyList.Add(enemy);
+                for (int i = 1; i < count; ++i)
+                    enemyList.Add(Enemy.GetRandom(TileType.DarkDimension, 4));
+            }
+        }
+        else if (enemy.ally == null)
+        {
+            for (int i = 0; i < count; ++i)
+                enemyList.Add(enemy);
+        }
+        else
+        {
+            enemyList.Add(enemy);
+            Enemy ally = Enemy.Get(enemy.ally);
+            for (int i = 1; i < count; ++i)
+                enemyList.Add(Utility.Rand % 2 == 0 ? ally : enemy);
+        }
+
+        combatScreen.Init(enemyList, startAction);
+        ui.lockDialog = true;
+        ui.ShowDialog(combatScreen.gameObject);
+    }
+
     public void PostCombat(Combat.Result result, List<Enemy> enemyList)
     {
         Tile tile = world.CurrentTile;
@@ -653,7 +659,7 @@ public class Game : MonoBehaviour
             if (tile.type == TileType.DarkDimension && enemyList.Any(x => x.name == "nameless horror"))
                 tile.defeatedEnemies = 0;
 
-            if (!tile.boss && tile.type.IsClearable() && tile.defeatedEnemies >= 10)
+            if (!tile.boss && tile.type.IsClearable() && tile.defeatedEnemies >= ((tile.type == TileType.Forest || tile.type == TileType.Mountains) ? 20 : 10))
             {
                 tile.clear = true;
                 if (tile.type == TileType.Cave)
@@ -2670,11 +2676,18 @@ public class Game : MonoBehaviour
             return;
         }
 
-        if (tile.type == TileType.Forest)
+        player.energy -= energy;
+
+        Enemy enemy;
+        if (!tile.clear && Utility.Rand % 10 == 0 && (enemy = Enemy.GetRandom(tile.type, tile.difficulty)) != null)
         {
-            player.energy -= 10;
+            StartCombat(enemy, tile.type == TileType.Forest ? "forage in" : "prospect");
+            return;
+        }
+        else if (tile.type == TileType.Forest)
+        {
             if (tile.depleted >= 4)
-                lastAction = $"You forage in the {tile.Name}, but find nothing of value.";
+                lastAction = $"You forage in the {tile.Name} but find nothing of value.";
             else
             {
                 // herbs/rare herbs
@@ -2691,16 +2704,20 @@ public class Game : MonoBehaviour
                 tile.depleted++;
                 Item herb = tile.GetHerb();
                 player.AddItem(herb, count);
-                lastAction = $"You forage in the {tile.Name} and find <b>{Utility.Plural(herb.name, count)}</b>.";
+                lastAction = $"You forage the {tile.Name} and find <b>{Utility.Plural(herb.name, count)}</b>.";
+                if (Utility.Rand % 100 < player.GetSkill(Skill.Forage))
+                {
+                    lastAction += $" You also find some edible {(Utility.Rand % 2 == 0 ? "fruits" : "vegetables")} (<b>+1 rations</b>).";
+                    player.AddItem(Item.Get("rations"));
+                }
                 lastAction += player.Train(Skill.Forage, 0.25f);
             }
             AddTime(hours: 1);
         }
         else
         {
-            player.energy -= 5;
             if (tile.boss || (tile.mine && tile.depleted >= 4) || (!tile.mine && tile.depleted >= tile.difficulty + 2))
-                lastAction = $"You prospect the {tile.Name}, but find nothing of value.";
+                lastAction = $"You prospect the {tile.Name} but find nothing of value.";
             else if (tile.mine)
             {
                 // silver/gold nuggets
@@ -3385,7 +3402,7 @@ public class Game : MonoBehaviour
 
         ui.CloseDialog();
         lastTestCombat = enemiesStr;
-        combatScreen.Init(enemyList);
+        combatScreen.Init(enemyList, "explore");
         ui.lockDialog = true;
         ui.ShowDialog(combatScreen.gameObject);
         return true;

@@ -76,7 +76,12 @@ public static class TileTypeMethods
 
     public static bool IsClearable(this TileType tileType)
     {
-        return tileType == TileType.Cave || tileType == TileType.Mine || tileType == TileType.Sawmill || tileType == TileType.Sewers;
+        return tileType == TileType.Cave
+            || tileType == TileType.Mine
+            || tileType == TileType.Sawmill
+            || tileType == TileType.Sewers
+            || tileType == TileType.Forest
+            || tileType == TileType.Mountains;
     }
 
     public static bool IsSafe(this TileType tileType)
