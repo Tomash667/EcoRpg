@@ -27,9 +27,7 @@ public class Game : MonoBehaviour
     public List<Hero> allies;
     public List<Quest> availableQuests, activeQuests;
     public List<Property> properties;
-    public List<ItemSlot> storedItems;
     public List<Notification> notifications;
-    public List<string> gardenPlants;
     public DragonStatus dragonStatus;
     public float guildProgress;
     public int day, hour, minute, guildRank, freshHorses;
@@ -164,7 +162,7 @@ public class Game : MonoBehaviour
                     Shop();
                 if (Input.GetKeyDown(KeyCode.X))
                     EnterSewers();
-                if (Input.GetKeyDown(KeyCode.H) && (player.HaveProperty("House") || player.HaveProperty("Mansion")))
+                if (Input.GetKeyDown(KeyCode.H) && (player.HaveProperty("House", location: TileType.City) || player.HaveProperty("Mansion")))
                     EnterHouse();
                 break;
             case TileType.Village:
@@ -861,7 +859,7 @@ public class Game : MonoBehaviour
 
     public void EnterHouse()
     {
-        if (player.HaveProperty("House"))
+        if (player.HaveProperty("House", location: world.Location))
         {
             lastAction = "You enter your house.";
             world.sublocation = 2;
@@ -884,7 +882,7 @@ public class Game : MonoBehaviour
             return;
         }
 
-        lastAction = "You exit to the city.";
+        lastAction = $"You exit to the {(world.RealLocation == TileType.Village ? "village" : "city")}.";
         if (world.sublocation == 1)
         {
             player.energy -= 5;
@@ -1517,7 +1515,7 @@ public class Game : MonoBehaviour
         hour = 8;
         minute = 0;
         TileType location = world.Location;
-        if ((location == TileType.City && player.HaveProperty("House")) || location == TileType.House)
+        if (((location == TileType.City || location == TileType.Village) && player.HaveProperty("House", location: location)) || location == TileType.House)
         {
             FullRest();
             lastAction += "You rest in your house.";
@@ -1531,7 +1529,7 @@ public class Game : MonoBehaviour
                 freshHorses = 11;
             lastAction += "You rest in your mansion.";
         }
-        else if (location == TileType.City && player.HaveProperty("Inn"))
+        else if ((location == TileType.City || location == TileType.Village) && player.HaveProperty("Inn", location: location))
         {
             FullRest();
             lastAction += "You rest in your inn.";
@@ -1655,7 +1653,7 @@ public class Game : MonoBehaviour
                             if (even.timer == 0)
                             {
                                 world.GetLocation(p.locationIndex).clear = true;
-                                AddNotification($"{p.name} infestation has been cleared by {(even.state == 0 ? "adventurers" : "guards")}.");
+                                AddNotification($"{p.Name} infestation has been cleared by {(even.state == 0 ? "adventurers" : "guards")}.");
                                 p.events.Clear();
                             }
                         }
@@ -1683,7 +1681,7 @@ public class Game : MonoBehaviour
                 map.UpdateMap(World.IndexToPoint(property.locationIndex));
                 if (world.CurrentLocationIndex == property.locationIndex)
                     OnChangeLocation();
-                AddNotification($"The construction of {property.name.ToLower()} has been completed.");
+                AddNotification($"The construction of {property.Name.ToLower()} has been completed.");
             }
         }
 
@@ -1694,19 +1692,22 @@ public class Game : MonoBehaviour
         }
 
         // grow garden plants
-        foreach (var plant in gardenPlants.GroupBy(x => x).Select(x => (name: x.Key, count: x.Count())))
+        foreach (Property property in player.properties.Where(x => x.gardenPlants != null && x.gardenPlants.Count > 0))
         {
-            switch (plant.name)
+            foreach (var plant in property.gardenPlants.GroupBy(x => x).Select(x => (name: x.Key, count: x.Count())))
             {
-            case "Vegetables":
-                AddStoredItem(Item.Get("rations"), plant.count);
-                break;
-            case "Herbs":
-                AddStoredItem(Item.Get("herb"), plant.count);
-                break;
-            case "Rare herbs":
-                AddStoredItem(Item.Get("rare herb"), plant.count);
-                break;
+                switch (plant.name)
+                {
+                case "Vegetables":
+                    AddStoredItem(Item.Get("rations"), plant.count, property.storedItems);
+                    break;
+                case "Herbs":
+                    AddStoredItem(Item.Get("herb"), plant.count, property.storedItems);
+                    break;
+                case "Rare herbs":
+                    AddStoredItem(Item.Get("rare herb"), plant.count, property.storedItems);
+                    break;
+                }
             }
         }
 
@@ -1749,14 +1750,15 @@ public class Game : MonoBehaviour
                         property.events.Add(new Property.Event { name = "Buff", timer = 30 });
                         property.lastEvent = "Buff";
                         string str;
+                        string propName = property.Name.ToLower();
                         if (property.name == "Sawmill")
-                            str = "Your sawmill production increased thanks to good weather.";
+                            str = $"Your {propName} production increased thanks to good weather.";
                         else if (property.name == "Inn")
-                            str = "Your inn income increased thanks to festival.";
+                            str = $"Your {propName} income increased thanks to festival.";
                         else if (Utility.Rand % 2 == 0)
-                            str = $"Your {property.name.ToLower()} production increased thanks to good ore quality.";
+                            str = $"Your {propName} production increased thanks to good ore quality.";
                         else
-                            str = $"Your {property.name.ToLower()} production increased thanks to new ore veins.";
+                            str = $"Your {propName} production increased thanks to new ore veins.";
                         AddNotification(str);
                         break;
                     }
@@ -1770,7 +1772,7 @@ public class Game : MonoBehaviour
                     {
                         property.events.Add(new Property.Event { name = "Infested", timer = -1 });
                         property.lastEvent = "Infested";
-                        AddNotification($"{property.name} has been taken over by monsters! Hire adventurers or deal with it yourself.");
+                        AddNotification($"{property.Name} has been taken over by monsters! Hire adventurers or deal with it yourself.");
                         Tile tile = world.GetLocation(property.locationIndex);
                         tile.clear = false;
                         tile.defeatedEnemies = 0;
@@ -1848,7 +1850,6 @@ public class Game : MonoBehaviour
         player = new() { name = global.playerName, clas = global.playerClass, female = global.playerFemale };
         player.Init();
         allies = new();
-        storedItems = new();
         world = new();
         world.Init();
         map.Build();
@@ -1907,16 +1908,21 @@ public class Game : MonoBehaviour
         buttons.Find("BtShop").gameObject.SetActive(inCity || inVillage);
         buttons.Find("BtWork").gameObject.SetActive(inCity || inVillage);
         buttons.Find("BtGuild").gameObject.SetActive(inCity);
-        buttons.Find("BtProperties").gameObject.SetActive(inCity);
+        buttons.Find("BtProperties").gameObject.SetActive(inCity || inVillage);
         buttons.Find("BtSewers").gameObject.SetActive(inCity);
-        Transform houseButton = buttons.Find("BtHouse");
-        if (inCity && (player.HaveProperty("House") || player.HaveProperty("Mansion")))
+        Transform button = buttons.Find("BtHouse");
+        if (inCity && player.HaveProperty("Mansion"))
         {
-            houseButton.gameObject.SetActive(true);
-            houseButton.GetComponentInChildren<TMP_Text>().text = player.HaveProperty("House") ? "House" : "Mansion";
+            button.gameObject.SetActive(true);
+            button.GetComponentInChildren<TMP_Text>().text = "Mansion";
+        }
+        else if ((inCity || inVillage) && player.HaveProperty("House", location: location))
+        {
+            button.gameObject.SetActive(true);
+            button.GetComponentInChildren<TMP_Text>().text = "House";
         }
         else
-            houseButton.gameObject.SetActive(false);
+            button.gameObject.SetActive(false);
         buttons.Find("BtTravel").gameObject.SetActive(world.level == 0 && location != TileType.DarkDimension);
         buttons.Find("BtGoUp").gameObject.SetActive(world.level != 0);
         buttons.Find("BtGoDown").gameObject.SetActive(world.level < world.CurrentTile.foundLevel);
@@ -1924,44 +1930,51 @@ public class Game : MonoBehaviour
         buttons.Find("BtEnterPortal").gameObject.SetActive(location == TileType.MageTower);
         buttons.Find("BtEnterPortal2").gameObject.SetActive(location == TileType.DarkDimension);
 
-        Transform btJournal = buttons.Find("BtJournal");
+        button = buttons.Find("BtJournal");
         int notificationsAvailable = notifications.Count(x => x.status == Notification.Status.Available);
         if (notificationsAvailable > 0)
         {
-            btJournal.Find("Text1").gameObject.SetActive(false);
-            btJournal.Find("Text2").gameObject.SetActive(true);
-            btJournal.Find("Image").gameObject.SetActive(true);
-            TMP_Text counter = btJournal.Find("Counter").GetComponent<TMP_Text>();
+            button.Find("Text1").gameObject.SetActive(false);
+            button.Find("Text2").gameObject.SetActive(true);
+            button.Find("Image").gameObject.SetActive(true);
+            TMP_Text counter = button.Find("Counter").GetComponent<TMP_Text>();
             counter.text = notificationsAvailable.ToString();
             counter.gameObject.SetActive(true);
-            btJournal.Find("").gameObject.SetActive(true);
+            button.Find("").gameObject.SetActive(true);
         }
         else
         {
-            btJournal.Find("Text1").gameObject.SetActive(true);
-            btJournal.Find("Text2").gameObject.SetActive(false);
-            btJournal.Find("Image").gameObject.SetActive(false);
-            btJournal.Find("Counter").gameObject.SetActive(false);
+            button.Find("Text1").gameObject.SetActive(true);
+            button.Find("Text2").gameObject.SetActive(false);
+            button.Find("Image").gameObject.SetActive(false);
+            button.Find("Counter").gameObject.SetActive(false);
         }
 
-        Transform btForage = buttons.Find("BtForage");
+        button = buttons.Find("BtForage");
         if (location == TileType.Forest || location == TileType.Cave)
         {
-            btForage.gameObject.SetActive(true);
-            btForage.GetComponentInChildren<TMP_Text>().text = location == TileType.Forest ? "Forage" : "Prospect";
+            button.gameObject.SetActive(true);
+            button.GetComponentInChildren<TMP_Text>().text = location == TileType.Forest ? "Forage" : "Prospect";
         }
         else
-            btForage.gameObject.SetActive(false);
+            button.gameObject.SetActive(false);
 
-        buttons.Find("BtCity").gameObject.SetActive(location == TileType.Sewers || location == TileType.House || location == TileType.Mansion);
+        button = buttons.Find("BtCity");
+        if (location == TileType.Sewers || location == TileType.House || location == TileType.Mansion)
+        {
+            button.gameObject.SetActive(true);
+            button.GetComponentInChildren<TMP_Text>().text = world.RealLocation == TileType.Village ? "Exit to village" : "Exit to city";
+        }
+        else
+            button.gameObject.SetActive(false);
 
         buttons.Find("BtWork2").gameObject.SetActive(location == TileType.Sawmill || location == TileType.Mine);
 
         buttons.Find("BtStorage").gameObject.SetActive(location == TileType.House || location == TileType.Mansion);
         buttons.Find("BtCook").gameObject.SetActive(location == TileType.House || location == TileType.Mansion);
-        buttons.Find("BtCraft").gameObject.SetActive((location == TileType.House && player.HavePropertyUpgrade("House", "Alchemy lab"))
+        buttons.Find("BtCraft").gameObject.SetActive((location == TileType.House && player.HavePropertyUpgrade("House", "Alchemy lab", world.RealLocation))
             || (location == TileType.Mansion && player.HavePropertyUpgrade("Mansion", "Alchemy lab")));
-        buttons.Find("BtGarden").gameObject.SetActive((location == TileType.House && player.HavePropertyUpgrade("House", "Garden"))
+        buttons.Find("BtGarden").gameObject.SetActive((location == TileType.House && player.HavePropertyUpgrade("House", "Garden", world.RealLocation))
             || (location == TileType.Mansion && player.HavePropertyUpgrade("Mansion", "Garden")));
 
         GameObject btAlly = buttons.Find("BtAlly").gameObject;
@@ -2094,13 +2107,14 @@ public class Game : MonoBehaviour
         foreach (Transform child in content)
             Destroy(child.gameObject);
 
-        Property[] propertiesToBuy = properties.Where(x => x.status != Property.Status.None).OrderBy(x => x.value).ThenBy(x => x.name).ToArray();
+        Property[] propertiesToBuy = properties.Where(x => x.status != Property.Status.None && (x.shopLocation == TileType.None || x.shopLocation == world.Location))
+            .OrderBy(x => x.value).ThenBy(x => x.Name).ToArray();
 
         // player properties
         if (player.properties.Count > 0)
         {
             ui.AddTextHeader("Your properties:", content);
-            foreach (Property property in player.properties.OrderBy(x => x.value).ThenBy(x => x.name))
+            foreach (Property property in player.properties.OrderBy(x => x.value).ThenBy(x => x.Name))
             {
                 ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
                 itemEntry.SetImage(ui.propertyIcons[(int)property.GetImage()]);
@@ -2121,12 +2135,9 @@ public class Game : MonoBehaviour
                         player.AddGold(property.value / 2);
                         player.properties.Remove(property);
                         property.events.Clear();
-                        lastAction = $"You sell {property.name.ToLower()} for <color=#FFD700>{property.value / 2}</color> gold.";
+                        lastAction = $"You sell {property.Name.ToLower()} for <color=#FFD700>{property.value / 2}</color> gold.";
                         if (property.name == "House" || property.name == "Mansion")
-                        {
                             UpdateButtons();
-                            gardenPlants.Clear();
-                        }
                         if (property.name == "Horses" || property.name == "Mansion")
                             freshHorses = 0;
                         AddTime(minutes: 30);
@@ -2160,11 +2171,12 @@ public class Game : MonoBehaviour
                 int cost = build ? property.BuildPrice : property.value;
                 if (player.gold < cost)
                 {
-                    ui.ShowDialog($"You need {cost} gold to {(build ? "build" : "buy")} {property.name.ToLower()}.");
+                    ui.ShowDialog($"You need {cost} gold to {(build ? "build" : "buy")} {property.Name.ToLower()}.");
                     return;
                 }
 
-                if ((property.name == "House" && player.HaveProperty("Mansion")) || (property.name == "Mansion" && player.HaveProperty("House")))
+                if ((property.name == "House" && property.shopLocation == TileType.City && player.HaveProperty("Mansion"))
+                    || (property.name == "Mansion" && player.HaveProperty("House", location: TileType.City)))
                 {
                     ui.ShowDialog("You can't own both house and mansion. It's a law!");
                     return;
@@ -2175,13 +2187,13 @@ public class Game : MonoBehaviour
                 properties.Remove(property);
                 if (build)
                 {
-                    lastAction = $"You pay <color=#FFD700>{cost}</color> gold to build {property.name.ToLower()}.";
+                    lastAction = $"You pay <color=#FFD700>{cost}</color> gold to build {property.Name.ToLower()}.";
                     property.status = Property.Status.Building;
                     world.GetLocation(property.locationIndex).timer = 0; // prevent resetting
                 }
                 else
                 {
-                    lastAction = $"You buy {property.name.ToLower()} for <color=#FFD700>{cost}</color> gold.";
+                    lastAction = $"You buy {property.Name.ToLower()} for <color=#FFD700>{cost}</color> gold.";
 
                     // remove quests assigned to this location
                     if (property.locationIndex != -1)
@@ -2199,10 +2211,11 @@ public class Game : MonoBehaviour
                 if (property.name == "House" || property.name == "Mansion")
                 {
                     UpdateButtons();
-                    gardenPlants.Clear();
+                    property.storedItems = new();
                     int size = property.name == "House" ? 2 : 6;
+                    property.gardenPlants = new();
                     for (int i = 0; i < size; ++i)
-                        gardenPlants.Add(string.Empty);
+                        property.gardenPlants.Add(string.Empty);
                 }
                 AddTime(minutes: 30);
                 if (ui.CurrentDialog == propertiesScreen)
@@ -2226,16 +2239,16 @@ public class Game : MonoBehaviour
         if (selectedProperty == null)
             str = string.Empty;
         else if (selectedProperty.status == Property.Status.Building)
-            str = $"<b>{selectedProperty.name}</b>\n{Utility.Plural("day", selectedProperty.buildTime, true)} left to end of construction";
+            str = $"<b>{selectedProperty.Name}</b>\n{Utility.Plural("day", selectedProperty.buildTime, true)} left to end of construction";
         else
         {
             Property.Event even = selectedProperty.events.FirstOrDefault(x => x.name == "Infested");
             if (even == null)
-                str = $"<b>{selectedProperty.name}</b>\n";
+                str = $"<b>{selectedProperty.Name}</b>\n";
             else if (even.timer == -1)
-                str = $"<b>{selectedProperty.name} (infested)</b>\n";
+                str = $"<b>{selectedProperty.Name} (infested)</b>\n";
             else
-                str = $"<b>{selectedProperty.name} ({Utility.Plural("day", even.timer, true)} to clear)</b>\n";
+                str = $"<b>{selectedProperty.Name} ({Utility.Plural("day", even.timer, true)} to clear)</b>\n";
             str += $"Income:{selectedProperty.Income}  Upkeep:{selectedProperty.Upkeep}  Profit:{selectedProperty.Profit}\nUpgrades: ";
             if (selectedProperty.upgrades != null && selectedProperty.upgrades.Any(x => x.active))
                 str += string.Join(", ", selectedProperty.upgrades.Where(x => x.active).Select(x => x.name).OrderBy(x => x));
@@ -2424,17 +2437,17 @@ public class Game : MonoBehaviour
                 Property property = prop;
                 ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
                 int days = world.CalculateTravelDaysNonTeam(World.IndexToPoint(property.locationIndex));
-                itemEntry.Init($"Clear {property.name.ToLower()} ({Utility.Plural("day", days, true)}, {property.infestedCost} gold)", "Pay", () =>
+                itemEntry.Init($"Clear {property.Name.ToLower()} ({Utility.Plural("day", days, true)}, {property.infestedCost} gold)", "Pay", () =>
                 {
                     if (player.gold < property.infestedCost)
                     {
-                        ui.ShowDialog($"You need {property.infestedCost} gold to pay adventurers to clear the {property.name.ToLower()}.");
+                        ui.ShowDialog($"You need {property.infestedCost} gold to pay adventurers to clear the {property.Name.ToLower()}.");
                         return;
                     }
 
                     player.AddGold(-property.infestedCost);
                     prop.events.First(e => e.name == "Infested").timer = days;
-                    lastAction = $"You pay <color=#FFD700>{property.infestedCost}</color> gold to adventurers to clear the {property.name.ToLower()}. " +
+                    lastAction = $"You pay <color=#FFD700>{property.infestedCost}</color> gold to adventurers to clear the {property.Name.ToLower()}. " +
                         $"It will take them {Utility.Plural("day", days, true)}.";
                     AddTime(minutes: 15);
                     if (ui.CurrentDialog == guildScreen)
@@ -2897,7 +2910,7 @@ public class Game : MonoBehaviour
         {
             if (property.locationIndexFunc != null)
             {
-                Property copy = properties.FirstOrDefault(x => x.name == property.name) ?? player.properties.FirstOrDefault(x => x.name == property.name);
+                Property copy = properties.Union(player.properties).FirstOrDefault(x => x.name == property.name && x.shopLocation == property.shopLocation);
                 if (copy != null)
                 {
                     copy.locationIndex = property.locationIndexFunc(world);
@@ -2978,7 +2991,7 @@ public class Game : MonoBehaviour
     {
         foreach (Property property in Property.properties)
         {
-            Property copy = properties.FirstOrDefault(x => x.name == property.name) ?? player.properties.FirstOrDefault(x => x.name == property.name);
+            Property copy = properties.Union(player.properties).FirstOrDefault(x => x.name == property.name && x.shopLocation == property.shopLocation);
             if (copy != null)
                 copy.Update(property);
             else
@@ -3014,6 +3027,8 @@ public class Game : MonoBehaviour
 
     private void RefreshStoredItems()
     {
+        List<ItemSlot> storedItems = GetPropertyInside().storedItems;
+
         Transform content = storeItemsScreen.transform.Find("StoredItems/Viewport/Content");
         foreach (Transform child in content)
             Destroy(child.gameObject);
@@ -3056,8 +3071,9 @@ public class Game : MonoBehaviour
         }
     }
 
-    private void AddStoredItem(Item item, int count = 1)
+    private void AddStoredItem(Item item, int count = 1, List<ItemSlot> storedItems = null)
     {
+        storedItems ??= GetPropertyInside().storedItems;
         ItemSlot itemSlot = storedItems.FirstOrDefault(x => x.item == item);
         if (itemSlot != null)
             itemSlot.count += count;
@@ -3069,7 +3085,7 @@ public class Game : MonoBehaviour
     {
         itemSlot.count -= count;
         if (itemSlot.count <= 0)
-            storedItems.Remove(itemSlot);
+            GetPropertyInside().storedItems.Remove(itemSlot);
     }
 
     public void Garden()
@@ -3084,12 +3100,13 @@ public class Game : MonoBehaviour
         foreach (Transform child in content)
             Destroy(child.gameObject);
 
+        Property property = GetPropertyInside();
         string[] choices = new string[] { "---", "Vegetables (10 gold)", "Herbs (10 herbs)", "Rare herbs (10 herbs)" };
 
-        for (int i = 0; i < gardenPlants.Count; ++i)
+        for (int i = 0; i < property.gardenPlants.Count; ++i)
         {
             int index = i;
-            string plant = gardenPlants[i];
+            string plant = property.gardenPlants[i];
             if (plant == "")
                 plant = "Empty";
             DropdownEntry dropdownEntry = Instantiate(ui.dropdownEntryPrefab, content).GetComponent<DropdownEntry>();
@@ -3106,7 +3123,7 @@ public class Game : MonoBehaviour
                     else
                     {
                         player.AddGold(-10);
-                        gardenPlants[index] = "Vegetables";
+                        property.gardenPlants[index] = "Vegetables";
                         RefreshGarden();
                         UpdateText();
                     }
@@ -3121,7 +3138,7 @@ public class Game : MonoBehaviour
                     else
                     {
                         player.RemoveItem(herb, 10);
-                        gardenPlants[index] = "Herbs";
+                        property.gardenPlants[index] = "Herbs";
                         RefreshGarden();
                     }
                     break;
@@ -3135,7 +3152,7 @@ public class Game : MonoBehaviour
                     else
                     {
                         player.RemoveItem(rareHerb, 10);
-                        gardenPlants[index] = "Rare herbs";
+                        property.gardenPlants[index] = "Rare herbs";
                         RefreshGarden();
                     }
                     break;
@@ -3406,5 +3423,16 @@ public class Game : MonoBehaviour
         ui.lockDialog = true;
         ui.ShowDialog(combatScreen.gameObject);
         return true;
+    }
+
+    private Property GetPropertyInside()
+    {
+        TileType location = world.Location;
+        if (location == TileType.House)
+            return player.properties.First(x => x.name == "House" && x.shopLocation == world.RealLocation);
+        else if (location == TileType.Mansion)
+            return player.properties.First(x => x.name == "Mansion");
+        else
+            return null;
     }
 }

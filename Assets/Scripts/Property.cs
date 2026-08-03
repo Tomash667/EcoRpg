@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
 
 [Serializable]
 public class Property
@@ -52,11 +53,15 @@ public class Property
 
     public string name, desc, lastEvent;
     public List<Event> events;
+    public List<ItemSlot> storedItems;
+    public List<string> gardenPlants;
     public Upgrade[] upgrades;
     public Func<World, int> locationIndexFunc;
     public Status status;
+    public TileType shopLocation;
     public int value, infestedCost, income, upkeep, upkeepDiscount, buildPrice, buildPriceDiscount, buildTime, locationIndex;
-
+    public bool multi;
+    
     public int Income
     {
         get
@@ -96,17 +101,32 @@ public class Property
                 return buildPrice;
         }
     }
+    public string Name
+    {
+        get
+        {
+            if (multi)
+                return $"{name} ({shopLocation.AsString()})";
+            else
+                return name;
+        }
+    }
     public string Desc => desc.Replace("PROFIT", Profit.ToString()).Replace("UPKEEP", upkeep.ToString());
+
+    public override string ToString()
+    {
+        return Name;
+    }
 
     public string ToString(DescStatus status)
     {
         return status switch
         {
-            DescStatus.Sell => $"{name} ({Desc}, {value / 2} gold)",
-            DescStatus.Build => $"{name} ({buildTime} days to build, {Desc}, {BuildPrice} gold)",
-            DescStatus.Building => $"{name} ({Utility.Plural("day", buildTime)} left, {Desc})",
-            DescStatus.Infested => $"{name} (<color=red>{Desc}, {value / 2} gold</color>)",
-            _ => $"{name} ({Desc}, {value} gold)"
+            DescStatus.Sell => $"{Name} ({Desc}, {value / 2} gold)",
+            DescStatus.Build => $"{Name} ({buildTime} days to build, {Desc}, {BuildPrice} gold)",
+            DescStatus.Building => $"{Name} ({Utility.Plural("day", buildTime)} left, {Desc})",
+            DescStatus.Infested => $"{Name} (<color=red>{Desc}, {value / 2} gold</color>)",
+            _ => $"{Name} ({Desc}, {value} gold)"
         };
     }
 
@@ -155,6 +175,7 @@ public class Property
                 upkeep = x.upkeep
             }).ToArray(),
             status = status,
+            shopLocation = shopLocation,
             value = value,
             infestedCost = infestedCost,
             income = income,
@@ -162,7 +183,8 @@ public class Property
             upkeepDiscount = upkeepDiscount,
             buildPrice = buildPrice,
             buildPriceDiscount = buildPriceDiscount,
-            buildTime = buildTime
+            buildTime = buildTime,
+            multi = multi
         };
     }
 
@@ -195,6 +217,7 @@ public class Property
             desc = "don't pay for inn",
             value = 500,
             status = Status.Active,
+            shopLocation = TileType.City,
             upgrades = new Upgrade[]
             {
                 new()
@@ -210,7 +233,33 @@ public class Property
                     value = 100,
                     upkeep = 1
                 }
-            }
+            },
+            multi = true
+        },
+        new()
+        {
+            name = "House",
+            desc = "don't pay for inn",
+            value = 400,
+            status = Status.Active,
+            shopLocation = TileType.Village,
+            upgrades = new Upgrade[]
+            {
+                new()
+                {
+                    name = "Alchemy lab",
+                    desc = "+25 alchemy",
+                    value = 100
+                },
+                new()
+                {
+                    name = "Garden",
+                    desc = "Grow food or herbs, +1 upkeep",
+                    value = 100,
+                    upkeep = 1
+                }
+            },
+            multi = true
         },
         new()
         {
@@ -219,6 +268,7 @@ public class Property
             value = 10000,
             upkeep = 5,
             status = Status.Active,
+            shopLocation = TileType.City,
             upgrades = new Upgrade[]
             {
                 new()
@@ -248,7 +298,8 @@ public class Property
             name = "Horses",
             desc = "+25% travel speel",
             value = 500,
-            status = Status.Active
+            status = Status.Active,
+            shopLocation = TileType.None
         },
         new()
         {
@@ -259,6 +310,7 @@ public class Property
             income = 10,
             upkeep = 5,
             status = Status.Active,
+            shopLocation = TileType.City,
             locationIndexFunc = world => world.FindLocationIndex(x => x.type == TileType.Sawmill),
             upgrades = new Upgrade[]
             {
@@ -288,6 +340,7 @@ public class Property
             upkeep = 10,
             upkeepDiscount = 2,
             status = Status.Active,
+            shopLocation = TileType.City,
             locationIndexFunc = world => world.FindLocationIndex(x => x.type == TileType.Mine),
             upgrades = new Upgrade[]
             {
@@ -319,6 +372,7 @@ public class Property
             buildPrice = 6000,
             buildPriceDiscount = 500,
             buildTime = 20,
+            shopLocation = TileType.City,
             locationIndexFunc = world => world.FindLocationIndex(x => x.hidden == TileType.Cave && x.mine && x.difficulty == 2),
             upgrades = new Upgrade[]
             {
@@ -350,6 +404,7 @@ public class Property
             buildPrice = 7500,
             buildPriceDiscount = 500,
             buildTime = 30,
+            shopLocation = TileType.City,
             locationIndexFunc = world => world.FindLocationIndex(x => x.hidden == TileType.Cave && x.mine && x.difficulty == 3),
             upgrades = new Upgrade[]
             {
@@ -376,7 +431,20 @@ public class Property
             value = 5000,
             income = 10,
             upkeep = 5,
-            status = Status.Active
+            status = Status.Active,
+            shopLocation = TileType.City,
+            multi = true
+        },
+        new()
+        {
+            name = "Inn",
+            desc = "PROFIT gold/day, free rest",
+            value = 4000,
+            income = 9,
+            upkeep = 5,
+            status = Status.Active,
+            shopLocation = TileType.Village,
+            multi = true
         }
     };
 }

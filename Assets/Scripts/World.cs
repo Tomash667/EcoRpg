@@ -45,6 +45,7 @@ public class World
     public Tile CurrentTile => sublocation == 0 ? map[currentPt.x + currentPt.y * sizeX] : sublocations[sublocation];
     public int CurrentLocationIndex => CalculateIndex(currentPt.x, currentPt.y, sublocation);
     public TileType Location => CurrentTile.type;
+    public TileType RealLocation => map[currentPt.x + currentPt.y * sizeX].type;
 
     public static int CalculateIndex(int x, int y, int z)
     {

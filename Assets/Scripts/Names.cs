@@ -286,7 +286,8 @@
         "abandoned mine",
         "mossy cave",
         "foggy grotto",
-        "dripping cavern"
+        "dripping cavern",
+        "old lair",
     };
 
     public static readonly string[] cave2 = new[]
@@ -294,7 +295,8 @@
         "cave of echoes",
         "dark cave",
         "black grotto",
-        "crystal cave"
+        "crystal cave",
+        "clattering lair"
     };
 
     public static readonly string[] cave3 = new[]
@@ -302,7 +304,8 @@
         "deep maw",
         "dread pit",
         "forgotten abyss",
-        "cave of chaos"
+        "cave of chaos",
+        "deadly lair"
     };
 
     public static readonly string[] dungeon1 = new[]
@@ -312,7 +315,8 @@
         "shallow crypt",
         "broken cellar",
         "ruined castle",
-        "dusty tunnels"
+        "dusty tunnels",
+        "old graveyard"
     };
 
     public static readonly string[] dungeon2 = new[]
@@ -322,7 +326,9 @@
         "sunken dungeon",
         "forsaken vault",
         "crypt of ash",
-        "labyrinth"
+        "labyrinth",
+        "tomb of sands",
+        "ruined mansion"
     };
 
     public static readonly string[] dungeon3 = new[]
@@ -332,6 +338,7 @@
         "bloodstone dungeon",
         "crypt of the nameless",
         "eternal catacombs",
-        "crimson castle"
+        "crimson castle",
+        "dungeon of doom"
     };
 }
