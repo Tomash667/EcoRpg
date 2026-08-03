@@ -1,7 +1,5 @@
 forage skill
 forage depleted
-nuggets depleted
-nuggets prospect
 
 v2:
 hero:

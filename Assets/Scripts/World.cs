@@ -750,7 +750,8 @@ public class World
     {
         foreach (Tile tile in map)
         {
-            if (tile.depleted > 0)
+            // mountain/cave mine nuggets don't regrow
+            if (tile.depleted > 0 && !(tile.type == TileType.Mountains || (tile.type == TileType.Cave && tile.mine)))
                 --tile.depleted;
 
             if (tile.timer == 0)

@@ -456,9 +456,9 @@ public class Game : MonoBehaviour
             player.AddItem(herb, count);
             lastAction = $"You explore the {tile.Name} and find <b>{Utility.Plural(herb.name, count)}</b>.";
         }
-        else if (c == 9 && (tile.type == TileType.Mountains || (tile.type == TileType.Cave && tile.mine && !tile.clear)) && tile.difficulty >= 2)
+        else if (c == 9 && ((tile.type == TileType.Mountains && tile.depleted == 0) || (tile.type == TileType.Cave && tile.mine && tile.depleted < 4)) && tile.difficulty >= 2)
         {
-            // 1-4 silver/gold nuggets (~3.16)
+            // silver/gold nuggets
             if (player.HaveItem("pickaxe"))
             {
                 int count = (Utility.Rand % 6) switch
@@ -468,7 +468,10 @@ public class Game : MonoBehaviour
                     5 => 4,
                     _ => 1,
                 };
-                count += player.GetSkill(Skill.Mining) / 25;
+                count += player.GetSkill(Skill.Mining) / 25 - tile.depleted;
+                if (count < 1)
+                    count = 1;
+                tile.depleted++;
                 Item nugget = Item.Get(tile.difficulty == 2 ? "silver nugget" : "gold nugget");
                 player.AddItem(nugget, count);
                 lastAction = $"You explore the {tile.Name} and find small <b>{(tile.difficulty == 2 ? "silver" : "gold")} vein</b>. You mine <b>{Utility.Plural(nugget.name, count)}</b>.";
@@ -2646,7 +2649,7 @@ public class Game : MonoBehaviour
     {
         Tile tile = world.CurrentTile;
 
-        if(tile.type == TileType.Cave && !player.HaveItem("pickaxe"))
+        if (tile.type == TileType.Cave && !player.HaveItem("pickaxe"))
         {
             lastAction = "You need a pickaxe for that.";
             UpdateText();
@@ -2681,10 +2684,30 @@ public class Game : MonoBehaviour
         else
         {
             player.energy -= 5;
-            if (tile.mine || tile.boss || tile.depleted >= tile.difficulty + 2)
-                lastAction = $"You search the {tile.Name}, but find nothing of value.";
+            if (tile.boss || (tile.mine && tile.depleted >= 4) || (!tile.mine && tile.depleted >= tile.difficulty + 2))
+                lastAction = $"You prospect the {tile.Name}, but find nothing of value.";
+            else if (tile.mine)
+            {
+                // silver/gold nuggets
+                int count = (Utility.Rand % 6) switch
+                {
+                    1 or 2 => 2,
+                    3 or 4 => 3,
+                    5 => 4,
+                    _ => 1,
+                };
+                count += player.GetSkill(Skill.Mining) / 25 - tile.depleted;
+                if (count < 1)
+                    count = 1;
+                tile.depleted++;
+                Item nugget = Item.Get(tile.difficulty == 2 ? "silver nugget" : "gold nugget");
+                player.AddItem(nugget, count);
+                lastAction = $"You prospect the {tile.Name} and find small <b>{(tile.difficulty == 2 ? "silver" : "gold")} vein</b>. You mine <b>{Utility.Plural(nugget.name, count)}</b>.";
+                lastAction += player.Train(Skill.Mining, 0.25f);
+            }
             else
             {
+                // magic crystals
                 int count = (Utility.Rand % 4) switch
                 {
                     1 or 2 => 2,
@@ -2696,7 +2719,7 @@ public class Game : MonoBehaviour
                     count = 1;
                 tile.depleted++;
                 player.AddItem(Item.Get("magic crystal"), count);
-                lastAction = $"You search the {tile.Name} and find small <b>magic crystals cluster</b>. You mine <b>{Utility.Plural("magic crystal", count)}</b>.";
+                lastAction = $"You prospect the {tile.Name} and find small <b>magic crystals cluster</b>. You mine <b>{Utility.Plural("magic crystal", count)}</b>.";
                 lastAction += player.Train(Skill.Mining, 0.25f);
             }
             AddTime(minutes: 30);
