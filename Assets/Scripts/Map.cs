@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -15,7 +16,7 @@ public class Map : MonoBehaviour
     public Sprite[] sprites;
 
     private Arrow arrow;
-    private GameObject cursor, cursor2;
+    private GameObject outlineCurrent, outlineTarget, outlineQuest;
     private TMP_Text text, buttonText;
     private ScrollRect scrollRect;
     private Transform tilesContainer;
@@ -36,8 +37,9 @@ public class Map : MonoBehaviour
         viewportSize = transform.Find("MapView/Viewport").GetComponent<RectTransform>().rect.size;
         Transform mapContent = transform.Find("MapView/Viewport/Content");
         mapContent.GetComponent<RectTransform>().sizeDelta = contentSize;
-        cursor = mapContent.Find("Cursor").gameObject;
-        cursor2 = mapContent.Find("Cursor2").gameObject;
+        outlineCurrent = mapContent.Find("OutlineCurrent").gameObject;
+        outlineTarget = mapContent.Find("OutlineTarget").gameObject;
+        outlineQuest = mapContent.Find("OutlineQuest").gameObject;
         arrow = mapContent.Find("Arrow").GetComponent<Arrow>();
         tilesContainer = mapContent.Find("Tiles");
     }
@@ -64,9 +66,17 @@ public class Map : MonoBehaviour
     public void Show()
     {
         Vector2Int currentPt = Global.World.currentPt;
-        currentPos = new(gridOrigin.x + tileSize * currentPt.x, gridOrigin.y - tileSize * currentPt.y);
-        cursor.GetComponent<RectTransform>().anchoredPosition = currentPos;
-        cursor2.SetActive(false);
+        currentPos = PtToPos(currentPt);
+        outlineCurrent.GetComponent<RectTransform>().anchoredPosition = currentPos;
+        outlineTarget.SetActive(false);
+        Quest quest = Global.Game.activeQuests.FirstOrDefault(x => x.tracked && x.location != -1);
+        if (quest != null)
+        {
+            outlineQuest.GetComponent<RectTransform>().anchoredPosition = PtToPos(World.IndexToPoint(quest.location));
+            outlineQuest.SetActive(true);
+        }
+        else
+            outlineQuest.SetActive(false);
         arrow.gameObject.SetActive(false);
         CenterOnPlayer();
     }
@@ -96,7 +106,7 @@ public class Map : MonoBehaviour
         {
             moveView = true;
             moveViewPos = Input.mousePosition;
-            cursor2.SetActive(false);
+            outlineTarget.SetActive(false);
             arrow.gameObject.SetActive(false);
             text.text = $"Rations: {Global.Game.CountTeamItem(Item.Get("rations"))}";
             lastCheckedPos.x = -1;
@@ -145,7 +155,7 @@ public class Map : MonoBehaviour
         {
             // outside map
             arrow.gameObject.SetActive(false);
-            cursor2.SetActive(false);
+            outlineTarget.SetActive(false);
             text.text = $"Rations: {Global.Game.CountTeamItem(Item.Get("rations"))}";
         }
         else
@@ -155,15 +165,14 @@ public class Map : MonoBehaviour
             {
                 // same position as current
                 arrow.gameObject.SetActive(false);
-                cursor2.SetActive(false);
+                outlineTarget.SetActive(false);
                 text.text = $"Rations: {Global.Game.CountTeamItem(Item.Get("rations"))}\nTarget: {tile.Name.ToUpper1()}";
             }
             else
             {
                 // new position
-                Vector2 targetPos = new(gridOrigin.x + tileSize * targetPt.x, gridOrigin.y - tileSize * targetPt.y);
-                cursor2.GetComponent<RectTransform>().anchoredPosition = targetPos;
-                cursor2.SetActive(true);
+                outlineTarget.GetComponent<RectTransform>().anchoredPosition = PtToPos(targetPt);
+                outlineTarget.SetActive(true);
                 if (path == null)
                 {
                     // blocked
@@ -209,9 +218,9 @@ public class Map : MonoBehaviour
     public void BeginTravel(Vector2Int pt)
     {
         travelPt = pt;
-        travelPos = new(gridOrigin.x + tileSize * travelPt.x, gridOrigin.y - tileSize * travelPt.y);
-        cursor2.GetComponent<RectTransform>().anchoredPosition = travelPos;
-        cursor2.SetActive(true);
+        travelPos = PtToPos(pt);
+        outlineTarget.GetComponent<RectTransform>().anchoredPosition = travelPos;
+        outlineTarget.SetActive(true);
         buttonText.text = "Stop";
         inTravel = true;
         travelStep = 0;
@@ -220,9 +229,8 @@ public class Map : MonoBehaviour
     public void UpdateTravel()
     {
         World world = Global.World;
-        Vector2Int currentPt = world.currentPt;
-        currentPos = new(gridOrigin.x + tileSize * currentPt.x, gridOrigin.y - tileSize * currentPt.y);
-        cursor.GetComponent<RectTransform>().anchoredPosition = currentPos;
+        currentPos = PtToPos(world.currentPt);
+        outlineCurrent.GetComponent<RectTransform>().anchoredPosition = currentPos;
 
         if (world.travelStep > travelStep)
         {
@@ -259,10 +267,9 @@ public class Map : MonoBehaviour
 
     public void EndTravel()
     {
-        Vector2Int currentPt = Global.World.currentPt;
-        currentPos = new(gridOrigin.x + tileSize * currentPt.x, gridOrigin.y - tileSize * currentPt.y);
-        cursor.GetComponent<RectTransform>().anchoredPosition = currentPos;
-        cursor2.SetActive(false);
+        currentPos = PtToPos(Global.World.currentPt);
+        outlineCurrent.GetComponent<RectTransform>().anchoredPosition = currentPos;
+        outlineTarget.SetActive(false);
         arrow.gameObject.SetActive(false);
         buttonText.text = "Cancel";
         inTravel = false;
@@ -312,5 +319,10 @@ public class Map : MonoBehaviour
             Global.World.cancelTravel = true;
         else
             Global.UI.CloseDialog();
+    }
+
+    private Vector2 PtToPos(Vector2Int pt)
+    {
+        return new(gridOrigin.x + tileSize * pt.x, gridOrigin.y - tileSize * pt.y);
     }
 }
