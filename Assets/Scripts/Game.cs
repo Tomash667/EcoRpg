@@ -443,18 +443,24 @@ public class Game : MonoBehaviour
             player.AddItem(Item.Get(item), count);
             lastAction = $"You explore the {tile.Name} and find chest. Inside you find <b>{Utility.Plural(item, count)}</b> and <color=#FFD700>{gold}</color> gold.";
         }
-        else if (c == 9 && tile.type == TileType.Forest)
+        else if (c == 9 && tile.type == TileType.Forest && tile.depleted < 4)
         {
-            // 1-3 herbs (~1.5)
-            int count = (Utility.Rand % 4) switch
+            // herbs/rare herbs
+            int count = (Utility.Rand % 6) switch
             {
                 1 or 2 => 2,
-                3 => 3,
+                3 or 4 => 3,
+                5 => 4,
                 _ => 1,
             };
+            count += player.GetSkill(Skill.Forage) / 25 - tile.depleted;
+            if (count < 1)
+                count = 1;
+            tile.depleted++;
             Item herb = tile.GetHerb();
             player.AddItem(herb, count);
             lastAction = $"You explore the {tile.Name} and find <b>{Utility.Plural(herb.name, count)}</b>.";
+            lastAction += player.Train(Skill.Forage, 0.25f);
         }
         else if (c == 9 && ((tile.type == TileType.Mountains && tile.depleted == 0) || (tile.type == TileType.Cave && tile.mine && tile.depleted < 4)) && tile.difficulty >= 2)
         {
@@ -2666,19 +2672,28 @@ public class Game : MonoBehaviour
 
         if (tile.type == TileType.Forest)
         {
-            // 1-4 herbs (~3.16)
-            int count = (Utility.Rand % 6) switch
-            {
-                1 or 2 => 2,
-                3 or 4 => 3,
-                5 => 4,
-                _ => 1,
-            };
-
-            Item herb = tile.GetHerb();
             player.energy -= 10;
-            player.AddItem(herb, count);
-            lastAction = $"You forage in the {tile.Name} and find <b>{Utility.Plural(herb.name, count)}</b>.";
+            if (tile.depleted >= 4)
+                lastAction = $"You forage in the {tile.Name}, but find nothing of value.";
+            else
+            {
+                // herbs/rare herbs
+                int count = (Utility.Rand % 6) switch
+                {
+                    1 or 2 => 2,
+                    3 or 4 => 3,
+                    5 => 4,
+                    _ => 1,
+                };
+                count += player.GetSkill(Skill.Forage) / 25 - tile.depleted;
+                if (count < 1)
+                    count = 1;
+                tile.depleted++;
+                Item herb = tile.GetHerb();
+                player.AddItem(herb, count);
+                lastAction = $"You forage in the {tile.Name} and find <b>{Utility.Plural(herb.name, count)}</b>.";
+                lastAction += player.Train(Skill.Forage, 0.25f);
+            }
             AddTime(hours: 1);
         }
         else

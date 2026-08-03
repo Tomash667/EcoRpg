@@ -43,6 +43,7 @@ Mouse wheel - zoom in/out map
 
 Skills:
 Alchemy - create extra potions and better recipes
+Forage - more resources when foraging
 Management - ???
 Mining - more resources when mining, extra payment in mine
 Woodwork - extra payment in sawmill

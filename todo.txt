@@ -1,6 +1,3 @@
-forage skill
-forage depleted
-
 v2:
 hero:
 - treasure/trophy gold is not split
@@ -126,7 +123,6 @@ hero:
 + life of alchemist
 	starting class/history
 	sell at marketplace booth
-	10 herbs per forest, respawning
 	hire people to gather herbs, sell potions
 + hero special attacks
 	bash
@@ -190,7 +186,6 @@ investments:
 
 skills:
 + haggle
-+ forage
 + alchemy more recipes
 + crafting
 	dragon hide -> armor
@@ -247,3 +242,4 @@ world:
 + sea/ocean/big lake
 + plane of water/fire etc
 + elven village
++ enchanted forest -> more herbs, faster regrow

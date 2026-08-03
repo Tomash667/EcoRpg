@@ -6,7 +6,8 @@ public enum Skill
     Alchemy,
     Mining,
     Woodcraft,
-    Management
+    Management,
+    Forage
 }
 
 public class SkillEntry
@@ -33,6 +34,7 @@ public static class SkillMethods
             Skill.Mining => "mining",
             Skill.Woodcraft => "woodcraft",
             Skill.Management => "management",
+            Skill.Forage => "forage",
             _ => $"[ERROR skill {skill}]"
         };
     }
