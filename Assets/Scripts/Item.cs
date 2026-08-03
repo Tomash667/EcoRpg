@@ -100,7 +100,9 @@ public class Item
         case Type.Tool:
             return Icon.Tool;
         default:
-            if (subtype == Subtype.Treasure)
+            if (subtype == Subtype.Ingredient)
+                return Icon.Herb;
+            else if (subtype == Subtype.Treasure)
                 return Icon.Treasure;
             else
                 return Icon.Food;
@@ -421,6 +423,14 @@ public class Item
             subtype = Subtype.Ingredient,
             power = 50,
             value = 10
+        },
+        new()
+        {
+            name = "magic crystal",
+            desc = "quest item",
+            type = Type.Other,
+            subtype = Subtype.Ingredient,
+            value = 5
         },
         new()
         {

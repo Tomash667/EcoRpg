@@ -6,7 +6,7 @@ public class Tile
     public string name;
     public TileImage image;
     public TileType type, hidden;
-    public int difficulty, defeatedEnemies, timer, levels, foundLevel;
+    public int difficulty, defeatedEnemies, timer, levels, foundLevel, depleted;
     public bool mine, boss, foundTreasure, clear, discovered;
 
     public string Name => GetName(type);

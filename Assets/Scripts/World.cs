@@ -748,8 +748,13 @@ public class World
 
     public void Update()
     {
-        foreach (Tile tile in map.Where(x => x.timer > 0))
+        foreach (Tile tile in map)
         {
+            if (tile.depleted > 0)
+                --tile.depleted;
+
+            if (tile.timer == 0)
+                continue;
             tile.timer--;
             if (tile.timer == 0)
             {

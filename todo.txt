@@ -1,10 +1,14 @@
+forage skill
+forage depleted
+nuggets depleted
+nuggets prospect
+
 v2:
 hero:
 - treasure/trophy gold is not split
 + lose consequences
 + forage -> enemies
 + quests
-	gather magic crystals
 	- quest is generated for location but enemies "spawn" only after accepting
 		you can accept & cancel to have enemies
 	tracked -> show on map arrow or smth
@@ -13,7 +17,6 @@ hero:
 + allies
 	recruit chance
 	initial skills
-+ damage type - fire
 + skip time
 + train
 + forage -> find food

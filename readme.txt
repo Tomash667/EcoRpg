@@ -13,7 +13,8 @@ F - forage
 G - guild
 H - house
 J - journal
-P - properties
+P - properties (city)
+P - prospect (cave)
 R - rest
 T - travel
 U - go up
@@ -43,5 +44,5 @@ Mouse wheel - zoom in/out map
 Skills:
 Alchemy - create extra potions and better recipes
 Management - ???
-Mining - extra payment in mine
+Mining - more resources when mining, extra payment in mine
 Woodwork - extra payment in sawmill

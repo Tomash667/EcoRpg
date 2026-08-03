@@ -188,6 +188,10 @@ public class Game : MonoBehaviour
                 if (Input.GetKeyDown(KeyCode.W))
                     Work();
                 break;
+            case TileType.Cave:
+                if (Input.GetKeyDown(KeyCode.P))
+                    Forage();
+                break;
             }
         }
     }
@@ -472,6 +476,28 @@ public class Game : MonoBehaviour
             }
             else
                 lastAction = $"You explore the {tile.Name} and find small <b>{(tile.difficulty == 2 ? "silver" : "gold")} vein</b> but you don't have a pickaxe...";
+        }
+        else if (c == 9 && tile.type == TileType.Cave && !tile.mine && !tile.boss && tile.depleted < tile.difficulty + 2)
+        {
+            // magic crystals
+            if (player.HaveItem("pickaxe"))
+            {
+                int count = (Utility.Rand % 4) switch
+                {
+                    1 or 2 => 2,
+                    3 => 3,
+                    _ => 1,
+                };
+                count += tile.difficulty - tile.depleted - 1 + player.GetSkill(Skill.Mining) / 25;
+                if (count < 1)
+                    count = 1;
+                tile.depleted++;
+                player.AddItem(Item.Get("magic crystal"), count);
+                lastAction = $"You explore the {tile.Name} and find small <b>magic crystals cluster</b>. You mine <b>{Utility.Plural("magic crystal", count)}</b>.";
+                lastAction += player.Train(Skill.Mining, 0.25f);
+            }
+            else
+                lastAction = $"You explore the {tile.Name} and find small <b>magic crystals cluster</b> but you don't have a pickaxe...";
         }
         else
             lastAction = $"You explore the {tile.Name} but find nothing interesting.";
@@ -1903,7 +1929,14 @@ public class Game : MonoBehaviour
             btJournal.Find("Counter").gameObject.SetActive(false);
         }
 
-        buttons.Find("BtForage").gameObject.SetActive(location == TileType.Forest);
+        Transform btForage = buttons.Find("BtForage");
+        if (location == TileType.Forest || location == TileType.Cave)
+        {
+            btForage.gameObject.SetActive(true);
+            btForage.GetComponentInChildren<TMP_Text>().text = location == TileType.Forest ? "Forage" : "Prospect";
+        }
+        else
+            btForage.gameObject.SetActive(false);
 
         buttons.Find("BtCity").gameObject.SetActive(location == TileType.Sewers || location == TileType.House || location == TileType.Mansion);
 
@@ -2451,7 +2484,7 @@ public class Game : MonoBehaviour
                 case 1:
                     // 10%
                     quest.type = Quest.Type.Gather;
-                    quest.item = Item.Get("herb");
+                    quest.item = Item.Get(Utility.Rand % 2 == 0 ? "herb" : "magic crystal");
                     quest.max = 20;
                     quest.locationDifficulty = 1;
                     quest.difficultyMod = 0.25f;
@@ -2515,8 +2548,16 @@ public class Game : MonoBehaviour
                     if (difficulty == 3)
                         goto case default;
                     quest.type = Quest.Type.Gather;
-                    quest.item = Item.Get("rare herb");
-                    quest.max = 20;
+                    if (Utility.Rand % 2 == 0)
+                    {
+                        quest.item = Item.Get("rare herb");
+                        quest.max = 20;
+                    }
+                    else
+                    {
+                        quest.item = Item.Get("magic crystal");
+                        quest.max = 50;
+                    }
                     quest.locationDifficulty = 2;
                     quest.difficultyMod = 0.25f;
                     break;
@@ -2600,30 +2641,67 @@ public class Game : MonoBehaviour
         }
     }
 
+    // forage or prospect
     public void Forage()
     {
-        if (player.energy < 10)
+        Tile tile = world.CurrentTile;
+
+        if(tile.type == TileType.Cave && !player.HaveItem("pickaxe"))
         {
-            lastAction = "You are too tired to explore.";
+            lastAction = "You need a pickaxe for that.";
             UpdateText();
             return;
         }
 
-        // 1-4 herbs (~3.16)
-        int count = (Utility.Rand % 6) switch
+        int energy = tile.type == TileType.Forest ? 10 : 5;
+        if (player.energy < energy)
         {
-            1 or 2 => 2,
-            3 or 4 => 3,
-            5 => 4,
-            _ => 1,
-        };
+            lastAction = $"You are too tired to {(tile.type == TileType.Forest ? "forage" : "prospect")}.";
+            UpdateText();
+            return;
+        }
 
-        Tile tile = world.CurrentTile;
-        Item herb = tile.GetHerb();
-        player.energy -= 10;
-        player.AddItem(herb, count);
-        lastAction = $"You forage in the {tile.Name} and find <b>{Utility.Plural(herb.name, count)}</b>.";
-        AddTime(hours: 1);
+        if (tile.type == TileType.Forest)
+        {
+            // 1-4 herbs (~3.16)
+            int count = (Utility.Rand % 6) switch
+            {
+                1 or 2 => 2,
+                3 or 4 => 3,
+                5 => 4,
+                _ => 1,
+            };
+
+            Item herb = tile.GetHerb();
+            player.energy -= 10;
+            player.AddItem(herb, count);
+            lastAction = $"You forage in the {tile.Name} and find <b>{Utility.Plural(herb.name, count)}</b>.";
+            AddTime(hours: 1);
+        }
+        else
+        {
+            player.energy -= 5;
+            if (tile.mine || tile.boss || tile.depleted >= tile.difficulty + 2)
+                lastAction = $"You search the {tile.Name}, but find nothing of value.";
+            else
+            {
+                int count = (Utility.Rand % 4) switch
+                {
+                    1 or 2 => 2,
+                    3 => 3,
+                    _ => 1,
+                };
+                count += tile.difficulty - tile.depleted - 1 + player.GetSkill(Skill.Mining) / 25;
+                if (count < 1)
+                    count = 1;
+                tile.depleted++;
+                player.AddItem(Item.Get("magic crystal"), count);
+                lastAction = $"You search the {tile.Name} and find small <b>magic crystals cluster</b>. You mine <b>{Utility.Plural("magic crystal", count)}</b>.";
+                lastAction += player.Train(Skill.Mining, 0.25f);
+            }
+            AddTime(minutes: 30);
+        }
+
         UpdateText();
     }
 
