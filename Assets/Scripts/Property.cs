@@ -556,6 +556,41 @@ public class Property
                 }
             },
             multi = true
+        },
+        new()
+        {
+            name = "Farm",
+            desc = "PROFIT gold/day",
+            value = 5000,
+            infestedCost = 1250,
+            infestedDifficulty = 2,
+            infestedDifficultyMod = 0.75f,
+            income = 10,
+            upkeep = 5,
+            buildPrice = 2500,
+            buildPriceDiscount = 500,
+            buildTime = 15,
+            status = Status.Cleared,
+            cityIndex = 2,
+            locationIndexFunc = world => world.FindLocationIndex(World.IndexToPoint(world.cityMapping[2]), x => x.type == TileType.Plains && x.hidden == TileType.None),
+            upgrades = new Upgrade[]
+            {
+                new()
+                {
+                    name = "Extra guards",
+                    desc = "Prevents monster invasion, +1 upkeep",
+                    value = 2000,
+                    upkeep = 2
+                },
+                new()
+                {
+                    name = "Advanced tools",
+                    desc = "+5 income",
+                    value = 1500,
+                    income = 5
+                }
+            },
+            multi = true
         }
     };
 }

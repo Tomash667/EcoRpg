@@ -752,6 +752,14 @@ public class World
         return -1;
     }
 
+    public int FindLocationIndex(Vector2Int pt, Func<Tile, bool> pred)
+    {
+        Vector2Int targetPos = FindMatchingTile(pt, pos => pred(map[pos.x + pos.y * sizeX]));
+        if (targetPos.x == -1)
+            return -1;
+        return targetPos.x + targetPos.y * sizeX;
+    }
+
     public Tile FindLocation(Func<Tile, bool> pred)
     {
         int index = FindLocationIndex(pred);

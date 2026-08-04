@@ -1,5 +1,4 @@
 - not a best path is selected
-+ build farm in village2
 
 v2:
 hero:
@@ -24,7 +23,7 @@ investments:
 + hire manager
 + office in city
 + mansion upgrades - office room
-+ different text when entering mine being build or when finished while inside
++ different text when entering mine/farm being build or when finished while inside
 + see active events
 + fix prices: adventurers one time infestation cost the same amount as full time guards
 + quest to get into investing
@@ -156,6 +155,8 @@ ui:
 + combat key shortcuts
 + open journal on map?
 + auto position buttons in smart way
++ map zoom only when mouse over tiles
++ construction icon visible on map
 
 investments:
 + cottage/big house
@@ -188,6 +189,8 @@ investments:
 + merchant guild to buy/sell properties
 + free food from farm
 + expand farm to extra tile
++ build farms on plains, sawmills on forest, multiple mines
++ build mansion in village
 
 skills:
 + haggle

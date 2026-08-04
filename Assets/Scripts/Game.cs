@@ -1687,7 +1687,16 @@ public class Game : MonoBehaviour
             if (property.buildTime == 0)
             {
                 property.status = Property.Status.Active;
-                world.GetLocation(property.locationIndex).SetType(TileType.Mine);
+                Tile tile = world.GetLocation(property.locationIndex);
+                if (property.name == "Farm")
+                {
+                    tile.SetType(TileType.Farm);
+                    tile.name = world.GetCityTile(2).name.Split(' ')[0] + " farm";
+                    tile.difficulty = 3;
+                    tile.clear = true;
+                }
+                else
+                    tile.SetType(TileType.Mine);
                 map.UpdateMap(World.IndexToPoint(property.locationIndex));
                 if (world.CurrentLocationIndex == property.locationIndex)
                     OnChangeLocation();
@@ -2941,6 +2950,14 @@ public class Game : MonoBehaviour
                     {
                         tile.type = TileType.Mine;
                         tile.image = TileImage.Mine;
+                    }
+                    if (tile.type == TileType.Plains && copy.status == Property.Status.Active)
+                    {
+                        tile.type = TileType.Farm;
+                        tile.image = TileImage.Farm;
+                        tile.name = world.GetCityTile(2).name.Split(' ')[0] + " farm";
+                        tile.difficulty = 3;
+                        tile.clear = true;
                     }
                 }
             }
