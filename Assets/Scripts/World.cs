@@ -891,17 +891,16 @@ public class World
                 Vector2Int pos = tile.pos + adj;
                 if (!IsInBounds(pos))
                     continue;
-                PfTile tile2 = pfTiles[pos.x + pos.y * sizeX];
-                if (tile2.visited)
-                    continue;
+
                 if (map[pos.x + pos.y * sizeX].type.IsBlocked())
                     continue;
-                tile2.visited = true;
-                tile2.prev = tile.pos;
+
+                PfTile tile2 = pfTiles[pos.x + pos.y * sizeX];
                 if (pos == to)
                 {
                     // found path
                     List<Vector2Int> result = new();
+                    tile2.prev = tile.pos;
                     tile = tile2;
                     while (true)
                     {
@@ -915,17 +914,38 @@ public class World
                         tile = pfTiles[tile.prev.x + tile.prev.y * sizeX];
                     }
                 }
+
+                // calculate move cost
                 bool isDiagonal = adj.x != 0 && adj.y != 0;
-                tile2.cost = tile.cost + (isDiagonal ? 15 : 10);
-                tile2.total = tile2.cost + CalculateDistance(pos, to);
+                int cost = tile.cost + (isDiagonal ? 15 : 10);
+                int total = cost + CalculateDistance(pos, to);
                 if (tile.prev != Vector2Int.zero)
                 {
                     Vector2 prevDir = tile.pos - tile.prev;
                     if (prevDir != adj)
-                        tile2.total++; // penalize switching directions
+                        total++; // penalize switching directions
                 }
-                toCheck.Add(tile2);
-                added = true;
+
+                if (tile2.visited)
+                {
+                    // update if new total is better
+                    if(tile2.total > total)
+                    {
+                        tile2.prev = tile.pos;
+                        tile2.cost = cost;
+                        tile2.total = total;
+                    }
+                }
+                else
+                {
+                    // new tile
+                    tile2.prev = tile.pos;
+                    tile2.cost = cost;
+                    tile2.total = total;
+                    tile2.visited = true;
+                    toCheck.Add(tile2);
+                    added = true;
+                }
             }
 
             if (added)
