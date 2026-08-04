@@ -162,7 +162,7 @@ public class Game : MonoBehaviour
                     Shop();
                 if (Input.GetKeyDown(KeyCode.X))
                     EnterSewers();
-                if (Input.GetKeyDown(KeyCode.H) && (player.HaveProperty("House", location: TileType.City) || player.HaveProperty("Mansion")))
+                if (Input.GetKeyDown(KeyCode.H) && (player.HaveProperty("House", cityIndex: world.CityIndex) || player.HaveProperty("Mansion", cityIndex: world.CityIndex)))
                     EnterHouse();
                 break;
             case TileType.Village:
@@ -170,6 +170,10 @@ public class Game : MonoBehaviour
                     Work();
                 if (Input.GetKeyDown(KeyCode.S))
                     Shop();
+                if (Input.GetKeyDown(KeyCode.P))
+                    ManageProperties();
+                if (Input.GetKeyDown(KeyCode.H) && (player.HaveProperty("House", cityIndex: world.CityIndex) || player.HaveProperty("Mansion", cityIndex: world.CityIndex)))
+                    EnterHouse();
                 break;
             case TileType.Forest:
                 if (Input.GetKeyDown(KeyCode.F))
@@ -755,8 +759,12 @@ public class Game : MonoBehaviour
                 basePay = 20 + world.CurrentTile.difficulty * 10;
                 skill = Skill.Mining;
                 break;
-            default:
+            case TileType.City:
                 basePay = 20;
+                skill = Skill.None;
+                break;
+            default:
+                basePay = 15;
                 skill = Skill.None;
                 break;
             }
@@ -859,7 +867,7 @@ public class Game : MonoBehaviour
 
     public void EnterHouse()
     {
-        if (player.HaveProperty("House", location: world.Location))
+        if (player.HaveProperty("House", cityIndex: world.CityIndex))
         {
             lastAction = "You enter your house.";
             world.sublocation = 2;
@@ -936,7 +944,7 @@ public class Game : MonoBehaviour
 
         Tile tile = world.CurrentTile;
 
-        if (tile.type == TileType.City && player.HaveProperty("Horses") && player.HavePropertyUpgrade("Mansion", "Stables"))
+        if ((tile.type == TileType.City || tile.type == TileType.Village) && player.HaveProperty("Horses") && player.HavePropertyUpgrade("Mansion", "Stables", world.CityIndex))
             freshHorses = 10;
 
         if (tile.type.IsSafe())
@@ -1515,21 +1523,22 @@ public class Game : MonoBehaviour
         hour = 8;
         minute = 0;
         TileType location = world.Location;
-        if (((location == TileType.City || location == TileType.Village) && player.HaveProperty("House", location: location)) || location == TileType.House)
+        int cityIndex = world.CityIndex;
+        if (((location == TileType.City || location == TileType.Village) && player.HaveProperty("House", cityIndex: cityIndex)) || location == TileType.House)
         {
             FullRest();
             lastAction += "You rest in your house.";
         }
-        else if ((location == TileType.City && player.HaveProperty("Mansion")) || location == TileType.Mansion)
+        else if (((location == TileType.City || location == TileType.Village) && player.HaveProperty("Mansion", cityIndex: cityIndex)) || location == TileType.Mansion)
         {
             FullRest();
             foreach (Hero hero in Team)
                 hero.rested = 11;
-            if (player.HaveProperty("Horses") && player.HavePropertyUpgrade("Mansion", "Stables"))
+            if (player.HaveProperty("Horses") && player.HavePropertyUpgrade("Mansion", "Stables", cityIndex: cityIndex))
                 freshHorses = 11;
             lastAction += "You rest in your mansion.";
         }
-        else if ((location == TileType.City || location == TileType.Village) && player.HaveProperty("Inn", location: location))
+        else if ((location == TileType.City || location == TileType.Village) && player.HaveProperty("Inn", cityIndex: cityIndex))
         {
             FullRest();
             lastAction += "You rest in your inn.";
@@ -1902,6 +1911,7 @@ public class Game : MonoBehaviour
     private void UpdateButtons()
     {
         TileType location = world.Location;
+        int cityIndex = world.CityIndex;
         bool inCity = location == TileType.City;
         bool inVillage = location == TileType.Village;
         Transform buttons = transform.Find("Buttons");
@@ -1911,12 +1921,12 @@ public class Game : MonoBehaviour
         buttons.Find("BtProperties").gameObject.SetActive(inCity || inVillage);
         buttons.Find("BtSewers").gameObject.SetActive(inCity);
         Transform button = buttons.Find("BtHouse");
-        if (inCity && player.HaveProperty("Mansion"))
+        if ((inCity || inVillage) && player.HaveProperty("Mansion", cityIndex: cityIndex))
         {
             button.gameObject.SetActive(true);
             button.GetComponentInChildren<TMP_Text>().text = "Mansion";
         }
-        else if ((inCity || inVillage) && player.HaveProperty("House", location: location))
+        else if ((inCity || inVillage) && player.HaveProperty("House", cityIndex: cityIndex))
         {
             button.gameObject.SetActive(true);
             button.GetComponentInChildren<TMP_Text>().text = "House";
@@ -1972,10 +1982,10 @@ public class Game : MonoBehaviour
 
         buttons.Find("BtStorage").gameObject.SetActive(location == TileType.House || location == TileType.Mansion);
         buttons.Find("BtCook").gameObject.SetActive(location == TileType.House || location == TileType.Mansion);
-        buttons.Find("BtCraft").gameObject.SetActive((location == TileType.House && player.HavePropertyUpgrade("House", "Alchemy lab", world.RealLocation))
-            || (location == TileType.Mansion && player.HavePropertyUpgrade("Mansion", "Alchemy lab")));
-        buttons.Find("BtGarden").gameObject.SetActive((location == TileType.House && player.HavePropertyUpgrade("House", "Garden", world.RealLocation))
-            || (location == TileType.Mansion && player.HavePropertyUpgrade("Mansion", "Garden")));
+        buttons.Find("BtCraft").gameObject.SetActive((location == TileType.House && player.HavePropertyUpgrade("House", "Alchemy lab", cityIndex: cityIndex))
+            || (location == TileType.Mansion && player.HavePropertyUpgrade("Mansion", "Alchemy lab", cityIndex: cityIndex)));
+        buttons.Find("BtGarden").gameObject.SetActive((location == TileType.House && player.HavePropertyUpgrade("House", "Garden", cityIndex: cityIndex))
+            || (location == TileType.Mansion && player.HavePropertyUpgrade("Mansion", "Garden", cityIndex: cityIndex)));
 
         GameObject btAlly = buttons.Find("BtAlly").gameObject;
         if (allies.Count < 1)
@@ -2107,7 +2117,8 @@ public class Game : MonoBehaviour
         foreach (Transform child in content)
             Destroy(child.gameObject);
 
-        Property[] propertiesToBuy = properties.Where(x => x.status != Property.Status.None && (x.shopLocation == TileType.None || x.shopLocation == world.Location))
+        int cityIndex = world.CityIndex;
+        Property[] propertiesToBuy = properties.Where(x => x.status != Property.Status.None && (x.cityIndex == -1 || x.cityIndex == cityIndex))
             .OrderBy(x => x.value).ThenBy(x => x.Name).ToArray();
 
         // player properties
@@ -2175,10 +2186,10 @@ public class Game : MonoBehaviour
                     return;
                 }
 
-                if ((property.name == "House" && property.shopLocation == TileType.City && player.HaveProperty("Mansion"))
-                    || (property.name == "Mansion" && player.HaveProperty("House", location: TileType.City)))
+                if ((property.name == "House" && player.HaveProperty("Mansion", cityIndex: cityIndex))
+                    || (property.name == "Mansion" && player.HaveProperty("House", cityIndex: cityIndex)))
                 {
-                    ui.ShowDialog("You can't own both house and mansion. It's a law!");
+                    ui.ShowDialog("You can't own both a house and a mansion. It's a law!");
                     return;
                 }
 
@@ -2910,7 +2921,7 @@ public class Game : MonoBehaviour
         {
             if (property.locationIndexFunc != null)
             {
-                Property copy = properties.Union(player.properties).FirstOrDefault(x => x.name == property.name && x.shopLocation == property.shopLocation);
+                Property copy = properties.Union(player.properties).FirstOrDefault(x => x.name == property.name && x.cityIndex == property.cityIndex);
                 if (copy != null)
                 {
                     copy.locationIndex = property.locationIndexFunc(world);
@@ -2991,7 +3002,7 @@ public class Game : MonoBehaviour
     {
         foreach (Property property in Property.properties)
         {
-            Property copy = properties.Union(player.properties).FirstOrDefault(x => x.name == property.name && x.shopLocation == property.shopLocation);
+            Property copy = properties.Union(player.properties).FirstOrDefault(x => x.name == property.name && x.cityIndex == property.cityIndex);
             if (copy != null)
                 copy.Update(property);
             else
@@ -3429,9 +3440,9 @@ public class Game : MonoBehaviour
     {
         TileType location = world.Location;
         if (location == TileType.House)
-            return player.properties.First(x => x.name == "House" && x.shopLocation == world.RealLocation);
+            return player.properties.First(x => x.name == "House" && x.cityIndex == world.CityIndex);
         else if (location == TileType.Mansion)
-            return player.properties.First(x => x.name == "Mansion");
+            return player.properties.First(x => x.name == "Mansion" && x.cityIndex == world.CityIndex);
         else
             return null;
     }

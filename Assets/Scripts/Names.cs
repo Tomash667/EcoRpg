@@ -281,6 +281,18 @@
         "Zoe"
     };
 
+    public static readonly string[] village = new[]
+    {
+        "sunny",
+        "green",
+        "high",
+        "quiet",
+        "far",
+        "clear",
+        "oak",
+        "bright"
+    };
+
     public static readonly string[] cave1 = new[]
     {
         "abandoned mine",

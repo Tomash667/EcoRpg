@@ -51,6 +51,7 @@ public class Tile
             break;
         case TileType.Cave:
         case TileType.Dungeon:
+        case TileType.Village:
             return name;
         case TileType.Swamp:
             if (difficulty <= 2)

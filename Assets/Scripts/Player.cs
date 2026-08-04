@@ -29,9 +29,9 @@ public class Player : Hero
         goldReceived += value;
     }
 
-    public bool HaveProperty(string name, bool isActive = false, TileType location = TileType.None)
+    public bool HaveProperty(string name, bool isActive = false, int cityIndex = -1)
     {
-        Property property = properties.FirstOrDefault(x => x.name == name && (location == TileType.None || x.shopLocation == location));
+        Property property = properties.FirstOrDefault(x => x.name == name && (cityIndex == -1 || x.cityIndex == cityIndex));
         if (property == null)
             return false;
 
@@ -41,9 +41,9 @@ public class Player : Hero
             return true;
     }
 
-    public bool HavePropertyUpgrade(string propertyName, string upgradeName, TileType location = TileType.None)
+    public bool HavePropertyUpgrade(string propertyName, string upgradeName, int cityIndex = -1)
     {
-        Property property = properties.FirstOrDefault(x => x.name == propertyName && (location == TileType.None || x.shopLocation == location));
+        Property property = properties.FirstOrDefault(x => x.name == propertyName && (cityIndex == -1 || x.cityIndex == cityIndex));
         if (property == null || property.upgrades == null)
             return false;
         return property.upgrades.FirstOrDefault(x => x.name == upgradeName)?.active ?? false;

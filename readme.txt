@@ -11,7 +11,7 @@ D - go down
 E - explore
 F - forage
 G - guild
-H - house
+H - house/mansion
 J - journal
 P - properties (city)
 P - prospect (cave)

@@ -31,6 +31,7 @@ public class World
 
     public Tile[] map;
     public Tile[] sublocations;
+    public int[] cityMapping;
     public Vector2Int currentPt;
     public int sublocation; // 0-none, 1-sewers, 2-house, 3-mansion, 4-dark dimension
     public int level;
@@ -44,6 +45,7 @@ public class World
 
     public Tile CurrentTile => sublocation == 0 ? map[currentPt.x + currentPt.y * sizeX] : sublocations[sublocation];
     public int CurrentLocationIndex => CalculateIndex(currentPt.x, currentPt.y, sublocation);
+    public int CityIndex => cityMapping.IndexOf(currentPt.x + currentPt.y * sizeX);
     public TileType Location => CurrentTile.type;
     public TileType RealLocation => map[currentPt.x + currentPt.y * sizeX].type;
 
@@ -88,8 +90,11 @@ public class World
         map[cityPos.x + (cityPos.y - 1) * sizeX].SetType(TileType.Plains);
         map[cityPos.x + (cityPos.y + 1) * sizeX].SetType(TileType.Plains);
 
-        Vector2Int villagePos = new(Utility.Random(15, 19), Utility.Rand % 2 == 0 ? Utility.Random(2, 6) : Utility.Random(8, 12));
+        bool villageSide = Utility.Rand % 2 == 0;
+        Vector2Int villagePos = new(Utility.Random(15, 19), villageSide ? Utility.Random(2, 6) : Utility.Random(8, 12));
         map[villagePos.x + villagePos.y * sizeX].SetType(TileType.Plains);
+        Vector2Int villagePos2 = new(Utility.Random(20, 24), !villageSide ? Utility.Random(2, 6) : Utility.Random(8, 12));
+        map[villagePos2.x + villagePos2.y * sizeX].SetType(TileType.Plains);
 
         Dictionary<TileType, int> influence = new();
         for (int y = 0; y < sizeY; ++y)
@@ -122,11 +127,27 @@ public class World
         // city
         map[cityPos.x + cityPos.y * sizeX].SetType(TileType.City);
 
-        // village
+        // villages
+        List<string> villageNames = Names.village.ToList();
         tile = map[villagePos.x + villagePos.y * sizeX];
         tile.SetType(TileType.Village);
+        tile.name = villageNames.RandomItemPop() + " village";
         tile.difficulty = 1;
 
+        tile = map[villagePos2.x + villagePos2.y * sizeX];
+        tile.SetType(TileType.Village);
+        tile.name = villageNames.RandomItemPop() + " village";
+        tile.difficulty = 1;
+
+        // city mapping
+        cityMapping = new[]
+        {
+            cityPos.x + cityPos.y * sizeX,
+            villagePos.x + villagePos.y * sizeX,
+            villagePos2.x + villagePos2.y * sizeX
+        };
+
+        // sublocations
         sublocations = new Tile[]
         {
             new(),
@@ -899,5 +920,11 @@ public class World
 
         // failed
         return null;
+    }
+
+    public Tile GetCityTile(int cityIndex)
+    {
+        int index = cityMapping[cityIndex];
+        return map[index];
     }
 }

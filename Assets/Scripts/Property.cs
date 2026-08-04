@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 
 [Serializable]
 public class Property
@@ -58,10 +57,9 @@ public class Property
     public Upgrade[] upgrades;
     public Func<World, int> locationIndexFunc;
     public Status status;
-    public TileType shopLocation;
-    public int value, infestedCost, income, upkeep, upkeepDiscount, buildPrice, buildPriceDiscount, buildTime, locationIndex;
+    public int value, infestedCost, income, upkeep, upkeepDiscount, buildPrice, buildPriceDiscount, buildTime, locationIndex, cityIndex;
     public bool multi;
-    
+
     public int Income
     {
         get
@@ -106,7 +104,7 @@ public class Property
         get
         {
             if (multi)
-                return $"{name} ({shopLocation.AsString()})";
+                return $"{name} ({Global.World.GetCityTile(cityIndex).Name})";
             else
                 return name;
         }
@@ -175,7 +173,7 @@ public class Property
                 upkeep = x.upkeep
             }).ToArray(),
             status = status,
-            shopLocation = shopLocation,
+            cityIndex = cityIndex,
             value = value,
             infestedCost = infestedCost,
             income = income,
@@ -217,7 +215,7 @@ public class Property
             desc = "don't pay for inn",
             value = 500,
             status = Status.Active,
-            shopLocation = TileType.City,
+            cityIndex = 0,
             upgrades = new Upgrade[]
             {
                 new()
@@ -242,7 +240,32 @@ public class Property
             desc = "don't pay for inn",
             value = 400,
             status = Status.Active,
-            shopLocation = TileType.Village,
+            cityIndex = 1,
+            upgrades = new Upgrade[]
+            {
+                new()
+                {
+                    name = "Alchemy lab",
+                    desc = "+25 alchemy",
+                    value = 100
+                },
+                new()
+                {
+                    name = "Garden",
+                    desc = "Grow food or herbs, +1 upkeep",
+                    value = 100,
+                    upkeep = 1
+                }
+            },
+            multi = true
+        },
+        new()
+        {
+            name = "House",
+            desc = "don't pay for inn",
+            value = 400,
+            status = Status.Active,
+            cityIndex = 2,
             upgrades = new Upgrade[]
             {
                 new()
@@ -268,7 +291,7 @@ public class Property
             value = 10000,
             upkeep = 5,
             status = Status.Active,
-            shopLocation = TileType.City,
+            cityIndex = 0,
             upgrades = new Upgrade[]
             {
                 new()
@@ -299,7 +322,7 @@ public class Property
             desc = "+25% travel speel",
             value = 500,
             status = Status.Active,
-            shopLocation = TileType.None
+            cityIndex = -1
         },
         new()
         {
@@ -310,7 +333,7 @@ public class Property
             income = 10,
             upkeep = 5,
             status = Status.Active,
-            shopLocation = TileType.City,
+            cityIndex = 0,
             locationIndexFunc = world => world.FindLocationIndex(x => x.type == TileType.Sawmill),
             upgrades = new Upgrade[]
             {
@@ -340,7 +363,7 @@ public class Property
             upkeep = 10,
             upkeepDiscount = 2,
             status = Status.Active,
-            shopLocation = TileType.City,
+            cityIndex = 0,
             locationIndexFunc = world => world.FindLocationIndex(x => x.type == TileType.Mine),
             upgrades = new Upgrade[]
             {
@@ -372,7 +395,7 @@ public class Property
             buildPrice = 6000,
             buildPriceDiscount = 500,
             buildTime = 20,
-            shopLocation = TileType.City,
+            cityIndex = 0,
             locationIndexFunc = world => world.FindLocationIndex(x => x.hidden == TileType.Cave && x.mine && x.difficulty == 2),
             upgrades = new Upgrade[]
             {
@@ -404,7 +427,7 @@ public class Property
             buildPrice = 7500,
             buildPriceDiscount = 500,
             buildTime = 30,
-            shopLocation = TileType.City,
+            cityIndex = 0,
             locationIndexFunc = world => world.FindLocationIndex(x => x.hidden == TileType.Cave && x.mine && x.difficulty == 3),
             upgrades = new Upgrade[]
             {
@@ -432,7 +455,7 @@ public class Property
             income = 10,
             upkeep = 5,
             status = Status.Active,
-            shopLocation = TileType.City,
+            cityIndex = 0,
             multi = true
         },
         new()
@@ -443,7 +466,18 @@ public class Property
             income = 9,
             upkeep = 5,
             status = Status.Active,
-            shopLocation = TileType.Village,
+            cityIndex = 1,
+            multi = true
+        },
+        new()
+        {
+            name = "Inn",
+            desc = "PROFIT gold/day, free rest",
+            value = 4000,
+            income = 9,
+            upkeep = 5,
+            status = Status.Active,
+            cityIndex = 2,
             multi = true
         }
     };

@@ -27,9 +27,8 @@ investments:
 + quest to get into investing
 
 world:
-+ regions (difficulty)
++ bigger map
 + smoother travel
-+ second village
 ---------------------------------------------------------------------------------------------------
 hero:
 + longer main quest
@@ -61,6 +60,7 @@ hero:
 		capture bandits leader in forest
 		rescue
 	timed
+	quests in village, no guild?
 + allies
 	soft limit
 	leave and take from guild
@@ -210,6 +210,7 @@ races:
 + demons (export sex toys, lube, sex skill teachers)
 
 world:
++ regions (difficulty)
 + king -> duke -> baron -> village elder
 + countries
 + continents
