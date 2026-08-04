@@ -57,7 +57,8 @@ public class Property
     public Upgrade[] upgrades;
     public Func<World, int> locationIndexFunc;
     public Status status;
-    public int value, infestedCost, income, upkeep, upkeepDiscount, buildPrice, buildPriceDiscount, buildTime, locationIndex, cityIndex;
+    public float infestedDifficultyMod;
+    public int value, infestedCost, infestedDifficulty, income, upkeep, upkeepDiscount, buildPrice, buildPriceDiscount, buildTime, locationIndex, cityIndex;
     public bool multi;
 
     public int Income
@@ -176,6 +177,8 @@ public class Property
             cityIndex = cityIndex,
             value = value,
             infestedCost = infestedCost,
+            infestedDifficulty = infestedDifficulty,
+            infestedDifficultyMod = infestedDifficultyMod,
             income = income,
             upkeep = upkeep,
             upkeepDiscount = upkeepDiscount,
@@ -190,6 +193,8 @@ public class Property
     {
         desc = p.desc;
         infestedCost = p.infestedCost;
+        infestedDifficulty = p.infestedDifficulty;
+        infestedDifficultyMod = p.infestedDifficultyMod;
         upkeepDiscount = p.upkeepDiscount;
         buildPrice = p.buildPrice;
         buildPriceDiscount = p.buildPriceDiscount;
@@ -330,6 +335,8 @@ public class Property
             desc = "PROFIT gold/day, reduce mines upkeep and build cost",
             value = 5000,
             infestedCost = 500,
+            infestedDifficulty = 1,
+            infestedDifficultyMod = 0.75f,
             income = 10,
             upkeep = 5,
             status = Status.Active,
@@ -359,6 +366,8 @@ public class Property
             desc = "PROFIT gold/day",
             value = 10000,
             infestedCost = 750,
+            infestedDifficulty = 1,
+            infestedDifficultyMod = 1f,
             income = 20,
             upkeep = 10,
             upkeepDiscount = 2,
@@ -389,6 +398,8 @@ public class Property
             desc = "PROFIT gold/day",
             value = 25000,
             infestedCost = 1500,
+            infestedDifficulty = 2,
+            infestedDifficultyMod = 1f,
             income = 35,
             upkeep = 10,
             upkeepDiscount = 2,
@@ -421,6 +432,8 @@ public class Property
             desc = "PROFIT gold/day",
             value = 50000,
             infestedCost = 2000,
+            infestedDifficulty = 3,
+            infestedDifficultyMod = 1f,
             income = 60,
             upkeep = 10,
             upkeepDiscount = 2,
@@ -478,6 +491,70 @@ public class Property
             upkeep = 5,
             status = Status.Active,
             cityIndex = 2,
+            multi = true
+        },
+        new()
+        {
+            name = "Farm",
+            desc = "PROFIT gold/day",
+            value = 5000,
+            infestedCost = 500,
+            infestedDifficulty = 1,
+            infestedDifficultyMod = 0.75f,
+            income = 10,
+            upkeep = 5,
+            status = Status.Active,
+            cityIndex = 0,
+            locationIndexFunc = world => world.FindLocationIndex(x => x.type == TileType.Farm && x.difficulty == 1),
+            upgrades = new Upgrade[]
+            {
+                new()
+                {
+                    name = "Extra guards",
+                    desc = "Prevents monster invasion, +1 upkeep",
+                    value = 1000,
+                    upkeep = 1
+                },
+                new()
+                {
+                    name = "Advanced tools",
+                    desc = "+5 income",
+                    value = 1500,
+                    income = 5
+                }
+            },
+            multi = true
+        },
+        new()
+        {
+            name = "Farm",
+            desc = "PROFIT gold/day",
+            value = 5000,
+            infestedCost = 1250,
+            infestedDifficulty = 2,
+            infestedDifficultyMod = 0.75f,
+            income = 10,
+            upkeep = 5,
+            status = Status.Active,
+            cityIndex = 1,
+            locationIndexFunc = world => world.FindLocationIndex(x => x.type == TileType.Farm && x.difficulty == 2),
+            upgrades = new Upgrade[]
+            {
+                new()
+                {
+                    name = "Extra guards",
+                    desc = "Prevents monster invasion, +1 upkeep",
+                    value = 2000,
+                    upkeep = 2
+                },
+                new()
+                {
+                    name = "Advanced tools",
+                    desc = "+5 income",
+                    value = 1500,
+                    income = 5
+                }
+            },
             multi = true
         }
     };

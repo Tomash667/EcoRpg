@@ -196,9 +196,14 @@ public class World
         SpawnHiddenLocation(dungeon, TileType.Dungeon, dungeon3);
         spawnedDungeon3.Add(dungeon);
 
-        // sawmill & mine
+        // sawmill, mine, farms
         SpawnLocation(cityPos, TileType.Forest, TileType.Sawmill);
         SpawnLocation(cityPos, TileType.Mountains, TileType.Mine);
+        tile = SpawnLocation(cityPos, TileType.Plains, TileType.Farm);
+        tile.name = "city farm";
+        tile = SpawnLocation(villagePos, TileType.Plains, TileType.Farm);
+        tile.name = GetCityTile(1).name.Split(' ')[0] + " farm";
+        tile.difficulty = 2;
 
         // lakes
         SpawnLocation(new(Utility.Random(0, sizeX / 2), Utility.Random(0, sizeY / 2)), TileType.Plains, TileType.Lake);
@@ -252,12 +257,13 @@ public class World
         level = 0;
     }
 
-    private void SpawnLocation(Vector2Int wantedPos, TileType wantedTile, TileType targetTile)
+    private Tile SpawnLocation(Vector2Int wantedPos, TileType wantedTile, TileType targetTile)
     {
         Vector2Int targetPos = FindMatchingTile(wantedPos, pos => map[pos.x + pos.y * sizeX].type == wantedTile);
         Tile tile = map[targetPos.x + targetPos.y * sizeX];
         tile.SetType(targetTile);
         tile.clear = true;
+        return tile;
     }
 
     private List<Tile> SpawnHiddenLocations(int xMin, int xMax, int count, TileType wantedTile, TileType targetTile, List<string> names)

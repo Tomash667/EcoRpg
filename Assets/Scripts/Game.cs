@@ -187,6 +187,7 @@ public class Game : MonoBehaviour
                 break;
             case TileType.Sawmill:
             case TileType.Mine:
+            case TileType.Farm:
                 if (Input.GetKeyDown(KeyCode.W))
                     Work();
                 break;
@@ -677,11 +678,11 @@ public class Game : MonoBehaviour
                         }
                     }
                 }
-                else if (tile.type == TileType.Mine || tile.type == TileType.Sawmill)
+                else if (tile.type == TileType.Mine || tile.type == TileType.Sawmill || tile.type == TileType.Farm)
                 {
                     tile.timer = 0;
                     lastAction += " You <b>cleared</b> this place.";
-                    Property property = properties.FirstOrDefault(x => x.locationIndex == world.CurrentLocationIndex);
+                    Property property = player.properties.FirstOrDefault(x => x.locationIndex == world.CurrentLocationIndex);
                     property?.RemoveEvent("Infested");
                 }
                 else
@@ -1551,7 +1552,7 @@ public class Game : MonoBehaviour
                 --ally.gold;
             lastAction += "You rest in an inn (<color=#FFD700>-1</color> gold).";
         }
-        else if (location == TileType.Sawmill || location == TileType.Mine)
+        else if (location == TileType.Sawmill || location == TileType.Mine || location == TileType.Farm)
         {
             FullRest();
             lastAction += "You rest in a barracks.";
@@ -1760,7 +1761,7 @@ public class Game : MonoBehaviour
                         property.lastEvent = "Buff";
                         string str;
                         string propName = property.Name.ToLower();
-                        if (property.name == "Sawmill")
+                        if (property.name == "Sawmill" || property.name == "Farm")
                             str = $"Your {propName} production increased thanks to good weather.";
                         else if (property.name == "Inn")
                             str = $"Your {propName} income increased thanks to festival.";
@@ -1877,7 +1878,13 @@ public class Game : MonoBehaviour
         {
             Property copy = property.Copy();
             if (property.locationIndexFunc != null)
+            {
                 copy.locationIndex = property.locationIndexFunc(world);
+#if UNITY_EDITOR
+                if (copy.locationIndex == -1)
+                    Debug.LogWarning($"Failed to find location index for '{property.Name}'.");
+#endif
+            }
             else
                 copy.locationIndex = -1;
             properties.Add(copy);
@@ -1978,7 +1985,7 @@ public class Game : MonoBehaviour
         else
             button.gameObject.SetActive(false);
 
-        buttons.Find("BtWork2").gameObject.SetActive(location == TileType.Sawmill || location == TileType.Mine);
+        buttons.Find("BtWork2").gameObject.SetActive(location == TileType.Sawmill || location == TileType.Mine || location == TileType.Farm);
 
         buttons.Find("BtStorage").gameObject.SetActive(location == TileType.House || location == TileType.Mansion);
         buttons.Find("BtCook").gameObject.SetActive(location == TileType.House || location == TileType.Mansion);
@@ -2483,41 +2490,23 @@ public class Game : MonoBehaviour
                     quest.type = Quest.Type.Clear;
                     quest.locationDifficulty = Utility.Random(1, 3);
                     quest.max = 10;
-                    switch (quest.locationDifficulty)
+                    Property[] propertiesToClear = properties.Where(x => x.status == Property.Status.Active && x.infestedDifficulty == difficulty && !x.HaveEvent("Infested")).ToArray();
+                    int choice = Utility.Rand % (propertiesToClear.Length + 1);
+                    if (choice == propertiesToClear.Length)
                     {
-                    case 1:
+                        // sewers
                         quest.location = world.FindLocationIndex(x => x.type == TileType.City, 1);
-                        quest.difficultyMod = 1f;
+                        quest.locationDifficulty = 1;
                         quest.difficultyMod = 0.5f;
                         break;
-                    case 2:
-                        if (player.HaveProperty("Sawmill"))
-                        {
-                            // don't generate random quest if player owned
-                            quest.locationDifficulty = 1;
-                            quest.location = world.FindLocationIndex(x => x.type == TileType.City, 1);
-                            quest.difficultyMod = 0.5f;
-                        }
-                        else
-                        {
-                            quest.location = world.FindLocationIndex(x => x.type == TileType.Sawmill);
-                            quest.difficultyMod = 0.75f;
-                        }
-                        break;
-                    case 3:
-                        if (player.HaveProperty("Iron mine"))
-                        {
-                            // don't generate random quest if player owned
-                            quest.locationDifficulty = 1;
-                            quest.location = world.FindLocationIndex(x => x.type == TileType.City, 1);
-                            quest.difficultyMod = 0.5f;
-                        }
-                        else
-                        {
-                            quest.location = world.FindLocationIndex(x => x.type == TileType.Mine && x.difficulty == 1);
-                            quest.difficultyMod = 1f;
-                        }
-                        break;
+                    }
+                    else
+                    {
+                        // property that player don't own
+                        Property property = propertiesToClear[choice];
+                        quest.location = property.locationIndex;
+                        quest.locationDifficulty = property.infestedCost / 250;
+                        quest.difficultyMod = property.infestedDifficultyMod;
                     }
                     break;
                 case 1:
@@ -2565,13 +2554,21 @@ public class Game : MonoBehaviour
                 case 1:
                     // 20%
                     quest.type = Quest.Type.Clear;
-                    quest.locationDifficulty = difficulty == 2 ? 5 : 8;
                     quest.max = 10;
-                    if (!allowMine || Utility.Rand % 2 == 0)
+                    Property[] propertiesToClear = properties.Where(x => x.status == Property.Status.Active && x.infestedDifficulty == difficulty && !x.HaveEvent("Infested")).ToArray();
+                    if (propertiesToClear.Length == 0 || Utility.Rand % 2 == 0)
+                    {
                         quest.location = world.FindRandomLocationIndex(x => (x.type == TileType.Cave || x.hidden == TileType.Cave) && !x.mine && !x.boss && x.difficulty == difficulty);
+                        quest.locationDifficulty = difficulty == 2 ? 5 : 8;
+                        quest.difficultyMod = 1f;
+                    }
                     else
-                        quest.location = world.FindLocationIndex(x => x.type == TileType.Mine && x.difficulty == difficulty);
-                    quest.difficultyMod = 1f;
+                    {
+                        Property property = propertiesToClear.RandomItem();
+                        quest.location = property.locationIndex;
+                        quest.locationDifficulty = property.infestedCost / 250;
+                        quest.difficultyMod = property.infestedDifficultyMod;
+                    }
                     break;
                 case 2:
                 case 3:
@@ -2925,6 +2922,13 @@ public class Game : MonoBehaviour
                 if (copy != null)
                 {
                     copy.locationIndex = property.locationIndexFunc(world);
+#if UNITY_EDITOR
+                    if (copy.locationIndex == -1)
+                    {
+                        Debug.LogWarning($"Failed to find location index for '{property.Name}'.");
+                        continue;
+                    }
+#endif
                     Tile tile = world.GetLocation(copy.locationIndex);
                     if (tile.type == TileType.Mountains && copy.status >= Property.Status.Building)
                     {
@@ -3009,7 +3013,13 @@ public class Game : MonoBehaviour
             {
                 copy = property.Copy();
                 if (property.locationIndexFunc != null)
+                {
                     copy.locationIndex = property.locationIndexFunc(world);
+#if UNITY_EDITOR
+                    if (copy.locationIndex == -1)
+                        Debug.LogWarning($"Failed to find location index for '{property.Name}'.");
+#endif
+                }
                 else
                     copy.locationIndex = -1;
                 properties.Add(copy);

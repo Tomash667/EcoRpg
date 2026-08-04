@@ -96,7 +96,7 @@ public class Enemy
         new()
         {
             name = "wolf",
-            locations = new[] { (TileType.Forest, 1) },
+            locations = new[] { (TileType.Forest, 1), (TileType.Farm, 1) },
             difficulty = 1,
             level = 0,
             hp = 60,
@@ -136,7 +136,7 @@ public class Enemy
         new()
         {
             name = "dryad",
-            locations = new[] { (TileType.Forest, 2) },
+            locations = new[] { (TileType.Forest, 2), (TileType.Farm, 2) },
             difficulty = 1,
             level = 3,
             hp = 120,
@@ -163,7 +163,7 @@ public class Enemy
         new()
         {
             name = "tentacle monster",
-            locations = new[] { (TileType.Forest, 3) },
+            locations = new[] { (TileType.Forest, 3), (TileType.Farm, 3) },
             difficulty = 2,
             level = 6,
             hp = 180,

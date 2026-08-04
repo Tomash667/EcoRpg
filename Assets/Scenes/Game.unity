@@ -1512,6 +1512,7 @@ MonoBehaviour:
   - {fileID: -788225319, guid: 44cf10429a07f7c4cbbbf670b6199ccc, type: 3}
   - {fileID: 1745552250, guid: 44cf10429a07f7c4cbbbf670b6199ccc, type: 3}
   - {fileID: -935227316, guid: 44cf10429a07f7c4cbbbf670b6199ccc, type: 3}
+  - {fileID: -1371221141, guid: 44cf10429a07f7c4cbbbf670b6199ccc, type: 3}
 --- !u!114 &73536356
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -21860,6 +21861,7 @@ MonoBehaviour:
   world:
     map: []
     sublocations: []
+    cityMapping: 
     currentPt: {x: 0, y: 0}
     sublocation: 0
     level: 0
@@ -21894,9 +21896,7 @@ MonoBehaviour:
   availableQuests: []
   activeQuests: []
   properties: []
-  storedItems: []
   notifications: []
-  gardenPlants: []
   dragonStatus: 0
   guildProgress: 0
   day: 0
@@ -21932,7 +21932,8 @@ MonoBehaviour:
   - {fileID: 21300000, guid: a4192e4844b28b04f9d930b6c2b7dc78, type: 3}
   - {fileID: 21300000, guid: 6a0fcd47e9881f44bb4814ff49042dfd, type: 3}
   - {fileID: 21300000, guid: d9ae19f52998221419ffeb02ea383c25, type: 3}
-  - {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 0}
+  - {fileID: 21300000, guid: 5ca8ec8048ad52c48a5daf44a8903c45, type: 3}
   propertyIcons:
   - {fileID: -635325461, guid: 3fbe4f8cb52276e4e83ef357029fdb57, type: 3}
   - {fileID: -2062628698, guid: 3fbe4f8cb52276e4e83ef357029fdb57, type: 3}

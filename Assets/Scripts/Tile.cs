@@ -52,6 +52,7 @@ public class Tile
         case TileType.Cave:
         case TileType.Dungeon:
         case TileType.Village:
+        case TileType.Farm:
             return name;
         case TileType.Swamp:
             if (difficulty <= 2)
@@ -107,6 +108,9 @@ public class Tile
             break;
         case TileType.Lake:
             image = TileImage.Lake;
+            break;
+        case TileType.Farm:
+            image = TileImage.Farm;
             break;
         }
         type = newType;

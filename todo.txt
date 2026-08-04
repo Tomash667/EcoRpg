@@ -1,3 +1,6 @@
+- not a best path is selected
++ build farm in village2
+
 v2:
 hero:
 - treasure/trophy gold is not split
@@ -7,6 +10,7 @@ hero:
 		you can accept & cancel to have enemies
 	cancel quest -> lose reputation
 	generate new quest over time, not instantly when accepted
+	lower chance for "defeat" quests
 + allies
 	recruit chance
 	initial skills
@@ -19,7 +23,6 @@ investments:
 + manage mine/sawmill efficency
 + hire manager
 + office in city
-+ farm
 + mansion upgrades - office room
 + different text when entering mine being build or when finished while inside
 + see active events
@@ -183,6 +186,8 @@ investments:
 + foreman -> trains others over time
 + monsters destroying property
 + merchant guild to buy/sell properties
++ free food from farm
++ expand farm to extra tile
 
 skills:
 + haggle
@@ -196,6 +201,7 @@ skills:
 + cooking
 + artifacts that increase skill (self writing pen, golden pickaxe/axe, etc)
 + swimming
++ farming
 
 work:
 + fishing
