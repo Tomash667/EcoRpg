@@ -5,9 +5,7 @@ hero:
 + quests
 	- quest is generated for location but enemies "spawn" only after accepting
 		you can accept & cancel to have enemies
-	cancel quest -> lose reputation
 	generate new quest over time, not instantly when accepted
-	lower chance for "defeat" quests
 + allies
 	recruit chance
 	initial skills

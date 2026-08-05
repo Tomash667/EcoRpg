@@ -1738,7 +1738,6 @@ public class Game : MonoBehaviour
             ++hero.bored;
             hero.winToday = false;
             hero.loseToday = false;
-            hero.questToday = false;
             hero.lastGift = 0;
         }
 
@@ -2492,10 +2491,10 @@ public class Game : MonoBehaviour
         {
             if (difficulty == 1)
             {
-                switch (Utility.Rand % 10)
+                switch (Utility.Rand % 8)
                 {
                 case 0:
-                    // 10%
+                    // 12.5%
                     quest.type = Quest.Type.Clear;
                     quest.locationDifficulty = Utility.Random(1, 3);
                     quest.max = 10;
@@ -2519,7 +2518,7 @@ public class Game : MonoBehaviour
                     }
                     break;
                 case 1:
-                    // 10%
+                    // 12.5%
                     quest.type = Quest.Type.Gather;
                     quest.item = Item.Get(Utility.Rand % 2 == 0 ? "herb" : "magic crystal");
                     quest.max = 20;
@@ -2528,7 +2527,7 @@ public class Game : MonoBehaviour
                     break;
                 case 2:
                 case 3:
-                    // 20%
+                    // 25%
                     quest.type = Quest.Type.Artifact;
                     quest.location = world.FindRandomLocationIndex(x => (x.type == TileType.Dungeon || x.hidden == TileType.Dungeon) && x.difficulty == difficulty);
                     quest.locationDifficulty = difficulty;
@@ -2536,7 +2535,7 @@ public class Game : MonoBehaviour
                     quest.max = 1;
                     break;
                 case 4:
-                    // 10%
+                    // 12.5%
                     quest.type = Quest.Type.Clear;
                     quest.location = world.FindRandomLocationIndex(x => (x.type == TileType.Cave || x.hidden == TileType.Cave) && !x.mine && x.difficulty == 1);
                     quest.locationDifficulty = 3;
@@ -2544,7 +2543,7 @@ public class Game : MonoBehaviour
                     quest.max = 10;
                     break;
                 default:
-                    // 50%
+                    // 37.5%
                     quest.type = Quest.Type.Defeat;
                     quest.enemy = Enemy.GetRandom(difficulty);
                     quest.max = Utility.Random(2, 3);
@@ -2557,11 +2556,11 @@ public class Game : MonoBehaviour
             {
                 string mineName = (difficulty == 2 ? "Silver mine" : "Gold mine");
                 bool allowMine = properties.Any(x => x.name == mineName && x.status == Property.Status.Active);
-                switch (Utility.Rand % 10)
+                switch (Utility.Rand % 8)
                 {
                 case 0:
                 case 1:
-                    // 20%
+                    // 25%
                     quest.type = Quest.Type.Clear;
                     quest.max = 10;
                     Property[] propertiesToClear = properties.Where(x => x.status == Property.Status.Active && x.infestedDifficulty == difficulty && !x.HaveEvent("Infested")).ToArray();
@@ -2581,7 +2580,7 @@ public class Game : MonoBehaviour
                     break;
                 case 2:
                 case 3:
-                    // 20%
+                    // 25%
                     quest.type = Quest.Type.Artifact;
                     quest.location = world.FindRandomLocationIndex(x => (x.type == TileType.Dungeon || x.hidden == TileType.Dungeon) && x.difficulty == difficulty);
                     quest.locationDifficulty = difficulty;
@@ -2589,7 +2588,7 @@ public class Game : MonoBehaviour
                     quest.max = 1;
                     break;
                 case 4:
-                    // 10%
+                    // 12.5%
                     if (difficulty == 3)
                         goto case default;
                     quest.type = Quest.Type.Gather;
@@ -2607,7 +2606,7 @@ public class Game : MonoBehaviour
                     quest.difficultyMod = 0.25f;
                     break;
                 default:
-                    // 50%
+                    // 37.5%
                     quest.type = Quest.Type.Defeat;
                     quest.enemy = Enemy.GetRandom(difficulty);
                     quest.max = Utility.Random(2, 2 + difficulty);
@@ -2629,6 +2628,7 @@ public class Game : MonoBehaviour
     {
         int reward = quest.Reward;
         lastAction = $"You received <color=#FFD700>{reward}</color> gold for quest '{quest.Title}'.";
+        bool promoted = false;
         if (guildRank != MaxGuildRank)
         {
             float value = quest.difficultyMod;
@@ -2645,16 +2645,13 @@ public class Game : MonoBehaviour
                     ++guildRank;
                     guildProgress = 0;
                     lastAction += $" You were promoted to <b>{GuildRanks[guildRank]}</b> rank.";
+                    ChangeTeamAffection(5);
+                    promoted = true;
                 }
             }
         }
-        ChangeTeamAffection(5, ally =>
-        {
-            if (ally.questToday)
-                return false;
-            ally.questToday = true;
-            return true;
-        });
+        if (!promoted)
+            ChangeTeamAffection(1);
         AddTeamGold(reward);
         quest.Finish();
         RemoveQuest(quest);
@@ -2667,7 +2664,17 @@ public class Game : MonoBehaviour
     private void CancelQuest(Quest quest)
     {
         lastAction = $"You canceled quest '{quest.Title}'.";
-        RemoveQuest(quest);
+        guildProgress -= quest.difficultyMod;
+        if (guildRank > 1 && guildProgress < -guildRank)
+        {
+            --guildRank;
+            guildProgress = 0;
+            lastAction += $" You are degraded to <b>{GuildRanks[guildRank]}</b> rank.";
+            ChangeTeamAffection(-5);
+        }
+        else
+            ChangeTeamAffection(-1);
+            RemoveQuest(quest);
         AddTime(minutes: 15);
         if (ui.CurrentDialog == guildScreen)
             RefreshGuild();
