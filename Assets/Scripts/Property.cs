@@ -121,10 +121,9 @@ public class Property
     {
         return status switch
         {
-            DescStatus.Sell => $"{Name} ({Desc}, {value / 2} gold)",
+            DescStatus.Sell or DescStatus.Infested => $"{Name} ({Desc}, {value / 2} gold)",
             DescStatus.Build => $"{Name} ({buildTime} days to build, {Desc}, {BuildPrice} gold)",
             DescStatus.Building => $"{Name} ({Utility.Plural("day", buildTime)} left, {Desc})",
-            DescStatus.Infested => $"{Name} (<color=red>{Desc}, {value / 2} gold</color>)",
             _ => $"{Name} ({Desc}, {value} gold)"
         };
     }

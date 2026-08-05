@@ -936,6 +936,9 @@ public class Game : MonoBehaviour
             lastAction += " There are <b>dragon engravings</b> near entrance.";
         else if (tile.mine && tile.type == TileType.Cave)
             lastAction += $" There are <b>{(tile.difficulty == 2 ? "silver" : "gold")} veins</b> inside this cave.";
+        Property property = player.properties.FirstOrDefault(x => x.status == Property.Status.Building && x.locationIndex == world.CurrentLocationIndex);
+        if (property != null)
+            lastAction += $" {property.name} is being build here.";
         OnChangeLocation();
     }
 
@@ -1699,7 +1702,11 @@ public class Game : MonoBehaviour
                     tile.SetType(TileType.Mine);
                 map.UpdateMap(World.IndexToPoint(property.locationIndex));
                 if (world.CurrentLocationIndex == property.locationIndex)
-                    OnChangeLocation();
+                {
+                    ui.UpdateBackground((int)tile.type);
+                    UpdateButtons();
+                    lastAction += $" {property.name} has been built.";
+                }
                 AddNotification($"The construction of {property.Name.ToLower()} has been completed.");
             }
         }
@@ -2268,13 +2275,15 @@ public class Game : MonoBehaviour
             str = $"<b>{selectedProperty.Name}</b>\n{Utility.Plural("day", selectedProperty.buildTime, true)} left to end of construction";
         else
         {
-            Property.Event even = selectedProperty.events.FirstOrDefault(x => x.name == "Infested");
-            if (even == null)
-                str = $"<b>{selectedProperty.Name}</b>\n";
-            else if (even.timer == -1)
-                str = $"<b>{selectedProperty.Name} (infested)</b>\n";
-            else
-                str = $"<b>{selectedProperty.Name} ({Utility.Plural("day", even.timer, true)} to clear)</b>\n";
+            str = $"<b>{selectedProperty.Name}</b>\n";
+            Property.Event even = selectedProperty.events.FirstOrDefault();
+            if (even != null)
+            {
+                if (even.timer == -1)
+                    str += $"Events: {even.name}\n";
+                else
+                    str += $"Events: {even.name} ({even.timer})\n";
+            }
             str += $"Income:{selectedProperty.Income}  Upkeep:{selectedProperty.Upkeep}  Profit:{selectedProperty.Profit}\nUpgrades: ";
             if (selectedProperty.upgrades != null && selectedProperty.upgrades.Any(x => x.active))
                 str += string.Join(", ", selectedProperty.upgrades.Where(x => x.active).Select(x => x.name).OrderBy(x => x));
@@ -2674,7 +2683,7 @@ public class Game : MonoBehaviour
         }
         else
             ChangeTeamAffection(-1);
-            RemoveQuest(quest);
+        RemoveQuest(quest);
         AddTime(minutes: 15);
         if (ui.CurrentDialog == guildScreen)
             RefreshGuild();
