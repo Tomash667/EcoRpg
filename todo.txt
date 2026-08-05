@@ -25,12 +25,9 @@ investments:
 + see active events
 + fix prices: adventurers one time infestation cost the same amount as full time guards
 + quest to get into investing
-
-world:
-+ bigger map
 ---------------------------------------------------------------------------------------------------
 hero:
-+ longer main quest
++ longer main quest that require investing
 + classes
 	tank
 	rogue
