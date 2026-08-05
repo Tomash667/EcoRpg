@@ -5738,7 +5738,7 @@ GameObject:
   - component: {fileID: 345155078}
   - component: {fileID: 345155077}
   m_Layer: 5
-  m_Name: OutlineCurrent
+  m_Name: Flag
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5783,7 +5783,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: f7f0ee5337522804e93f733d7c6df882, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 754e2c24e6236c64abcd804b798515fc, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -22245,10 +22245,10 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1945153339}
-  - {fileID: 345155076}
   - {fileID: 1352944888}
   - {fileID: 1111247484}
   - {fileID: 1002989155}
+  - {fileID: 345155076}
   m_Father: {fileID: 68772762}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}

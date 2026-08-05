@@ -28,7 +28,6 @@ investments:
 
 world:
 + bigger map
-+ smoother travel
 ---------------------------------------------------------------------------------------------------
 hero:
 + longer main quest
@@ -155,6 +154,7 @@ ui:
 + auto position buttons in smart way
 + map zoom only when mouse over tiles
 + construction icon visible on map
++ smoother travel
 
 investments:
 + cottage/big house

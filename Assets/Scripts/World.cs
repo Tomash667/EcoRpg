@@ -37,6 +37,10 @@ public class World
     public int level;
 
     [NonSerialized]
+    public Vector2Int travelDir;
+    [NonSerialized]
+    public float travelDelta;
+    [NonSerialized]
     public int travelStep;
     [NonSerialized]
     public bool isTraveling, cancelTravel;
@@ -646,8 +650,11 @@ public class World
 
         while (step != path.Count && !cancelTravel)
         {
-            Vector2Int dir = path[step] - path[step - 1];
-            bool isDiagonal = dir.x != 0 && dir.y != 0;
+            travelDir = path[step] - path[step - 1];
+            travelDelta = 0;
+            bool isDiagonal = travelDir.x != 0 && travelDir.y != 0;
+            int requiredDist = isDiagonal ? 15 : 10;
+            game.UpdateTravel();
 
             while (!cancelTravel)
             {
@@ -669,11 +676,13 @@ public class World
                 ++game.hour;
                 if (game.hour == 24)
                     NextDay();
-                if (travelDist >= (isDiagonal ? 15 : 10))
+                if (travelDist >= requiredDist)
                 {
-                    currentPt += dir;
+                    currentPt += travelDir;
+                    travelDir = Vector2Int.zero;
+                    travelDelta = 0;
                     RevealArea(currentPt, true);
-                    travelDist -= isDiagonal ? 15 : 10;
+                    travelDist -= requiredDist;
                     ++step;
                     ++travelStep;
                     game.UpdateTravel();
@@ -682,6 +691,7 @@ public class World
                     break;
                 }
 
+                travelDelta = travelDist / requiredDist;
                 game.UpdateTravel();
                 yield return new WaitForSeconds(0.1f);
             }
@@ -929,7 +939,7 @@ public class World
                 if (tile2.visited)
                 {
                     // update if new total is better
-                    if(tile2.total > total)
+                    if (tile2.total > total)
                     {
                         tile2.prev = tile.pos;
                         tile2.cost = cost;

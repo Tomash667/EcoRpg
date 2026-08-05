@@ -16,7 +16,7 @@ public class Map : MonoBehaviour
     public Sprite[] sprites;
 
     private Arrow arrow;
-    private GameObject outlineCurrent, outlineTarget, outlineQuest;
+    private GameObject flag, outlineTarget, outlineQuest;
     private TMP_Text text, buttonText;
     private ScrollRect scrollRect;
     private Transform tilesContainer;
@@ -37,7 +37,7 @@ public class Map : MonoBehaviour
         viewportSize = transform.Find("MapView/Viewport").GetComponent<RectTransform>().rect.size;
         Transform mapContent = transform.Find("MapView/Viewport/Content");
         mapContent.GetComponent<RectTransform>().sizeDelta = contentSize;
-        outlineCurrent = mapContent.Find("OutlineCurrent").gameObject;
+        flag = mapContent.Find("Flag").gameObject;
         outlineTarget = mapContent.Find("OutlineTarget").gameObject;
         outlineQuest = mapContent.Find("OutlineQuest").gameObject;
         arrow = mapContent.Find("Arrow").GetComponent<Arrow>();
@@ -67,7 +67,7 @@ public class Map : MonoBehaviour
     {
         Vector2Int currentPt = Global.World.currentPt;
         currentPos = PtToPos(currentPt);
-        outlineCurrent.GetComponent<RectTransform>().anchoredPosition = currentPos;
+        flag.GetComponent<RectTransform>().anchoredPosition = currentPos;
         outlineTarget.SetActive(false);
         Quest quest = Global.Game.activeQuests.FirstOrDefault(x => x.tracked && x.location != -1);
         if (quest != null)
@@ -96,7 +96,6 @@ public class Map : MonoBehaviour
 
         if (inTravel)
         {
-            CenterOnPlayer();
             if (Input.GetKeyDown(GameUI.escKey))
                 Global.World.cancelTravel = true;
             return;
@@ -161,18 +160,17 @@ public class Map : MonoBehaviour
         else
         {
             Tile tile = world.map[targetPt.x + targetPt.y * World.sizeX];
+            outlineTarget.GetComponent<RectTransform>().anchoredPosition = PtToPos(targetPt);
+            outlineTarget.SetActive(true);
             if (targetPt == world.currentPt)
             {
                 // same position as current
                 arrow.gameObject.SetActive(false);
-                outlineTarget.SetActive(false);
                 text.text = $"Rations: {Global.Game.CountTeamItem(Item.Get("rations"))}\nTarget: {tile.Name.ToUpper1()}";
             }
             else
             {
                 // new position
-                outlineTarget.GetComponent<RectTransform>().anchoredPosition = PtToPos(targetPt);
-                outlineTarget.SetActive(true);
                 if (path == null)
                 {
                     // blocked
@@ -229,13 +227,21 @@ public class Map : MonoBehaviour
     public void UpdateTravel()
     {
         World world = Global.World;
-        currentPos = PtToPos(world.currentPt);
-        outlineCurrent.GetComponent<RectTransform>().anchoredPosition = currentPos;
+        Vector2 startPos = PtToPos(world.currentPt);
+        Vector2 targetPos = startPos + new Vector2(tileSize * world.travelDir.x, -tileSize * world.travelDir.y);
+        currentPos = Vector2.Lerp(startPos, targetPos, world.travelDelta);
+        flag.GetComponent<RectTransform>().anchoredPosition = currentPos;
+        CenterOnPlayer();
 
-        if (world.travelStep > travelStep)
+        if (world.travelStep >= travelStep)
         {
-            path.RemoveAt(0);
-            arrow.Progress();
+            if (path.Count > 2)
+            {
+                path.RemoveAt(0);
+                arrow.Progress();
+            }
+            else
+                arrow.gameObject.SetActive(false);
             ++travelStep;
         }
 
@@ -268,7 +274,7 @@ public class Map : MonoBehaviour
     public void EndTravel()
     {
         currentPos = PtToPos(Global.World.currentPt);
-        outlineCurrent.GetComponent<RectTransform>().anchoredPosition = currentPos;
+        flag.GetComponent<RectTransform>().anchoredPosition = currentPos;
         outlineTarget.SetActive(false);
         arrow.gameObject.SetActive(false);
         buttonText.text = "Cancel";
@@ -294,10 +300,8 @@ public class Map : MonoBehaviour
 
     private void CenterOnPlayer()
     {
-        World world = Global.World;
-
         // Player position inside content
-        Vector2 playerPos = new(tileSize * world.currentPt.x, tileSize * world.currentPt.y);
+        Vector2 playerPos = new(currentPos.x - gridOrigin.x, -(currentPos.y - gridOrigin.y));
         Vector2 desiredPos = playerPos - (viewportSize * 0.5f);
         Vector2 scrollRange = contentSize - viewportSize;
 
