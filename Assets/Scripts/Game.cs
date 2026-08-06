@@ -44,7 +44,9 @@ public class Game : MonoBehaviour
     private readonly StringBuilder sb = new();
     private System.Action<bool> choiceAction;
     private string lastAction, lastTestCombat;
-    private bool inChoice, traveled;
+    private float restCombatHeal;
+    private int restCombatEnergy;
+    private bool inChoice, traveled, restCombat;
 
     public IEnumerable<Hero> Team
     {
@@ -477,7 +479,7 @@ public class Game : MonoBehaviour
 
         List<Enemy> enemyList = new();
         Tile tile = world.CurrentTile;
-        if (tile.boss)
+        if (tile.boss && !restCombat)
         {
             if (tile.defeatedEnemies >= 10 && world.level + 1 == tile.levels)
             {
@@ -522,7 +524,10 @@ public class Game : MonoBehaviour
                 enemyList.Add(Utility.Rand % 2 == 0 ? ally : enemy);
         }
 
-        combatScreen.Init(enemyList, startAction);
+        if (restCombat)
+            combatScreen.Init(enemyList, lastAction, true);
+        else
+            combatScreen.Init(enemyList, startAction, false);
         ui.lockDialog = true;
         ui.ShowDialog(combatScreen.gameObject);
     }
@@ -611,9 +616,9 @@ public class Game : MonoBehaviour
             else
             {
                 if (pickups != null)
-                    lastAction = $"You win fight with <b>{Utility.PrettyGroup(enemyList.Select(x => x.name))}</b> ({pickups} found).";
+                    lastAction = $"You win a fight with <b>{Utility.PrettyGroup(enemyList.Select(x => x.name))}</b> ({pickups} found).";
                 else
-                    lastAction = $"You win fight with <b>{Utility.PrettyGroup(enemyList.Select(x => x.name))}</b>.";
+                    lastAction = $"You win a fight with <b>{Utility.PrettyGroup(enemyList.Select(x => x.name))}</b>.";
                 ChangeTeamAffection(1, ally =>
                 {
                     ally.bored = 0;
@@ -721,19 +726,49 @@ public class Game : MonoBehaviour
             ally.ApplyHealing();
         }
 
-        if (tile.type.IsSmall())
-            AddTime(minutes: 30);
+        if (restCombat)
+        {
+            if (result == Combat.Result.Win)
+            {
+                if (restCombatHeal != 0)
+                {
+                    player.hp = Mathf.Min(player.hp + (int)(restCombatHeal * player.hpMax), player.hpMax);
+                    foreach (Hero ally in allies)
+                        ally.hp = Mathf.Min(ally.hp + (int)(restCombatHeal * ally.hpMax), ally.hpMax);
+                }
+                player.energy = Mathf.Min(player.energy + restCombatEnergy, 100);
+                lastAction += " You finish your rest.";
+            }
+
+            if (hour < 8)
+                hour = 8;
+            else
+            {
+                ++day;
+                hour = 8;
+            }
+            OnNewDay();
+            restCombat = false;
+        }
         else
-            AddTime(hours: 1);
+        {
+            if (tile.type.IsSmall())
+                AddTime(minutes: 30);
+            else
+                AddTime(hours: 1);
+        }
+
         UpdateText();
     }
 
     public void Rest()
     {
         lastAction = string.Empty;
-        OnRest();
-        lastAction += " It's a new day.";
-        UpdateText();
+        if (OnRest())
+        {
+            lastAction += " It's a new day.";
+            UpdateText();
+        }
     }
 
     public void Work()
@@ -1513,7 +1548,7 @@ public class Game : MonoBehaviour
         }
     }
 
-    private void OnRest()
+    private bool OnRest()
     {
         void FullRest()
         {
@@ -1523,9 +1558,6 @@ public class Game : MonoBehaviour
                 ally.hp = ally.hpMax;
         }
 
-        ++day;
-        hour = 8;
-        minute = 0;
         TileType location = world.Location;
         int cityIndex = world.CityIndex;
         if (((location == TileType.City || location == TileType.Village) && player.HaveProperty("House", cityIndex: cityIndex)) || location == TileType.House)
@@ -1588,29 +1620,92 @@ public class Game : MonoBehaviour
             Item rations = Item.Get("rations");
             int count = 1 + allies.Count;
             int eaten = RemoveTeamItem(rations, count);
+            float heal;
             if (eaten > 0)
             {
                 if (eaten == count)
                 {
                     energy += 25;
-                    player.hp = player.hpMax;
-                    foreach (Hero ally in allies)
-                        ally.hp = ally.hpMax;
+                    heal = 1;
                 }
                 else
                 {
                     float ratio = (float)eaten / count;
                     energy += (int)(ratio * 25);
-                    player.hp = Mathf.Min(player.hp + (int)(ratio * player.hpMax), player.hpMax);
-                    foreach (Hero ally in allies)
-                        ally.hp = Mathf.Min(ally.hp + (int)(ratio * ally.hpMax), ally.hpMax);
+                    heal = ratio;
                 }
                 lastAction += $"You rest {where} and eat rations.";
             }
             else
+            {
                 lastAction += $"You rest {where}.";
-            player.energy = Mathf.Min(player.energy + energy, 100);
+                heal = 0;
+            }
+
+            bool attacked = false;
+            if (!world.CurrentTile.clear)
+            {
+                int attackChance = location switch
+                {
+                    TileType.Forest or TileType.Mountains or TileType.Swamp or TileType.Sewers => 5,
+                    TileType.Cave or TileType.Dungeon => 10,
+                    TileType.DarkDimension => 20,
+                    _ => 0,
+                };
+                attacked = Utility.Rand % 100 < attackChance;
+#if UNITY_EDITOR
+                if (attackChance > 0 && Input.GetKey(KeyCode.Alpha9))
+                    attacked = true;
+#endif
+            }
+
+            if (attacked)
+            {
+                hour += Utility.Random(3, 5);
+                minute = 0;
+                if (hour >= 24)
+                {
+                    ++day;
+                    hour -= 24;
+                }
+                heal /= 2;
+                energy /= 2;
+                if (heal != 0)
+                {
+                    player.hp = Mathf.Min(player.hp + (int)(heal * player.hpMax), player.hpMax);
+                    foreach (Hero ally in allies)
+                        ally.hp = Mathf.Min(ally.hp + (int)(heal * ally.hpMax), ally.hpMax);
+                }
+                player.energy = Mathf.Min(player.energy + energy, 100);
+                Tile tile = world.CurrentTile;
+                Enemy enemy = Enemy.GetRandom(tile.type, tile.difficulty);
+                restCombat = true;
+                restCombatHeal = heal;
+                restCombatEnergy = energy;
+                StartCombat(enemy, null);
+                return false;
+            }
+            else
+            {
+                if (heal == 1)
+                {
+                    player.hp = player.hpMax;
+                    foreach (Hero ally in allies)
+                        ally.hp = ally.hpMax;
+                }
+                else if (heal > 0)
+                {
+                    player.hp = Mathf.Min(player.hp + (int)(heal * player.hpMax), player.hpMax);
+                    foreach (Hero ally in allies)
+                        ally.hp = Mathf.Min(ally.hp + (int)(heal * ally.hpMax), ally.hpMax);
+                }
+                player.energy = Mathf.Min(player.energy + energy, 100);
+            }
         }
+
+        ++day;
+        hour = 8;
+        minute = 0;
 
         OnNewDay();
         CheckBoredAllies();
@@ -1625,6 +1720,7 @@ public class Game : MonoBehaviour
         }
 
         ui.CloseDialogs(x => x == propertiesScreen || x == guildScreen || x == characterScreen || x == craftScreen);
+        return true;
     }
 
     private void CheckBoredAllies()
@@ -3473,7 +3569,7 @@ public class Game : MonoBehaviour
 
         ui.CloseDialog();
         lastTestCombat = enemiesStr;
-        combatScreen.Init(enemyList, "explore");
+        combatScreen.Init(enemyList, "explore", false);
         ui.lockDialog = true;
         ui.ShowDialog(combatScreen.gameObject);
         return true;

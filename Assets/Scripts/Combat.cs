@@ -63,7 +63,7 @@ public class Combat : MonoBehaviour
         arrow = transform.Find("Arrow").gameObject;
     }
 
-    public void Init(List<Enemy> enemyList, string startAction)
+    public void Init(List<Enemy> enemyList, string startAction, bool restCombat)
     {
         game = Global.Game;
         this.enemyList = enemyList;
@@ -133,7 +133,13 @@ public class Combat : MonoBehaviour
 
         transform.Find("BtHeal").GetComponentInChildren<TMP_Text>().text = "Heal";
         transform.parent.Find("Buttons").gameObject.SetActive(false);
-        AppendText($"You {startAction} the {Global.World.CurrentTile.Name} and <b>{Utility.PrettyGroup(enemyList.Select(x => x.name))}</b> {Utility.S("attack", enemyList.Count == 1)} you.");
+        if (restCombat)
+        {
+            startAction += $" Suddenly <b>{Utility.PrettyGroup(enemyList.Select(x => x.name))}</b> {Utility.S("attack", enemyList.Count == 1)} you.";
+            AppendText(startAction);
+        }
+        else
+            AppendText($"You {startAction} the {Global.World.CurrentTile.Name} and <b>{Utility.PrettyGroup(enemyList.Select(x => x.name))}</b> {Utility.S("attack", enemyList.Count == 1)} you.");
     }
 
     private void Update()
