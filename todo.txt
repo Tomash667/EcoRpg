@@ -1,8 +1,3 @@
-ally initial skills
-	Mining - have pickaxe, help mining
-	woodcraft - helps, works
-	forage - helps
-
 v2:
 hero:
 - treasure/trophy gold is not split

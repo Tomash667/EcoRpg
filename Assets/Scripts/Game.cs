@@ -396,6 +396,7 @@ public class Game : MonoBehaviour
         else if (c == 9 && tile.type == TileType.Forest && tile.depleted < 4)
         {
             // herbs/rare herbs
+            (Hero bestHero, int bestValue) = GetTeamSkill(Skill.Forage);
             int count = (Utility.Rand % 6) switch
             {
                 1 or 2 => 2,
@@ -403,20 +404,31 @@ public class Game : MonoBehaviour
                 5 => 4,
                 _ => 1,
             };
-            count += player.GetSkill(Skill.Forage) / 25 - tile.depleted;
+            count += bestValue / 25 - tile.depleted;
             if (count < 1)
                 count = 1;
             tile.depleted++;
             Item herb = tile.GetHerb();
             player.AddItem(herb, count);
-            lastAction = $"You explore the {tile.Name} and find <b>{Utility.Plural(herb.name, count)}</b>.";
-            lastAction += player.Train(Skill.Forage, 0.25f);
+            if (bestHero != null && bestHero != player)
+            {
+                float trainMod = 1f + 0.01f * (bestValue - player.GetSkill(Skill.Forage));
+                lastAction = $"You explore the {tile.Name} and with {bestHero.name} help find <b>{Utility.Plural(herb.name, count)}</b>.";
+                lastAction += player.Train(Skill.Forage, 0.25f * trainMod);
+                bestHero.Train(Skill.Forage, 0.25f);
+            }
+            else
+            {
+                lastAction = $"You explore the {tile.Name} and find <b>{Utility.Plural(herb.name, count)}</b>.";
+                lastAction += player.Train(Skill.Forage, 0.25f);
+            }
         }
         else if (c == 9 && ((tile.type == TileType.Mountains && tile.depleted == 0) || (tile.type == TileType.Cave && tile.mine && tile.depleted < 4)) && tile.difficulty >= 2)
         {
             // silver/gold nuggets
-            if (player.HaveItem("pickaxe"))
+            if (HaveTeamItem("pickaxe"))
             {
+                (Hero bestHero, int bestValue) = GetTeamSkill(Skill.Mining);
                 int count = (Utility.Rand % 6) switch
                 {
                     1 or 2 => 2,
@@ -424,14 +436,25 @@ public class Game : MonoBehaviour
                     5 => 4,
                     _ => 1,
                 };
-                count += player.GetSkill(Skill.Mining) / 25 - tile.depleted;
+                count += bestValue / 25 - tile.depleted;
                 if (count < 1)
                     count = 1;
                 tile.depleted++;
                 Item nugget = Item.Get(tile.difficulty == 2 ? "silver nugget" : "gold nugget");
                 player.AddItem(nugget, count);
-                lastAction = $"You explore the {tile.Name} and find small <b>{(tile.difficulty == 2 ? "silver" : "gold")} vein</b>. You mine <b>{Utility.Plural(nugget.name, count)}</b>.";
-                lastAction += player.Train(Skill.Mining, 0.25f);
+                if (bestHero != null && bestHero != player)
+                {
+                    float trainMod = 1f + 0.01f * (bestValue - player.GetSkill(Skill.Mining));
+                    lastAction = $"You explore the {tile.Name} and find small <b>{(tile.difficulty == 2 ? "silver" : "gold")} vein</b>. " +
+                        $"You and {bestHero.name} mine <b>{Utility.Plural(nugget.name, count)}</b>.";
+                    lastAction += player.Train(Skill.Mining, 0.25f * trainMod);
+                    bestHero.Train(Skill.Mining, 0.25f);
+                }
+                else
+                {
+                    lastAction = $"You explore the {tile.Name} and find small <b>{(tile.difficulty == 2 ? "silver" : "gold")} vein</b>. You mine <b>{Utility.Plural(nugget.name, count)}</b>.";
+                    lastAction += player.Train(Skill.Mining, 0.25f);
+                }
             }
             else
                 lastAction = $"You explore the {tile.Name} and find small <b>{(tile.difficulty == 2 ? "silver" : "gold")} vein</b> but you don't have a pickaxe...";
@@ -439,21 +462,32 @@ public class Game : MonoBehaviour
         else if (c == 9 && tile.type == TileType.Cave && !tile.mine && !tile.boss && tile.depleted < tile.difficulty + 2)
         {
             // magic crystals
-            if (player.HaveItem("pickaxe"))
+            if (HaveTeamItem("pickaxe"))
             {
+                (Hero bestHero, int bestValue) = GetTeamSkill(Skill.Mining);
                 int count = (Utility.Rand % 4) switch
                 {
                     1 or 2 => 2,
                     3 => 3,
                     _ => 1,
                 };
-                count += tile.difficulty - tile.depleted - 1 + player.GetSkill(Skill.Mining) / 25;
+                count += tile.difficulty - tile.depleted - 1 + bestValue / 25;
                 if (count < 1)
                     count = 1;
                 tile.depleted++;
                 player.AddItem(Item.Get("magic crystal"), count);
-                lastAction = $"You explore the {tile.Name} and find small <b>magic crystals cluster</b>. You mine <b>{Utility.Plural("magic crystal", count)}</b>.";
-                lastAction += player.Train(Skill.Mining, 0.25f);
+                if (bestHero != null && bestHero != player)
+                {
+                    float trainMod = 1f + 0.01f * (bestValue - player.GetSkill(Skill.Mining));
+                    lastAction = $"You explore the {tile.Name} and find small <b>magic crystals cluster</b>. You and {bestHero.name} mine <b>{Utility.Plural("magic crystal", count)}</b>.";
+                    lastAction += player.Train(Skill.Mining, 0.25f * trainMod);
+                    bestHero.Train(Skill.Mining, 0.25f);
+                }
+                else
+                {
+                    lastAction = $"You explore the {tile.Name} and find small <b>magic crystals cluster</b>. You mine <b>{Utility.Plural("magic crystal", count)}</b>.";
+                    lastAction += player.Train(Skill.Mining, 0.25f);
+                }
             }
             else
                 lastAction = $"You explore the {tile.Name} and find small <b>magic crystals cluster</b> but you don't have a pickaxe...";
@@ -808,7 +842,7 @@ public class Game : MonoBehaviour
         {
             player.energy -= 50;
             TileType location = world.Location;
-            int basePay, payMod = 1;
+            int basePay;
             Skill skill;
             switch (location)
             {
@@ -829,27 +863,43 @@ public class Game : MonoBehaviour
                 skill = Skill.None;
                 break;
             }
+            // ally with a skill can help & train others
+            Hero bestHero;
+            int skillValue;
+            if (skill != Skill.None)
+            {
+                (bestHero, skillValue) = GetTeamSkill(skill);
+                basePay += skillValue / 10;
+            }
+            else
+            {
+                bestHero = null;
+                skillValue = 0;
+            }
             // double pay if owned
             if (player.properties.Any(x => x.locationIndex == world.CurrentLocationIndex))
-                payMod = 2;
+                basePay *= 2;
+            // give payment & train all team members
             foreach (Hero hero in Team)
             {
-                int payment = basePay;
-                if (skill != Skill.None)
-                    payment += hero.GetSkill(skill) / 10;
-                payment *= payMod;
+                float trainMod;
+                if (skill != Skill.None && bestHero != null && bestHero != hero)
+                    trainMod = 1f + 0.01f * (skillValue - hero.GetSkill(skill));
+                else
+                    trainMod = 1f;
+
                 if (hero == player)
                 {
-                    player.AddGold(payment);
-                    lastAction = $"You earned <color=#FFD700>{payment}</color> gold from working.";
+                    player.AddGold(basePay);
+                    lastAction = $"You earned <color=#FFD700>{basePay}</color> gold from working.";
                     if (skill != Skill.None)
-                        lastAction += player.Train(skill);
+                        lastAction += player.Train(skill, trainMod);
                 }
                 else
                 {
-                    hero.gold += payment;
+                    hero.gold += basePay;
                     if (skill != Skill.None)
-                        hero.Train(skill);
+                        hero.Train(skill, trainMod);
                 }
             }
             AddTime(hours: 8);
@@ -2857,7 +2907,7 @@ public class Game : MonoBehaviour
     {
         Tile tile = world.CurrentTile;
 
-        if (tile.type == TileType.Cave && !player.HaveItem("pickaxe"))
+        if (tile.type == TileType.Cave && !HaveTeamItem("pickaxe"))
         {
             lastAction = "You need a pickaxe for that.";
             UpdateText();
@@ -2887,6 +2937,7 @@ public class Game : MonoBehaviour
             else
             {
                 // herbs/rare herbs
+                (Hero bestHero, int bestValue) = GetTeamSkill(Skill.Forage);
                 int count = (Utility.Rand % 6) switch
                 {
                     1 or 2 => 2,
@@ -2894,19 +2945,34 @@ public class Game : MonoBehaviour
                     5 => 4,
                     _ => 1,
                 };
-                count += player.GetSkill(Skill.Forage) / 25 - tile.depleted;
+                count += bestValue / 25 - tile.depleted;
                 if (count < 1)
                     count = 1;
                 tile.depleted++;
                 Item herb = tile.GetHerb();
                 player.AddItem(herb, count);
-                lastAction = $"You forage the {tile.Name} and find <b>{Utility.Plural(herb.name, count)}</b>.";
-                if (Utility.Rand % 100 < player.GetSkill(Skill.Forage))
+                if (bestHero != null && bestHero != player)
                 {
-                    lastAction += $" You also find some edible {(Utility.Rand % 2 == 0 ? "fruits" : "vegetables")} (<b>+1 rations</b>).";
-                    player.AddItem(Item.Get("rations"));
+                    float trainMod = 1f + 0.01f * (bestValue - player.GetSkill(Skill.Forage));
+                    lastAction = $"You forage the {tile.Name} and with {bestHero.name} help find <b>{Utility.Plural(herb.name, count)}</b>.";
+                    if (Utility.Rand % 100 < bestValue)
+                    {
+                        lastAction += $" You also find some edible {(Utility.Rand % 2 == 0 ? "fruits" : "vegetables")} (<b>+1 rations</b>).";
+                        player.AddItem(Item.Get("rations"));
+                    }
+                    lastAction += player.Train(Skill.Forage, 0.25f * trainMod);
+                    bestHero.Train(Skill.Forage, 0.25f);
                 }
-                lastAction += player.Train(Skill.Forage, 0.25f);
+                else
+                {
+                    lastAction = $"You forage the {tile.Name} and find <b>{Utility.Plural(herb.name, count)}</b>.";
+                    if (Utility.Rand % 100 < bestValue)
+                    {
+                        lastAction += $" You also find some edible {(Utility.Rand % 2 == 0 ? "fruits" : "vegetables")} (<b>+1 rations</b>).";
+                        player.AddItem(Item.Get("rations"));
+                    }
+                    lastAction += player.Train(Skill.Forage, 0.25f);
+                }
             }
             AddTime(hours: 1);
         }
@@ -2917,6 +2983,7 @@ public class Game : MonoBehaviour
             else if (tile.mine)
             {
                 // silver/gold nuggets
+                (Hero bestHero, int bestValue) = GetTeamSkill(Skill.Mining);
                 int count = (Utility.Rand % 6) switch
                 {
                     1 or 2 => 2,
@@ -2924,31 +2991,53 @@ public class Game : MonoBehaviour
                     5 => 4,
                     _ => 1,
                 };
-                count += player.GetSkill(Skill.Mining) / 25 - tile.depleted;
+                count += bestValue / 25 - tile.depleted;
                 if (count < 1)
                     count = 1;
                 tile.depleted++;
                 Item nugget = Item.Get(tile.difficulty == 2 ? "silver nugget" : "gold nugget");
                 player.AddItem(nugget, count);
-                lastAction = $"You prospect the {tile.Name} and find small <b>{(tile.difficulty == 2 ? "silver" : "gold")} vein</b>. You mine <b>{Utility.Plural(nugget.name, count)}</b>.";
-                lastAction += player.Train(Skill.Mining, 0.25f);
+                if (bestHero != null && bestHero != player)
+                {
+                    float trainMod = 1f + 0.01f * (bestValue - player.GetSkill(Skill.Mining));
+                    lastAction = $"You prospect the {tile.Name} and find small <b>{(tile.difficulty == 2 ? "silver" : "gold")} vein</b>. " +
+                        $"You and {bestHero.name} mine <b>{Utility.Plural(nugget.name, count)}</b>.";
+                    lastAction += player.Train(Skill.Mining, 0.25f * trainMod);
+                    bestHero.Train(Skill.Mining, 0.25f);
+                }
+                else
+                {
+                    lastAction = $"You prospect the {tile.Name} and find small <b>{(tile.difficulty == 2 ? "silver" : "gold")} vein</b>. You mine <b>{Utility.Plural(nugget.name, count)}</b>.";
+                    lastAction += player.Train(Skill.Mining, 0.25f);
+                }
             }
             else
             {
                 // magic crystals
+                (Hero bestHero, int bestValue) = GetTeamSkill(Skill.Mining);
                 int count = (Utility.Rand % 4) switch
                 {
                     1 or 2 => 2,
                     3 => 3,
                     _ => 1,
                 };
-                count += tile.difficulty - tile.depleted - 1 + player.GetSkill(Skill.Mining) / 25;
+                count += tile.difficulty - tile.depleted - 1 + bestValue / 25;
                 if (count < 1)
                     count = 1;
                 tile.depleted++;
                 player.AddItem(Item.Get("magic crystal"), count);
-                lastAction = $"You prospect the {tile.Name} and find small <b>magic crystals cluster</b>. You mine <b>{Utility.Plural("magic crystal", count)}</b>.";
-                lastAction += player.Train(Skill.Mining, 0.25f);
+                if (bestHero != null && bestHero != player)
+                {
+                    float trainMod = 1f + 0.01f * (bestValue - player.GetSkill(Skill.Mining));
+                    lastAction = $"You prospect the {tile.Name} and find small <b>magic crystals cluster</b>. You and {bestHero.name} mine <b>{Utility.Plural("magic crystal", count)}</b>.";
+                    lastAction += player.Train(Skill.Mining, 0.25f * trainMod);
+                    bestHero.Train(Skill.Mining, 0.25f);
+                }
+                else
+                {
+                    lastAction = $"You prospect the {tile.Name} and find small <b>magic crystals cluster</b>. You mine <b>{Utility.Plural("magic crystal", count)}</b>.";
+                    lastAction += player.Train(Skill.Mining, 0.25f);
+                }
             }
             AddTime(minutes: 30);
         }
@@ -3720,7 +3809,7 @@ public class Game : MonoBehaviour
             return null;
     }
 
-    private (Hero, int) GetTeamSkill(Skill skill)
+    private (Hero hero, int value) GetTeamSkill(Skill skill)
     {
         Hero bestHero = null;
         int bestValue = 0;
@@ -3734,5 +3823,11 @@ public class Game : MonoBehaviour
             }
         }
         return (bestHero, bestValue);
+    }
+
+    private bool HaveTeamItem(string itemName)
+    {
+        Item item = Item.Get(itemName);
+        return Team.Any(x => x.HaveItem(item));
     }
 }

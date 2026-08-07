@@ -4,6 +4,10 @@ EcoRpg v0.2
 Goal:
 Defeat dragon, get rich.
 
+Tips:
+* Ally with skill helps & trains your skill when working.
+* You can give herbs to ally with alchemist set to make potions.
+
 Shortcuts:
 1-2 - manage ally
 C - character screen
