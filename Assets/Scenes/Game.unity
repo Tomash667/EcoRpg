@@ -21887,7 +21887,6 @@ MonoBehaviour:
     lastGift: 0
     female: 0
     winToday: 0
-    loseToday: 0
     properties: []
     goldWaiting: 0
     energy: 100
@@ -27650,7 +27649,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 444, y: 250}
+  m_SizeDelta: {x: 500, y: 300}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1676379807
 MonoBehaviour:

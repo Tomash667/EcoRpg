@@ -1335,7 +1335,7 @@ public class Game : MonoBehaviour
                         if (itemSlot.item.type == Item.Type.Weapon || itemSlot.item.type == Item.Type.Armor || itemSlot.item.type == Item.Type.Shield
                             || !(Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.LeftControl)))
                         {
-                            IncreaseAffectionFromValue(activeAlly, itemSlot.item.value);
+                            IncreaseAffectionFromValue(activeAlly, itemSlot.item, 1);
                             activeAlly.GiveItem(itemSlot.item);
                             player.RemoveItem(itemSlot);
                             RefreshPlayerItems();
@@ -1343,7 +1343,7 @@ public class Game : MonoBehaviour
                         }
                         else if (Input.GetKey(KeyCode.LeftShift))
                         {
-                            IncreaseAffectionFromValue(activeAlly, itemSlot.item.value * itemSlot.count);
+                            IncreaseAffectionFromValue(activeAlly, itemSlot.item, itemSlot.count);
                             activeAlly.GiveItem(itemSlot.item, itemSlot.count);
                             player.RemoveItem(itemSlot, itemSlot.count);
                             RefreshPlayerItems();
@@ -1356,7 +1356,7 @@ public class Game : MonoBehaviour
                                 if (count <= 0)
                                     return true;
                                 count = Mathf.Min(count, itemSlot.count);
-                                IncreaseAffectionFromValue(activeAlly, itemSlot.item.value * count);
+                                IncreaseAffectionFromValue(activeAlly, itemSlot.item, count);
                                 activeAlly.GiveItem(itemSlot.item, count);
                                 player.RemoveItem(itemSlot, count);
                                 RefreshPlayerItems();
@@ -2189,8 +2189,13 @@ public class Game : MonoBehaviour
             2 => "journeyman",
             _ => "novice",
         };
+        string skill;
+        if (hero.skills.Count > 0)
+            skill = $" and knows {hero.skills.First().Key.AsString()}";
+        else
+            skill = string.Empty;
         ui.ShowConfirm($"You meet <b>{hero.name}</b> and talk with {hero.him} about adventurers. " +
-            $"{hero.He} is {Utility.A(levelName)} <b>{levelName} {hero.clas.AsString()}</b>. Do you want to recruit {hero.him}?", yes =>
+            $"{hero.He} is {Utility.A(levelName)} <b>{levelName} {hero.clas.AsString()}</b>{skill}. Do you want to recruit {hero.him}?", yes =>
         {
             if (yes)
             {
@@ -2975,9 +2980,14 @@ public class Game : MonoBehaviour
         }
 
         // potions
-        int alchemy = player.GetSkill(Skill.Alchemy);
-        if (world.Location == TileType.House || world.Location == TileType.Mansion)
+        (Hero bestHero, int alchemy) = GetTeamSkill(Skill.Alchemy);
+        int bonus = 0;
+        if ((world.Location == TileType.House && player.HavePropertyUpgrade("House", "Alchemy lab", world.CityIndex))
+            || (world.Location == TileType.Mansion && player.HavePropertyUpgrade("Mansion", "Alchemy lab", world.CityIndex)))
+        {
+            bonus = 25;
             alchemy += 25;
+        }
         content = craftScreen.transform.Find("List/Viewport/Content");
         foreach (Transform child in content)
             Destroy(child.gameObject);
@@ -2998,11 +3008,24 @@ public class Game : MonoBehaviour
                 mod = 0;
             int extra = (int)(count * mod);
             player.AddItem(recipe.result, count + extra);
-            lastAction = $"You created {Utility.Plural(recipe.result.name, count + extra)}.";
-            lastAction += player.Train(Skill.Alchemy, recipe.trainMod * count);
+            float trainMod;
+            if (bestHero == null || bestHero is Player)
+            {
+                lastAction = $"You created {Utility.Plural(recipe.result.name, count + extra)}.";
+                trainMod = 1f;
+            }
+            else
+            {
+                lastAction = $"You and {bestHero.name} created {Utility.Plural(recipe.result.name, count + extra)}.";
+                trainMod = 1f + 0.01f * (alchemy - bonus - player.GetSkill(Skill.Alchemy));
+                bestHero.Train(Skill.Alchemy, recipe.trainMod * count);
+            }
+            lastAction += player.Train(Skill.Alchemy, recipe.trainMod * trainMod * count);
             AddTime(minutes: count * 5);
             if (ui.IsOpen(craftScreen))
                 RefreshCraft();
+            if (ui.IsOpen(characterScreen))
+                RefreshPlayerScreen();
             UpdateText();
         }
 
@@ -3035,6 +3058,61 @@ public class Game : MonoBehaviour
             });
             itemEntry.SetImage(ui.itemIcons[(int)recipe.result.GetIcon()]);
         }
+    }
+
+    public void DoAlchemy(Hero hero, Item item)
+    {
+        (Hero bestHero, int alchemy) = GetTeamSkill(Skill.Alchemy);
+        int bonus = 0;
+        if ((world.Location == TileType.House && player.HavePropertyUpgrade("House", "Alchemy lab", world.CityIndex))
+            || (world.Location == TileType.Mansion && player.HavePropertyUpgrade("Mansion", "Alchemy lab", world.CityIndex)))
+        {
+            bonus = 25;
+            alchemy += 25;
+        }
+
+        int ingredientCount = hero.CountItem(item);
+        Recipe recipe = Recipe.recipes.FirstOrDefault(x => alchemy >= x.requiredSkill && x.ingredient == item && ingredientCount >= x.ingredientCount);
+        if (recipe == null)
+            return;
+
+        int count = ingredientCount / recipe.ingredientCount;
+        hero.RemoveItem(recipe.ingredient, count * 2);
+        float mod;
+        if (alchemy >= 100)
+            mod = 1;
+        else if (alchemy >= 75)
+            mod = 0.5f;
+        else if (alchemy >= 50)
+            mod = 0.25f;
+        else if (alchemy >= 25)
+            mod = 0.1f;
+        else
+            mod = 0;
+        int extra = (int)(count * mod);
+        int totalCount = count + extra;
+        player.AddItem(recipe.result, totalCount);
+        if (hero == bestHero)
+        {
+            lastAction = $"{hero.name} creates {Utility.Plural(recipe.result.name, totalCount)} and gives {(totalCount == 1 ? "it" : "them")} to you.";
+            hero.Train(Skill.Alchemy, recipe.trainMod * count);
+        }
+        else
+        {
+            lastAction = $"{hero.name} and {bestHero.nameYou} create {Utility.Plural(recipe.result.name, totalCount)}. You receive {(totalCount == 1 ? "it" : "them")}.";
+            float trainMod = 1f + 0.01f * (alchemy - bonus - hero.GetSkill(Skill.Alchemy));
+            hero.Train(Skill.Alchemy, recipe.trainMod * trainMod * count);
+            string str = bestHero.Train(Skill.Alchemy, recipe.trainMod * count);
+            if (bestHero is Player)
+                lastAction += str;
+        }
+
+        if (ui.IsOpen(giveAllyItemsScreen))
+        {
+            RefreshPlayerItems();
+            RefreshAllyScreen();
+        }
+        UpdateText();
     }
 
     private void AddTeamGold(int gold)
@@ -3504,6 +3582,13 @@ public class Game : MonoBehaviour
         ally.affection = Mathf.Clamp(ally.affection + value, -100, 100);
     }
 
+    private void IncreaseAffectionFromValue(Hero ally, Item item, int count)
+    {
+        if (item.type == Item.Type.Usable && item.subtype == Item.Subtype.Ingredient)
+            return;
+        IncreaseAffectionFromValue(ally, item.value * count);
+    }
+
     private void IncreaseAffectionFromValue(Hero ally, int value)
     {
         int affectionGain = ally.ValueToAffectionGain(value);
@@ -3633,5 +3718,21 @@ public class Game : MonoBehaviour
             return player.properties.First(x => x.name == "Mansion" && x.cityIndex == world.CityIndex);
         else
             return null;
+    }
+
+    private (Hero, int) GetTeamSkill(Skill skill)
+    {
+        Hero bestHero = null;
+        int bestValue = 0;
+        foreach (Hero hero in Team)
+        {
+            int value = hero.GetSkill(skill);
+            if (value > bestValue)
+            {
+                bestValue = value;
+                bestHero = hero;
+            }
+        }
+        return (bestHero, bestValue);
     }
 }

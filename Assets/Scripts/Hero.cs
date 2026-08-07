@@ -100,6 +100,22 @@ public class Hero : ISerializationCallbackReceiver
                 armor = Item.items.First(x => x.type == Item.Type.Armor && x.level == armorLevel);
         }
         gold = 25 * (level + 1);
+
+        // starting skill
+        Skill skill = SkillMethods.allRandom.RandomItem();
+        if (skill != Skill.None)
+        {
+            skills[skill] = new() { level = 25 };
+            switch (skill)
+            {
+            case Skill.Alchemy:
+                AddItem(Item.Get("alchemy set"));
+                break;
+            case Skill.Mining:
+                AddItem(Item.Get("pickaxe"));
+                break;
+            }
+        }
     }
 
     protected void InitCommon()
@@ -281,7 +297,7 @@ public class Hero : ISerializationCallbackReceiver
             Item.Type.Weapon => CanEquip(item) && (weapon == null || weapon.power < item.power),
             Item.Type.Armor => CanEquip(item) && (armor == null || armor.power < item.power),
             Item.Type.Shield => CanEquip(item) && (shield == null || shield.power < item.power),
-            Item.Type.Usable => true,
+            Item.Type.Usable => item.subtype == Item.Subtype.None || HaveItem("alchemy set"),
             Item.Type.Other => item.name == "rations",
             _ => false
         };
@@ -338,6 +354,11 @@ public class Hero : ISerializationCallbackReceiver
                     AddItem(shield);
             }
             shield = item;
+            break;
+        case Item.Type.Usable:
+            AddItem(item, count);
+            if (item.subtype == Item.Subtype.Ingredient)
+                Global.Game.DoAlchemy(this, item);
             break;
         default:
             AddItem(item, count);

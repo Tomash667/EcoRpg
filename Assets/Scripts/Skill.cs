@@ -26,6 +26,8 @@ public class SavedSkillEntry
 
 public static class SkillMethods
 {
+    public static readonly Skill[] allRandom = new[] { Skill.None, Skill.Alchemy, Skill.Mining, Skill.Woodcraft, Skill.Management, Skill.Forage };
+
     public static string AsString(this Skill skill)
     {
         return skill switch

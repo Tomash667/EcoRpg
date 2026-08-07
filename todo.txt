@@ -1,3 +1,8 @@
+ally initial skills
+	Mining - have pickaxe, help mining
+	woodcraft - helps, works
+	forage - helps
+
 v2:
 hero:
 - treasure/trophy gold is not split
@@ -5,9 +10,7 @@ hero:
 	- quest is generated for location but enemies "spawn" only after accepting
 		you can accept & cancel to have enemies
 	generate new quest over time, not instantly when accepted
-+ allies
-	recruit chance
-	initial skills
++ allies recruit chance
 + skip time
 + train
 + negative affections effects (complain, quit)
@@ -120,6 +123,7 @@ hero:
 	stolen equipment
 	slavery (escape or have investments liquidated)
 	death
++ recruit hero chance (reputation, charm)
 
 events:
 + free person for hire (foreman, geomancer etc)
@@ -157,6 +161,9 @@ ui:
 + map zoom only when mouse over tiles
 + construction icon visible on map
 + smoother travel
++ ok/confirm dialog auto size
++ show text on ally craft, apply to other texts not shown
++ Utility.Plural should inclue a/an (sometimes?)
 
 refactoring:
 + Team class
@@ -210,7 +217,9 @@ investments:
 
 skills:
 + haggle
-+ alchemy more recipes
++ alchemy
+	more recipes
+	crafting 100 potions at once give much more skill then crating one potion 100 times
 + crafting
 	dragon hide -> armor
 + theory vs practice soft cap
@@ -224,6 +233,7 @@ skills:
 
 work:
 + fishing
++ inn
 
 technology:
 + blast furnace
