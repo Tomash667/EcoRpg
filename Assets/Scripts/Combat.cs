@@ -8,9 +8,10 @@ public class Combat : MonoBehaviour
     public enum Result
     {
         None,
+        WinWait,
         Win,
+        DefeatWait,
         Defeat,
-        DefeatEscaping,
         Escape
     }
 
@@ -169,17 +170,29 @@ public class Combat : MonoBehaviour
 
         if (result != Result.None)
         {
-            if (result == Result.Defeat)
+            switch (result)
             {
-                result = Result.DefeatEscaping;
+            case Result.DefeatWait:
+                AppendText("You lost!");
+                result = Result.Defeat;
+                timer = 1f;
+                foreach (Unit enemy in enemies)
+                {
+                    if (enemy.hp > 1)
+                        enemy.card.Approach();
+                }
+                break;
+            case Result.WinWait:
+                AppendText("You win!");
+                result = Result.Win;
                 timer = 1f;
                 foreach (Hero hero in game.Team)
-                    hero.card.Escape();
-            }
-            else
-            {
+                    hero.card.Approach();
+                break;
+            default:
                 transform.parent.Find("Buttons").gameObject.SetActive(true);
                 game.PostCombat(result, enemyList);
+                break;
             }
             return;
         }
@@ -258,9 +271,7 @@ public class Combat : MonoBehaviour
                     AppendText($"{hero.NameYou} {hero.S("take")} {hero.poison} poison damage and {hero.isAre} defeated.");
                     if (game.Team.All(x => x.hp <= 0))
                     {
-                        // lost
-                        AppendText("You lost!", 0.05f);
-                        result = Result.Defeat;
+                        result = Result.DefeatWait;
                         timer = 0.5f;
                     }
                 }
@@ -366,9 +377,8 @@ public class Combat : MonoBehaviour
                     AppendText($"{hero.NameYou} {hero.S("hit")} {target.enemy.name} for {dmg} damage and {hero.S("defeat")} {target.enemy.him}.", 0.15f);
                     if (enemies.All(x => x.hp <= 0))
                     {
-                        AppendText("You win!", 0.2f);
-                        timer = 1;
-                        result = Result.Win;
+                        timer = 0.5f;
+                        result = Result.WinWait;
                     }
                 }
                 else
@@ -540,11 +550,7 @@ public class Combat : MonoBehaviour
                     ? $"{me.enemy.name.ToUpper1()} shoots {spellName} at {hero.nameYou} for {dmg} damage and defeats {hero.him}."
                     : $"{me.enemy.name.ToUpper1()} hits {hero.nameYou} for {dmg} damage and defeats {hero.him}.", 0.15f);
                 if (game.Team.All(x => x.hp <= 0))
-                {
-                    // lost
-                    AppendText("You lost!", 0.2f);
-                    result = Result.Defeat;
-                }
+                    result = Result.DefeatWait;
             }
             else
             {
@@ -632,11 +638,7 @@ public class Combat : MonoBehaviour
                     hero.poison = 0;
                     AppendText($"{me.enemy.name.ToUpper1()} breaths fire at {hero.nameYou} for {dmg} damage and defeats {hero.him}.", 0.15f);
                     if (game.Team.All(x => x.hp <= 0))
-                    {
-                        // lost
-                        AppendText("You lost!", 0.2f);
-                        result = Result.Defeat;
-                    }
+                        result = Result.DefeatWait;
                 }
                 else
                     AppendText($"{me.enemy.name.ToUpper1()} breaths fire at {hero.nameYou} for {dmg} damage.", 0.15f);

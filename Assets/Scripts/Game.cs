@@ -608,10 +608,7 @@ public class Game : MonoBehaviour
                 tile.timer = 0;
                 ChangeTeamAffection(10);
                 foreach (Hero ally in allies)
-                {
-                    ally.bored = 0;
                     ally.winToday = true;
-                }
             }
             else
             {
@@ -621,7 +618,6 @@ public class Game : MonoBehaviour
                     lastAction = $"You win a fight with <b>{Utility.PrettyGroup(enemyList.Select(x => x.name))}</b>.";
                 ChangeTeamAffection(1, ally =>
                 {
-                    ally.bored = 0;
                     if (ally.winToday)
                         return false;
                     ally.winToday = true;
@@ -697,30 +693,59 @@ public class Game : MonoBehaviour
         else
         {
             if (result == Combat.Result.Escape)
+            {
                 lastAction = $"You run away from {Utility.PrettyGroup(enemyList.Select(x => x.name))}.";
+                ChangeTeamAffection(-1);
+            }
             else
-                lastAction = $"You run away <color=red>defeated</color> from {Utility.PrettyGroup(enemyList.Select(x => x.name))}.";
+            {
+                int goldTaken = 0;
+                int rationsTaken = 0;
+                foreach (Enemy enemy in enemyList)
+                {
+                    if (enemy.gold != Vector2Int.zero)
+                        goldTaken += Utility.Random(enemy.gold.x * 2, enemy.gold.y * 2);
+                    else
+                        rationsTaken += (enemy.level / 3 + 1) * 2;
+                }
+
+                if (goldTaken > 0)
+                    goldTaken = RemoveTeamGold(goldTaken);
+                if (rationsTaken > 0)
+                    rationsTaken = RemoveTeamItem(Item.Get("rations"), rationsTaken);
+
+                string lost = null;
+                if (goldTaken > 0)
+                {
+                    if (rationsTaken > 0)
+                        lost = $"<color=#FFD700>{goldTaken}</color> gold and {rationsTaken} rations lost";
+                    else
+                        lost = $"<color=#FFD700>{goldTaken}</color> gold lost";
+                }
+                else
+                    lost = $"{rationsTaken} rations lost";
+
+                if (lost == null)
+                    lastAction = $"You <color=red>lost</color> a fight with <b>{Utility.PrettyGroup(enemyList.Select(x => x.name))}</b>.";
+                else
+                    lastAction = $"You <color=red>lost</color> a fight with <b>{Utility.PrettyGroup(enemyList.Select(x => x.name))}</b> ({lost}).";
+
+                ChangeTeamAffection(-5);
+            }
 
             if (enemyList.Any(x => x.name == "dragon"))
                 tile.defeatedEnemies -= 5;
             if (tile.type == TileType.DarkDimension && enemyList.Any(x => x.name == "nameless horror"))
                 tile.defeatedEnemies = 0;
-
-            ChangeTeamAffection(-1, ally =>
-            {
-                ally.bored = 0;
-                if (ally.loseToday)
-                    return false;
-                ally.loseToday = true;
-                return true;
-            });
         }
 
         // heal after combat
+        player.bored = 0;
         if (player.hp < 1)
             player.hp = 1;
         foreach (Hero ally in allies)
         {
+            ally.bored = 0;
             if (ally.hp < 1)
                 ally.hp = 1;
             ally.ApplyHealing();
@@ -1840,7 +1865,6 @@ public class Game : MonoBehaviour
                 --hero.rested;
             ++hero.bored;
             hero.winToday = false;
-            hero.loseToday = false;
             hero.lastGift = 0;
         }
 
@@ -1924,6 +1948,35 @@ public class Game : MonoBehaviour
         return Team.Sum(x => x.CountItem(item));
     }
 
+    public int RemoveTeamGold(int count)
+    {
+        int removed = 0;
+
+        while (count > 0)
+        {
+            Hero[] available = Team.Where(x => x.gold > 0).ToArray();
+            if (available.Length == 0)
+                break; // nothing left to remove
+
+            int perHero = Mathf.Max(1, count / available.Length);
+            foreach (Hero hero in available)
+            {
+                if (count <= 0)
+                    break;
+
+                int canRemove = Mathf.Min(perHero, hero.gold);
+                if (hero is Player player)
+                    player.AddGold(-canRemove);
+                else
+                    hero.gold -= canRemove;
+                count -= canRemove;
+                removed += canRemove;
+            }
+        }
+
+        return removed;
+    }
+
     public int RemoveTeamItem(Item item, int count)
     {
         int removed = 0;
@@ -1945,17 +1998,13 @@ public class Game : MonoBehaviour
                 break; // nothing left to remove
 
             int perHero = Mathf.Max(1, count / available.Count);
-
             foreach (var hero in available)
             {
                 if (count <= 0)
                     break;
 
-                int canRemove = Mathf.Min(perHero, counts[hero], count);
-
-                for (int i = 0; i < canRemove; i++)
-                    hero.RemoveItem(item);
-
+                int canRemove = Mathf.Min(perHero, counts[hero]);
+                hero.RemoveItem(item, canRemove);
                 counts[hero] -= canRemove;
                 count -= canRemove;
                 removed += canRemove;

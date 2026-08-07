@@ -1,7 +1,6 @@
 v2:
 hero:
 - treasure/trophy gold is not split
-+ lose consequences
 + quests
 	- quest is generated for location but enemies "spawn" only after accepting
 		you can accept & cancel to have enemies
@@ -19,10 +18,11 @@ investments:
 + office in city
 + mansion upgrades - office room
 + fix prices: adventurers one time infestation cost the same amount as full time guards
-+ quest to get into investing
++ quest to get into investing (free inn?)
 ---------------------------------------------------------------------------------------------------
 hero:
 + longer main quest that require investing
+	lessen infinite supply of quests & treasure
 + classes
 	tank
 	rogue
@@ -116,6 +116,10 @@ hero:
 	multishoot
 	extra attack after defeating enemy
 + stronger enemies at lower dungeon levels
++ harasher lose consequences
+	stolen equipment
+	slavery (escape or have investments liquidated)
+	death
 
 events:
 + free person for hire (foreman, geomancer etc)
@@ -127,6 +131,12 @@ events:
 + spotted enemy
 + negative event for decreased income
 + events based on something that happened not random stuff
++ world events
+	war
+	monsters invasion
+	famine
+	drought
+	something positive?
 	
 ui:
 + combat sounds
@@ -148,6 +158,10 @@ ui:
 + construction icon visible on map
 + smoother travel
 
+refactoring:
++ Team class
++ classes from UI screens
+
 investments:
 + cottage/big house
 + manage mine/sawmill
@@ -168,6 +182,7 @@ investments:
 + send city guards to clear mine -> need influence
 + supply & demand
 + resources: wood, iron, silver, gold
+	buy & sell
 + old mansion/mine -> need repairs
 + upgrades takes time
 + undo upgrades
@@ -177,10 +192,21 @@ investments:
 + foreman -> trains others over time
 + monsters destroying property
 + merchant guild to buy/sell properties
-+ free food from farm
-+ expand farm to extra tile
++ farm
+	free food
+	expand farm to extra tile
+	hire druid/dryad/farm hero
 + build farms on plains, sawmills on forest, multiple mines
 + build mansion in village
++ send caravan
+	personal
+	sell and buy
+	bandits
+	hire guards/adventurers
+	merchant guild
+		establish trade route
+		others join caravan (lower costs)
++ border taxes
 
 skills:
 + haggle
@@ -244,3 +270,7 @@ world:
 + elven village
 + enchanted forest -> more herbs, faster regrow
 + city siege/destruction
++ month, year
++ kingdom alignment lawful/chaotic good/evil
+	chaotic - random taxes, low bureaucracy
+	lawful - stable taxes, high bureaucracy

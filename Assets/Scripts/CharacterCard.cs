@@ -14,6 +14,7 @@ public class CharacterCard : MonoBehaviour, IPointerClickHandler
         Block,
         BlockDamage,
         Escape,
+        Approach,
         Heal,
         PoisonDamage,
         Confused,
@@ -178,6 +179,12 @@ public class CharacterCard : MonoBehaviour, IPointerClickHandler
                 rectTransform.anchoredPosition = new Vector2(rectTransform.anchoredPosition.x, rectTransform.anchoredPosition.y - 600f * dir * Time.deltaTime);
             }
             break;
+        case Action.Approach:
+            {
+                RectTransform rectTransform = transform as RectTransform;
+                rectTransform.anchoredPosition = new Vector2(rectTransform.anchoredPosition.x, rectTransform.anchoredPosition.y + 50f * dir * Time.deltaTime);
+            }
+            break;
         case Action.Heal:
             timer += Time.deltaTime;
             if (actionState == 0)
@@ -280,6 +287,11 @@ public class CharacterCard : MonoBehaviour, IPointerClickHandler
     public void Escape()
     {
         action = Action.Escape;
+    }
+
+    public void Approach()
+    {
+        action = Action.Approach;
     }
 
     public void Heal(float nextHp)

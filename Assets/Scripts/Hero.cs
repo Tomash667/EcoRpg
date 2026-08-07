@@ -13,7 +13,7 @@ public class Hero : ISerializationCallbackReceiver
     public string name, weaponName, armorName, shieldName;
     public Class clas;
     public int level, exp, hp, hpMax, attack, defense, dex, gold, rested, affection, bored, lastGift;
-    public bool female, winToday, loseToday;
+    public bool female, winToday;
 
     [NonSerialized]
     public CharacterCard card;
