@@ -109,7 +109,7 @@ public class Item
         }
     }
 
-    public string ToString(Price price)
+    public string ToString(Price price, bool team = false)
     {
         string priceText = price switch
         {
@@ -124,12 +124,19 @@ public class Item
             Type.Armor or Type.Shield => $"{power} defense",
             _ => desc
         };
-        return $"{name.ToUpper1()} ({itemDesc}{priceText})";
+        return team
+            ? $"{name.ToUpper1()} (<i>team item</i>, {itemDesc}{priceText})"
+            : $"{name.ToUpper1()} ({itemDesc}{priceText})";
     }
 
     public static Item Get(string name)
     {
         return items.First(x => x.name == name);
+    }
+
+    public static Item TryGet(string name)
+    {
+        return items.FirstOrDefault(x => x.name == name);
     }
 
     public static readonly Item[] items = new Item[]
@@ -563,6 +570,7 @@ public class ItemSlot : ISerializationCallbackReceiver
     public Item item;
     public string name;
     public int count;
+    public bool team;
 
     public void OnBeforeSerialize()
     {
@@ -577,9 +585,9 @@ public class ItemSlot : ISerializationCallbackReceiver
     public string ToString(Price price)
     {
         if (count == 1)
-            return item.ToString(price);
+            return item.ToString(price, team);
         else
-            return $"{count}x {item.ToString(price)}";
+            return $"{count}x {item.ToString(price, team)}";
     }
 
     public string ToStringShort()

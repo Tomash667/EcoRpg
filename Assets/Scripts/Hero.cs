@@ -6,13 +6,16 @@ using UnityEngine;
 [Serializable]
 public class Hero : ISerializationCallbackReceiver
 {
+    // keep some gold available for rations/potions
+    public const int MinGold = 100;
+
     public Dictionary<Skill, SkillEntry> skills;
     public List<ItemSlot> items = new();
     public List<SavedSkillEntry> savedSkills;
     public Item weapon, armor, shield;
     public string name, weaponName, armorName, shieldName;
     public Class clas;
-    public int level, exp, hp, hpMax, attack, defense, dex, gold, rested, affection, bored, lastGift;
+    public int level, exp, hp, hpMax, attack, defense, dex, gold, owedGold, rested, affection, bored, lastGift;
     public bool female, winToday;
 
     [NonSerialized]
@@ -236,17 +239,23 @@ public class Hero : ISerializationCallbackReceiver
 
     public int CountItem(Item item)
     {
-        ItemSlot itemSlot = items.FirstOrDefault(x => x.item == item);
-        return itemSlot?.count ?? 0;
+        return items.Where(x => x.item == item).Sum(x => x.count);
     }
 
-    public void AddItem(Item item, int count = 1)
+    public virtual void AddGold(int value)
     {
-        ItemSlot itemSlot = items.FirstOrDefault(x => x.item == item);
+        gold += value;
+        if (value > 0 && owedGold > 0 && gold > MinGold)
+            Global.Game.PayOwedGold(this);
+    }
+
+    public void AddItem(Item item, int count = 1, bool team = false)
+    {
+        ItemSlot itemSlot = items.FirstOrDefault(x => x.item == item && x.team == team);
         if (itemSlot != null)
             itemSlot.count += count;
         else
-            items.Add(new() { item = item, count = count });
+            items.Add(new() { item = item, count = count, team = team });
     }
 
     public void AddItemIfMissing(string name)
@@ -266,9 +275,26 @@ public class Hero : ISerializationCallbackReceiver
     public void RemoveItem(Item item, int count = 1)
     {
         ItemSlot itemSlot = items.FirstOrDefault(x => x.item == item);
-        itemSlot.count -= count;
-        if (itemSlot.count <= 0)
+        if (itemSlot == null)
+            return;
+
+        int removedCount = Mathf.Min(count, itemSlot.count);
+        itemSlot.count -= removedCount;
+        if (itemSlot.count == 0)
             items.Remove(itemSlot);
+        count -= removedCount;
+
+        if (count > 0)
+        {
+            // try again, maybe second stack that is team
+            itemSlot = items.FirstOrDefault(x => x.item == item);
+            if (itemSlot != null)
+            {
+                itemSlot.count -= count;
+                if (itemSlot.count <= 0)
+                    items.Remove(itemSlot);
+            }
+        }
     }
 
     public virtual void OnBeforeSerialize()
@@ -329,7 +355,7 @@ public class Hero : ISerializationCallbackReceiver
             if (weapon != null)
             {
                 if (Global.Location.IsSafe())
-                    gold += weapon.value / 2;
+                    AddGold(weapon.value / 2);
                 else
                     AddItem(weapon);
             }
@@ -339,7 +365,7 @@ public class Hero : ISerializationCallbackReceiver
             if (armor != null)
             {
                 if (Global.Location.IsSafe())
-                    gold += armor.value / 2;
+                    AddGold(armor.value / 2);
                 else
                     AddItem(armor);
             }
@@ -349,7 +375,7 @@ public class Hero : ISerializationCallbackReceiver
             if (shield != null)
             {
                 if (Global.Location.IsSafe())
-                    gold += shield.value / 2;
+                    AddGold(shield.value / 2);
                 else
                     AddItem(shield);
             }
@@ -371,6 +397,7 @@ public class Hero : ISerializationCallbackReceiver
         bool isCity = Global.World.Location != TileType.Village;
 
         // sell old items
+        int prevGold = gold;
         items.RemoveAll(x =>
         {
             if (x.item.type == Item.Type.Weapon || x.item.type == Item.Type.Armor || x.item.type == Item.Type.Shield)
@@ -404,6 +431,18 @@ public class Hero : ISerializationCallbackReceiver
             }
         }
 
+        // save some money
+        if (gold < MinGold)
+            return;
+
+        // if owe gold, pay it and don't buy anything
+        if (gold > prevGold && owedGold > 0)
+        {
+            Global.Game.PayOwedGold(this);
+            if (owedGold > 0)
+                return;
+        }
+
         // buy weapon/armor/shield
         int maxLevel = isCity ? Item.MaxLevelCity : Item.MaxLevelVillage;
         int weaponLevel = weapon?.level ?? 0, armorLevel = armor?.level ?? 0, shieldLevel = shield?.level ?? 0;
@@ -435,7 +474,7 @@ public class Hero : ISerializationCallbackReceiver
                     Item nextWeapon = Item.items.First(x => x.type == Item.Type.Weapon && x.subtype == weaponSubtype && x.level == weaponLevel + 1);
 
                     // include resell of old weapon
-                    int tmpGold = gold;
+                    int tmpGold = gold - MinGold;
                     if (weapon != null)
                     {
                         if (boughtWeapon)
@@ -447,7 +486,7 @@ public class Hero : ISerializationCallbackReceiver
                     if (tmpGold >= nextWeapon.value)
                     {
                         // buy
-                        gold = tmpGold - nextWeapon.value;
+                        gold = tmpGold - nextWeapon.value + MinGold;
                         weapon = nextWeapon;
                         ++weaponLevel;
                         boughtWeapon = true;
@@ -461,7 +500,7 @@ public class Hero : ISerializationCallbackReceiver
                     Item nextArmor = Item.items.First(x => x.type == Item.Type.Armor && x.level == armorLevel + 1);
 
                     // include resell of old armor
-                    int tmpGold = gold;
+                    int tmpGold = gold - MinGold;
                     if (armor != null)
                     {
                         if (boughtArmor)
@@ -473,7 +512,7 @@ public class Hero : ISerializationCallbackReceiver
                     if (tmpGold >= nextArmor.value)
                     {
                         // buy
-                        gold = tmpGold - nextArmor.value;
+                        gold = tmpGold - nextArmor.value + MinGold;
                         armor = nextArmor;
                         ++armorLevel;
                         boughtArmor = true;
@@ -487,7 +526,7 @@ public class Hero : ISerializationCallbackReceiver
                     Item nextShield = Item.items.First(x => x.type == Item.Type.Shield && x.level == shieldLevel + 1);
 
                     // include resell of old shield
-                    int tmpGold = gold;
+                    int tmpGold = gold - MinGold;
                     if (shield != null)
                     {
                         if (boughtShield)
@@ -499,7 +538,7 @@ public class Hero : ISerializationCallbackReceiver
                     if (tmpGold >= nextShield.value)
                     {
                         // buy
-                        gold = tmpGold - nextShield.value;
+                        gold = tmpGold - nextShield.value + MinGold;
                         shield = nextShield;
                         ++shieldLevel;
                         boughtShield = true;
@@ -514,6 +553,10 @@ public class Hero : ISerializationCallbackReceiver
 
     public void EnchantItems()
     {
+        if (gold < MinGold || owedGold > 0)
+            return;
+
+        int availableGold = gold - MinGold;
         int weaponLevel = weapon?.level ?? Item.MaxLevelEnchant,
             armorLevel = armor?.level ?? Item.MaxLevelEnchant,
             shieldLevel = shield?.level ?? Item.MaxLevelEnchant;
@@ -533,9 +576,10 @@ public class Hero : ISerializationCallbackReceiver
             case Item.Type.Weapon:
                 {
                     int cost = weapon.GetEnchantCost();
-                    if (gold >= cost)
+                    if (availableGold >= cost)
                     {
                         // enchant
+                        availableGold -= cost;
                         gold -= cost;
                         weapon = weapon.GetEnchanted();
                         weaponLevel = weapon.level;
@@ -547,9 +591,10 @@ public class Hero : ISerializationCallbackReceiver
             case Item.Type.Armor:
                 {
                     int cost = armor.GetEnchantCost();
-                    if (gold >= cost)
+                    if (availableGold >= cost)
                     {
                         // enchant
+                        availableGold -= cost;
                         gold -= cost;
                         armor = armor.GetEnchanted();
                         armorLevel = armor.level;
@@ -561,9 +606,10 @@ public class Hero : ISerializationCallbackReceiver
             case Item.Type.Shield:
                 {
                     int cost = shield.GetEnchantCost();
-                    if (gold >= cost)
+                    if (availableGold >= cost)
                     {
                         // enchant
+                        availableGold -= cost;
                         gold -= cost;
                         shield = shield.GetEnchanted();
                         shieldLevel = shield.level;

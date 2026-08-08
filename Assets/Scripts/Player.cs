@@ -23,10 +23,12 @@ public class Player : Hero
         gold = 25;
     }
 
-    public void AddGold(int value)
+    public override void AddGold(int value)
     {
         gold += value;
         goldReceived += value;
+        if (value > 0 && owedGold > 0 && gold > MinGold)
+            Global.Game.PayOwedGold(this);
     }
 
     public bool HaveProperty(string name, bool isActive = false, int cityIndex = -1)
@@ -47,5 +49,21 @@ public class Player : Hero
         if (property == null || property.upgrades == null)
             return false;
         return property.upgrades.FirstOrDefault(x => x.name == upgradeName)?.active ?? false;
+    }
+
+    public void TurnItemsNonTeam()
+    {
+        ItemSlot[] teamItems = items.Where(x => x.team).ToArray();
+        foreach (ItemSlot teamItem in teamItems)
+        {
+            ItemSlot itemSlot = items.FirstOrDefault(x => x.item == teamItem.item && !x.team);
+            if (itemSlot != null)
+            {
+                itemSlot.count += teamItem.count;
+                items.Remove(teamItem);
+            }
+            else
+                teamItem.team = false;
+        }
     }
 }

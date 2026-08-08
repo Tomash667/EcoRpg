@@ -1,11 +1,9 @@
 v2:
 hero:
-- treasure/trophy gold is not split
 + quests
 	- quest is generated for location but enemies "spawn" only after accepting
 		you can accept & cancel to have enemies
 	generate new quest over time, not instantly when accepted
-+ allies recruit chance
 + skip time
 + train
 + negative affections effects (complain, quit)
@@ -159,6 +157,7 @@ ui:
 + ok/confirm dialog auto size
 + show text on ally craft, apply to other texts not shown
 + Utility.Plural should inclue a/an (sometimes?)
++ show item value on character screen (and other places?)
 
 refactoring:
 + Team class

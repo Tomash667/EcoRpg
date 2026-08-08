@@ -248,7 +248,7 @@ public class Game : MonoBehaviour
                 lastAction += $" You also find an <b>artifact</b>.";
             }
             AddTeamGold(gold);
-            player.AddItem(item);
+            player.AddItem(item, team: allies.Count > 0);
             tile.foundTreasure = true;
         }
         else if (world.level + 1 < tile.levels && tile.foundLevel == world.level && tile.defeatedEnemies >= 10)
@@ -441,7 +441,7 @@ public class Game : MonoBehaviour
                     count = 1;
                 tile.depleted++;
                 Item nugget = Item.Get(tile.difficulty == 2 ? "silver nugget" : "gold nugget");
-                player.AddItem(nugget, count);
+                player.AddItem(nugget, count, allies.Count > 0);
                 if (bestHero != null && bestHero != player)
                 {
                     float trainMod = 1f + 0.01f * (bestValue - player.GetSkill(Skill.Mining));
@@ -616,7 +616,7 @@ public class Game : MonoBehaviour
             foreach (ItemSlot itemSlot in drops)
             {
                 items.Add(Utility.Plural(itemSlot.item.name, itemSlot.count));
-                player.AddItem(itemSlot.item, itemSlot.count);
+                player.AddItem(itemSlot.item, itemSlot.count, allies.Count > 0 && itemSlot.item.subtype == Item.Subtype.Treasure);
             }
             gold = Utility.Round(gold);
             string pickups;
@@ -842,24 +842,24 @@ public class Game : MonoBehaviour
         {
             player.energy -= 50;
             TileType location = world.Location;
-            int basePay;
+            int payment;
             Skill skill;
             switch (location)
             {
             case TileType.Sawmill:
-                basePay = 30;
+                payment = 30;
                 skill = Skill.Woodcraft;
                 break;
             case TileType.Mine:
-                basePay = 20 + world.CurrentTile.difficulty * 10;
+                payment = 20 + world.CurrentTile.difficulty * 10;
                 skill = Skill.Mining;
                 break;
             case TileType.City:
-                basePay = 20;
+                payment = 20;
                 skill = Skill.None;
                 break;
             default:
-                basePay = 15;
+                payment = 15;
                 skill = Skill.None;
                 break;
             }
@@ -869,7 +869,7 @@ public class Game : MonoBehaviour
             if (skill != Skill.None)
             {
                 (bestHero, skillValue) = GetTeamSkill(skill);
-                basePay += skillValue / 10;
+                payment += skillValue / 10;
             }
             else
             {
@@ -878,8 +878,9 @@ public class Game : MonoBehaviour
             }
             // double pay if owned
             if (player.properties.Any(x => x.locationIndex == world.CurrentLocationIndex))
-                basePay *= 2;
+                payment *= 2;
             // give payment & train all team members
+            lastAction = $"You earned <color=#FFD700>{payment}</color> gold from working.";
             foreach (Hero hero in Team)
             {
                 float trainMod;
@@ -888,18 +889,12 @@ public class Game : MonoBehaviour
                 else
                     trainMod = 1f;
 
-                if (hero == player)
+                hero.AddGold(payment);
+                if (skill != Skill.None)
                 {
-                    player.AddGold(basePay);
-                    lastAction = $"You earned <color=#FFD700>{basePay}</color> gold from working.";
-                    if (skill != Skill.None)
-                        lastAction += player.Train(skill, trainMod);
-                }
-                else
-                {
-                    hero.gold += basePay;
-                    if (skill != Skill.None)
-                        hero.Train(skill, trainMod);
+                    string str = player.Train(skill, trainMod);
+                    if (hero == player)
+                        lastAction += str;
                 }
             }
             AddTime(hours: 8);
@@ -1305,6 +1300,9 @@ public class Game : MonoBehaviour
                 {
                     itemEntry.Init2(itemSlot.ToString(Price.None), "Equip", () =>
                     {
+                        if (itemSlot.team)
+                            PayForTeamItem(player, itemSlot.item);
+
                         switch (itemSlot.item.type)
                         {
                         case Item.Type.Weapon:
@@ -1325,6 +1323,7 @@ public class Game : MonoBehaviour
                         }
                         player.RemoveItem(itemSlot);
                         RefreshPlayerScreen();
+                        UpdateText();
                     }, "Drop", Drop);
                 }
                 else if (itemSlot.item.type == Item.Type.Usable)
@@ -1348,7 +1347,10 @@ public class Game : MonoBehaviour
                 {
                     if (Input.GetKey(KeyCode.LeftShift))
                     {
-                        player.AddGold(itemSlot.item.value * itemSlot.count / 2);
+                        if (itemSlot.team)
+                            AddTeamGold(itemSlot.item.value * itemSlot.count / 2);
+                        else
+                            player.AddGold(itemSlot.item.value * itemSlot.count / 2);
                         player.RemoveItem(itemSlot, itemSlot.count);
                         RefreshPlayerItems();
                         UpdateText();
@@ -1360,7 +1362,10 @@ public class Game : MonoBehaviour
                             if (count <= 0)
                                 return true;
                             count = Mathf.Min(count, itemSlot.count);
-                            player.AddGold(itemSlot.item.value * count / 2);
+                            if (itemSlot.team)
+                                AddTeamGold(itemSlot.item.value * count / 2);
+                            else
+                                player.AddGold(itemSlot.item.value * count / 2);
                             player.RemoveItem(itemSlot, count);
                             RefreshPlayerItems();
                             UpdateText();
@@ -1369,7 +1374,10 @@ public class Game : MonoBehaviour
                     }
                     else
                     {
-                        player.AddGold(itemSlot.item.value / 2);
+                        if (itemSlot.team)
+                            AddTeamGold(itemSlot.item.value / 2);
+                        else
+                            player.AddGold(itemSlot.item.value / 2);
                         player.RemoveItem(itemSlot);
                         RefreshPlayerItems();
                         UpdateText();
@@ -1385,19 +1393,27 @@ public class Game : MonoBehaviour
                         if (itemSlot.item.type == Item.Type.Weapon || itemSlot.item.type == Item.Type.Armor || itemSlot.item.type == Item.Type.Shield
                             || !(Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.LeftControl)))
                         {
-                            IncreaseAffectionFromValue(activeAlly, itemSlot.item, 1);
+                            if (itemSlot.team)
+                                PayForTeamItem(activeAlly, itemSlot.item);
+                            else
+                                IncreaseAffectionFromValue(activeAlly, itemSlot.item, 1);
                             activeAlly.GiveItem(itemSlot.item);
                             player.RemoveItem(itemSlot);
                             RefreshPlayerItems();
                             RefreshAllyScreen();
+                            UpdateText();
                         }
                         else if (Input.GetKey(KeyCode.LeftShift))
                         {
-                            IncreaseAffectionFromValue(activeAlly, itemSlot.item, itemSlot.count);
+                            if (itemSlot.team)
+                                PayForTeamItem(activeAlly, itemSlot.item, itemSlot.count);
+                            else
+                                IncreaseAffectionFromValue(activeAlly, itemSlot.item, itemSlot.count);
                             activeAlly.GiveItem(itemSlot.item, itemSlot.count);
                             player.RemoveItem(itemSlot, itemSlot.count);
                             RefreshPlayerItems();
                             RefreshAllyScreen();
+                            UpdateText();
                         }
                         else
                         {
@@ -1406,11 +1422,15 @@ public class Game : MonoBehaviour
                                 if (count <= 0)
                                     return true;
                                 count = Mathf.Min(count, itemSlot.count);
-                                IncreaseAffectionFromValue(activeAlly, itemSlot.item, count);
+                                if (itemSlot.team)
+                                    PayForTeamItem(activeAlly, itemSlot.item, count);
+                                else
+                                    IncreaseAffectionFromValue(activeAlly, itemSlot.item, count);
                                 activeAlly.GiveItem(itemSlot.item, count);
                                 player.RemoveItem(itemSlot, count);
                                 RefreshPlayerItems();
                                 RefreshAllyScreen();
+                                UpdateText();
                                 return true;
                             });
                         }
@@ -1425,10 +1445,13 @@ public class Game : MonoBehaviour
                 {
                     if (Input.GetKey(KeyCode.LeftShift))
                     {
+                        if (itemSlot.team)
+                            PayForTeamItem(player, itemSlot.item, itemSlot.count);
                         AddStoredItem(itemSlot.item, itemSlot.count);
                         player.RemoveItem(itemSlot, itemSlot.count);
                         RefreshPlayerItems();
                         RefreshStoredItems();
+                        UpdateText();
                     }
                     else if (Input.GetKey(KeyCode.LeftControl))
                     {
@@ -1437,19 +1460,25 @@ public class Game : MonoBehaviour
                             if (count <= 0)
                                 return true;
                             count = Mathf.Min(count, itemSlot.count);
+                            if (itemSlot.team)
+                                PayForTeamItem(player, itemSlot.item, count);
                             AddStoredItem(itemSlot.item, count);
                             player.RemoveItem(itemSlot, count);
                             RefreshPlayerItems();
                             RefreshStoredItems();
+                            UpdateText();
                             return true;
                         });
                     }
                     else
                     {
+                        if (itemSlot.team)
+                            PayForTeamItem(player, itemSlot.item);
                         AddStoredItem(itemSlot.item);
                         player.RemoveItem(itemSlot);
                         RefreshPlayerItems();
                         RefreshStoredItems();
+                        UpdateText();
                     }
                 });
             }
@@ -1457,7 +1486,7 @@ public class Game : MonoBehaviour
             {
                 if (itemSlot.item.CanEnchant())
                 {
-                    itemEntry.Init(itemSlot.item.ToString(Price.Enchant), "Enchant", () =>
+                    itemEntry.Init(itemSlot.ToString(Price.Enchant), "Enchant", () =>
                     {
                         int cost = itemSlot.item.GetEnchantCost();
                         if (player.gold < cost)
@@ -1465,6 +1494,8 @@ public class Game : MonoBehaviour
                         else
                         {
                             Item item = itemSlot.item;
+                            if (itemSlot.team)
+                                PayForTeamItem(player, itemSlot.item);
                             player.RemoveItem(itemSlot);
                             player.AddItem(item.GetEnchanted());
                             player.AddGold(-cost);
@@ -1489,6 +1520,8 @@ public class Game : MonoBehaviour
             $"Attack: {player.Attack}\n" +
             $"Defense: {player.Defense}\n" +
             $"Health: {player.hp}/{player.hpMax}\n");
+        if (player.owedGold > 0)
+            sb.Append($"Owed gold: {player.owedGold}\n");
         if (player.skills.Count > 0)
         {
             sb.Append("Skills:\n");
@@ -1517,8 +1550,12 @@ public class Game : MonoBehaviour
             $"Attack: {activeAlly.Attack}\n" +
             $"Defense: {activeAlly.Defense}\n" +
             $"Health: {activeAlly.hp}/{activeAlly.hpMax}\n" +
-            $"Gold: {activeAlly.gold}\n" +
-            $"Affection: {activeAlly.affection}\n");
+            $"Gold: {activeAlly.gold}");
+        if (activeAlly.owedGold > 0)
+            sb.Append($" (owes {activeAlly.owedGold} gold)\n");
+        else
+            sb.Append('\n');
+        sb.Append($"Affection: {activeAlly.affection}\n");
         if (activeAlly.skills.Count > 0)
         {
             sb.Append("Skills:\n");
@@ -1659,7 +1696,7 @@ public class Game : MonoBehaviour
             FullRest();
             player.AddGold(-1);
             foreach (Hero ally in allies)
-                --ally.gold;
+                ally.AddGold(-1);
             lastAction += "You rest in an inn (<color=#FFD700>-1</color> gold).";
         }
         else if (location == TileType.Sawmill || location == TileType.Mine || location == TileType.Farm)
@@ -2015,10 +2052,7 @@ public class Game : MonoBehaviour
                     break;
 
                 int canRemove = Mathf.Min(perHero, hero.gold);
-                if (hero is Player player)
-                    player.AddGold(-canRemove);
-                else
-                    hero.gold -= canRemove;
+                hero.AddGold(-canRemove);
                 count -= canRemove;
                 removed += canRemove;
             }
@@ -2239,21 +2273,30 @@ public class Game : MonoBehaviour
             2 => "journeyman",
             _ => "novice",
         };
+
         string skill;
         if (hero.skills.Count > 0)
             skill = $" and knows {hero.skills.First().Key.AsString()}";
         else
             skill = string.Empty;
+
         ui.ShowConfirm($"You meet <b>{hero.name}</b> and talk with {hero.him} about adventurers. " +
             $"{hero.He} is {Utility.A(levelName)} <b>{levelName} {hero.clas.AsString()}</b>{skill}. Do you want to recruit {hero.him}?", yes =>
         {
-            if (yes)
+            int chance = 100 + (player.level - hero.level) * 5;
+            if (Utility.Rand % 100 < chance)
             {
-                lastAction = $"You recruit {hero.name} to your team.";
-                allies.Add(hero);
-                hero.BuyItems();
-                UpdateButtons();
+                if (yes)
+                {
+                    lastAction = $"You recruit {hero.name} to your team.";
+                    allies.Add(hero);
+                    hero.BuyItems();
+                    UpdateButtons();
+                }
             }
+            else
+                lastAction = $"You <b>failed</b> to convince {hero.name} to join your team.";
+
             AddTime(minutes: 30);
             if (ui.TopDialog == guildScreen)
                 RefreshGuild();
@@ -2286,6 +2329,7 @@ public class Game : MonoBehaviour
         {
             lastAction = $"{activeAlly.name} is sad and leave.";
             allies.Remove(activeAlly);
+            CancelOutDebts();
             UpdateButtons();
             UpdateText();
             ui.CloseDialog();
@@ -2308,7 +2352,7 @@ public class Game : MonoBehaviour
             if (count <= 0)
                 return true;
             player.AddGold(-count);
-            activeAlly.gold += count;
+            activeAlly.AddGold(count);
             IncreaseAffectionFromValue(activeAlly, count);
             if (world.Location.IsSafe())
                 activeAlly.BuyItems();
@@ -2996,7 +3040,7 @@ public class Game : MonoBehaviour
                     count = 1;
                 tile.depleted++;
                 Item nugget = Item.Get(tile.difficulty == 2 ? "silver nugget" : "gold nugget");
-                player.AddItem(nugget, count);
+                player.AddItem(nugget, count, allies.Count > 0);
                 if (bestHero != null && bestHero != player)
                 {
                     float trainMod = 1f + 0.01f * (bestValue - player.GetSkill(Skill.Mining));
@@ -3216,17 +3260,24 @@ public class Game : MonoBehaviour
         }
 
         int share = gold / (allies.Count + 1);
-        foreach (Hero ally in allies)
+        int extraGold = gold - share * (allies.Count + 1);
+        foreach (Hero hero in Team)
         {
-            ally.gold += share;
-            if (world.Location.IsSafe())
-                ally.BuyItems();
-            else if (world.Location == TileType.MageTower)
-                ally.EnchantItems();
+            int goldReceived = share;
+            if (extraGold > 0)
+            {
+                ++goldReceived;
+                --extraGold;
+            }
+            hero.AddGold(goldReceived);
+            if (hero is not Player)
+            {
+                if (world.Location.IsSafe())
+                    hero.BuyItems();
+                else if (world.Location == TileType.MageTower)
+                    hero.EnchantItems();
+            }
         }
-
-        gold -= share * allies.Count;
-        player.AddGold(gold);
     }
 
     public void Choice(string str, System.Action<bool> action)
@@ -3330,6 +3381,7 @@ public class Game : MonoBehaviour
             hero.AddItem(Item.Get("elixir"), 100);
             hero.AddItem(Item.Get("rations"), 1000 - hero.CountItem(Item.Get("rations")));
             hero.gold = Mathf.Max(hero.gold, 100000);
+            hero.owedGold = 0;
         }
 
         player.AddItemIfMissing("tent");
@@ -3829,5 +3881,108 @@ public class Game : MonoBehaviour
     {
         Item item = Item.Get(itemName);
         return Team.Any(x => x.HaveItem(item));
+    }
+
+    private void PayForTeamItem(Hero hero, Item item, int count = 1)
+    {
+        int cost = (item.value * count / 2) * allies.Count / (allies.Count + 1);
+        hero.owedGold += cost;
+        CancelOutDebts();
+        if (hero.owedGold > 0)
+            PayOwedGold(hero);
+    }
+
+    public void PayOwedGold(Hero hero)
+    {
+        int availableGold = hero.gold - Hero.MinGold;
+        if (availableGold <= 0)
+            return;
+
+        if (availableGold >= hero.owedGold)
+        {
+            // pay all
+            int goldPerHero = hero.owedGold / allies.Count;
+            int extraGold = hero.owedGold - goldPerHero * allies.Count;
+            hero.AddGold(-hero.owedGold);
+            hero.owedGold = 0;
+            foreach (Hero hero2 in Team)
+            {
+                if (hero2 == hero)
+                    continue;
+                int goldReceived = goldPerHero;
+                if (extraGold > 0)
+                {
+                    ++goldReceived;
+                    --extraGold;
+                }
+                hero2.AddGold(goldReceived);
+            }
+        }
+        else
+        {
+            // pay partial
+            int goldPerHero = availableGold / allies.Count;
+            if (goldPerHero == 0)
+                return;
+            hero.AddGold(-goldPerHero * allies.Count);
+            hero.owedGold -= goldPerHero * allies.Count;
+            foreach (Hero hero2 in Team)
+            {
+                if (hero2 != hero)
+                    hero2.AddGold(goldPerHero);
+            }
+        }
+    }
+
+    private void CancelOutDebts()
+    {
+        if (allies.Count == 0)
+        {
+            player.TurnItemsNonTeam();
+            player.owedGold = 0;
+            return;
+        }
+
+        int minDebt = Team.Min(x => x.owedGold);
+        if (minDebt > 0)
+        {
+            foreach (Hero hero in Team)
+                hero.owedGold -= minDebt;
+        }
+    }
+
+    [ContextMenu("Give item")]
+    private void GiveItem()
+    {
+        ui.ShowInput("Give item:", GiveItem);
+    }
+
+    private bool GiveItem(string str)
+    {
+        bool team;
+        if (str.StartsWith("team "))
+        {
+            team = true;
+            str = str["team ".Length..];
+        }
+        else
+            team = false;
+
+        string[] parts = str.Split(' ', System.StringSplitOptions.RemoveEmptyEntries);
+        if (int.TryParse(parts[0], out int count))
+            str = string.Join(' ', parts.Skip(1));
+        else
+            count = 1;
+
+        Item item = Item.TryGet(str);
+        if (item == null)
+        {
+            ui.ShowDialog($"Invalid item '{str}'.");
+            return false;
+        }
+
+        if (count > 0)
+            player.AddItem(item, count, team);
+        return true;
     }
 }
