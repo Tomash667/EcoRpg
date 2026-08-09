@@ -37,9 +37,10 @@ Left Ctrl + Left button - pick how much to buy/sell/craft
 Left Shift + Left button - sell/craft whole stack
 
 Guild:
-R - recruit
 C - craft
 K - cook
+R - recruit
+T - train
 
 Map:
 Left button - travel

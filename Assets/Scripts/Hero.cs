@@ -201,6 +201,32 @@ public class Hero : ISerializationCallbackReceiver
         return gainedLevel;
     }
 
+    public bool AddExp(int value)
+    {
+        if (rested > 0)
+            value = value * 11 / 10;
+        return AddExpInternal(value);
+    }
+
+    private bool AddExpInternal(int value)
+    {
+        exp += value;
+        bool gainedLevel = false;
+        while (exp >= ExpNeed)
+        {
+            exp = (exp - ExpNeed) * 3 / 4;
+            ++level;
+            float hpRatio = hpp;
+            hpMax += 20;
+            hp = (int)(hpRatio * hpMax);
+            attack += 5;
+            defense++;
+            dex += 2;
+            gainedLevel = true;
+        }
+        return gainedLevel;
+    }
+
     private int GetExpReward(int enemyLevel)
     {
         int dif = level - enemyLevel;

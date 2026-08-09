@@ -109,6 +109,8 @@ public class Game : MonoBehaviour
                         Cook();
                     if (Input.GetKeyDown(KeyCode.R))
                         Recruit();
+                    if (Input.GetKeyDown(KeyCode.T))
+                        Train();
                 }
             }
             return;
@@ -2632,6 +2634,7 @@ public class Game : MonoBehaviour
 
         guildScreen.transform.Find("BtJoin").GetComponent<Button>().interactable = guildRank == 0;
         guildScreen.transform.Find("BtRecruit").GetComponent<Button>().interactable = guildRank != 0;
+        guildScreen.transform.Find("BtTrain").GetComponent<Button>().interactable = guildRank != 0;
         guildScreen.transform.Find("BtCook").GetComponent<Button>().interactable = guildRank != 0;
         guildScreen.transform.Find("BtCraft").GetComponent<Button>().interactable = guildRank != 0;
 
@@ -4061,5 +4064,41 @@ public class Game : MonoBehaviour
                 return result;
             return a.timer.CompareTo(b.timer);
         });
+    }
+
+    public void Train()
+    {
+        if (hour > 16)
+            lastAction = "It's too late to train.";
+        else if (player.energy < 50)
+            lastAction = "You are too tired to train.";
+        else
+        {
+            player.energy -= 50;
+            lastAction = "You train fighting.";
+            List<Hero> levelups = null;
+            foreach (Hero hero in Team)
+            {
+                if (hero.AddExp(100))
+                {
+                    levelups ??= new();
+                    levelups.Add(hero);
+                }
+            }
+
+            if (levelups != null)
+            {
+                foreach (var group in levelups.GroupBy(x => x.level))
+                {
+                    string isAre = group.Count() > 1 || group.First() is Player ? "are" : "is";
+                    lastAction += $" {Utility.PrettyList(group.Select(x => x.nameYou)).ToUpper1()} {isAre} now level {group.Key}.";
+                }
+            }
+
+            AddTime(hours: 8);
+            if (ui.CurrentDialog == guildScreen)
+                RefreshGuild();
+        }
+        UpdateText();
     }
 }

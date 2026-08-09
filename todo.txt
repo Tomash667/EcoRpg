@@ -1,7 +1,6 @@
 v2:
 hero:
 + skip time
-+ train
 
 investments:
 + manage mine/sawmill efficency
@@ -114,6 +113,7 @@ hero:
 	death
 + recruit hero chance (reputation, charm)
 + alignment good/neutral/evil
++ training required to level up?
 
 events:
 + free person for hire (foreman, geomancer etc)
@@ -225,6 +225,14 @@ skills:
 + artifacts that increase skill (self writing pen, golden pickaxe/axe, etc)
 + swimming
 + farming
++ strength
++ endurance
++ intelligence
++ charm
++ beauty
++ attributes training
++ skills training from foreman
++ university to train skills
 
 work:
 + fishing
