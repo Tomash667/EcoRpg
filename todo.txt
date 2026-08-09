@@ -2,7 +2,6 @@ v2:
 hero:
 + skip time
 + train
-+ negative affections effects (complain, quit)
 
 investments:
 + manage mine/sawmill efficency
@@ -114,6 +113,7 @@ hero:
 	slavery (escape or have investments liquidated)
 	death
 + recruit hero chance (reputation, charm)
++ alignment good/neutral/evil
 
 events:
 + free person for hire (foreman, geomancer etc)
@@ -229,6 +229,7 @@ skills:
 work:
 + fishing
 + inn
++ farming in your house -> don't pay for gardener
 
 technology:
 + blast furnace

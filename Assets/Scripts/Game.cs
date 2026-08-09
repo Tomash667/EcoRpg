@@ -1054,6 +1054,24 @@ public class Game : MonoBehaviour
         Property property = player.properties.FirstOrDefault(x => x.status == Property.Status.Building && x.locationIndex == world.CurrentLocationIndex);
         if (property != null)
             lastAction += $" {property.name} is being build here.";
+        if ((tile.type == TileType.City || tile.type == TileType.Village) && allies.Any(x => (x.affection <= -25 && !x.complained) || x.affection <= -50))
+        {
+            Hero[] complainers = allies.Where(x => x.affection <= -25 && !x.complained).ToArray();
+            Hero[] quitters = allies.Where(x => x.affection <= -50 && x.complained).ToArray();
+            if (complainers.Length > 0)
+            {
+                foreach (Hero hero in complainers)
+                    hero.complained = true;
+                lastAction += $" {Utility.PrettyList(complainers.Select(x => x.name))} <b>{Utility.S("complain", complainers.Length == 1)}</b> about your lidership.";
+            }
+            if (quitters.Length > 0)
+            {
+                foreach (Hero hero in quitters)
+                    allies.Remove(hero);
+                CancelOutDebts();
+                lastAction += $" {Utility.PrettyList(quitters.Select(x => x.name))} <color=red>{Utility.S("leave", quitters.Length == 1)}</color> your party.";
+            }
+        }
         OnChangeLocation();
     }
 
