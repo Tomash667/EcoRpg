@@ -1,9 +1,5 @@
 v2:
 hero:
-+ quests
-	- quest is generated for location but enemies "spawn" only after accepting
-		you can accept & cancel to have enemies
-	generate new quest over time, not instantly when accepted
 + skip time
 + train
 + negative affections effects (complain, quit)
@@ -17,6 +13,7 @@ investments:
 + quest to get into investing (free inn?)
 ---------------------------------------------------------------------------------------------------
 hero:
++ tutorial
 + longer main quest that require investing
 	lessen infinite supply of quests & treasure
 + classes
@@ -158,6 +155,9 @@ ui:
 + show text on ally craft, apply to other texts not shown
 + Utility.Plural should inclue a/an (sometimes?)
 + show item value on character screen (and other places?)
++ new game class description
++ tooltips (for owed gold info)
++ text when entering infested property
 
 refactoring:
 + Team class
@@ -208,6 +208,7 @@ investments:
 		establish trade route
 		others join caravan (lower costs)
 + border taxes
++ difference what player earn by working vs upkeep from workers
 
 skills:
 + haggle

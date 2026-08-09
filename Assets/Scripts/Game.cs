@@ -247,6 +247,12 @@ public class Game : MonoBehaviour
                 quest.count = 1;
                 lastAction += $" You also find an <b>artifact</b>.";
             }
+            else
+            {
+                quest = availableQuests.FirstOrDefault(x => x.type == Quest.Type.Artifact && x.location == world.CurrentLocationIndex);
+                if (quest != null)
+                    availableQuests.Remove(quest);
+            }
             AddTeamGold(gold);
             player.AddItem(item, team: allies.Count > 0);
             tile.foundTreasure = true;
@@ -722,6 +728,10 @@ public class Game : MonoBehaviour
                 }
                 else
                     tile.timer = 30;
+
+                Quest quest = availableQuests.FirstOrDefault(x => x.type == Quest.Type.Clear && x.location == world.CurrentLocationIndex);
+                if (quest != null)
+                    availableQuests.Remove(quest);
             }
         }
         else
@@ -1919,11 +1929,7 @@ public class Game : MonoBehaviour
             }
         }
 
-        if (availableQuests != null)
-        {
-            foreach (Quest quest in availableQuests)
-                --quest.timer;
-        }
+        UpdateQuests();
 
         // grow garden plants
         foreach (Property property in player.properties.Where(x => x.gardenPlants != null && x.gardenPlants.Count > 0))
@@ -2116,6 +2122,7 @@ public class Game : MonoBehaviour
                 type = Quest.Type.Unique
             }
         };
+        availableQuests = new();
         notifications = new();
         properties = new();
         foreach (Property property in Property.properties)
@@ -2133,6 +2140,7 @@ public class Game : MonoBehaviour
                 copy.locationIndex = -1;
             properties.Add(copy);
         }
+        GenerateInitialQuests();
         lastAction = "You are an adventurer seeking glory and gold. Rumors speak of a dragon lurking deep within a forgotten cave beyond the wilds. " +
             "Find its lair, face the beast, and carve your name into legend.";
     }
@@ -2609,37 +2617,6 @@ public class Game : MonoBehaviour
         guildScreen.transform.Find("BtCook").GetComponent<Button>().interactable = guildRank != 0;
         guildScreen.transform.Find("BtCraft").GetComponent<Button>().interactable = guildRank != 0;
 
-        availableQuests ??= new();
-
-        // remove old quests
-        availableQuests.RemoveAll(x => x.timer <= 0);
-
-        // add new quests
-        if (availableQuests.Count != 6)
-        {
-            int[] questsByDifficulty = new int[4];
-            foreach (Quest quest in availableQuests)
-                questsByDifficulty[quest.difficulty]++;
-
-            for (int difficulty = 1; difficulty <= 3; ++difficulty)
-            {
-                while (questsByDifficulty[difficulty] < 2)
-                {
-                    Quest quest = GenerateQuest(difficulty);
-                    availableQuests.Add(quest);
-                    ++questsByDifficulty[difficulty];
-                }
-            }
-
-            availableQuests.Sort((a, b) =>
-            {
-                int result = a.difficulty.CompareTo(b.difficulty);
-                if (result != 0)
-                    return result;
-                return a.timer.CompareTo(b.timer);
-            });
-        }
-
         // populate list with quests
         Transform content = guildScreen.transform.Find("List/Viewport/Content");
         foreach (Transform child in content)
@@ -2681,20 +2658,14 @@ public class Game : MonoBehaviour
                     activeQuests.Add(quest);
                     if (!activeQuests.Any(x => x.tracked))
                         quest.tracked = true;
+                    if (quest.type == Quest.Type.Clear)
+                    {
+                        // if player already defeat some enemies, update counter
+                        Tile tile = world.GetLocation(quest.location);
+                        quest.count = tile.defeatedEnemies;
+                    }
                     availableQuests.Remove(quest);
                     lastAction = $"You accepted quest '{quest.Title}'.";
-                    if (quest.type == Quest.Type.Artifact)
-                    {
-                        Tile tile = world.GetLocation(quest.location);
-                        tile.defeatedEnemies = 0;
-                        tile.foundTreasure = false;
-                    }
-                    else if (quest.type == Quest.Type.Clear)
-                    {
-                        Tile tile = world.GetLocation(quest.location);
-                        tile.defeatedEnemies = 0;
-                        tile.clear = false;
-                    }
                     AddTime(minutes: 15);
                     if (ui.CurrentDialog == guildScreen)
                         RefreshGuild();
@@ -2873,7 +2844,16 @@ public class Game : MonoBehaviour
             }
 
             if (availableQuests.All(x => !x.IsSimilar(quest)) && activeQuests.All(x => !x.IsSimilar(quest)))
+            {
+                if (quest.type == Quest.Type.Artifact || quest.type == Quest.Type.Clear)
+                {
+                    Tile tile = world.GetLocation(quest.location);
+                    tile.defeatedEnemies = 0;
+                    tile.timer = 0;
+                    tile.foundTreasure = false;
+                }
                 return quest;
+            }
         }
     }
 
@@ -2928,6 +2908,26 @@ public class Game : MonoBehaviour
         else
             ChangeTeamAffection(-1);
         RemoveQuest(quest);
+
+        // readd quest if it can be completed
+        bool canBeCompleted = true;
+        if (quest.type == Quest.Type.Artifact)
+        {
+            Tile tile = world.GetLocation(quest.location);
+            canBeCompleted = !tile.foundTreasure;
+        }
+        else if (quest.type == Quest.Type.Clear)
+        {
+            Tile tile = world.GetLocation(quest.location);
+            canBeCompleted = !tile.clear;
+        }
+        if (canBeCompleted)
+        {
+            quest.timer = 5;
+            availableQuests.Add(quest);
+            SortQuests();
+        }
+
         AddTime(minutes: 15);
         if (ui.CurrentDialog == guildScreen)
             RefreshGuild();
@@ -3356,6 +3356,7 @@ public class Game : MonoBehaviour
     private void RefreshQuests()
     {
         availableQuests.Clear();
+        GenerateInitialQuests();
         if (ui.CurrentDialog == guildScreen)
             RefreshGuild();
     }
@@ -3984,5 +3985,63 @@ public class Game : MonoBehaviour
         if (count > 0)
             player.AddItem(item, count, team);
         return true;
+    }
+
+    private void GenerateInitialQuests()
+    {
+        for (int difficulty = 1; difficulty <= 3; ++difficulty)
+        {
+            for (int i = 0; i < 2; ++i)
+                availableQuests.Add(GenerateQuest(difficulty));
+        }
+
+        SortQuests();
+    }
+
+    private void UpdateQuests()
+    {
+        // remove old quests
+        availableQuests.RemoveAll(quest =>
+        {
+            --quest.timer;
+            return quest.timer <= 0;
+        });
+
+        // add new quests
+        if (availableQuests.Count != 6)
+        {
+            int[] questsByDifficulty = new int[4];
+            foreach (Quest quest in availableQuests)
+                questsByDifficulty[quest.difficulty]++;
+
+            bool addedQuests = false;
+            for (int difficulty = 1; difficulty <= 3; ++difficulty)
+            {
+                int missingQuests = 3 - questsByDifficulty[difficulty];
+                for (int i = 0; i < missingQuests; ++i)
+                {
+                    if (Utility.Rand % 4 == 0)
+                    {
+                        Quest quest = GenerateQuest(difficulty);
+                        availableQuests.Add(quest);
+                        addedQuests = true;
+                    }
+                }
+            }
+
+            if (addedQuests)
+                SortQuests();
+        }
+    }
+
+    private void SortQuests()
+    {
+        availableQuests.Sort((a, b) =>
+        {
+            int result = a.difficulty.CompareTo(b.difficulty);
+            if (result != 0)
+                return result;
+            return a.timer.CompareTo(b.timer);
+        });
     }
 }
