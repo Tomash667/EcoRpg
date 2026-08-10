@@ -12,6 +12,16 @@ public class Tile
     public string Name => GetName(type);
     public string RealName => GetName(hidden == TileType.None ? type : hidden);
 
+    public bool CanSkipTime()
+    {
+        return type switch
+        {
+            TileType.City or TileType.Village or TileType.House or TileType.Mansion or TileType.MageTower => true,
+            TileType.Sawmill or TileType.Mine or TileType.Farm => clear,
+            _ => false,
+        };
+    }
+
     public string GetName(TileType tileType)
     {
         switch (tileType)

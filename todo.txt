@@ -1,7 +1,4 @@
 v2:
-hero:
-+ skip time
-
 investments:
 + manage mine/sawmill efficency
 + hire manager

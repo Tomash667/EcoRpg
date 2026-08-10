@@ -184,21 +184,7 @@ public class Hero : ISerializationCallbackReceiver
         foreach (Enemy enemy in enemyList)
             newExp += GetExpReward(enemy.level);
         newExp = (int)(newExp * mod);
-        exp += newExp;
-        bool gainedLevel = false;
-        while (exp >= ExpNeed)
-        {
-            exp = (exp - ExpNeed) * 3 / 4;
-            ++level;
-            float hpRatio = hpp;
-            hpMax += 20;
-            hp = (int)(hpRatio * hpMax);
-            attack += 5;
-            defense++;
-            dex += 2;
-            gainedLevel = true;
-        }
-        return gainedLevel;
+        return AddExpInternal(newExp);
     }
 
     public bool AddExp(int value)

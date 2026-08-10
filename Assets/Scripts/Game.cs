@@ -34,7 +34,7 @@ public class Game : MonoBehaviour
 
     private GameUI ui;
     private GameObject shopScreen, characterScreen, journalScreen, allyScreen, giveAllyItemsScreen, storeItemsScreen, activeInventory, propertiesScreen, guildScreen, gardenScreen, craftScreen,
-        enchantItemsScreen;
+        enchantItemsScreen, skipTimeScreen;
     private RectTransform[] alliesHealthRect;
     private Map map;
     private Combat combatScreen;
@@ -78,6 +78,7 @@ public class Game : MonoBehaviour
         map = transform.Find("Map").GetComponent<Map>();
         map.Init();
         enchantItemsScreen = transform.Find("EnchantItems").gameObject;
+        skipTimeScreen = transform.Find("SkipTime").gameObject;
         alliesHealthRect = new[] { transform.Find("Buttons/BtAlly/Health") as RectTransform, transform.Find("Buttons/BtAlly2/Health") as RectTransform };
 
         Global global = Global.Instance;
@@ -112,6 +113,11 @@ public class Game : MonoBehaviour
                     if (Input.GetKeyDown(KeyCode.T))
                         Train();
                 }
+            }
+            else if (ui.CurrentDialog == skipTimeScreen)
+            {
+                if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
+                    DoSkipTime();
             }
             return;
         }
@@ -852,71 +858,78 @@ public class Game : MonoBehaviour
             lastAction = $"You can't work while monsters occupy the {world.CurrentTile.Name}.";
         else
         {
-            player.energy -= 50;
-            TileType location = world.Location;
-            int payment;
-            Skill skill;
-            switch (location)
-            {
-            case TileType.Sawmill:
-                payment = 30;
-                skill = Skill.Woodcraft;
-                break;
-            case TileType.Mine:
-                payment = 20 + world.CurrentTile.difficulty * 10;
-                skill = Skill.Mining;
-                break;
-            case TileType.City:
-                payment = 20;
-                skill = Skill.None;
-                break;
-            default:
-                payment = 15;
-                skill = Skill.None;
-                break;
-            }
-            // ally with a skill can help & train others
-            Hero bestHero;
-            int skillValue;
-            if (skill != Skill.None)
-            {
-                (bestHero, skillValue) = GetTeamSkill(skill);
-                payment += skillValue / 10;
-            }
-            else
-            {
-                bestHero = null;
-                skillValue = 0;
-            }
-            // double pay if owned
-            if (player.properties.Any(x => x.locationIndex == world.CurrentLocationIndex))
-                payment *= 2;
-            // give payment & train all team members
-            lastAction = $"You earned <color=#FFD700>{payment}</color> gold from working.";
-            foreach (Hero hero in Team)
-            {
-                float trainMod;
-                if (skill != Skill.None && bestHero != null && bestHero != hero)
-                    trainMod = 1f + 0.01f * (skillValue - hero.GetSkill(skill));
-                else
-                    trainMod = 1f;
-
-                hero.AddGold(payment);
-                if (skill != Skill.None)
-                {
-                    string str = player.Train(skill, trainMod);
-                    if (hero == player)
-                        lastAction += str;
-                }
-            }
+            DoWork();
             AddTime(hours: 8);
-            if (location.IsSafe())
+            if (world.Location.IsSafe())
             {
                 foreach (Hero ally in allies)
                     ally.BuyItems();
             }
         }
         UpdateText();
+    }
+
+    private int DoWork(bool skipTime = false)
+    {
+        player.energy -= 50;
+        TileType location = world.Location;
+        int payment;
+        Skill skill;
+        switch (location)
+        {
+        case TileType.Sawmill:
+            payment = 30;
+            skill = Skill.Woodcraft;
+            break;
+        case TileType.Mine:
+            payment = 20 + world.CurrentTile.difficulty * 10;
+            skill = Skill.Mining;
+            break;
+        case TileType.City:
+            payment = 20;
+            skill = Skill.None;
+            break;
+        default:
+            payment = 15;
+            skill = Skill.None;
+            break;
+        }
+        // ally with a skill can help & train others
+        Hero bestHero;
+        int skillValue;
+        if (skill != Skill.None)
+        {
+            (bestHero, skillValue) = GetTeamSkill(skill);
+            payment += skillValue / 10;
+        }
+        else
+        {
+            bestHero = null;
+            skillValue = 0;
+        }
+        // double pay if owned
+        if (player.properties.Any(x => x.locationIndex == world.CurrentLocationIndex))
+            payment *= 2;
+        // give payment & train all team members
+        if (!skipTime)
+            lastAction = $"You earned <color=#FFD700>{payment}</color> gold from working.";
+        foreach (Hero hero in Team)
+        {
+            float trainMod;
+            if (skill != Skill.None && bestHero != null && bestHero != hero)
+                trainMod = 1f + 0.01f * (skillValue - hero.GetSkill(skill));
+            else
+                trainMod = 1f;
+
+            hero.AddGold(payment);
+            if (skill != Skill.None)
+            {
+                string str = player.Train(skill, trainMod);
+                if (hero == player && !skipTime)
+                    lastAction += str;
+            }
+        }
+        return payment;
     }
 
     public void Travel()
@@ -1690,7 +1703,7 @@ public class Game : MonoBehaviour
         }
     }
 
-    private bool OnRest()
+    private bool OnRest(bool skipTime = false)
     {
         void FullRest()
         {
@@ -1705,7 +1718,8 @@ public class Game : MonoBehaviour
         if (((location == TileType.City || location == TileType.Village) && player.HaveProperty("House", cityIndex: cityIndex)) || location == TileType.House)
         {
             FullRest();
-            lastAction += "You rest in your house.";
+            if (!skipTime)
+                lastAction += "You rest in your house.";
         }
         else if (((location == TileType.City || location == TileType.Village) && player.HaveProperty("Mansion", cityIndex: cityIndex)) || location == TileType.Mansion)
         {
@@ -1714,12 +1728,14 @@ public class Game : MonoBehaviour
                 hero.rested = 11;
             if (player.HaveProperty("Horses") && player.HavePropertyUpgrade("Mansion", "Stables", cityIndex: cityIndex))
                 freshHorses = 11;
-            lastAction += "You rest in your mansion.";
+            if (!skipTime)
+                lastAction += "You rest in your mansion.";
         }
         else if ((location == TileType.City || location == TileType.Village) && player.HaveProperty("Inn", cityIndex: cityIndex))
         {
             FullRest();
-            lastAction += "You rest in your inn.";
+            if (!skipTime)
+                lastAction += "You rest in your inn.";
         }
         else if ((location == TileType.City || location == TileType.Village) && player.gold > 0)
         {
@@ -1727,17 +1743,20 @@ public class Game : MonoBehaviour
             player.AddGold(-1);
             foreach (Hero ally in allies)
                 ally.AddGold(-1);
-            lastAction += "You rest in an inn (<color=#FFD700>-1</color> gold).";
+            if (!skipTime)
+                lastAction += "You rest in an inn (<color=#FFD700>-1</color> gold).";
         }
         else if (location == TileType.Sawmill || location == TileType.Mine || location == TileType.Farm)
         {
             FullRest();
-            lastAction += "You rest in a barracks.";
+            if (!skipTime)
+                lastAction += "You rest in a barracks.";
         }
         else if (location == TileType.MageTower)
         {
             FullRest();
-            lastAction += "You rest in a guest room.";
+            if (!skipTime)
+                lastAction += "You rest in a guest room.";
         }
         else
         {
@@ -1776,16 +1795,18 @@ public class Game : MonoBehaviour
                     energy += (int)(ratio * 25);
                     heal = ratio;
                 }
-                lastAction += $"You rest {where} and eat rations.";
+                if (!skipTime)
+                    lastAction += $"You rest {where} and eat rations.";
             }
             else
             {
-                lastAction += $"You rest {where}.";
+                if (!skipTime)
+                    lastAction += $"You rest {where}.";
                 heal = 0;
             }
 
             bool attacked = false;
-            if (!world.CurrentTile.clear)
+            if (!skipTime && !world.CurrentTile.clear)
             {
                 int attackChance = location switch
                 {
@@ -1850,15 +1871,19 @@ public class Game : MonoBehaviour
         minute = 0;
 
         OnNewDay();
-        CheckBoredAllies();
 
-        if (player.goldWaiting != 0 && location.IsSafe())
+        if (!skipTime)
         {
-            lastAction += player.goldWaiting > 0
-                ? $" You receive <color=#FFD700>{player.goldWaiting}</color> gold from your properties."
-                : $" You pay <color=#FFD700>{-player.goldWaiting}</color> gold for your properties.";
-            player.AddGold(player.goldWaiting);
-            player.goldWaiting = 0;
+            CheckBoredAllies();
+
+            if (player.goldWaiting != 0 && location.IsSafe())
+            {
+                lastAction += player.goldWaiting > 0
+                    ? $" You receive <color=#FFD700>{player.goldWaiting}</color> gold from your properties."
+                    : $" You pay <color=#FFD700>{-player.goldWaiting}</color> gold for your properties.";
+                player.AddGold(player.goldWaiting);
+                player.goldWaiting = 0;
+            }
         }
 
         ui.CloseDialogs(x => x == propertiesScreen || x == guildScreen || x == characterScreen || x == craftScreen);
@@ -2218,6 +2243,7 @@ public class Game : MonoBehaviour
         buttons.Find("BtEnchantItems").gameObject.SetActive(location == TileType.MageTower);
         buttons.Find("BtEnterPortal").gameObject.SetActive(location == TileType.MageTower);
         buttons.Find("BtEnterPortal2").gameObject.SetActive(location == TileType.DarkDimension);
+        buttons.Find("BtSkipTime").gameObject.SetActive(world.CurrentTile.CanSkipTime());
 
         button = buttons.Find("BtJournal");
         int notificationsAvailable = notifications.Count(x => x.status == Notification.Status.Available);
@@ -4099,6 +4125,115 @@ public class Game : MonoBehaviour
             if (ui.CurrentDialog == guildScreen)
                 RefreshGuild();
         }
+        UpdateText();
+    }
+
+    public void SkipTime()
+    {
+        List<string> options = new();
+        TileType location = world.Location;
+        if (location == TileType.City || location == TileType.Village || location == TileType.Mine || location == TileType.Sawmill || location == TileType.Farm)
+            options.Add("Work");
+        if (location == TileType.City)
+            options.Add("Train");
+        options.Add("Relax");
+        TMP_Dropdown dropdown = skipTimeScreen.transform.Find("Dropdown").GetComponent<TMP_Dropdown>();
+        dropdown.ClearOptions();
+        dropdown.AddOptions(options);
+        dropdown.value = 0;
+        skipTimeScreen.transform.Find("Input").GetComponent<TMP_InputField>().text = "1";
+        ui.ShowDialog(skipTimeScreen);
+    }
+
+    public void DoSkipTime()
+    {
+        int days = int.Parse(skipTimeScreen.transform.Find("Input").GetComponent<TMP_InputField>().text);
+        if (days < 1 || days > 30)
+        {
+            ui.ShowDialog("Invalid number of days to skip.");
+            return;
+        }
+
+        string action = skipTimeScreen.transform.Find("Dropdown").GetComponent<TMP_Dropdown>().captionText.text;
+
+        List<Hero> levelups = null;
+        Dictionary<Skill, int> prevSkills = player.skills.ToDictionary(x => x.Key, x => x.Value.level);
+        Tile tile = world.CurrentTile;
+        int skippedDays = 0;
+        int payment = 0;
+
+        // skip first day if tired
+        if ((action == "Work" || action == "Train") && (player.energy < 50 || hour > 16))
+        {
+            OnRest(true);
+            --days;
+            ++skippedDays;
+        }
+
+        while (days > 0)
+        {
+            if (action == "Train")
+            {
+                foreach (Hero hero in Team)
+                {
+                    if (hero.AddExp(100))
+                    {
+                        levelups ??= new();
+                        levelups.Add(hero);
+                    }
+                }
+            }
+            else if (action == "Work")
+            {
+                payment += DoWork(true);
+            }
+
+            OnRest(true);
+            --days;
+            ++skippedDays;
+
+            if (!tile.CanSkipTime())
+                break;
+        }
+
+        lastAction = $"You spend {Utility.Plural("day", skippedDays)} {action.ToLower()}ing.";
+
+        if (payment > 0)
+            lastAction += $" You earned <color=#FFD700>{payment}</color> gold.";
+
+        if (levelups != null)
+        {
+            foreach (var group in levelups.GroupBy(x => x.level))
+            {
+                string isAre = group.Count() > 1 || group.First() is Player ? "are" : "is";
+                lastAction += $" {Utility.PrettyList(group.Select(x => x.nameYou)).ToUpper1()} {isAre} now level {group.Key}.";
+            }
+        }
+
+        foreach (KeyValuePair<Skill, SkillEntry> sk in player.skills)
+        {
+            if (!prevSkills.TryGetValue(sk.Key, out int prevValue) || prevValue < sk.Value.level)
+                lastAction += $" Your {sk.Key.AsString()} skill increased to {sk.Value.level}.";
+        }
+
+        CheckBoredAllies();
+
+        if (player.goldWaiting != 0 && tile.type.IsSafe())
+        {
+            lastAction += player.goldWaiting > 0
+                ? $" You receive <color=#FFD700>{player.goldWaiting}</color> gold from your properties."
+                : $" You pay <color=#FFD700>{-player.goldWaiting}</color> gold for your properties.";
+            player.AddGold(player.goldWaiting);
+            player.goldWaiting = 0;
+        }
+
+        if (!world.CurrentTile.CanSkipTime())
+        {
+            lastAction += $" Monsters <b>attacked</b> the {world.CurrentTile.Name}.";
+            UpdateButtons();
+        }
+
+        ui.CloseDialog();
         UpdateText();
     }
 }
