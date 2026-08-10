@@ -2,7 +2,6 @@ v2:
 investments:
 + manage mine/sawmill efficency
 + hire manager
-+ office in city
 + mansion upgrades - office room
 + fix prices: adventurers one time infestation cost the same amount as full time guards
 + quest to get into investing (free inn?)
@@ -206,6 +205,7 @@ investments:
 		others join caravan (lower costs)
 + border taxes
 + difference what player earn by working vs upkeep from workers
++ stats/graphs of profit/upkeep/totals
 
 skills:
 + haggle
@@ -230,6 +230,7 @@ skills:
 + attributes training
 + skills training from foreman
 + university to train skills
++ it's too easy to get skill from 0->100
 
 work:
 + fishing

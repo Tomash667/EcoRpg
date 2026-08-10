@@ -2610,6 +2610,8 @@ public class Game : MonoBehaviour
 
                     player.AddGold(-upgrade.value);
                     upgrade.active = true;
+                    if (upgrade.upkeep > 0 && selectedProperty.upkeep == 0)
+                        selectedProperty.desc += ", UPKEEP upkeep";
                     selectedProperty.value += upgrade.value;
                     selectedProperty.income += upgrade.income;
                     selectedProperty.upkeep += upgrade.upkeep;

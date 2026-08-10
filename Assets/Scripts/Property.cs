@@ -59,19 +59,27 @@ public class Property
     public Status status;
     public float infestedDifficultyMod;
     public int value, infestedCost, infestedDifficulty, income, upkeep, upkeepDiscount, buildPrice, buildPriceDiscount, buildTime, locationIndex, cityIndex;
-    public bool multi;
+    public bool multi, producer;
 
     public int Income
     {
         get
         {
-            if (events.Count == 0)
-                return income;
-
-            if (events[0].name == "Infested")
-                return 0;
+            int value;
+            if (events.Count != 0)
+            {
+                if (events[0].name == "Infested")
+                    value = 0;
+                else
+                    value = income * 3 / 2;
+            }
             else
-                return income * 3 / 2;
+                value = income;
+
+            if (producer && Global.Player.HaveProperty("Office"))
+                value = value * 11 / 10;
+
+            return value;
         }
     }
     public int Upkeep
@@ -184,7 +192,8 @@ public class Property
             buildPrice = buildPrice,
             buildPriceDiscount = buildPriceDiscount,
             buildTime = buildTime,
-            multi = multi
+            multi = multi,
+            producer = producer
         };
     }
 
@@ -197,6 +206,8 @@ public class Property
         upkeepDiscount = p.upkeepDiscount;
         buildPrice = p.buildPrice;
         buildPriceDiscount = p.buildPriceDiscount;
+        multi = p.multi;
+        producer = p.producer;
         if (p.upgrades != null)
         {
             upgrades = p.upgrades.Select(x => new Upgrade
@@ -357,7 +368,8 @@ public class Property
                     value = 1500,
                     income = 5
                 }
-            }
+            },
+            producer = true
         },
         new()
         {
@@ -389,7 +401,8 @@ public class Property
                     value = 3000,
                     income = 10
                 }
-            }
+            },
+            producer = true
         },
         new()
         {
@@ -423,7 +436,8 @@ public class Property
                     value = 4000,
                     income = 15
                 }
-            }
+            },
+            producer = true
         },
         new()
         {
@@ -457,7 +471,8 @@ public class Property
                     value = 5000,
                     income = 20
                 }
-            }
+            },
+            producer = true
         },
         new()
         {
@@ -522,7 +537,8 @@ public class Property
                     income = 5
                 }
             },
-            multi = true
+            multi = true,
+            producer = true
         },
         new()
         {
@@ -554,7 +570,8 @@ public class Property
                     income = 5
                 }
             },
-            multi = true
+            multi = true,
+            producer = true
         },
         new()
         {
@@ -589,7 +606,17 @@ public class Property
                     income = 5
                 }
             },
-            multi = true
+            multi = true,
+            producer = true
+        },
+        new()
+        {
+            name = "Office",
+            desc = "Increase income of producers by 10%, UPKEEP upkeep",
+            value = 5000,
+            upkeep = 5,
+            status = Status.Active,
+            cityIndex = 0
         }
     };
 }
