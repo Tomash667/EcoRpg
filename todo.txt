@@ -1,6 +1,5 @@
 v2:
 investments:
-+ skip time managing
 + hire manager
 + mansion upgrades - office room (can manage properties from mansion)
 + fix prices: adventurers one time infestation cost the same amount as full time guards

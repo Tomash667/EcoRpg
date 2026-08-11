@@ -2290,28 +2290,19 @@ public class Game : MonoBehaviour
         }
 
         button = buttons.Find("BtManage");
-        if (location == TileType.City || location == TileType.Village)
-        {
-            if (player.HaveProperty("Inn", cityIndex: world.CityIndex))
-            {
-                button.GetComponentInChildren<TMP_Text>().text = "Manage inn";
-                button.gameObject.SetActive(true);
-            }
-            else
-                button.gameObject.SetActive(false);
-        }
-        else if (location == TileType.Sawmill || location == TileType.Mine || location == TileType.Farm)
-        {
-            if (player.HaveProperty(world.CurrentLocationIndex))
-            {
-                button.GetComponentInChildren<TMP_Text>().text = $"Manage {location.AsString()}";
-                button.gameObject.SetActive(true);
-            }
-            else
-                button.gameObject.SetActive(false);
-        }
-        else
+        Property property = GetPropertyHere();
+        if (property == null)
             button.gameObject.SetActive(false);
+        else
+        {
+            string propertyNameShort;
+            if (location == TileType.City || location == TileType.Village)
+                propertyNameShort = "inn";
+            else
+                propertyNameShort = location.AsString();
+            button.GetComponentInChildren<TMP_Text>().text = $"Manage {propertyNameShort}";
+            button.gameObject.SetActive(true);
+        }
 
         button = buttons.Find("BtForage");
         if (location == TileType.Forest || location == TileType.Cave)
@@ -4202,6 +4193,8 @@ public class Game : MonoBehaviour
         TileType location = world.Location;
         if (location == TileType.City || location == TileType.Village || location == TileType.Mine || location == TileType.Sawmill || location == TileType.Farm)
             options.Add("Work");
+        if (GetPropertyHere() != null)
+            options.Add("Manage");
         if (location == TileType.City)
             options.Add("Train");
         options.Add("Relax");
@@ -4227,11 +4220,20 @@ public class Game : MonoBehaviour
         List<Hero> levelups = null;
         Dictionary<Skill, int> prevSkills = player.skills.ToDictionary(x => x.Key, x => x.Value.level);
         Tile tile = world.CurrentTile;
+        Property property = null;
         int skippedDays = 0;
         int payment = 0;
+        int prevEfficiency = 0;
+
+        if (action == "Manage")
+        {
+            property = GetPropertyHere();
+            prevEfficiency = property.efficiency;
+        }
 
         // skip first day if tired
-        if ((action == "Work" || action == "Train") && (player.energy < 50 || hour > 16))
+        if (((action == "Work" || action == "Train") && (player.energy < 50 || hour > 16))
+            || (action == "Manage" && (player.energy < 25 || hour > 16)))
         {
             OnRest(true);
             --days;
@@ -4240,8 +4242,9 @@ public class Game : MonoBehaviour
 
         while (days > 0)
         {
-            if (action == "Train")
+            switch (action)
             {
+            case "Train":
                 foreach (Hero hero in Team)
                 {
                     if (hero.AddExp(100))
@@ -4250,10 +4253,13 @@ public class Game : MonoBehaviour
                         levelups.Add(hero);
                     }
                 }
-            }
-            else if (action == "Work")
-            {
+                break;
+            case "Work":
                 payment += DoWork(true);
+                break;
+            case "Manage":
+                DoManageInternal(property, true);
+                break;
             }
 
             OnRest(true);
@@ -4264,7 +4270,12 @@ public class Game : MonoBehaviour
                 break;
         }
 
-        lastAction = $"You spend {Utility.Plural("day", skippedDays)} {action.ToLower()}ing.";
+        string verb;
+        if (action == "Manage")
+            verb = $"managing the {property.name.ToLower()}";
+        else
+            verb = action.ToLower() + "ing";
+        lastAction = $"You spend {Utility.Plural("day", skippedDays)} {verb}.";
 
         if (payment > 0)
             lastAction += $" You earned <color=#FFD700>{payment}</color> gold.";
@@ -4276,6 +4287,14 @@ public class Game : MonoBehaviour
                 string isAre = group.Count() > 1 || group.First() is Player ? "are" : "is";
                 lastAction += $" {Utility.PrettyList(group.Select(x => x.nameYou)).ToUpper1()} {isAre} now level {group.Key}.";
             }
+        }
+
+        if (property != null)
+        {
+            if (property.efficiency > prevEfficiency)
+                lastAction += $" Efficiency increased by {property.efficiency - prevEfficiency}.";
+            else if (property.efficiency < prevEfficiency)
+                lastAction += $" Efficiency decreased by {prevEfficiency - property.efficiency}.";
         }
 
         foreach (KeyValuePair<Skill, SkillEntry> sk in player.skills)
@@ -4307,20 +4326,7 @@ public class Game : MonoBehaviour
 
     public void Manage()
     {
-        switch (world.Location)
-        {
-        case TileType.City:
-        case TileType.Village:
-            selectedProperty = player.properties.First(x => x.name == "Inn" && x.cityIndex == world.CityIndex);
-            break;
-        case TileType.Sawmill:
-        case TileType.Mine:
-        case TileType.Farm:
-            selectedProperty = player.properties.First(x => x.locationIndex == world.CurrentLocationIndex);
-            break;
-        default:
-            return;
-        }
+        selectedProperty = GetPropertyHere();
         manageProperty = true;
         RefreshPropertyDetails();
         propertiesScreen.transform.Find("List").gameObject.SetActive(false);
@@ -4338,34 +4344,46 @@ public class Game : MonoBehaviour
             lastAction = $"You can't manage while monsters occupy the {world.CurrentTile.Name}.";
         else
         {
-            player.energy -= 25;
-            (Hero bestAlly, int bestValue) = GetTeamSkill(Skill.Management);
-            float trainMod;
-            if (bestAlly == null || bestAlly == player)
-            {
-                lastAction = $"You manage the {selectedProperty.name}.";
-                trainMod = 1f;
-            }
-            else
-            {
-                lastAction = $"You and {bestAlly.name} manage the {selectedProperty.name}.";
-                trainMod = 1f + 0.01f * (bestValue - player.GetSkill(Skill.Management));
-            }
-
-            int newEfficiency = CalculateEfficiencyChange(bestValue, selectedProperty.efficiency);
-            if (newEfficiency > selectedProperty.efficiency)
-                lastAction += $" Efficiency increased by {newEfficiency - selectedProperty.efficiency}.";
-            else if (newEfficiency < selectedProperty.efficiency)
-                lastAction += $" Efficiency decreased by {selectedProperty.efficiency - newEfficiency}.";
-            selectedProperty.efficiency = newEfficiency;
-            selectedProperty.managed = true;
-
-            lastAction += player.Train(Skill.Management, trainMod);
+            DoManageInternal(selectedProperty, false);
             AddTime(hours: 8);
         }
         if (ui.CurrentDialog == propertiesScreen)
             RefreshPropertyDetails();
         UpdateText();
+    }
+
+    private void DoManageInternal(Property property, bool skipTime)
+    {
+        player.energy -= 25;
+        (Hero bestAlly, int bestValue) = GetTeamSkill(Skill.Management);
+        float trainMod;
+        if (bestAlly == null || bestAlly == player)
+        {
+            if (!skipTime)
+                lastAction = $"You manage the {property.name.ToLower()}.";
+            trainMod = 1f;
+        }
+        else
+        {
+            if (!skipTime)
+                lastAction = $"You and {bestAlly.name} manage the {property.name.ToLower()}.";
+            trainMod = 1f + 0.01f * (bestValue - player.GetSkill(Skill.Management));
+        }
+
+        int newEfficiency = CalculateEfficiencyChange(bestValue, property.efficiency);
+        if (!skipTime)
+        {
+            if (newEfficiency > property.efficiency)
+                lastAction += $" Efficiency increased by {newEfficiency - property.efficiency}.";
+            else if (newEfficiency < property.efficiency)
+                lastAction += $" Efficiency decreased by {property.efficiency - newEfficiency}.";
+        }
+        property.efficiency = newEfficiency;
+        property.managed = true;
+
+        string str = player.Train(Skill.Management, trainMod);
+        if (!skipTime)
+            lastAction += str;
     }
 
     private static int CalculateEfficiencyChange(int skill, int efficiency)
@@ -4380,5 +4398,15 @@ public class Game : MonoBehaviour
         if (difference < 0)
             step = -step;
         return Mathf.Clamp(efficiency + step, 1, 100);
+    }
+
+    private Property GetPropertyHere()
+    {
+        return world.Location switch
+        {
+            TileType.City or TileType.Village => player.properties.FirstOrDefault(x => x.name == "Inn" && x.cityIndex == world.CityIndex),
+            TileType.Sawmill or TileType.Mine or TileType.Farm => player.properties.FirstOrDefault(x => x.locationIndex == world.CurrentLocationIndex),
+            _ => null
+        };
     }
 }
