@@ -43,6 +43,11 @@ public class Player : Hero
             return true;
     }
 
+    public bool HaveProperty(int locationIndex)
+    {
+        return properties.Any(x => x.locationIndex == locationIndex);
+    }
+
     public bool HavePropertyUpgrade(string propertyName, string upgradeName, int cityIndex = -1)
     {
         Property property = properties.FirstOrDefault(x => x.name == propertyName && (cityIndex == -1 || x.cityIndex == cityIndex));

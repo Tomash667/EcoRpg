@@ -1,8 +1,8 @@
 v2:
 investments:
-+ manage mine/sawmill efficency
++ skip time managing
 + hire manager
-+ mansion upgrades - office room
++ mansion upgrades - office room (can manage properties from mansion)
 + fix prices: adventurers one time infestation cost the same amount as full time guards
 + quest to get into investing (free inn?)
 ---------------------------------------------------------------------------------------------------
@@ -110,6 +110,8 @@ hero:
 + recruit hero chance (reputation, charm)
 + alignment good/neutral/evil
 + training required to level up?
++ specialized trainers that are better for archer/warrior
++ ally with higher level speeds up training
 
 events:
 + free person for hire (foreman, geomancer etc)
@@ -154,6 +156,9 @@ ui:
 + new game class description
 + tooltips (for owed gold info)
 + text when entering infested property
++ status bar at bottom with lastAction, click to show previous
++ animate datetime, gold
++ player healthbar
 
 refactoring:
 + Team class
@@ -206,6 +211,11 @@ investments:
 + border taxes
 + difference what player earn by working vs upkeep from workers
 + stats/graphs of profit/upkeep/totals
++ grid for properties, details on right, buttons in details
++ allow more then one property event
++ office upgrade
++ work in office, workers
++ efficiency affects value
 
 skills:
 + haggle
@@ -286,3 +296,7 @@ world:
 + kingdom alignment lawful/chaotic good/evil
 	chaotic - random taxes, low bureaucracy
 	lawful - stable taxes, high bureaucracy
++ seasons
++ region safety/corruption/economy
+	affects bandits
+	thieves guild

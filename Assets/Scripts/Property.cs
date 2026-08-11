@@ -58,28 +58,30 @@ public class Property
     public Func<World, int> locationIndexFunc;
     public Status status;
     public float infestedDifficultyMod;
-    public int value, infestedCost, infestedDifficulty, income, upkeep, upkeepDiscount, buildPrice, buildPriceDiscount, buildTime, locationIndex, cityIndex;
-    public bool multi, producer;
+    public int value, infestedCost, infestedDifficulty, income, upkeep, upkeepDiscount, buildPrice, buildPriceDiscount, buildTime, locationIndex, cityIndex, efficiency;
+    public bool multi, producer, managed;
 
     public int Income
     {
         get
         {
-            int value;
+            float mod;
             if (events.Count != 0)
             {
                 if (events[0].name == "Infested")
-                    value = 0;
+                    return 0;
                 else
-                    value = income * 3 / 2;
+                    mod = 1.5f;
             }
             else
-                value = income;
+                mod = 1f;
 
             if (producer && Global.Player.HaveProperty("Office"))
-                value = value * 11 / 10;
+                mod *= 1.1f;
 
-            return value;
+            mod *= EfficiencyMod;
+
+            return (int)(income * mod);
         }
     }
     public int Upkeep
@@ -119,6 +121,68 @@ public class Property
         }
     }
     public string Desc => desc.Replace("PROFIT", Profit.ToString()).Replace("UPKEEP", upkeep.ToString());
+    public string Efficiency
+    {
+        get
+        {
+            if (efficiency < 5)
+                return "disaster";
+            else if (efficiency < 20)
+                return "terrible";
+            else if (efficiency < 40)
+                return "bad";
+            else if (efficiency <= 60)
+                return "average";
+            else if (efficiency <= 80)
+                return "good";
+            else if (efficiency <= 95)
+                return "great";
+            else
+                return "amazing";
+        }
+    }
+    private float EfficiencyMod
+    {
+        get
+        {
+            if (efficiency < 5)
+                return 0.5f;
+            else if (efficiency < 20)
+                return UnityEngine.Mathf.Lerp(0.5f, 0.75f, (efficiency - 5) / 15f);
+            else if (efficiency < 40)
+                return UnityEngine.Mathf.Lerp(0.75f, 0.9f, (efficiency - 20) / 20f);
+            else if (efficiency < 50)
+                return UnityEngine.Mathf.Lerp(0.9f, 1f, (efficiency - 40) / 10f);
+            else if (efficiency <= 60)
+                return UnityEngine.Mathf.Lerp(1f, 1.1f, (efficiency - 50) / 10f);
+            else if (efficiency <= 80)
+                return UnityEngine.Mathf.Lerp(1.1f, 1.25f, (efficiency - 60) / 20f);
+            else if (efficiency <= 95)
+                return UnityEngine.Mathf.Lerp(1.25f, 1.5f, (efficiency - 80) / 15f);
+            else
+                return 1.5f;
+        }
+    }
+    public (int buff, int infest) EventChances
+    {
+        get
+        {
+            if (efficiency < 5)
+                return (0, 10);
+            else if (efficiency < 20)
+                return (5, 8);
+            else if (efficiency < 40)
+                return (8, 6);
+            else if (efficiency <= 60)
+                return (10, 5);
+            else if (efficiency <= 80)
+                return (12, 4);
+            else if (efficiency <= 95)
+                return (15, 2);
+            else
+                return (20, 0);
+        }
+    }
 
     public override string ToString()
     {
@@ -192,6 +256,7 @@ public class Property
             buildPrice = buildPrice,
             buildPriceDiscount = buildPriceDiscount,
             buildTime = buildTime,
+            efficiency = efficiency,
             multi = multi,
             producer = producer
         };
@@ -349,6 +414,7 @@ public class Property
             infestedDifficultyMod = 0.75f,
             income = 10,
             upkeep = 5,
+            efficiency = 50,
             status = Status.Active,
             cityIndex = 0,
             locationIndexFunc = world => world.FindLocationIndex(x => x.type == TileType.Sawmill),
@@ -382,6 +448,7 @@ public class Property
             income = 20,
             upkeep = 10,
             upkeepDiscount = 2,
+            efficiency = 50,
             status = Status.Active,
             cityIndex = 0,
             locationIndexFunc = world => world.FindLocationIndex(x => x.type == TileType.Mine),
@@ -418,6 +485,7 @@ public class Property
             buildPrice = 6000,
             buildPriceDiscount = 500,
             buildTime = 20,
+            efficiency = 40,
             cityIndex = 0,
             locationIndexFunc = world => world.FindLocationIndex(x => x.hidden == TileType.Cave && x.mine && x.difficulty == 2),
             upgrades = new Upgrade[]
@@ -453,6 +521,7 @@ public class Property
             buildPrice = 7500,
             buildPriceDiscount = 500,
             buildTime = 30,
+            efficiency = 40,
             cityIndex = 0,
             locationIndexFunc = world => world.FindLocationIndex(x => x.hidden == TileType.Cave && x.mine && x.difficulty == 3),
             upgrades = new Upgrade[]
@@ -481,6 +550,7 @@ public class Property
             value = 5000,
             income = 10,
             upkeep = 5,
+            efficiency = 50,
             status = Status.Active,
             cityIndex = 0,
             multi = true
@@ -492,6 +562,7 @@ public class Property
             value = 4000,
             income = 9,
             upkeep = 5,
+            efficiency = 50,
             status = Status.Active,
             cityIndex = 1,
             multi = true
@@ -503,6 +574,7 @@ public class Property
             value = 4000,
             income = 9,
             upkeep = 5,
+            efficiency = 50,
             status = Status.Active,
             cityIndex = 2,
             multi = true
@@ -518,6 +590,7 @@ public class Property
             income = 10,
             upkeep = 5,
             status = Status.Active,
+            efficiency = 50,
             cityIndex = 0,
             locationIndexFunc = world => world.FindLocationIndex(x => x.type == TileType.Farm && x.difficulty == 1),
             upgrades = new Upgrade[]
@@ -550,6 +623,7 @@ public class Property
             infestedDifficultyMod = 0.75f,
             income = 10,
             upkeep = 5,
+            efficiency = 50,
             status = Status.Active,
             cityIndex = 1,
             locationIndexFunc = world => world.FindLocationIndex(x => x.type == TileType.Farm && x.difficulty == 2),
@@ -586,6 +660,7 @@ public class Property
             buildPrice = 2500,
             buildPriceDiscount = 500,
             buildTime = 15,
+            efficiency = 40,
             status = Status.Cleared,
             cityIndex = 2,
             locationIndexFunc = world => world.FindLocationIndex(World.IndexToPoint(world.cityMapping[2]), x => x.type == TileType.Plains && x.hidden == TileType.None),

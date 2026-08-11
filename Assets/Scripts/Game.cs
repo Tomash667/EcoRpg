@@ -46,7 +46,7 @@ public class Game : MonoBehaviour
     private string lastAction, lastTestCombat;
     private float restCombatHeal;
     private int restCombatEnergy;
-    private bool inChoice, traveled, restCombat;
+    private bool inChoice, traveled, restCombat, manageProperty;
 
     public IEnumerable<Hero> Team
     {
@@ -119,6 +119,11 @@ public class Game : MonoBehaviour
                 if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
                     DoSkipTime();
             }
+            else if (ui.CurrentDialog == propertiesScreen)
+            {
+                if (Input.GetKeyDown(KeyCode.M) && manageProperty)
+                    DoManage();
+            }
             return;
         }
 
@@ -174,6 +179,8 @@ public class Game : MonoBehaviour
                     EnterSewers();
                 if (Input.GetKeyDown(KeyCode.H) && (player.HaveProperty("House", cityIndex: world.CityIndex) || player.HaveProperty("Mansion", cityIndex: world.CityIndex)))
                     EnterHouse();
+                if (Input.GetKeyDown(KeyCode.M) && player.HaveProperty("Inn", cityIndex: world.CityIndex))
+                    Manage();
                 break;
             case TileType.Village:
                 if (Input.GetKeyDown(KeyCode.W))
@@ -184,6 +191,8 @@ public class Game : MonoBehaviour
                     ManageProperties();
                 if (Input.GetKeyDown(KeyCode.H) && (player.HaveProperty("House", cityIndex: world.CityIndex) || player.HaveProperty("Mansion", cityIndex: world.CityIndex)))
                     EnterHouse();
+                if (Input.GetKeyDown(KeyCode.M) && player.HaveProperty("Inn", cityIndex: world.CityIndex))
+                    Manage();
                 break;
             case TileType.Forest:
                 if (Input.GetKeyDown(KeyCode.F))
@@ -200,6 +209,8 @@ public class Game : MonoBehaviour
             case TileType.Farm:
                 if (Input.GetKeyDown(KeyCode.W))
                     Work();
+                if (Input.GetKeyDown(KeyCode.M) && player.HaveProperty(world.CurrentLocationIndex))
+                    Manage();
                 break;
             case TileType.Cave:
                 if (Input.GetKeyDown(KeyCode.P))
@@ -908,7 +919,7 @@ public class Game : MonoBehaviour
             skillValue = 0;
         }
         // double pay if owned
-        if (player.properties.Any(x => x.locationIndex == world.CurrentLocationIndex))
+        if (player.HaveProperty(world.CurrentLocationIndex))
             payment *= 2;
         // give payment & train all team members
         if (!skipTime)
@@ -2016,18 +2027,32 @@ public class Game : MonoBehaviour
 
         world.Update();
 
-        // property events
         if (day % 10 == 0)
         {
+            // decrease efficiency if none manage property
+            foreach (Property property in player.properties.Where(x => x.income > 0 && x.status == Property.Status.Active))
+            {
+                if (property.managed)
+                    property.managed = false;
+                else
+                {
+                    int maxDecrease = 1 + property.efficiency / 20;
+                    property.efficiency -= Utility.Random(1, maxDecrease);
+                    if (property.efficiency < 1)
+                        property.efficiency = 1;
+                }
+            }
+
+            // property events
             foreach (Property property in player.properties.Where(x => x.income > 0 && x.status == Property.Status.Active))
             {
                 if (property.events != null && property.events.Count > 0)
                     continue;
 
-                int c = Utility.Rand % 20;
-                if (c < 2)
+                (int buffChance, int infestChance) = property.EventChances;
+                int c = Utility.Rand % 100;
+                if (c < buffChance)
                 {
-                    // 10%
                     if (property.lastEvent != "Buff")
                     {
                         property.events.Add(new Property.Event { name = "Buff", timer = 30 });
@@ -2048,9 +2073,8 @@ public class Game : MonoBehaviour
                     else
                         property.lastEvent = null;
                 }
-                else if (c == 2 && property.locationIndex != -1 && !property.HaveUpgrade("Extra guards"))
+                else if (c < buffChance + infestChance && property.locationIndex != -1 && !property.HaveUpgrade("Extra guards"))
                 {
-                    // 5%
                     if (property.lastEvent != "Infested")
                     {
                         property.events.Add(new Property.Event { name = "Infested", timer = -1 });
@@ -2265,6 +2289,30 @@ public class Game : MonoBehaviour
             button.Find("Counter").gameObject.SetActive(false);
         }
 
+        button = buttons.Find("BtManage");
+        if (location == TileType.City || location == TileType.Village)
+        {
+            if (player.HaveProperty("Inn", cityIndex: world.CityIndex))
+            {
+                button.GetComponentInChildren<TMP_Text>().text = "Manage inn";
+                button.gameObject.SetActive(true);
+            }
+            else
+                button.gameObject.SetActive(false);
+        }
+        else if (location == TileType.Sawmill || location == TileType.Mine || location == TileType.Farm)
+        {
+            if (player.HaveProperty(world.CurrentLocationIndex))
+            {
+                button.GetComponentInChildren<TMP_Text>().text = $"Manage {location.AsString()}";
+                button.gameObject.SetActive(true);
+            }
+            else
+                button.gameObject.SetActive(false);
+        }
+        else
+            button.gameObject.SetActive(false);
+
         button = buttons.Find("BtForage");
         if (location == TileType.Forest || location == TileType.Cave)
         {
@@ -2421,8 +2469,11 @@ public class Game : MonoBehaviour
     public void ManageProperties()
     {
         selectedProperty = null;
+        manageProperty = false;
         RefreshProperties();
         RefreshPropertyDetails();
+        propertiesScreen.transform.Find("List").gameObject.SetActive(true);
+        propertiesScreen.transform.Find("BtManage").GetComponent<Button>().interactable = false;
         ui.ShowDialog(propertiesScreen);
     }
 
@@ -2467,7 +2518,7 @@ public class Game : MonoBehaviour
                         player.properties.Remove(property);
                         property.events.Clear();
                         lastAction = $"You sell {property.Name.ToLower()} for <color=#FFD700>{property.value / 2}</color> gold.";
-                        if (property.name == "House" || property.name == "Mansion")
+                        if (property.name == "House" || property.name == "Mansion" || (property.name == "Inn" && property.cityIndex == world.CityIndex))
                             UpdateButtons();
                         if (property.name == "Horses" || property.name == "Mansion")
                             freshHorses = 0;
@@ -2548,6 +2599,9 @@ public class Game : MonoBehaviour
                     for (int i = 0; i < size; ++i)
                         property.gardenPlants.Add(string.Empty);
                 }
+                else if (property.name == "Inn")
+                    UpdateButtons();
+
                 AddTime(minutes: 30);
                 if (ui.CurrentDialog == propertiesScreen)
                 {
@@ -2563,8 +2617,16 @@ public class Game : MonoBehaviour
 
     public void RefreshPropertyDetails()
     {
-        ItemEntryList list = propertiesScreen.transform.Find("List").GetComponent<ItemEntryList>();
-        selectedProperty = list.GetSelectedData() as Property;
+        if (manageProperty)
+        {
+            propertiesScreen.transform.Find("Text").GetComponent<TMP_Text>().text = lastAction ?? string.Empty;
+            lastAction = null;
+        }
+        else
+        {
+            ItemEntryList list = propertiesScreen.transform.Find("List").GetComponent<ItemEntryList>();
+            selectedProperty = list.GetSelectedData() as Property;
+        }
 
         string str;
         if (selectedProperty == null)
@@ -2582,7 +2644,10 @@ public class Game : MonoBehaviour
                 else
                     str += $"Events: {even.name} ({even.timer})\n";
             }
-            str += $"Income:{selectedProperty.Income}  Upkeep:{selectedProperty.Upkeep}  Profit:{selectedProperty.Profit}\nUpgrades: ";
+            str += $"Income:{selectedProperty.Income}  Upkeep:{selectedProperty.Upkeep}  Profit:{selectedProperty.Profit}\n";
+            if (selectedProperty.income > 0)
+                str += $"Efficiency: {selectedProperty.Efficiency}({selectedProperty.efficiency})\n";
+            str += "Upgrades: ";
             if (selectedProperty.upgrades != null && selectedProperty.upgrades.Any(x => x.active))
                 str += string.Join(", ", selectedProperty.upgrades.Where(x => x.active).Select(x => x.name).OrderBy(x => x));
             else
@@ -2632,7 +2697,8 @@ public class Game : MonoBehaviour
                     AddTime(minutes: 30);
                     if (ui.CurrentDialog == propertiesScreen)
                     {
-                        RefreshProperties();
+                        if (!manageProperty)
+                            RefreshProperties();
                         RefreshPropertyDetails();
                     }
                     UpdateText();
@@ -4237,5 +4303,82 @@ public class Game : MonoBehaviour
 
         ui.CloseDialog();
         UpdateText();
+    }
+
+    public void Manage()
+    {
+        switch (world.Location)
+        {
+        case TileType.City:
+        case TileType.Village:
+            selectedProperty = player.properties.First(x => x.name == "Inn" && x.cityIndex == world.CityIndex);
+            break;
+        case TileType.Sawmill:
+        case TileType.Mine:
+        case TileType.Farm:
+            selectedProperty = player.properties.First(x => x.locationIndex == world.CurrentLocationIndex);
+            break;
+        default:
+            return;
+        }
+        manageProperty = true;
+        RefreshPropertyDetails();
+        propertiesScreen.transform.Find("List").gameObject.SetActive(false);
+        propertiesScreen.transform.Find("BtManage").GetComponent<Button>().interactable = true;
+        ui.ShowDialog(propertiesScreen);
+    }
+
+    public void DoManage()
+    {
+        if (hour > 16)
+            lastAction = "It's too late to manage.";
+        else if (player.energy < 25)
+            lastAction = "You are too tired to manage.";
+        else if (!world.CurrentTile.clear && world.Location.IsClearable())
+            lastAction = $"You can't manage while monsters occupy the {world.CurrentTile.Name}.";
+        else
+        {
+            player.energy -= 25;
+            (Hero bestAlly, int bestValue) = GetTeamSkill(Skill.Management);
+            float trainMod;
+            if (bestAlly == null || bestAlly == player)
+            {
+                lastAction = $"You manage the {selectedProperty.name}.";
+                trainMod = 1f;
+            }
+            else
+            {
+                lastAction = $"You and {bestAlly.name} manage the {selectedProperty.name}.";
+                trainMod = 1f + 0.01f * (bestValue - player.GetSkill(Skill.Management));
+            }
+
+            int newEfficiency = CalculateEfficiencyChange(bestValue, selectedProperty.efficiency);
+            if (newEfficiency > selectedProperty.efficiency)
+                lastAction += $" Efficiency increased by {newEfficiency - selectedProperty.efficiency}.";
+            else if (newEfficiency < selectedProperty.efficiency)
+                lastAction += $" Efficiency decreased by {selectedProperty.efficiency - newEfficiency}.";
+            selectedProperty.efficiency = newEfficiency;
+            selectedProperty.managed = true;
+
+            lastAction += player.Train(Skill.Management, trainMod);
+            AddTime(hours: 8);
+        }
+        if (ui.CurrentDialog == propertiesScreen)
+            RefreshPropertyDetails();
+        UpdateText();
+    }
+
+    private static int CalculateEfficiencyChange(int skill, int efficiency)
+    {
+        int targetEfficiency = skill + 25 + Utility.Random(-10, 10);
+        if (targetEfficiency == efficiency)
+            return efficiency;
+
+        int difference = targetEfficiency - efficiency;
+        int maxStep = Mathf.Max(Mathf.RoundToInt(Mathf.Abs(difference) * 0.2f), 1);
+        int step = Utility.Random(1, maxStep);
+        if (difference < 0)
+            step = -step;
+        return Mathf.Clamp(efficiency + step, 1, 100);
     }
 }

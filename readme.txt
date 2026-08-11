@@ -19,6 +19,7 @@ F - forage
 G - guild
 H - house/mansion
 J - journal
+M - manage
 P - properties (city)
 P - prospect (cave)
 R - rest
