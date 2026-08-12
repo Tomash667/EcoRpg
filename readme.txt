@@ -13,12 +13,15 @@ Tips:
 Shortcuts:
 1-2 - manage ally
 C - character screen
+C - craft (guild/house/mansion)
 D - go down
 E - explore
 F - forage
-G - guild
+G - guild (city)
+G - garden (house/mansion)
 H - house/mansion
 J - journal
+K - cook (guild/house/mansion)
 M - manage
 P - properties (city)
 P - prospect (cave)

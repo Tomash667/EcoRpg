@@ -393,6 +393,13 @@ public class Property
                     desc = "Increased speed for 10 days after visiting city, +3 upkeep",
                     value = 1000,
                     upkeep = 3
+                },
+                new()
+                {
+                    name = "Office",
+                    desc = "Allow to manage properties from mansion at 75% efficiency",
+                    value = 2000,
+                    upkeep = 1
                 }
             }
         },

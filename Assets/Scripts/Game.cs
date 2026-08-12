@@ -121,7 +121,9 @@ public class Game : MonoBehaviour
             }
             else if (ui.CurrentDialog == propertiesScreen)
             {
-                if (Input.GetKeyDown(KeyCode.M) && manageProperty)
+                bool canManage = manageProperty || ((world.Location == TileType.City || world.Location == TileType.Mansion)
+                    && selectedProperty != null && selectedProperty.income > 0 && player.HavePropertyUpgrade("Mansion", "Office"));
+                if (Input.GetKeyDown(KeyCode.M) && canManage)
                     DoManage();
             }
             return;
@@ -199,10 +201,23 @@ public class Game : MonoBehaviour
                     Forage();
                 break;
             case TileType.Sewers:
+                if (Input.GetKeyDown(KeyCode.X))
+                    ExitToCity();
+                break;
             case TileType.House:
             case TileType.Mansion:
                 if (Input.GetKeyDown(KeyCode.X))
                     ExitToCity();
+                if (Input.GetKeyDown(KeyCode.C) && ((world.Location == TileType.House && player.HavePropertyUpgrade("House", "Alchemy lab", cityIndex: world.CityIndex))
+                    || (world.Location == TileType.Mansion && player.HavePropertyUpgrade("Mansion", "Alchemy lab", cityIndex: world.CityIndex))))
+                    Craft();
+                if (Input.GetKeyDown(KeyCode.K))
+                    Cook();
+                if (Input.GetKeyDown(KeyCode.M) && world.Location == TileType.Mansion && player.HavePropertyUpgrade("Mansion", "Office"))
+                    ManageProperties();
+                if (Input.GetKeyDown(KeyCode.G) && ((world.Location == TileType.House && player.HavePropertyUpgrade("House", "Garden", cityIndex: world.CityIndex))
+                    || (world.Location == TileType.Mansion && player.HavePropertyUpgrade("Mansion", "Garden", cityIndex: world.CityIndex))))
+                    Garden();
                 break;
             case TileType.Sawmill:
             case TileType.Mine:
@@ -2246,7 +2261,7 @@ public class Game : MonoBehaviour
         buttons.Find("BtShop").gameObject.SetActive(inCity || inVillage);
         buttons.Find("BtWork").gameObject.SetActive(inCity || inVillage);
         buttons.Find("BtGuild").gameObject.SetActive(inCity);
-        buttons.Find("BtProperties").gameObject.SetActive(inCity || inVillage);
+        buttons.Find("BtProperties").gameObject.SetActive(inCity || inVillage || (location == TileType.Mansion && player.HavePropertyUpgrade("Mansion", "Office")));
         buttons.Find("BtSewers").gameObject.SetActive(inCity);
         Transform button = buttons.Find("BtHouse");
         if ((inCity || inVillage) && player.HaveProperty("Mansion", cityIndex: cityIndex))
@@ -2617,6 +2632,9 @@ public class Game : MonoBehaviour
         {
             ItemEntryList list = propertiesScreen.transform.Find("List").GetComponent<ItemEntryList>();
             selectedProperty = list.GetSelectedData() as Property;
+            bool canManage = (world.Location == TileType.City || world.Location == TileType.Mansion)
+                && selectedProperty != null && selectedProperty.income > 0 && player.HavePropertyUpgrade("Mansion", "Office");
+            propertiesScreen.transform.Find("BtManage").GetComponent<Button>().interactable = canManage;
         }
 
         string str;
@@ -4258,7 +4276,7 @@ public class Game : MonoBehaviour
                 payment += DoWork(true);
                 break;
             case "Manage":
-                DoManageInternal(property, true);
+                DoManageInternal(property, true, false);
                 break;
             }
 
@@ -4344,18 +4362,24 @@ public class Game : MonoBehaviour
             lastAction = $"You can't manage while monsters occupy the {world.CurrentTile.Name}.";
         else
         {
-            DoManageInternal(selectedProperty, false);
+            DoManageInternal(selectedProperty, false, !manageProperty);
             AddTime(hours: 8);
         }
         if (ui.CurrentDialog == propertiesScreen)
+        {
+            if (!manageProperty)
+                RefreshProperties();
             RefreshPropertyDetails();
+        }
         UpdateText();
     }
 
-    private void DoManageInternal(Property property, bool skipTime)
+    private void DoManageInternal(Property property, bool skipTime, bool remote)
     {
         player.energy -= 25;
         (Hero bestAlly, int bestValue) = GetTeamSkill(Skill.Management);
+        if (remote)
+            bestValue = bestValue * 3 / 4;
         float trainMod;
         if (bestAlly == null || bestAlly == player)
         {
@@ -4367,7 +4391,10 @@ public class Game : MonoBehaviour
         {
             if (!skipTime)
                 lastAction = $"You and {bestAlly.name} manage the {property.name.ToLower()}.";
-            trainMod = 1f + 0.01f * (bestValue - player.GetSkill(Skill.Management));
+            int skill = player.GetSkill(Skill.Management);
+            if (remote)
+                skill = skill * 3 / 4;
+            trainMod = 1f + 0.01f * (bestValue - skill);
         }
 
         int newEfficiency = CalculateEfficiencyChange(bestValue, property.efficiency);

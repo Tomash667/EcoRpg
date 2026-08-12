@@ -1,7 +1,6 @@
 v2:
 investments:
 + hire manager
-+ mansion upgrades - office room (can manage properties from mansion)
 + fix prices: adventurers one time infestation cost the same amount as full time guards
 + quest to get into investing (free inn?)
 ---------------------------------------------------------------------------------------------------
@@ -158,6 +157,7 @@ ui:
 + status bar at bottom with lastAction, click to show previous
 + animate datetime, gold
 + player healthbar
++ visible shortcuts
 
 refactoring:
 + Team class
@@ -215,6 +215,7 @@ investments:
 + office upgrade
 + work in office, workers
 + efficiency affects value
++ manage mansion from mansion
 
 skills:
 + haggle
