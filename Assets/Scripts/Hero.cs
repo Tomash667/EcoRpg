@@ -78,7 +78,6 @@ public class Hero : ISerializationCallbackReceiver
     public void Init(int startLevel = 0)
     {
         female = Utility.Rand % 2 == 0;
-        name = (female ? Names.femaleNames : Names.maleNames).RandomItem();
         clas = ClassMethods.all.RandomItem();
         InitCommon();
         if (startLevel > 0)
@@ -688,7 +687,7 @@ public class Hero : ISerializationCallbackReceiver
             return string.Empty;
     }
 
-    private float CalculateRequiredSkillTrain(int value)
+    public static float CalculateRequiredSkillTrain(int value)
     {
         float valueFloat = (float)value;
         return (value / 20) switch

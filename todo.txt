@@ -1,6 +1,5 @@
 v2:
 investments:
-+ hire manager
 + fix prices: adventurers one time infestation cost the same amount as full time guards
 + quest to get into investing (free inn?)
 ---------------------------------------------------------------------------------------------------
@@ -110,6 +109,14 @@ hero:
 + training required to level up?
 + specialized trainers that are better for archer/warrior
 + ally with higher level speeds up training
++ recruit hero from list
++ look for specific hero
+
+units:
++ last name
++ traits
+	imposter -> skill values lie
++ common class for Hero/Worker/Combat.Unit?
 
 events:
 + free person for hire (foreman, geomancer etc)
@@ -158,6 +165,7 @@ ui:
 + animate datetime, gold
 + player healthbar
 + visible shortcuts
++ better button naming for Properties/Manage if there a people there too
 
 refactoring:
 + Team class
@@ -216,6 +224,8 @@ investments:
 + work in office, workers
 + efficiency affects value
 + manage mansion from mansion
++ changing worker assignment takes travel time
++ higher upkeep for better workers
 
 skills:
 + haggle

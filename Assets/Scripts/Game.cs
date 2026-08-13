@@ -5,6 +5,7 @@ using System.Text;
 using TMPro;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -28,13 +29,14 @@ public class Game : MonoBehaviour
     public List<Quest> availableQuests, activeQuests;
     public List<Property> properties;
     public List<Notification> notifications;
+    public List<Worker> availableWorkers, hiredWorkers;
     public DragonStatus dragonStatus;
     public float guildProgress;
     public int day, hour, minute, guildRank, freshHorses;
 
     private GameUI ui;
     private GameObject shopScreen, characterScreen, journalScreen, allyScreen, giveAllyItemsScreen, storeItemsScreen, activeInventory, propertiesScreen, guildScreen, gardenScreen, craftScreen,
-        enchantItemsScreen, skipTimeScreen;
+        enchantItemsScreen, skipTimeScreen, peopleScreen;
     private RectTransform[] alliesHealthRect;
     private Map map;
     private Combat combatScreen;
@@ -46,7 +48,7 @@ public class Game : MonoBehaviour
     private string lastAction, lastTestCombat;
     private float restCombatHeal;
     private int restCombatEnergy;
-    private bool inChoice, traveled, restCombat, manageProperty;
+    private bool inChoice, traveled, restCombat, manageProperty, recruitWorkers;
 
     public IEnumerable<Hero> Team
     {
@@ -79,6 +81,7 @@ public class Game : MonoBehaviour
         map.Init();
         enchantItemsScreen = transform.Find("EnchantItems").gameObject;
         skipTimeScreen = transform.Find("SkipTime").gameObject;
+        peopleScreen = transform.Find("People").gameObject;
         alliesHealthRect = new[] { transform.Find("Buttons/BtAlly/Health") as RectTransform, transform.Find("Buttons/BtAlly2/Health") as RectTransform };
 
         Global global = Global.Instance;
@@ -100,7 +103,8 @@ public class Game : MonoBehaviour
 
         if (ui.HasDialog)
         {
-            if (ui.CurrentDialog == guildScreen)
+            GameObject currentDialog = ui.CurrentDialog;
+            if (currentDialog == guildScreen)
             {
                 if (guildRank != 0)
                 {
@@ -114,17 +118,24 @@ public class Game : MonoBehaviour
                         Train();
                 }
             }
-            else if (ui.CurrentDialog == skipTimeScreen)
+            else if (currentDialog == skipTimeScreen)
             {
                 if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
                     DoSkipTime();
             }
-            else if (ui.CurrentDialog == propertiesScreen)
+            else if (currentDialog == propertiesScreen)
             {
                 bool canManage = manageProperty || ((world.Location == TileType.City || world.Location == TileType.Mansion)
                     && selectedProperty != null && selectedProperty.income > 0 && player.HavePropertyUpgrade("Mansion", "Office"));
                 if (Input.GetKeyDown(KeyCode.M) && canManage)
                     DoManage();
+                if (Input.GetKeyDown(KeyCode.P))
+                    ManageWorkers();
+            }
+            else if (currentDialog == peopleScreen)
+            {
+                if (Input.GetKeyDown(KeyCode.P) && !recruitWorkers)
+                    ManageProperties();
             }
             return;
         }
@@ -1912,7 +1923,7 @@ public class Game : MonoBehaviour
             }
         }
 
-        ui.CloseDialogs(x => x == propertiesScreen || x == guildScreen || x == characterScreen || x == craftScreen);
+        ui.CloseDialogs(x => x == propertiesScreen || x == guildScreen || x == characterScreen || x == craftScreen || x == peopleScreen);
         return true;
     }
 
@@ -1944,6 +1955,7 @@ public class Game : MonoBehaviour
             .Where(p => p.status == Property.Status.Active)
             .Sum(p =>
             {
+                int profit = p.Profit;
                 if (p.events.Count != 0)
                 {
                     Property.Event even = p.events[0];
@@ -1959,19 +1971,17 @@ public class Game : MonoBehaviour
                                 p.events.Clear();
                             }
                         }
-                        return -p.upkeep / 2;
                     }
                     else
                     {
                         --even.timer;
                         if (even.timer == 0)
                             p.events.Clear();
-                        return p.income * 3 / 2 - p.upkeep;
                     }
                 }
-                else
-                    return p.income - p.upkeep;
+                return profit;
             });
+        player.goldWaiting -= hiredWorkers.Count * 2;
 
         foreach (Property property in player.properties.Where(x => x.status == Property.Status.Building))
         {
@@ -2001,6 +2011,9 @@ public class Game : MonoBehaviour
         }
 
         UpdateQuests();
+
+        if (day % 10 == 0)
+            GenerateWorkers();
 
         // grow garden plants
         foreach (Property property in player.properties.Where(x => x.gardenPlants != null && x.gardenPlants.Count > 0))
@@ -2040,22 +2053,19 @@ public class Game : MonoBehaviour
         if (freshHorses > 0)
             --freshHorses;
 
+        UpdateWorkers();
+
         world.Update();
 
         if (day % 10 == 0)
         {
             // decrease efficiency if none manage property
-            foreach (Property property in player.properties.Where(x => x.income > 0 && x.status == Property.Status.Active))
+            foreach (Property property in player.properties.Where(x => x.income > 0 && x.status == Property.Status.Active && (day - x.lastManaged) >= 10))
             {
-                if (property.managed)
-                    property.managed = false;
-                else
-                {
-                    int maxDecrease = 1 + property.efficiency / 20;
-                    property.efficiency -= Utility.Random(1, maxDecrease);
-                    if (property.efficiency < 1)
-                        property.efficiency = 1;
-                }
+                int maxDecrease = 1 + property.efficiency / 20;
+                property.efficiency -= Utility.Random(1, maxDecrease);
+                if (property.efficiency < 1)
+                    property.efficiency = 1;
             }
 
             // property events
@@ -2207,6 +2217,8 @@ public class Game : MonoBehaviour
             }
         };
         availableQuests = new();
+        availableWorkers = new();
+        hiredWorkers = new();
         notifications = new();
         properties = new();
         foreach (Property property in Property.properties)
@@ -2225,6 +2237,7 @@ public class Game : MonoBehaviour
             properties.Add(copy);
         }
         GenerateInitialQuests();
+        GenerateWorkers();
         lastAction = "You are an adventurer seeking glory and gold. Rumors speak of a dragon lurking deep within a forgotten cave beyond the wilds. " +
             "Find its lair, face the beast, and carve your name into legend.";
     }
@@ -2263,6 +2276,7 @@ public class Game : MonoBehaviour
         buttons.Find("BtGuild").gameObject.SetActive(inCity);
         buttons.Find("BtProperties").gameObject.SetActive(inCity || inVillage || (location == TileType.Mansion && player.HavePropertyUpgrade("Mansion", "Office")));
         buttons.Find("BtSewers").gameObject.SetActive(inCity);
+        buttons.Find("BtRecruit").gameObject.SetActive(inCity || inVillage);
         Transform button = buttons.Find("BtHouse");
         if ((inCity || inVillage) && player.HaveProperty("Mansion", cityIndex: cityIndex))
         {
@@ -2416,13 +2430,19 @@ public class Game : MonoBehaviour
     {
         Hero hero = new();
         hero.Init(level);
+        hero.name = GetUniqueName(hero.female);
+        return hero;
+    }
+
+    private string GetUniqueName(bool female)
+    {
+        string[] names = female ? Names.femaleNames : Names.maleNames;
         while (true)
         {
-            if (!Team.Any(x => x.name == hero.name))
-                break;
-            hero.name = (hero.female ? Names.femaleNames : Names.maleNames).RandomItem();
+            string name = names.RandomItem();
+            if (!Team.Select(x => x.name).Union(hiredWorkers.Select(x => x.name)).Union(availableWorkers.Select(x => x.name)).Contains(name))
+                return name;
         }
-        return hero;
     }
 
     public void RemoveAlly()
@@ -2474,7 +2494,10 @@ public class Game : MonoBehaviour
 
     public void ManageProperties()
     {
-        selectedProperty = null;
+        if (ui.CurrentDialog == peopleScreen)
+            ui.CloseDialog();
+        else
+            selectedProperty = null;
         manageProperty = false;
         RefreshProperties();
         RefreshPropertyDetails();
@@ -2522,6 +2545,10 @@ public class Game : MonoBehaviour
                         properties.Add(property);
                         player.AddGold(property.value / 2);
                         player.properties.Remove(property);
+                        int locationIndex = GetLocationIndex(property);
+                        Worker worker = hiredWorkers.FirstOrDefault(x => x.locationIndex == locationIndex);
+                        if (worker != null)
+                            worker.locationIndex = -1;
                         property.events.Clear();
                         lastAction = $"You sell {property.Name.ToLower()} for <color=#FFD700>{property.value / 2}</color> gold.";
                         if (property.name == "House" || property.name == "Mansion" || (property.name == "Inn" && property.cityIndex == world.CityIndex))
@@ -2655,7 +2682,11 @@ public class Game : MonoBehaviour
             }
             str += $"Income:{selectedProperty.Income}  Upkeep:{selectedProperty.Upkeep}  Profit:{selectedProperty.Profit}\n";
             if (selectedProperty.income > 0)
-                str += $"Efficiency: {selectedProperty.Efficiency}({selectedProperty.efficiency})\n";
+            {
+                int locationIndex = GetLocationIndex(selectedProperty);
+                Worker manager = hiredWorkers.FirstOrDefault(x => locationIndex != -1 && x.locationIndex == locationIndex);
+                str += $"Efficiency: {selectedProperty.Efficiency} ({selectedProperty.efficiency})\nManager: {(manager == null ? "(none)" : manager.ToStringShort())}\n";
+            }
             str += "Upgrades: ";
             if (selectedProperty.upgrades != null && selectedProperty.upgrades.Any(x => x.active))
                 str += string.Join(", ", selectedProperty.upgrades.Where(x => x.active).Select(x => x.name).OrderBy(x => x));
@@ -3425,7 +3456,18 @@ public class Game : MonoBehaviour
     [ContextMenu("Regenerate world")]
     private void RegenerateWorld()
     {
+        // remember properties assigned to workers
+        Dictionary<Worker, Property> workerPropertyMap = new();
+        foreach (Worker worker in hiredWorkers)
+        {
+            Property property = GetProperty(worker.locationIndex);
+            if (property != null)
+                workerPropertyMap[worker] = property;
+        }
+
         world.Init();
+
+        // reassign property locationIndex, update map with built properties
         foreach (Property property in Property.properties)
         {
             if (property.locationIndexFunc != null)
@@ -3465,8 +3507,15 @@ public class Game : MonoBehaviour
                 }
             }
         }
+
+        // reassign workers properties
+        foreach ((Worker worker, Property property) in workerPropertyMap)
+            worker.locationIndex = GetLocationIndex(property);
+
+        // remove quests for locations
         activeQuests.RemoveAll(x => x.type == Quest.Type.Artifact || x.type == Quest.Type.Clear);
         availableQuests.RemoveAll(x => x.type == Quest.Type.Artifact || x.type == Quest.Type.Clear);
+
         map.Regenerate();
     }
 
@@ -3986,6 +4035,28 @@ public class Game : MonoBehaviour
             return null;
     }
 
+    private int GetLocationIndex(Property property)
+    {
+        if (property.name == "Inn")
+            return world.cityMapping[property.cityIndex];
+        else
+            return property.locationIndex;
+    }
+
+    private Property GetProperty(int locationIndex)
+    {
+        if (locationIndex == -1)
+            return null;
+        Property property = player.properties.FirstOrDefault(x => x.locationIndex == locationIndex);
+        if (property == null)
+        {
+            int cityIndex = world.cityMapping.IndexOf(locationIndex);
+            if (cityIndex != -1)
+                property = player.properties.FirstOrDefault(x => x.name == "Inn" && x.cityIndex == cityIndex);
+        }
+        return property;
+    }
+
     private (Hero hero, int value) GetTeamSkill(Skill skill)
     {
         Hero bestHero = null;
@@ -4406,7 +4477,7 @@ public class Game : MonoBehaviour
                 lastAction += $" Efficiency decreased by {property.efficiency - newEfficiency}.";
         }
         property.efficiency = newEfficiency;
-        property.managed = true;
+        property.lastManaged = day;
 
         string str = player.Train(Skill.Management, trainMod);
         if (!skipTime)
@@ -4435,5 +4506,169 @@ public class Game : MonoBehaviour
             TileType.Sawmill or TileType.Mine or TileType.Farm => player.properties.FirstOrDefault(x => x.locationIndex == world.CurrentLocationIndex),
             _ => null
         };
+    }
+
+    public void RecruitWorkers()
+    {
+        recruitWorkers = true;
+        RefreshPeople();
+        peopleScreen.transform.Find("BtProperties").gameObject.SetActive(false);
+        peopleScreen.transform.Find("BtClose").gameObject.SetActive(true);
+        peopleScreen.transform.Find("BtClose2").gameObject.SetActive(false);
+        ui.ShowDialog(peopleScreen);
+    }
+
+    public void ManageWorkers()
+    {
+        recruitWorkers = false;
+        RefreshPeople();
+        ui.CloseDialog();
+        peopleScreen.transform.Find("BtProperties").gameObject.SetActive(true);
+        peopleScreen.transform.Find("BtClose").gameObject.SetActive(false);
+        peopleScreen.transform.Find("BtClose2").gameObject.SetActive(true);
+        ui.ShowDialog(peopleScreen);
+    }
+
+    private void RefreshPeople()
+    {
+        // header
+        TMP_Text header = peopleScreen.transform.Find("Header").GetComponent<TMP_Text>();
+        if (recruitWorkers)
+            header.text = "Available people:";
+        else
+            header.text = $"Hired people ({2 * hiredWorkers.Count} upkeep):";
+
+        // text
+        peopleScreen.transform.Find("Text").GetComponent<TMP_Text>().text = lastAction ?? string.Empty;
+
+        // list
+        Transform content = peopleScreen.transform.Find("List/Viewport/Content");
+        foreach (Transform child in content)
+            Destroy(child.gameObject);
+
+        if (recruitWorkers)
+        {
+            int cityIndex = world.CityIndex;
+            foreach (Worker worker in availableWorkers.Where(x => x.locationIndex == cityIndex).OrderBy(x => x.name))
+            {
+                ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
+                itemEntry.Init(worker.ToStringHire(), "Hire", () =>
+                {
+                    int cost = worker.Cost;
+                    if (player.gold < cost)
+                    {
+                        ui.ShowDialog($"You need {cost} gold.");
+                        return;
+                    }
+
+                    lastAction = $"You pay <color=#FFD700>{cost}</color> gold to hire {worker.name}.";
+                    player.AddGold(-cost);
+                    worker.locationIndex = -1;
+                    hiredWorkers.Add(worker);
+                    availableWorkers.Remove(worker);
+                    AddTime(minutes: 15);
+                    if (ui.IsOpen(peopleScreen))
+                        RefreshPeople();
+                    UpdateText();
+                });
+            }
+        }
+        else
+        {
+            foreach (Worker worker in hiredWorkers.OrderBy(x => x.name))
+            {
+                ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
+                Property property = GetProperty(worker.locationIndex);
+                string actionText;
+                UnityAction action;
+                if (selectedProperty == null || selectedProperty.income == 0)
+                {
+                    actionText = null;
+                    action = null;
+                }
+                else if (selectedProperty == property)
+                {
+                    actionText = "Unassign";
+                    action = () =>
+                    {
+                        lastAction = $"You unassign {worker.name} from {selectedProperty.Name}.";
+                        worker.locationIndex = -1;
+                        RefreshPeople();
+                    };
+                }
+                else
+                {
+                    actionText = "Assign";
+                    action = () =>
+                    {
+                        int locationIndex = GetLocationIndex(selectedProperty);
+                        Worker currentWorker = hiredWorkers.FirstOrDefault(x => x.locationIndex == locationIndex);
+                        if (currentWorker != null)
+                        {
+                            lastAction = $"You unassign {currentWorker.name} and assign {worker.name} to {selectedProperty.Name}.";
+                            currentWorker.locationIndex = -1;
+                        }
+                        else
+                            lastAction = $"You assign {worker.name} to {selectedProperty.Name}.";
+                        worker.locationIndex = locationIndex;
+                        RefreshPeople();
+                    };
+                }
+
+                itemEntry.Init2(worker.ToStringHired(property?.Name), actionText, action, "Fire", () =>
+                {
+                    lastAction = $"You fire {worker.name}.";
+                    hiredWorkers.Remove(worker);
+                    RefreshPeople();
+                });
+            }
+        }
+    }
+
+    private void GenerateWorkers()
+    {
+        availableWorkers.RemoveAll(x => Utility.Rand % 2 == 0);
+
+        for (int cityIndex = 0; cityIndex < 3; ++cityIndex)
+        {
+            int count = Utility.Random(1, 2);
+            if (cityIndex == 0)
+                ++count;
+
+            int currentCount = availableWorkers.Count(x => x.locationIndex == cityIndex);
+            while (currentCount < count)
+            {
+                Worker worker = new()
+                {
+                    female = Utility.Rand % 2 == 0,
+                    skill = RandomSkill(),
+                    locationIndex = cityIndex
+                };
+                worker.name = GetUniqueName(worker.female);
+                availableWorkers.Add(worker);
+                ++currentCount;
+            }
+        }
+    }
+
+    private int RandomSkill()
+    {
+        float t = Mathf.Pow(Random.value, 2f);
+        return 25 + Mathf.RoundToInt(t * 15f) * 5;
+    }
+
+    private void UpdateWorkers()
+    {
+        int prevDay = day - 1;
+        foreach (Worker worker in hiredWorkers.Where(x => x.locationIndex != -1))
+        {
+            Property property = GetProperty(worker.locationIndex);
+            if (property.lastManaged != prevDay)
+            {
+                property.efficiency = CalculateEfficiencyChange(worker.skill, property.efficiency);
+                property.lastManaged = prevDay;
+                worker.Train();
+            }
+        }
     }
 }

@@ -58,8 +58,8 @@ public class Property
     public Func<World, int> locationIndexFunc;
     public Status status;
     public float infestedDifficultyMod;
-    public int value, infestedCost, infestedDifficulty, income, upkeep, upkeepDiscount, buildPrice, buildPriceDiscount, buildTime, locationIndex, cityIndex, efficiency;
-    public bool multi, producer, managed;
+    public int value, infestedCost, infestedDifficulty, income, upkeep, upkeepDiscount, buildPrice, buildPriceDiscount, buildTime, locationIndex, cityIndex, efficiency, lastManaged;
+    public bool multi, producer;
 
     public int Income
     {
