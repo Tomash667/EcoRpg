@@ -465,7 +465,7 @@ public class Property
                 {
                     name = "Extra guards",
                     desc = "Prevents monster invasion, +2 upkeep",
-                    value = 2000,
+                    value = 1500,
                     upkeep = 2
                 },
                 new()
@@ -483,7 +483,7 @@ public class Property
             name = "Silver mine",
             desc = "PROFIT gold/day",
             value = 25000,
-            infestedCost = 1500,
+            infestedCost = 1250,
             infestedDifficulty = 2,
             infestedDifficultyMod = 1f,
             income = 35,
@@ -501,7 +501,7 @@ public class Property
                 {
                     name = "Extra guards",
                     desc = "Prevents monster invasion, +2 upkeep",
-                    value = 2000,
+                    value = 2500,
                     upkeep = 2
                 },
                 new()
@@ -537,7 +537,7 @@ public class Property
                 {
                     name = "Extra guards",
                     desc = "Prevents monster invasion, +2 upkeep",
-                    value = 2000,
+                    value = 4000,
                     upkeep = 2
                 },
                 new()
@@ -591,9 +591,9 @@ public class Property
             name = "Farm",
             desc = "PROFIT gold/day",
             value = 5000,
-            infestedCost = 500,
+            infestedCost = 250,
             infestedDifficulty = 1,
-            infestedDifficultyMod = 0.75f,
+            infestedDifficultyMod = 0.5f,
             income = 10,
             upkeep = 5,
             status = Status.Active,
@@ -606,7 +606,7 @@ public class Property
                 {
                     name = "Extra guards",
                     desc = "Prevents monster invasion, +1 upkeep",
-                    value = 1000,
+                    value = 500,
                     upkeep = 1
                 },
                 new()
@@ -625,9 +625,9 @@ public class Property
             name = "Farm",
             desc = "PROFIT gold/day",
             value = 5000,
-            infestedCost = 1250,
+            infestedCost = 750,
             infestedDifficulty = 2,
-            infestedDifficultyMod = 0.75f,
+            infestedDifficultyMod = 0.5f,
             income = 10,
             upkeep = 5,
             efficiency = 50,
@@ -640,8 +640,8 @@ public class Property
                 {
                     name = "Extra guards",
                     desc = "Prevents monster invasion, +1 upkeep",
-                    value = 2000,
-                    upkeep = 2
+                    value = 1500,
+                    upkeep = 1
                 },
                 new()
                 {
@@ -659,8 +659,8 @@ public class Property
             name = "Farm",
             desc = "PROFIT gold/day",
             value = 5000,
-            infestedCost = 1250,
-            infestedDifficulty = 2,
+            infestedCost = 1500,
+            infestedDifficulty = 3,
             infestedDifficultyMod = 0.75f,
             income = 10,
             upkeep = 5,
@@ -677,8 +677,8 @@ public class Property
                 {
                     name = "Extra guards",
                     desc = "Prevents monster invasion, +1 upkeep",
-                    value = 2000,
-                    upkeep = 2
+                    value = 3000,
+                    upkeep = 1
                 },
                 new()
                 {

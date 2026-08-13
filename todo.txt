@@ -1,6 +1,4 @@
 v2:
-investments:
-+ fix prices: adventurers one time infestation cost the same amount as full time guards
 + quest to get into investing (free inn?)
 ---------------------------------------------------------------------------------------------------
 hero:
@@ -12,6 +10,9 @@ hero:
 	rogue
 	cleric
 	mage
+	merchant
+	farmer
+	miner
 + races
 + inventory max weight
 	allies
@@ -34,6 +35,8 @@ hero:
 		defeat x enemies in region
 		capture bandits leader in forest
 		rescue
+		bandits captured caravan
+		thieves stole family hairloom
 	timed
 	quests in village, no guild?
 + allies
@@ -226,6 +229,10 @@ investments:
 + manage mansion from mansion
 + changing worker assignment takes travel time
 + higher upkeep for better workers
++ win game as merchant
+	hire adventurers to scout, clear locations
+	fund expeditions
++ extra guards -> fortifications (use wood)
 
 skills:
 + haggle
