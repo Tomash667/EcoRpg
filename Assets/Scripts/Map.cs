@@ -65,11 +65,11 @@ public class Map : MonoBehaviour
 
     public void Show()
     {
-        Vector2Int currentPt = Global.World.currentPt;
-        currentPos = PtToPos(currentPt);
+        World world = Global.World;
+        currentPos = PtToPos(world.currentPt);
         flag.GetComponent<RectTransform>().anchoredPosition = currentPos;
         outlineTarget.SetActive(false);
-        Quest quest = Global.Game.activeQuests.FirstOrDefault(x => x.tracked && x.location != -1);
+        Quest quest = Global.Game.activeQuests.FirstOrDefault(x => x.tracked && x.location != -1 && world.GetLocation(x.location).discovered);
         if (quest != null)
         {
             outlineQuest.GetComponent<RectTransform>().anchoredPosition = PtToPos(World.IndexToPoint(quest.location));
@@ -288,6 +288,12 @@ public class Map : MonoBehaviour
         Image image = tilesContainer.GetChild(index).GetComponent<Image>();
         image.sprite = sprites[(int)tile.image];
         image.color = tile.discovered ? Color.white : Color.gray;
+        Quest quest = Global.Game.activeQuests.FirstOrDefault(x => x.tracked && x.location == index);
+        if (quest != null)
+        {
+            outlineQuest.GetComponent<RectTransform>().anchoredPosition = PtToPos(World.IndexToPoint(quest.location));
+            outlineQuest.SetActive(true);
+        }
     }
 
     public void Regenerate()

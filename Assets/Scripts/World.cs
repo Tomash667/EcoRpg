@@ -367,6 +367,7 @@ public class World
 
     public static Vector2Int IndexToPoint(int index)
     {
+        index %= (sizeX * sizeY);
         return new(index % sizeX, index / sizeX);
     }
 

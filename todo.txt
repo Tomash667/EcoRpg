@@ -1,9 +1,4 @@
-- map tracking location don't work for dragon quest
-	sewers?
-	gather?
-	defeat?
 - dragon will steal 10k gold
-- tracking shows on undiscovered location
 ---------------------------------------------------------------------------------------------------
 hero:
 + tutorial

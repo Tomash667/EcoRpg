@@ -2263,7 +2263,8 @@ public class Game : MonoBehaviour
         {
             new()
             {
-                type = Quest.Type.UniqueDragon
+                type = Quest.Type.UniqueDragon,
+                location = -1
             }
         };
         availableQuests = new();
@@ -2965,6 +2966,7 @@ public class Game : MonoBehaviour
                     quest.type = Quest.Type.Gather;
                     quest.item = Item.Get(Utility.Rand % 2 == 0 ? "herb" : "magic crystal");
                     quest.max = 20;
+                    quest.location = -1;
                     quest.locationDifficulty = 1;
                     quest.difficultyMod = 0.25f;
                     break;
@@ -2990,6 +2992,7 @@ public class Game : MonoBehaviour
                     quest.type = Quest.Type.Defeat;
                     quest.enemy = Enemy.GetRandom(difficulty);
                     quest.max = Utility.Random(2, 3);
+                    quest.location = -1;
                     quest.locationDifficulty = difficulty;
                     quest.difficultyMod = Mathf.Lerp(0.1f, 0.5f, quest.enemy.level / 3f);
                     break;
@@ -3045,6 +3048,7 @@ public class Game : MonoBehaviour
                         quest.item = Item.Get("magic crystal");
                         quest.max = 50;
                     }
+                    quest.location = -1;
                     quest.locationDifficulty = 2;
                     quest.difficultyMod = 0.25f;
                     break;
@@ -3053,6 +3057,7 @@ public class Game : MonoBehaviour
                     quest.type = Quest.Type.Defeat;
                     quest.enemy = Enemy.GetRandom(difficulty);
                     quest.max = Utility.Random(2, 2 + difficulty);
+                    quest.location = -1;
                     quest.locationDifficulty = difficulty;
                     if (difficulty == 2)
                         quest.difficultyMod = Mathf.Lerp(0.25f, 0.5f, (quest.enemy.level - 4) / 2f);
@@ -3070,6 +3075,7 @@ public class Game : MonoBehaviour
                     tile.defeatedEnemies = 0;
                     tile.timer = 0;
                     tile.foundTreasure = false;
+                    tile.clear = false;
                 }
                 return quest;
             }
