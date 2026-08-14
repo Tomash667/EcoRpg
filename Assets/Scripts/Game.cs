@@ -2686,7 +2686,6 @@ public class Game : MonoBehaviour
                 }
                 else if (property.name == "Inn")
                 {
-                    UpdateButtons();
                     if (property.cityIndex == 1)
                     {
                         if (spiderStatus == SpiderStatus.Accepted)
@@ -2697,6 +2696,7 @@ public class Game : MonoBehaviour
                         }
                         spiderStatus = SpiderStatus.Skipped;
                     }
+                    UpdateButtons();
                 }
 
                 AddTime(minutes: 30);
@@ -4761,7 +4761,12 @@ public class Game : MonoBehaviour
                 if (!activeQuests.Any(x => x.tracked))
                     quest.tracked = true;
                 activeQuests.Add(quest);
+                UpdateButtons();
+                lastAction = "You accepted the quest to defeat the spider queen.";
             }
+            else
+                lastAction = null;
+            UpdateText();
         });
     }
 }

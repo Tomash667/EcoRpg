@@ -48,7 +48,7 @@ public class Combat : MonoBehaviour
     private readonly List<Unit> enemies = new();
     private readonly List<Hero> hitHeroes = new();
     private List<Enemy> enemyList;
-    private List<int> order = new();
+    private List<object> order = new();
     private Game game;
     private TMP_Text text;
     private GameObject arrow;
@@ -89,11 +89,12 @@ public class Combat : MonoBehaviour
             if (multiRow && !hero.BackRow)
                 pos.y += 25;
             transform.anchoredPosition = pos;
-            ++index;
-            order.Add(-index);
-            card.index = -index;
+            order.Add(hero);
+            card.owner = hero;
+            card.slot = index;
             hero.InitCombat();
             hero.card = card;
+            ++index;
         }
 
         bool summoned = enemyList[0].name == "spider queen";
@@ -108,20 +109,20 @@ public class Combat : MonoBehaviour
             if (multiRow && enemy.blocks)
                 pos.y -= 25;
             transform.anchoredPosition = pos;
-            order.Add(i);
-            card.index = i;
-            enemies.Add(new Unit { enemy = enemy, card = card, hp = enemy.hp, canBlock = enemy.blocks, summoned = summoned && enemy.name == "giant spider" });
+            Unit unit = new() { enemy = enemy, card = card, hp = enemy.hp, canBlock = enemy.blocks, summoned = summoned && enemy.name == "giant spider" };
+            enemies.Add(unit);
+            order.Add(unit);
+            card.owner = unit;
+            card.slot = i;
         }
 
         order = order.Select(x =>
         {
             int dex;
-            if (x == -1)
-                dex = game.player.dex;
-            else if (x < -1)
-                dex = game.allies[-x - 2].dex;
+            if (x is Hero hero)
+                dex = hero.dex;
             else
-                dex = enemies[x].enemy.dex;
+                dex = (x as Unit).enemy.dex;
             dex += Utility.Rand % 5;
             return (x, dex);
         }).OrderByDescending(x => x.dex).Select(x => x.x).ToList();
@@ -187,8 +188,8 @@ public class Combat : MonoBehaviour
                 AppendText("You win!");
                 result = Result.Win;
                 timer = 1f;
-                foreach (Hero hero in game.Team)
-                    hero.card.Approach();
+                foreach (Hero hero2 in game.Team)
+                    hero2.card.Approach();
                 break;
             default:
                 transform.parent.Find("Buttons").gameObject.SetActive(true);
@@ -198,26 +199,24 @@ public class Combat : MonoBehaviour
             return;
         }
 
-        int unitIndex = order[combatIndex];
+        object obj = order[combatIndex];
         bool nextUnit;
-        if (unitIndex < 0)
-            nextUnit = HeroAction(unitIndex);
+        if (obj is Hero hero)
+            nextUnit = HeroAction(hero);
         else
-            nextUnit = EnemyAction(unitIndex);
+            nextUnit = EnemyAction(obj as Unit);
 
-        if (nextUnit)
+        if (nextUnit || combatIndex == order.Count)
         {
             ++combatIndex;
-            if (combatIndex == order.Count)
+            if (combatIndex >= order.Count)
                 combatIndex = 0;
             effectTick = 0;
         }
     }
 
-    private bool HeroAction(int unitIndex)
+    private bool HeroAction(Hero hero)
     {
-        Hero hero = unitIndex == -1 ? game.player : game.allies[-unitIndex - 2];
-
         if (effectTick == 0)
         {
             effectTick = 1;
@@ -458,9 +457,8 @@ public class Combat : MonoBehaviour
         timer = 0.5f;
     }
 
-    private bool EnemyAction(int unitIndex)
+    private bool EnemyAction(Unit me)
     {
-        Unit me = enemies[unitIndex];
         if (me.hp <= 0)
         {
             if (me.summoned)
@@ -472,7 +470,7 @@ public class Combat : MonoBehaviour
                     playerTarget = null;
                 }
                 me.card.Unsummon();
-                order.Remove(unitIndex);
+                order.Remove(me);
                 enemies.Remove(me);
                 timer = 0.5f;
                 return false;
@@ -662,17 +660,22 @@ public class Combat : MonoBehaviour
         CharacterCard card = Instantiate(characterCardPrefab, transform.GetChild(1)).GetComponent<CharacterCard>();
         card.Init(enemy.name, 1f, true, Resources.Load<Sprite>(enemy.Portrait));
         RectTransform rectTransform = card.GetComponent<RectTransform>();
-        int i = enemies.Count;
-        Vector2 pos = enemyPos[i];
+        int emptySlot = -1;
+        for (int i = 0; i < 3; ++i)
+        {
+            if (!enemies.Any(x => x.card.slot == i))
+                emptySlot = i;
+        }
+        Vector2 pos = enemyPos[emptySlot];
         if (enemy.blocks && enemies.Any(x => x.enemy.blocks != enemy.blocks))
             pos.y -= 25;
         rectTransform.anchoredPosition = pos;
-        int myIndex = enemies.IndexOf(me);
-        int myOrder = order.IndexOf(myIndex);
-        order.Insert(myOrder + 1, i);
-        card.index = i;
+        Unit summoned = new() { enemy = enemy, card = card, hp = enemy.hp, canBlock = enemy.blocks, summoned = true };
+        card.owner = summoned;
+        int myOrder = order.IndexOf(me);
+        order.Insert(myOrder + 1, summoned);
         card.Summon();
-        enemies.Add(new Unit { enemy = enemy, card = card, hp = enemy.hp, canBlock = enemy.blocks, summoned = true });
+        enemies.Add(summoned);
         AppendText($"{me.enemy.name.ToUpper1()} summons {enemy.name}.", 0.15f);
         timer = 0.5f;
         me.cooldown2 = 3;
@@ -756,12 +759,12 @@ public class Combat : MonoBehaviour
         }
     }
 
-    public void SelectCard(int index)
+    public void SelectCard(object owner)
     {
-        if (index >= 0)
+        if (owner is Unit unit)
         {
             playerTarget?.card.SetColor(Color.white);
-            playerTarget = enemies[index];
+            playerTarget = unit;
             playerTarget.card.SetColor(Color.blue);
         }
     }

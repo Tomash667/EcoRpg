@@ -3,15 +3,7 @@
 	gather?
 	defeat?
 - dragon will steal 10k gold
-v2:
-+ quest to get into investing (free inn?)
-	? show quest popup - accept, decline
-	? add to journal (unique?)
-	? kill spider quuen
-	? receive inn
-		? debt
-	? if bought -> cancel quest
-	? if cleared before -> hide
+- tracking shows on undiscovered location
 ---------------------------------------------------------------------------------------------------
 hero:
 + tutorial

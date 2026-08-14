@@ -24,7 +24,8 @@ public class CharacterCard : MonoBehaviour, IPointerClickHandler
 
     public Sprite[] effectSprites;
     public GameObject effectPrefab;
-    public int index;
+    public object owner;
+    public int slot;
 
     private Action action;
     private Effect addEffect, removeEffect;
@@ -365,7 +366,7 @@ public class CharacterCard : MonoBehaviour, IPointerClickHandler
     public void OnPointerClick(PointerEventData eventData)
     {
         if (eventData.button == PointerEventData.InputButton.Left)
-            transform.parent.parent.GetComponent<Combat>().SelectCard(index);
+            transform.parent.parent.GetComponent<Combat>().SelectCard(owner);
     }
 
     public void SetColor(Color color)
