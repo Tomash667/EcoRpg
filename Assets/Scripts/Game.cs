@@ -2843,10 +2843,11 @@ public class Game : MonoBehaviour
         foreach (Transform child in content)
             Destroy(child.gameObject);
 
-        int acceptedQuests = activeQuests.Count(x => !x.IsUnique);
-        if (acceptedQuests != 0)
+        bool haveItems = false;
+        int acceptedQuestCount = activeQuests.Count(x => !x.IsUnique);
+        if (acceptedQuestCount > 0)
         {
-            ui.AddTextHeader($"Accepted quests ({acceptedQuests}/{guildRank}):", content);
+            ui.AddTextHeader($"Accepted quests ({acceptedQuestCount}/{guildRank}):", content);
             foreach (Quest quest in activeQuests.Where(x => !x.IsUnique))
             {
                 ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
@@ -2855,11 +2856,16 @@ public class Game : MonoBehaviour
                 else
                     itemEntry.Init2(quest.TextReward, null, null, "Cancel", () => CancelQuest(quest));
             }
-            Instantiate(ui.lineSeparatorPrefab, content);
+            haveItems = true;
         }
 
-        if (guildRank != 0)
+        if (availableQuests.Any(x => x.difficulty <= guildRank))
+        {
+            if (haveItems)
+                Instantiate(ui.lineSeparatorPrefab, content);
             ui.AddTextHeader("Available quests:", content);
+            haveItems = true;
+        }
 
         bool unavailable = false;
         foreach (Quest quest in availableQuests)
@@ -2867,12 +2873,14 @@ public class Game : MonoBehaviour
             if (!unavailable && quest.difficulty > guildRank)
             {
                 unavailable = true;
-                Instantiate(ui.lineSeparatorPrefab, content);
+                if (haveItems)
+                    Instantiate(ui.lineSeparatorPrefab, content);
                 ui.AddTextHeader("Unavailable quests:", content);
+                haveItems = true;
             }
 
             ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
-            if (acceptedQuests < guildRank && !unavailable)
+            if (acceptedQuestCount < guildRank && !unavailable)
             {
                 itemEntry.Init(quest.TitleReward, "Pick", () =>
                 {
@@ -2901,7 +2909,8 @@ public class Game : MonoBehaviour
         Property[] infestedProperties = player.properties.Where(p => p.events.Any(e => e.name == "Infested" && e.timer == -1)).ToArray();
         if (infestedProperties.Length > 0)
         {
-            Instantiate(ui.lineSeparatorPrefab, content);
+            if (haveItems)
+                Instantiate(ui.lineSeparatorPrefab, content);
             ui.AddTextHeader("Quests to offer:", content);
             foreach (Property prop in infestedProperties)
             {
@@ -4283,7 +4292,7 @@ public class Game : MonoBehaviour
         });
 
         // add new quests
-        if (availableQuests.Count != 6)
+        if (availableQuests.Count < 9)
         {
             int[] questsByDifficulty = new int[4];
             foreach (Quest quest in availableQuests)
@@ -4295,7 +4304,7 @@ public class Game : MonoBehaviour
                 int missingQuests = 3 - questsByDifficulty[difficulty];
                 for (int i = 0; i < missingQuests; ++i)
                 {
-                    if (Utility.Rand % 4 == 0)
+                    if (Utility.Rand % 3 == 0)
                     {
                         Quest quest = GenerateQuest(difficulty);
                         availableQuests.Add(quest);

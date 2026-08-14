@@ -115,6 +115,8 @@ hero:
 + recruit hero from list
 + look for specific hero
 + update journal text and point at location after discovering dragon lair
++ you need to defeat wolf and all you find are elves
+? is tent useful
 
 units:
 + last name
@@ -171,6 +173,7 @@ ui:
 + visible shortcuts
 + better button naming for Properties/Manage if there a people there too
 + move map speed vs zoom
++ map background
 
 refactoring:
 + Team class
