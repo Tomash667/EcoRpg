@@ -663,6 +663,7 @@ public class Game : MonoBehaviour
             {
                 if (enemy.gold != Vector2Int.zero)
                     gold += enemy.gold.Random();
+                gold += enemy.extraGold;
                 if (enemy.drops != null)
                 {
                     foreach (var (item, chance) in enemy.drops)
@@ -832,7 +833,7 @@ public class Game : MonoBehaviour
                 }
 
                 if (goldTaken > 0)
-                    goldTaken = RemoveTeamGold(goldTaken);
+                    goldTaken = RemoveTeamGold(Utility.Round(goldTaken));
                 if (rationsTaken > 0)
                     rationsTaken = RemoveTeamItem(Item.Get("rations"), rationsTaken);
 

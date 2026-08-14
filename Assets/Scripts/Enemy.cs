@@ -23,7 +23,7 @@ public class Enemy
     public Vector2Int gold, attacks = new(1, 1);
     public (TileType tileType, int difficulty)[] locations;
     public (Item item, float chance)[] drops;
-    public int level, hp, attack, def, dex, difficulty;
+    public int level, hp, attack, def, dex, difficulty, extraGold;
     public AttackType attackType;
     public Pronoun pronoun;
     public bool blocks, fireball, firebreath, darkbolt, summonMummy, summonSpider;
@@ -170,6 +170,7 @@ public class Enemy
             def = 11,
             dex = 22,
             gold = new(90, 135),
+            extraGold = 910,
             attackType = AttackType.Poison,
             pronoun = Pronoun.She,
             summonSpider = true
@@ -363,7 +364,8 @@ public class Enemy
             attack = 90,
             def = 18,
             dex = 26,
-            gold = new(10000, 10000),
+            gold = new(160, 240),
+            extraGold = 9840,
             pronoun = Pronoun.It,
             firebreath = true
         },
