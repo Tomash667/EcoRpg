@@ -1,4 +1,4 @@
-EcoRpg v0.2
+EcoRpg v0.3
 (Economic, not ecologic)
 
 Goal:
@@ -9,6 +9,7 @@ Tips:
 * Equiping/storing team item makes player owe gold to allies which is repaid when you receive gold.
 * Ally with skill helps & trains your skill when working.
 * You can give herbs to ally with alchemist set to make potions.
+* High property efficiency increase income and chance for positive events.
 
 Shortcuts:
 1-2 - manage ally
@@ -55,6 +56,6 @@ Mouse wheel - zoom in/out map
 Skills:
 Alchemy - create extra potions and better recipes
 Forage - more resources when foraging
-Management - ???
+Management - improve property efficiency
 Mining - more resources when mining, extra payment in mine
 Woodwork - extra payment in sawmill

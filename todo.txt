@@ -1,17 +1,135 @@
+v3
+hero:
++ longer main quest that require investing
+	lessen infinite supply of quests & treasure
++ classes - cleric
++ races - elf, human
++ quests
+	quests in village, no guild?
+	untrack quest
+	defeat x enemies in region
+	capture bandits leader in forest
++ allies
+	3rd ally
+	buy rations to match up player
++ damage type
+	holy vs undead
+	hero fire/poison weapon
+	unholy
+	fire/poison resistance/immunity
+* tavern -> celebrate finished quest
++ more enemies
+	goblin instead of elf
+	???
++ class perks/attacks
+	bash
+	multishoot
+	extra attack after defeating enemy
+	???
++ combat
+	special attacks
+		tentacle monster - grab attack
+		spider - web (slow)
+		dryad - charm
+		guard - extra block and def
+		???
+	summoned enemies disappear instantly?
++ romance
++ talk with allies random events
++ stronger enemies at lower dungeon levels
++ training required to level up?
++ specialized trainers that are better for archer/warrior
++ ally with higher level speeds up training
++ update journal text and point at location after discovering dragon lair
++ you need to defeat wolf and all you find are elves
+? is tent useful
+
+events:
++ spotted enemy
++ negative event for decreased income
+
+ui:
++ interact portair
++ permanent action confirm (drop, ?)
++ vsync
++ player healthbar, fixed top ui
++ move map - cursor stays in place
++ s&l map zoom
++ combat key shortcuts
++ open journal on map?
++ auto position buttons in smart way
++ map zoom only when mouse over tiles
++ construction icon visible on map
++ smoother travel
++ ok/confirm dialog auto size
++ show text on ally craft, apply to other texts not shown
++ Utility.Plural should inclue a/an (sometimes?)
++ show item value on character screen (and other places?)
++ new game class description
++ tooltips (for owed gold info)
++ text when entering infested property
++ status bar at bottom with lastAction, click to show previous
++ player healthbar
++ visible shortcuts
++ better button naming for Properties/Manage if there a people there too
++ move map speed vs zoom
++ map background
+
+refactoring:
++ Team class
++ classes from UI screens
+
+investments:
++ workers skill
++ upgrades takes time
++ undo upgrades
++ foreman -> trains others over time
++ farm
+	free food
+	expand farm to extra tile
++ difference what player earn by working vs upkeep from workers
++ allow more then one property event
++ office upgrade
++ efficiency affects value
++ manage mansion from mansion
++ changing worker assignment takes travel time
++ higher upkeep for better workers
+
+skills:
++ alchemy
+	mana potions
+	crafting 100 potions at once give much more skill then crating one potion 100 times
++ farming
++ strength
++ endurance
++ intelligence
++ charm
++ attributes training
++ skills training from foreman
++ it's too easy to get skill from 0->100
+
+work:
++ inn
++ farming in your house -> don't pay for gardener
+
+world:
++ second region with city and villages
++ desert
++ number of enemies in dungeon depends on defeatedEnemies not on treasureFound
++ enchanted forest -> more herbs, faster regrow
++ month, year
+
 ---------------------------------------------------------------------------------------------------
 hero:
 + tutorial
-+ longer main quest that require investing
-	lessen infinite supply of quests & treasure
 + classes
 	tank
 	rogue
-	cleric
 	mage
 	merchant
 	farmer
 	miner
-+ races
++ more races
 + inventory max weight
 	allies
 	horse
@@ -30,38 +148,27 @@ hero:
 	more types
 		clear dungeon/crypt
 		enemy camp
-		defeat x enemies in region
-		capture bandits leader in forest
 		rescue
 		bandits captured caravan
 		thieves stole family hairloom
 	timed
-	quests in village, no guild?
-	untrack quest
 + allies
 	soft limit
 	leave and take from guild
 	ally guild rank
-	buy rations to match up player
 	traits
 		adventurous -> dislike not doing anything
 		lazy
 + damage type
-	holy vs undead
-	fire/poison resistance/immunity
 	acid
-	hero fire/poison weapon
-	unholy
 + adventurers potential (1-broken x0.25, 3-commoner x1, 5-adventurer x1.5, 7-hero x2.25, 10-chosen one x5)
 	soft skill cap
-* tavern -> celebrate finished quest
-	major kingdom quest -> feast
+* major kingdom quest -> feast
 + more enemies
 	slime
 	wererat
 	Carrion crawler
 	boar
-	goblin
 	fay
 	corrupted animals
 	demon prince, greater demon
@@ -75,48 +182,29 @@ hero:
 + light/heavy armor
 + hero sword/spear/bow/shield
 + unskilled weapon use
-+ class perks
 + auto collect herbs and create potions when traveling
 + combat
 	escape chance
 	enemy escape
 	special attacks
-		tentacle monster - grab attack
-		spider - web (slow)
-		dryad - charm
 		purple worm - engulf
 		heal
-		guard - extra block and def
 	enemy use potion
 	boss second phase
-	summoned enemies disappear instantly?
 + more interesting dungeon exploring - random d20 rooms, explored%
 + dungeon types - less/more traps, less/more monsters, trap types
-+ romance
-+ talk with allies random events
 + life of alchemist
 	starting class/history
 	sell at marketplace booth
 	hire people to gather herbs, sell potions
-+ hero special attacks
-	bash
-	multishoot
-	extra attack after defeating enemy
-+ stronger enemies at lower dungeon levels
 + harasher lose consequences
 	stolen equipment
 	slavery (escape or have investments liquidated)
 	death
 + recruit hero chance (reputation, charm)
 + alignment good/neutral/evil
-+ training required to level up?
-+ specialized trainers that are better for archer/warrior
-+ ally with higher level speeds up training
 + recruit hero from list
 + look for specific hero
-+ update journal text and point at location after discovering dragon lair
-+ you need to defeat wolf and all you find are elves
-? is tent useful
 
 units:
 + last name
@@ -131,8 +219,6 @@ events:
 	neutral (surge of workers, royal inspection, ancient ruins)
 	bad (tunnel collapse, flooding, forged deed, cursed -> bad luck)
 + travel events
-+ spotted enemy
-+ negative event for decreased income
 + events based on something that happened not random stuff
 + world events
 	war
@@ -144,40 +230,11 @@ events:
 ui:
 + combat sounds
 + combat different attacks anim
-+ interact portair
 + better UI for two button ItemEntry
 + cancel quest confirm
-+ permanent action confirm (drop, ?)
 + background music
-+ vsync
-+ player healthbar, fixed top ui
 + shop tabs?, separate shops
-+ move map - cursor stays in place
-+ s&l map zoom
-+ combat key shortcuts
-+ open journal on map?
-+ auto position buttons in smart way
-+ map zoom only when mouse over tiles
-+ construction icon visible on map
-+ smoother travel
-+ ok/confirm dialog auto size
-+ show text on ally craft, apply to other texts not shown
-+ Utility.Plural should inclue a/an (sometimes?)
-+ show item value on character screen (and other places?)
-+ new game class description
-+ tooltips (for owed gold info)
-+ text when entering infested property
-+ status bar at bottom with lastAction, click to show previous
 + animate datetime, gold
-+ player healthbar
-+ visible shortcuts
-+ better button naming for Properties/Manage if there a people there too
-+ move map speed vs zoom
-+ map background
-
-refactoring:
-+ Team class
-+ classes from UI screens
 
 investments:
 + cottage/big house
@@ -201,17 +258,12 @@ investments:
 + resources: wood, iron, silver, gold
 	buy & sell
 + old mansion/mine -> need repairs
-+ upgrades takes time
-+ undo upgrades
 + brewery/vineyard -> inn bonus
 + hire mercenaries that you can move between locations
 + bureaucracy (manager needs to work more)
-+ foreman -> trains others over time
 + monsters destroying property
 + merchant guild to buy/sell properties
 + farm
-	free food
-	expand farm to extra tile
 	hire druid/dryad/farm hero
 + build farms on plains, sawmills on forest, multiple mines
 + build mansion in village
@@ -224,16 +276,9 @@ investments:
 		establish trade route
 		others join caravan (lower costs)
 + border taxes
-+ difference what player earn by working vs upkeep from workers
 + stats/graphs of profit/upkeep/totals
 + grid for properties, details on right, buttons in details
-+ allow more then one property event
-+ office upgrade
 + work in office, workers
-+ efficiency affects value
-+ manage mansion from mansion
-+ changing worker assignment takes travel time
-+ higher upkeep for better workers
 + win game as merchant
 	hire adventurers to scout, clear locations
 	fund expeditions
@@ -242,9 +287,7 @@ investments:
 
 skills:
 + haggle
-+ alchemy
-	more recipes
-	crafting 100 potions at once give much more skill then crating one potion 100 times
++ alchemy - more recipes
 + crafting
 	dragon hide -> armor
 + theory vs practice soft cap
@@ -254,21 +297,11 @@ skills:
 + cooking
 + artifacts that increase skill (self writing pen, golden pickaxe/axe, etc)
 + swimming
-+ farming
-+ strength
-+ endurance
-+ intelligence
-+ charm
 + beauty
-+ attributes training
-+ skills training from foreman
 + university to train skills
-+ it's too easy to get skill from 0->100
 
 work:
 + fishing
-+ inn
-+ farming in your house -> don't pay for gardener
 
 technology:
 + blast furnace
@@ -288,16 +321,13 @@ world:
 + sell region map after 100% discovery
 + region statistics: safety, population
 + rain -> flood (depends on rain strength, paved roads, sewers, dungeons)
-+ pathfinding
 + roads, rivers, bridges, sea, difficult terrain
 + travel speed (faster horse/beast, magic)
 	bad terrain -> mountains, swamp
 + teleport
-+ new location types (desert)
 + harder to find locations - need explore
 + locations that require exploring to discover
 + hamlet spawning next to mine
-+ multiple villages/cities
 + capitol
 + swamp names
 	marsh, bog, Fen, Wetlands
@@ -308,14 +338,11 @@ world:
 	https://chatgpt.com/g/g-p-699b357f41e08191be6bf11fa9b7de95-ecorpg/c/69d61c1d-aae0-8396-a8da-0410db050de5
 	https://aistudio.google.com/prompts/1fGhK85Ij3nwgBj3ToL7wBvXHap5_Pgxh
 	https://grok.com/c/794e217a-21f5-49e3-ba34-761dfa270b31?rid=bec1eec2-cbb4-4806-b4d8-204d0b74029f
-+ number of enemies in dungeon depends on defeatedEnemies not on treasureFound
 + travel over lake
 + sea/ocean/big lake
 + plane of water/fire etc
 + elven village
-+ enchanted forest -> more herbs, faster regrow
 + city siege/destruction
-+ month, year
 + kingdom alignment lawful/chaotic good/evil
 	chaotic - random taxes, low bureaucracy
 	lawful - stable taxes, high bureaucracy
