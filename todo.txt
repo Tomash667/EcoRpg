@@ -1,5 +1,17 @@
+- map tracking location don't work for dragon quest
+	sewers?
+	gather?
+	defeat?
+- dragon will steal 10k gold
 v2:
 + quest to get into investing (free inn?)
+	? show quest popup - accept, decline
+	? add to journal (unique?)
+	? kill spider quuen
+	? receive inn
+		? debt
+	? if bought -> cancel quest
+	? if cleared before -> hide
 ---------------------------------------------------------------------------------------------------
 hero:
 + tutorial
@@ -39,6 +51,7 @@ hero:
 		thieves stole family hairloom
 	timed
 	quests in village, no guild?
+	untrack quest
 + allies
 	soft limit
 	leave and take from guild
@@ -90,6 +103,7 @@ hero:
 		guard - extra block and def
 	enemy use potion
 	boss second phase
+	summoned enemies disappear instantly?
 + more interesting dungeon exploring - random d20 rooms, explored%
 + dungeon types - less/more traps, less/more monsters, trap types
 + romance
@@ -114,6 +128,7 @@ hero:
 + ally with higher level speeds up training
 + recruit hero from list
 + look for specific hero
++ update journal text and point at location after discovering dragon lair
 
 units:
 + last name
@@ -169,6 +184,7 @@ ui:
 + player healthbar
 + visible shortcuts
 + better button naming for Properties/Manage if there a people there too
++ move map speed vs zoom
 
 refactoring:
 + Team class
@@ -233,6 +249,7 @@ investments:
 	hire adventurers to scout, clear locations
 	fund expeditions
 + extra guards -> fortifications (use wood)
++ amazing efficiency can't prevent infestation but can better defend itself (need combat and different invastion types)
 
 skills:
 + haggle

@@ -219,6 +219,7 @@ public class World
         SpawnHiddenLocations(0, 14, 2, TileType.Mountains, TileType.Cave, Names.cave1.ToList());
         spawned = SpawnHiddenLocations(15, 24, 3, TileType.Mountains, TileType.Cave, Names.cave2.ToList());
         spawned[0].mine = true;
+        spawned[1].boss = true;
         spawned = SpawnHiddenLocations(25, 34, 3, TileType.Mountains, TileType.Cave, Names.cave3.ToList());
         spawned[0].boss = true;
         spawned[0].levels = 2;

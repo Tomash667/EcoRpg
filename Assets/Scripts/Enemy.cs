@@ -26,7 +26,7 @@ public class Enemy
     public int level, hp, attack, def, dex, difficulty;
     public AttackType attackType;
     public Pronoun pronoun;
-    public bool blocks, fireball, firebreath, darkbolt, summon;
+    public bool blocks, fireball, firebreath, darkbolt, summonMummy, summonSpider;
 
     public string him
     {
@@ -158,7 +158,21 @@ public class Enemy
             dex = 16,
             drops = new[] { (Item.Get("trophy"), 0.75f) },
             attackType = AttackType.Poison,
-            pronoun = Pronoun.It
+            pronoun = Pronoun.It,
+            blocks = true
+        },
+        new()
+        {
+            name = "spider queen",
+            level = 8,
+            hp = 240,
+            attack = 55,
+            def = 11,
+            dex = 22,
+            gold = new(90, 135),
+            attackType = AttackType.Poison,
+            pronoun = Pronoun.She,
+            summonSpider = true
         },
         new()
         {
@@ -327,7 +341,7 @@ public class Enemy
             gold = new(110, 165),
             pronoun = Pronoun.He,
             darkbolt = true,
-            summon = true
+            summonMummy = true
         },
         new()
         {

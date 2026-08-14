@@ -96,6 +96,7 @@ public class Combat : MonoBehaviour
             hero.card = card;
         }
 
+        bool summoned = enemyList[0].name == "spider queen";
         multiRow = enemyList.Any(x => x.blocks != enemyList[0].blocks);
         for (int i = 0; i < enemyList.Count; ++i)
         {
@@ -109,7 +110,7 @@ public class Combat : MonoBehaviour
             transform.anchoredPosition = pos;
             order.Add(i);
             card.index = i;
-            enemies.Add(new Unit { enemy = enemy, card = card, hp = enemy.hp, canBlock = enemy.blocks });
+            enemies.Add(new Unit { enemy = enemy, card = card, hp = enemy.hp, canBlock = enemy.blocks, summoned = summoned && enemy.name == "giant spider" });
         }
 
         order = order.Select(x =>
@@ -464,7 +465,7 @@ public class Combat : MonoBehaviour
         {
             if (me.summoned)
             {
-                AppendText($"{me.enemy.name.ToUpper1()} crumbles into dust.", 0.15f);
+                AppendText(me.enemy.name == "mummy" ? $"{me.enemy.name.ToUpper1()} crumbles into dust." : $"{me.enemy.name.ToUpper1()} skitters away.", 0.15f);
                 if (me == playerTarget)
                 {
                     me.card.SetColor(Color.white);
@@ -492,7 +493,7 @@ public class Combat : MonoBehaviour
                 --me.cooldown2;
         }
 
-        if (me.enemy.summon && me.cooldown2 == 0 && enemies.Count < Game.MaxTeamSize && Utility.Rand % 3 != 0)
+        if ((me.enemy.summonMummy || me.enemy.summonSpider) && me.cooldown2 == 0 && enemies.Count < Game.MaxTeamSize && Utility.Rand % 3 != 0)
         {
             EnemySummon(me);
             return true;
@@ -657,7 +658,7 @@ public class Combat : MonoBehaviour
 
     private void EnemySummon(Unit me)
     {
-        Enemy enemy = Enemy.Get("mummy");
+        Enemy enemy = Enemy.Get(me.enemy.summonMummy ? "mummy" : "giant spider");
         CharacterCard card = Instantiate(characterCardPrefab, transform.GetChild(1)).GetComponent<CharacterCard>();
         card.Init(enemy.name, 1f, true, Resources.Load<Sprite>(enemy.Portrait));
         RectTransform rectTransform = card.GetComponent<RectTransform>();

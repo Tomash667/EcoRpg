@@ -18,6 +18,15 @@ public class Game : MonoBehaviour
         Win
     }
 
+    public enum SpiderStatus
+    {
+        None,
+        Accepted,
+        Defeated,
+        Rewarded,
+        Skipped
+    }
+
     public const int MaxTeamSize = 3;
     private const int MaxGuildRank = 4;
 
@@ -31,6 +40,7 @@ public class Game : MonoBehaviour
     public List<Notification> notifications;
     public List<Worker> availableWorkers, hiredWorkers;
     public DragonStatus dragonStatus;
+    public SpiderStatus spiderStatus;
     public float guildProgress;
     public int day, hour, minute, guildRank, freshHorses;
 
@@ -564,7 +574,7 @@ public class Game : MonoBehaviour
 
         List<Enemy> enemyList = new();
         Tile tile = world.CurrentTile;
-        if (tile.boss && !restCombat)
+        if (tile.boss && !restCombat && tile.difficulty == 3)
         {
             if (tile.defeatedEnemies >= 10 && world.level + 1 == tile.levels)
             {
@@ -580,6 +590,14 @@ public class Game : MonoBehaviour
                 for (int i = 0; i < count; ++i)
                     enemyList.Add(enemy);
             }
+        }
+        else if (tile.boss && !restCombat && tile.difficulty == 2 && tile.defeatedEnemies >= 10 && spiderStatus < SpiderStatus.Defeated)
+        {
+            enemy = Enemy.Get("spider queen");
+            enemyList.Add(enemy);
+            enemy = Enemy.Get("giant spider");
+            for (int i = 0; i < 2; ++i)
+                enemyList.Add(enemy);
         }
         else if (tile.type == TileType.DarkDimension)
         {
@@ -686,7 +704,7 @@ public class Game : MonoBehaviour
                 dragonStatus = DragonStatus.Defeated;
                 lastAction = "With a final blow, the dragon falls. Its roar fades into silence, and the cavern grows still. The beast is slain—its hoard and your legend now yours to claim. " +
                     $"You found {pickups}.";
-                Quest quest = activeQuests.FirstOrDefault(x => x.type == Quest.Type.Unique);
+                Quest quest = activeQuests.FirstOrDefault(x => x.type == Quest.Type.UniqueDragon);
                 if (quest != null)
                     RemoveQuest(quest);
                 tile.clear = true;
@@ -697,6 +715,21 @@ public class Game : MonoBehaviour
             }
             else
             {
+                if (enemyList.Any(x => x.name == "spider queen"))
+                {
+                    tile.clear = true;
+                    tile.timer = 0;
+                    if (spiderStatus == SpiderStatus.Accepted)
+                    {
+                        spiderStatus = SpiderStatus.Defeated;
+                        Quest quest = activeQuests.First(x => x.type == Quest.Type.UniqueSpider);
+                        quest.location = world.cityMapping[1];
+                        quest.count = 1;
+                    }
+                    else
+                        spiderStatus = SpiderStatus.Skipped;
+                }
+
                 if (pickups != null)
                     lastAction = $"You win a fight with <b>{Utility.PrettyGroup(enemyList.Select(x => x.name))}</b> ({pickups} found).";
                 else
@@ -822,7 +855,7 @@ public class Game : MonoBehaviour
                 ChangeTeamAffection(-5);
             }
 
-            if (enemyList.Any(x => x.name == "dragon"))
+            if (enemyList.Any(x => x.name == "dragon" || x.name == "spider queen"))
                 tile.defeatedEnemies -= 5;
             if (tile.type == TileType.DarkDimension && enemyList.Any(x => x.name == "nameless horror"))
                 tile.defeatedEnemies = 0;
@@ -1097,12 +1130,29 @@ public class Game : MonoBehaviour
             lastAction = "You return to the city as a hero. The Adventurer’s Guild erupts in cheers, mugs raised high in your honor. " +
                 "Songs of your victory begin to spread, and your name will not be forgotten.";
         }
+        else if (tile.type == TileType.Village && world.CityIndex == 1 && spiderStatus == SpiderStatus.Defeated)
+        {
+            spiderStatus = SpiderStatus.Rewarded;
+            RemoveQuest(activeQuests.First(x => x.type == Quest.Type.UniqueSpider));
+            Property inn = properties.First(x => x.name == "Inn" && x.cityIndex == 1);
+            player.properties.Add(inn);
+            properties.Remove(inn);
+            PayForTeamProperty(player, inn.value / 2);
+            lastAction = $"You travel to the {tile.Name}. Inn owner is thankful for defeating the spider queen and hands over the deed to <b>inn</b>.";
+        }
         else
             lastAction = $"You travel to the {tile.Name}.";
+
         if (tile.boss)
-            lastAction += " There are <b>dragon engravings</b> near entrance.";
+        {
+            if (tile.difficulty == 3)
+                lastAction += " There are <b>dragon engravings</b> near entrance.";
+            else
+                lastAction += " There are more <b>cobwebs</b> then in an usual cave.";
+        }
         else if (tile.mine && tile.type == TileType.Cave)
             lastAction += $" There are <b>{(tile.difficulty == 2 ? "silver" : "gold")} veins</b> inside this cave.";
+
         Property property = player.properties.FirstOrDefault(x => x.status == Property.Status.Building && x.locationIndex == world.CurrentLocationIndex);
         if (property != null)
             lastAction += $" {property.name} is being build here.";
@@ -2213,7 +2263,7 @@ public class Game : MonoBehaviour
         {
             new()
             {
-                type = Quest.Type.Unique
+                type = Quest.Type.UniqueDragon
             }
         };
         availableQuests = new();
@@ -2332,6 +2382,8 @@ public class Game : MonoBehaviour
             button.GetComponentInChildren<TMP_Text>().text = $"Manage {propertyNameShort}";
             button.gameObject.SetActive(true);
         }
+
+        buttons.Find("BtQuest").gameObject.SetActive(cityIndex == 1 && spiderStatus == SpiderStatus.None);
 
         button = buttons.Find("BtForage");
         if (location == TileType.Forest || location == TileType.Cave)
@@ -2633,7 +2685,19 @@ public class Game : MonoBehaviour
                         property.gardenPlants.Add(string.Empty);
                 }
                 else if (property.name == "Inn")
+                {
                     UpdateButtons();
+                    if (property.cityIndex == 1)
+                    {
+                        if (spiderStatus == SpiderStatus.Accepted)
+                        {
+                            Quest quest = activeQuests.First(x => x.type == Quest.Type.UniqueSpider);
+                            lastAction += $" Quest '{quest.Title}' is canceled.";
+                            RemoveQuest(quest);
+                        }
+                        spiderStatus = SpiderStatus.Skipped;
+                    }
+                }
 
                 AddTime(minutes: 30);
                 if (ui.CurrentDialog == propertiesScreen)
@@ -2777,11 +2841,11 @@ public class Game : MonoBehaviour
         foreach (Transform child in content)
             Destroy(child.gameObject);
 
-        int acceptedQuests = activeQuests.Count(x => x.type != Quest.Type.Unique);
+        int acceptedQuests = activeQuests.Count(x => !x.IsUnique);
         if (acceptedQuests != 0)
         {
             ui.AddTextHeader($"Accepted quests ({acceptedQuests}/{guildRank}):", content);
-            foreach (Quest quest in activeQuests.Where(x => x.type != Quest.Type.Unique))
+            foreach (Quest quest in activeQuests.Where(x => !x.IsUnique))
             {
                 ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
                 if (quest.IsDone())
@@ -3095,7 +3159,7 @@ public class Game : MonoBehaviour
         activeQuests.Remove(quest);
         if (isTracked)
         {
-            quest = activeQuests.FirstOrDefault(x => x.type != Quest.Type.Unique);
+            quest = activeQuests.FirstOrDefault(x => x.type != Quest.Type.UniqueDragon);
             if (quest != null)
                 quest.tracked = true;
         }
@@ -4088,6 +4152,15 @@ public class Game : MonoBehaviour
             PayOwedGold(hero);
     }
 
+    private void PayForTeamProperty(Hero hero, int value)
+    {
+        int cost = value * allies.Count / (allies.Count + 1);
+        hero.owedGold += cost;
+        CancelOutDebts();
+        if (hero.owedGold > 0)
+            PayOwedGold(hero);
+    }
+
     public void PayOwedGold(Hero hero)
     {
         int availableGold = hero.gold - Hero.MinGold;
@@ -4670,5 +4743,25 @@ public class Game : MonoBehaviour
                 worker.Train();
             }
         }
+    }
+
+    public void ViewQuest()
+    {
+        Choice("You look at quest board.\n<i>I hate spiders! If you kill the spider queen I will give you my inn. Or you can buy it and I'll hire someone using that money.</i>\n" +
+            "Do you accept the quest?", yes =>
+        {
+            if (yes)
+            {
+                spiderStatus = SpiderStatus.Accepted;
+                Quest quest = new()
+                {
+                    type = Quest.Type.UniqueSpider,
+                    location = world.FindLocationIndex(x => x.difficulty == 2 && x.boss)
+                };
+                if (!activeQuests.Any(x => x.tracked))
+                    quest.tracked = true;
+                activeQuests.Add(quest);
+            }
+        });
     }
 }

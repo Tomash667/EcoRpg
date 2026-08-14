@@ -10,7 +10,8 @@ public class Quest : ISerializationCallbackReceiver
         Clear,
         Gather,
         Artifact,
-        Unique
+        UniqueDragon,
+        UniqueSpider
     }
 
     public Enemy enemy;
@@ -21,6 +22,7 @@ public class Quest : ISerializationCallbackReceiver
     public int location, count, max, locationDifficulty, difficulty, timer;
     public bool tracked;
 
+    public bool IsUnique => type == Type.UniqueDragon || type == Type.UniqueSpider;
     public int Reward
     {
         get
@@ -45,7 +47,8 @@ public class Quest : ISerializationCallbackReceiver
                 Type.Clear => $"Clear {GetLocationName()} - {Mathf.Min(100 * count / max, 100)}%",
                 Type.Gather => $"Gather {Global.Player.CountItem(item)}/{max} {Utility.Plural(item.name)}",
                 Type.Artifact => count == 0 ? $"Find artifact in {GetLocationName()}" : $"Bring artifact from {GetLocationName()} to guild",
-                Type.Unique => "Defeat dragon in far cave",
+                Type.UniqueDragon => "Defeat dragon in far cave",
+                Type.UniqueSpider => count == 0 ? $"Defeat spider queen in {GetLocationName()}" : $"Return to {GetLocationName()} and get your reward",
                 _ => string.Empty
             };
         }
@@ -60,13 +63,13 @@ public class Quest : ISerializationCallbackReceiver
                 Type.Clear => $"Clear {GetLocationName()}",
                 Type.Gather => $"Gather {Utility.Plural(item.name, max)}",
                 Type.Artifact => $"Find artifact in {GetLocationName()}",
-                Type.Unique => "Defeat dragon in far cave",
+                Type.UniqueDragon or Type.UniqueSpider => Text,
                 _ => string.Empty
             };
         }
     }
     public string TitleReward => $"{Title} ({Reward} gold)";
-    public string TextReward => type != Type.Unique ? $"{Text} ({Reward} gold)" : Text;
+    public string TextReward => IsUnique ? Text : $"{Text} ({Reward} gold)";
 
     public void OnBeforeSerialize()
     {
