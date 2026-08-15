@@ -464,13 +464,13 @@ public class Game : MonoBehaviour
             {
                 float trainMod = 1f + 0.01f * (bestValue - player.GetSkill(Skill.Forage));
                 text.Append($"You explore the {tile.Name} and with {bestHero.name} help find <b>{Utility.Plural(herb.name, count)}</b>.");
-                text.Append(player.Train(Skill.Forage, 0.25f * trainMod));
-                bestHero.Train(Skill.Forage, 0.25f);
+                player.Train(Skill.Forage, text, 0.25f * trainMod);
+                bestHero.Train(Skill.Forage, null, 0.25f);
             }
             else
             {
                 text.Append($"You explore the {tile.Name} and find <b>{Utility.Plural(herb.name, count)}</b>.");
-                text.Append(player.Train(Skill.Forage, 0.25f));
+                player.Train(Skill.Forage, text, 0.25f);
             }
         }
         else if (c == 9 && ((tile.type == TileType.Mountains && tile.depleted == 0) || (tile.type == TileType.Cave && tile.mine && tile.depleted < 4)) && tile.difficulty >= 2)
@@ -497,13 +497,13 @@ public class Game : MonoBehaviour
                     float trainMod = 1f + 0.01f * (bestValue - player.GetSkill(Skill.Mining));
                     text.Append($"You explore the {tile.Name} and find small <b>{(tile.difficulty == 2 ? "silver" : "gold")} vein</b>. " +
                         $"You and {bestHero.name} mine <b>{Utility.Plural(nugget.name, count)}</b>.");
-                    text.Append(player.Train(Skill.Mining, 0.25f * trainMod));
-                    bestHero.Train(Skill.Mining, 0.25f);
+                    player.Train(Skill.Mining, text, 0.25f * trainMod);
+                    bestHero.Train(Skill.Mining, null, 0.25f);
                 }
                 else
                 {
                     text.Append($"You explore the {tile.Name} and find small <b>{(tile.difficulty == 2 ? "silver" : "gold")} vein</b>. You mine <b>{Utility.Plural(nugget.name, count)}</b>.");
-                    text.Append(player.Train(Skill.Mining, 0.25f));
+                    player.Train(Skill.Mining, text, 0.25f);
                 }
             }
             else
@@ -530,13 +530,13 @@ public class Game : MonoBehaviour
                 {
                     float trainMod = 1f + 0.01f * (bestValue - player.GetSkill(Skill.Mining));
                     text.Append($"You explore the {tile.Name} and find small <b>magic crystals cluster</b>. You and {bestHero.name} mine <b>{Utility.Plural("magic crystal", count)}</b>.");
-                    text.Append(player.Train(Skill.Mining, 0.25f * trainMod));
-                    bestHero.Train(Skill.Mining, 0.25f);
+                    player.Train(Skill.Mining, text, 0.25f * trainMod);
+                    bestHero.Train(Skill.Mining, null, 0.25f);
                 }
                 else
                 {
                     text.Append($"You explore the {tile.Name} and find small <b>magic crystals cluster</b>. You mine <b>{Utility.Plural("magic crystal", count)}</b>.");
-                    text.Append(player.Train(Skill.Mining, 0.25f));
+                    player.Train(Skill.Mining, text, 0.25f);
                 }
             }
             else
@@ -970,11 +970,7 @@ public class Game : MonoBehaviour
 
             hero.AddGold(payment);
             if (skill != Skill.None)
-            {
-                string str = player.Train(skill, trainMod);
-                if (hero == player && !skipTime)
-                    text.Append(str);
-            }
+                player.Train(skill, hero == player && !skipTime ? text : null, trainMod);
         }
         return payment;
     }
@@ -3096,8 +3092,8 @@ public class Game : MonoBehaviour
                         text.Append($"You also find some edible {(Utility.Rand % 2 == 0 ? "fruits" : "vegetables")} (<b>+1 rations</b>).");
                         player.AddItem(Item.Get("rations"));
                     }
-                    text.Append(player.Train(Skill.Forage, 0.25f * trainMod));
-                    bestHero.Train(Skill.Forage, 0.25f);
+                    player.Train(Skill.Forage, text, 0.25f * trainMod);
+                    bestHero.Train(Skill.Forage, null, 0.25f);
                 }
                 else
                 {
@@ -3107,7 +3103,7 @@ public class Game : MonoBehaviour
                         text.Append($"You also find some edible {(Utility.Rand % 2 == 0 ? "fruits" : "vegetables")} (<b>+1 rations</b>).");
                         player.AddItem(Item.Get("rations"));
                     }
-                    text.Append(player.Train(Skill.Forage, 0.25f));
+                    player.Train(Skill.Forage, text, 0.25f);
                 }
             }
             AddTime(hours: 1);
@@ -3138,13 +3134,13 @@ public class Game : MonoBehaviour
                     float trainMod = 1f + 0.01f * (bestValue - player.GetSkill(Skill.Mining));
                     text.Set($"You prospect the {tile.Name} and find small <b>{(tile.difficulty == 2 ? "silver" : "gold")} vein</b>. " +
                         $"You and {bestHero.name} mine <b>{Utility.Plural(nugget.name, count)}</b>.");
-                    text.Append(player.Train(Skill.Mining, 0.25f * trainMod));
-                    bestHero.Train(Skill.Mining, 0.25f);
+                    player.Train(Skill.Mining, text, 0.25f * trainMod);
+                    bestHero.Train(Skill.Mining, null, 0.25f);
                 }
                 else
                 {
                     text.Set($"You prospect the {tile.Name} and find small <b>{(tile.difficulty == 2 ? "silver" : "gold")} vein</b>. You mine <b>{Utility.Plural(nugget.name, count)}</b>.");
-                    text.Append(player.Train(Skill.Mining, 0.25f));
+                    player.Train(Skill.Mining, text, 0.25f);
                 }
             }
             else
@@ -3166,13 +3162,13 @@ public class Game : MonoBehaviour
                 {
                     float trainMod = 1f + 0.01f * (bestValue - player.GetSkill(Skill.Mining));
                     text.Set($"You prospect the {tile.Name} and find small <b>magic crystals cluster</b>. You and {bestHero.name} mine <b>{Utility.Plural("magic crystal", count)}</b>.");
-                    text.Append(player.Train(Skill.Mining, 0.25f * trainMod));
-                    bestHero.Train(Skill.Mining, 0.25f);
+                    player.Train(Skill.Mining, text, 0.25f * trainMod);
+                    bestHero.Train(Skill.Mining, null, 0.25f);
                 }
                 else
                 {
                     text.Set($"You prospect the {tile.Name} and find small <b>magic crystals cluster</b>. You mine <b>{Utility.Plural("magic crystal", count)}</b>.");
-                    text.Append(player.Train(Skill.Mining, 0.25f));
+                    player.Train(Skill.Mining, text, 0.25f);
                 }
             }
             AddTime(minutes: 30);
@@ -3243,9 +3239,9 @@ public class Game : MonoBehaviour
             {
                 text.Set($"You and {bestHero.name} created {Utility.Plural(recipe.result.name, count + extra)}.");
                 trainMod = 1f + 0.01f * (alchemy - bonus - player.GetSkill(Skill.Alchemy));
-                bestHero.Train(Skill.Alchemy, recipe.trainMod * count);
+                bestHero.Train(Skill.Alchemy, null, recipe.trainMod * count);
             }
-            text.Append(player.Train(Skill.Alchemy, recipe.trainMod * trainMod * count));
+            player.Train(Skill.Alchemy, text, recipe.trainMod * trainMod * count);
             AddTime(minutes: count * 5);
             if (ui.IsOpen(craftScreen))
                 RefreshCraft();
@@ -3320,16 +3316,14 @@ public class Game : MonoBehaviour
         if (hero == bestHero)
         {
             text.Set($"{hero.name} creates {Utility.Plural(recipe.result.name, totalCount)} and gives {(totalCount == 1 ? "it" : "them")} to you.");
-            hero.Train(Skill.Alchemy, recipe.trainMod * count);
+            hero.Train(Skill.Alchemy, null, recipe.trainMod * count);
         }
         else
         {
             text.Set($"{hero.name} and {bestHero.nameYou} create {Utility.Plural(recipe.result.name, totalCount)}. You receive {(totalCount == 1 ? "it" : "them")}.");
             float trainMod = 1f + 0.01f * (alchemy - bonus - hero.GetSkill(Skill.Alchemy));
-            hero.Train(Skill.Alchemy, recipe.trainMod * trainMod * count);
-            string str = bestHero.Train(Skill.Alchemy, recipe.trainMod * count);
-            if (bestHero is Player)
-                text.Append(str);
+            hero.Train(Skill.Alchemy, null, recipe.trainMod * trainMod * count);
+            bestHero.Train(Skill.Alchemy, bestHero == player ? text : null, recipe.trainMod * count);
         }
 
         if (ui.IsOpen(giveAllyItemsScreen))
@@ -4230,9 +4224,7 @@ public class Game : MonoBehaviour
         property.efficiency = newEfficiency;
         property.lastManaged = day;
 
-        string str = player.Train(Skill.Management, trainMod);
-        if (!skipTime)
-            text.Append(str);
+        player.Train(Skill.Management, !skipTime ? text : null, trainMod);
     }
 
     private static int CalculateEfficiencyChange(int skill, int efficiency)

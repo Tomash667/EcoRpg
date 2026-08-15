@@ -673,11 +673,11 @@ public class Hero : ISerializationCallbackReceiver
         return skillEntry;
     }
 
-    public string Train(Skill skill, float mod = 1f)
+    public void Train(Skill skill, TextBuilder text, float mod = 1f)
     {
         SkillEntry skillEntry = GetSkillEntry(skill);
         if (skillEntry.level >= 100)
-            return string.Empty;
+            return;
 
         bool increased = false;
         float required = CalculateRequiredSkillTrain(skillEntry.level);
@@ -690,10 +690,8 @@ public class Hero : ISerializationCallbackReceiver
             increased = true;
         }
 
-        if (increased)
-            return $" Your {skill.AsString()} skill increased to {skillEntry.level}.";
-        else
-            return string.Empty;
+        if (increased && text != null)
+            text.Append($"Your {skill.AsString()} skill increased to {skillEntry.level}.");
     }
 
     public static float CalculateRequiredSkillTrain(int value)
