@@ -45,12 +45,13 @@ public class Game : MonoBehaviour
     public int day, hour, minute, guildRank, freshHorses;
 
     private GameUI ui;
-    private GameObject shopScreen, characterScreen, allyScreen, giveAllyItemsScreen, storeItemsScreen, activeInventory, propertiesScreen, guildScreen, gardenScreen, craftScreen, enchantItemsScreen,
+    private GameObject shopScreen, characterScreen, allyScreen, giveAllyItemsScreen, storeItemsScreen, activeInventory, propertiesScreen, guildScreen, craftScreen, enchantItemsScreen,
         skipTimeScreen, peopleScreen;
     private RectTransform[] alliesHealthRect;
-    private Map map;
     private Combat combatScreen;
+    private Garden garden;
     private Journal journal;
+    private Map map;
     private TMP_Text mainText;
     private Hero activeAlly;
     private Property selectedProperty;
@@ -76,7 +77,7 @@ public class Game : MonoBehaviour
         storeItemsScreen = transform.Find("StoreItems").gameObject;
         propertiesScreen = transform.Find("Properties").gameObject;
         guildScreen = transform.Find("Guild").gameObject;
-        gardenScreen = transform.Find("Garden").gameObject;
+        garden = transform.Find("Garden").GetComponent<Garden>();
         craftScreen = transform.Find("Craft").gameObject;
         combatScreen = transform.Find("Combat").GetComponent<Combat>();
         combatScreen.Init();
@@ -3582,75 +3583,8 @@ public class Game : MonoBehaviour
 
     public void Garden()
     {
-        ui.ShowDialog(gardenScreen);
-        RefreshGarden();
-    }
-
-    private void RefreshGarden()
-    {
-        Transform content = gardenScreen.transform.Find("List/Viewport/Content");
-        foreach (Transform child in content)
-            Destroy(child.gameObject);
-
-        Property property = GetPropertyInside();
-        string[] choices = new string[] { "---", "Vegetables (10 gold)", "Herbs (10 herbs)", "Rare herbs (10 herbs)" };
-
-        for (int i = 0; i < property.gardenPlants.Count; ++i)
-        {
-            int index = i;
-            string plant = property.gardenPlants[i];
-            if (plant == "")
-                plant = "Empty";
-            DropdownEntry dropdownEntry = Instantiate(ui.dropdownEntryPrefab, content).GetComponent<DropdownEntry>();
-            dropdownEntry.Init($"Plot {i + 1}: {plant}", "Change", choices, x =>
-            {
-                switch (x)
-                {
-                case 1:
-                    // vegetables
-                    if (plant == "Vegetables")
-                        ui.ShowDialog("Vegetables are already planted here.");
-                    else if (player.gold < 10)
-                        ui.ShowDialog("You need 10 gold.");
-                    else
-                    {
-                        player.AddGold(-10);
-                        property.gardenPlants[index] = "Vegetables";
-                        RefreshGarden();
-                        UpdateText();
-                    }
-                    break;
-                case 2:
-                    // herbs
-                    Item herb = Item.Get("herb");
-                    if (plant == "Herbs")
-                        ui.ShowDialog("Herbs are already planted here.");
-                    else if (player.CountItem(herb) < 10)
-                        ui.ShowDialog("You need 10 herbs.");
-                    else
-                    {
-                        player.RemoveItem(herb, 10);
-                        property.gardenPlants[index] = "Herbs";
-                        RefreshGarden();
-                    }
-                    break;
-                case 3:
-                    // rare herbs
-                    Item rareHerb = Item.Get("rare herb");
-                    if (plant == "Rare herbs")
-                        ui.ShowDialog("Rare herbs are already planted here.");
-                    else if (player.CountItem(rareHerb) < 10)
-                        ui.ShowDialog("You need 10 rare herbs.");
-                    else
-                    {
-                        player.RemoveItem(rareHerb, 10);
-                        property.gardenPlants[index] = "Rare herbs";
-                        RefreshGarden();
-                    }
-                    break;
-                }
-            });
-        }
+        ui.ShowDialog(garden.gameObject);
+        garden.Refresh();
     }
 
     public void Cook()
@@ -3797,7 +3731,7 @@ public class Game : MonoBehaviour
         return true;
     }
 
-    private Property GetPropertyInside()
+    public Property GetPropertyInside()
     {
         TileType location = world.Location;
         if (location == TileType.House)

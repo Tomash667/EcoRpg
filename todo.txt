@@ -1,3 +1,16 @@
++ classes from UI screens
+	character
+	ally
+	shop
+	give items
+	store items
+	enchant items
+	properties
+	guild
+	skip time
+	craft
+	people
+
 v3
 hero:
 + longer main quest that require investing
@@ -76,9 +89,6 @@ ui:
 + better button naming for Properties/Manage if there a people there too
 + move map speed vs zoom
 + map background
-
-refactoring:
-+ classes from UI screens
 
 investments:
 + workers skill
