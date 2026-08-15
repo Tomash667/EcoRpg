@@ -15,7 +15,7 @@ public class Journal : MonoBehaviour
         Refresh();
     }
 
-    public void Refresh()
+    private void Refresh()
     {
         Game game = Global.Game;
         bool notificationChanges = false;

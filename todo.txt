@@ -7,7 +7,6 @@
 	enchant items
 	properties
 	guild
-	craft
 	people
 
 v3

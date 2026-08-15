@@ -45,9 +45,10 @@ public class Game : MonoBehaviour
     public int day, hour, minute, guildRank, freshHorses;
 
     private GameUI ui;
-    private GameObject shopScreen, characterScreen, allyScreen, giveAllyItemsScreen, storeItemsScreen, activeInventory, propertiesScreen, guildScreen, craftScreen, enchantItemsScreen, peopleScreen;
+    private GameObject shopScreen, characterScreen, allyScreen, giveAllyItemsScreen, storeItemsScreen, activeInventory, propertiesScreen, guildScreen, enchantItemsScreen, peopleScreen;
     private RectTransform[] alliesHealthRect;
     private Combat combatScreen;
+    private Craft craft;
     private Garden garden;
     private Journal journal;
     private Map map;
@@ -78,7 +79,7 @@ public class Game : MonoBehaviour
         propertiesScreen = transform.Find("Properties").gameObject;
         guildScreen = transform.Find("Guild").gameObject;
         garden = transform.Find("Garden").GetComponent<Garden>();
-        craftScreen = transform.Find("Craft").gameObject;
+        craft = transform.Find("Craft").GetComponent<Craft>();
         combatScreen = transform.Find("Combat").GetComponent<Combat>();
         combatScreen.Init();
         map = transform.Find("Map").GetComponent<Map>();
@@ -112,7 +113,7 @@ public class Game : MonoBehaviour
                 if (guildRank != 0)
                 {
                     if (Input.GetKeyDown(KeyCode.C))
-                        Craft();
+                        craft.Show();
                     if (Input.GetKeyDown(KeyCode.K))
                         Cook();
                     if (Input.GetKeyDown(KeyCode.R))
@@ -219,7 +220,7 @@ public class Game : MonoBehaviour
                     ExitToCity();
                 if (Input.GetKeyDown(KeyCode.C) && ((world.Location == TileType.House && player.HavePropertyUpgrade("House", "Alchemy lab", cityIndex: world.CityIndex))
                     || (world.Location == TileType.Mansion && player.HavePropertyUpgrade("Mansion", "Alchemy lab", cityIndex: world.CityIndex))))
-                    Craft();
+                    craft.Show();
                 if (Input.GetKeyDown(KeyCode.K))
                     Cook();
                 if (Input.GetKeyDown(KeyCode.M) && world.Location == TileType.Mansion && player.HavePropertyUpgrade("Mansion", "Office"))
@@ -1436,7 +1437,7 @@ public class Game : MonoBehaviour
                     }, "Drop", Drop);
                 }
                 else if (itemSlot.item.type == Item.Type.Tool && itemSlot.item.name == "alchemy set")
-                    itemEntry.Init2(itemSlot.ToString(Price.None), "Use", Craft, "Drop", Drop);
+                    itemEntry.Init2(itemSlot.ToString(Price.None), "Use", craft.Show, "Drop", Drop);
                 else
                     itemEntry.Init2(itemSlot.ToString(Price.None), null, null, "Drop", Drop);
             }
@@ -1610,6 +1611,12 @@ public class Game : MonoBehaviour
         }
     }
 
+    public void RefreshPlayerScreenIfOpen()
+    {
+        if (ui.IsOpen(characterScreen))
+            RefreshPlayerScreen();
+    }
+
     private void RefreshPlayerScreen()
     {
         TMP_Text charText = characterScreen.transform.Find("Text").GetComponent<TMP_Text>();
@@ -1743,7 +1750,7 @@ public class Game : MonoBehaviour
         }
     }
 
-    private void AddTime(int hours = 0, int minutes = 0)
+    public void AddTime(int hours = 0, int minutes = 0)
     {
         minute += minutes;
         if (minute >= 60)
@@ -1937,7 +1944,7 @@ public class Game : MonoBehaviour
             }
         }
 
-        ui.CloseDialogs(x => x == propertiesScreen || x == guildScreen || x == characterScreen || x == craftScreen || x == peopleScreen);
+        ui.CloseDialogs(x => x == propertiesScreen || x == guildScreen || x == characterScreen || x == craft.gameObject || x == peopleScreen);
         return true;
     }
 
@@ -3171,110 +3178,6 @@ public class Game : MonoBehaviour
         }
 
         UpdateText();
-    }
-
-    public void Craft()
-    {
-        RefreshCraft();
-        ui.ShowDialog(craftScreen);
-    }
-
-    private void RefreshCraft()
-    {
-        // text
-        craftScreen.transform.Find("Text").GetComponent<TMP_Text>().text = text.Flush();
-
-        // ingredients
-        Transform content = craftScreen.transform.Find("Ingredients/Viewport/Content");
-        foreach (Transform child in content)
-            Destroy(child.gameObject);
-
-        foreach (ItemSlot itemSlot in player.items.Where(x => x.item.subtype == Item.Subtype.Ingredient))
-        {
-            ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
-            itemEntry.Init(itemSlot.ToStringShort());
-            itemEntry.SetImage(ui.itemIcons[(int)itemSlot.item.GetIcon()]);
-        }
-
-        // potions
-        (Hero bestHero, int alchemy) = team.GetSkill(Skill.Alchemy);
-        int bonus = 0;
-        if ((world.Location == TileType.House && player.HavePropertyUpgrade("House", "Alchemy lab", world.CityIndex))
-            || (world.Location == TileType.Mansion && player.HavePropertyUpgrade("Mansion", "Alchemy lab", world.CityIndex)))
-        {
-            bonus = 25;
-            alchemy += 25;
-        }
-        content = craftScreen.transform.Find("List/Viewport/Content");
-        foreach (Transform child in content)
-            Destroy(child.gameObject);
-
-        void Brew(Recipe recipe, int count)
-        {
-            player.RemoveItem(recipe.ingredient, count * 2);
-            float mod;
-            if (alchemy >= 100)
-                mod = 1;
-            else if (alchemy >= 75)
-                mod = 0.5f;
-            else if (alchemy >= 50)
-                mod = 0.25f;
-            else if (alchemy >= 25)
-                mod = 0.1f;
-            else
-                mod = 0;
-            int extra = (int)(count * mod);
-            player.AddItem(recipe.result, count + extra);
-            float trainMod;
-            if (bestHero == null || bestHero is Player)
-            {
-                text.Set($"You created {Utility.Plural(recipe.result.name, count + extra)}.");
-                trainMod = 1f;
-            }
-            else
-            {
-                text.Set($"You and {bestHero.name} created {Utility.Plural(recipe.result.name, count + extra)}.");
-                trainMod = 1f + 0.01f * (alchemy - bonus - player.GetSkill(Skill.Alchemy));
-                bestHero.Train(Skill.Alchemy, null, recipe.trainMod * count);
-            }
-            player.Train(Skill.Alchemy, text, recipe.trainMod * trainMod * count);
-            AddTime(minutes: count * 5);
-            if (ui.IsOpen(craftScreen))
-                RefreshCraft();
-            if (ui.IsOpen(characterScreen))
-                RefreshPlayerScreen();
-            UpdateText();
-        }
-
-        foreach (Recipe recipe in Recipe.GetAvailable(alchemy))
-        {
-            ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
-            itemEntry.Init(recipe.ToString(player.CountItem(recipe.result)), "Brew", () =>
-            {
-                int possible = player.CountItem(recipe.ingredient) / recipe.ingredientCount;
-                if (possible == 0)
-                {
-                    ui.ShowDialog($"You need {Utility.Plural(recipe.ingredient.name, recipe.ingredientCount)} to brew {recipe.result.name}.");
-                    return;
-                }
-
-                if (Input.GetKey(KeyCode.LeftShift))
-                    Brew(recipe, possible);
-                else if (Input.GetKey(KeyCode.LeftControl))
-                {
-                    ui.ShowInput($"How many {Utility.Plural(recipe.result.name)} to brew (1-{possible})?", count =>
-                    {
-                        if (count <= 0)
-                            return true;
-                        Brew(recipe, Mathf.Min(count, possible));
-                        return true;
-                    });
-                }
-                else
-                    Brew(recipe, 1);
-            });
-            itemEntry.SetImage(ui.itemIcons[(int)recipe.result.GetIcon()]);
-        }
     }
 
     public void DoAlchemy(Hero hero, Item item)

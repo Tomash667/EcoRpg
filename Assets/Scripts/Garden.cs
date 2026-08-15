@@ -8,7 +8,7 @@ public class Garden : MonoBehaviour
         Refresh();
     }
 
-    public void Refresh()
+    private void Refresh()
     {
         Game game = Global.Game;
         Transform content = transform.Find("List/Viewport/Content");
