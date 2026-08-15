@@ -1,4 +1,4 @@
-+ TextBuilder
++ Hero.Train use TextBuilder
 
 v3
 hero:
@@ -19,6 +19,7 @@ hero:
 	hero fire/poison weapon
 	unholy
 	fire/poison resistance/immunity
+		exploding trap deal fire damage
 * tavern -> celebrate finished quest
 + more enemies
 	goblin instead of elf

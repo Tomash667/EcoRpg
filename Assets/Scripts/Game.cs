@@ -50,12 +50,13 @@ public class Game : MonoBehaviour
     private RectTransform[] alliesHealthRect;
     private Map map;
     private Combat combatScreen;
-    private TMP_Text text;
+    private TMP_Text mainText;
     private Hero activeAlly;
     private Property selectedProperty;
     private readonly StringBuilder sb = new();
+    private readonly TextBuilder text = new();
     private System.Action<bool> choiceAction;
-    private string lastAction, lastTestCombat;
+    private string lastTestCombat;
     private float restCombatHeal;
     private int restCombatEnergy;
     private bool inChoice, traveled, restCombat, manageProperty, recruitWorkers;
@@ -65,7 +66,7 @@ public class Game : MonoBehaviour
     private void Awake()
     {
         ui = GetComponent<GameUI>();
-        text = transform.Find("Text").GetComponent<TMP_Text>();
+        mainText = transform.Find("Text").GetComponent<TMP_Text>();
         shopScreen = transform.Find("Shop").gameObject;
         characterScreen = transform.Find("Character").gameObject;
         journalScreen = transform.Find("Journal").gameObject;
@@ -256,10 +257,11 @@ public class Game : MonoBehaviour
     {
         Tile tile = world.CurrentTile;
         bool isSmall = tile.type.IsSmall();
+        text.Clear();
 
         if (player.energy < (isSmall ? 5 : 10))
         {
-            lastAction = "You are too tired to explore.";
+            text.Append("You are too tired to explore.");
             UpdateText();
             return;
         }
@@ -286,12 +288,12 @@ public class Game : MonoBehaviour
             int level = tile.difficulty + 2;
             Item item = Item.items.RandomItem(x => x.level == level);
             int gold = Utility.Round(Utility.Random(level * 100, level * 200));
-            lastAction = $"You explore the {tile.Name} and find <b>treasure room</b>. Inside chest you find <color=#FFD700>{gold}</color> gold and <b>{item.name}</b>.";
+            text.Append($"You explore the {tile.Name} and find <b>treasure room</b>. Inside chest you find <color=#FFD700>{gold}</color> gold and <b>{item.name}</b>.");
             Quest quest = activeQuests.FirstOrDefault(x => x.type == Quest.Type.Artifact && x.location == world.CurrentLocationIndex);
             if (quest != null)
             {
                 quest.count = 1;
-                lastAction += $" You also find an <b>artifact</b>.";
+                text.Append("You also find an <b>artifact</b>.");
             }
             else
             {
@@ -305,7 +307,7 @@ public class Game : MonoBehaviour
         }
         else if (world.level + 1 < tile.levels && tile.foundLevel == world.level && tile.defeatedEnemies >= 10)
         {
-            lastAction = $"You find stairs leading to level {world.level + 2}.";
+            text.Append($"You find stairs leading to level {world.level + 2}.");
             ++tile.foundLevel;
             tile.defeatedEnemies = 0;
             UpdateButtons();
@@ -320,15 +322,15 @@ public class Game : MonoBehaviour
             // old camp
             int count = Utility.Random(1, 4);
             player.AddItem(Item.Get("rations"), count);
-            lastAction = $"You explore the {tile.Name} and find old camp. You pick up <b>{Utility.Plural("rations", count)}</b>.";
+            text.Append($"You explore the {tile.Name} and find old camp. You pick up <b>{Utility.Plural("rations", count)}</b>.");
         }
         else if (c == 8 && tile.type == TileType.Dungeon && (!tile.foundTreasure || Utility.Rand % 2 == 0))
         {
             // trap
             Hero target = team.heroes.RandomItem();
-            lastAction = target == player
+            text.Append(target == player
                 ? $"You explore the {tile.Name} and step on a <color=red>trap</color>."
-                : $"You explore the {tile.Name} and {target.name} step on a <color=red>trap</color>.";
+                : $"You explore the {tile.Name} and {target.name} step on a <color=red>trap</color>.");
             if (tile.difficulty == 1)
             {
                 if (Combat.AttackChance(10, target.dex))
@@ -336,16 +338,12 @@ public class Game : MonoBehaviour
                     target.hp -= Utility.Random(20, 25);
                     if (target.hp < 1)
                         target.hp = 1;
-                    if (target == player)
-                        lastAction += " A shooting arrow hits you.";
-                    else
-                    {
+                    text.Append($"A shooting arrow hits {target.him}.");
+                    if (target != player)
                         target.ApplyHealing();
-                        lastAction += $" A shooting arrow hits {target.him}.";
-                    }
                 }
                 else
-                    lastAction += target == player ? " You dodge a shooting arrow." : $" {target.He} dodges a shooting arrow.";
+                    text.Append($"{target.He} {Utility.S("dodge", target != player)} a shooting arrow.");
             }
             else if (tile.difficulty == 2)
             {
@@ -369,23 +367,23 @@ public class Game : MonoBehaviour
                 {
                     if (hit.Count > 0)
                     {
-                        lastAction += $" {Utility.PrettyList(dodged.Select(x => x.nameYou)).ToUpper1()} {Utility.S("jump", dodged.Count == 1 && dodged[0] != player)} away " +
-                            $"but {Utility.PrettyList(hit.Select(x => x.nameYou))} {Utility.S("fall", hit.Count == 1 && hit[0] != player)} into a pit.";
+                        text.Append($"{Utility.PrettyList(dodged.Select(x => x.nameYou)).ToUpper1()} {Utility.S("jump", dodged.Count == 1 && dodged[0] != player)} away " +
+                            $"but {Utility.PrettyList(hit.Select(x => x.nameYou))} {Utility.S("fall", hit.Count == 1 && hit[0] != player)} into a pit.");
                     }
                     else
                     {
                         if (dodged.Count == team.heroes.Count && dodged.Count > 1)
-                            lastAction += " Everone jump away from a pit.";
+                            text.Append("Everone jump away from a pit.");
                         else
-                            lastAction += $" {Utility.PrettyList(dodged.Select(x => x.nameYou)).ToUpper1()} {Utility.S("jump", dodged.Count == 1 && dodged[0] != player)} away from a pit.";
+                            text.Append($"{Utility.PrettyList(dodged.Select(x => x.nameYou)).ToUpper1()} {Utility.S("jump", dodged.Count == 1 && dodged[0] != player)} away from a pit.");
                     }
                 }
                 else
                 {
                     if (hit.Count == team.heroes.Count && hit.Count > 1)
-                        lastAction += " Everyone fall into a pit.";
+                        text.Append("Everyone fall into a pit.");
                     else
-                        lastAction += $" {Utility.PrettyList(hit.Select(x => x.nameYou)).ToUpper1()} {Utility.S("fall", hit.Count == 1 && hit[0] != player)} into a pit.";
+                        text.Append($"{Utility.PrettyList(hit.Select(x => x.nameYou)).ToUpper1()} {Utility.S("fall", hit.Count == 1 && hit[0] != player)} into a pit.");
                 }
             }
             else
@@ -410,23 +408,23 @@ public class Game : MonoBehaviour
                 {
                     if (hit.Count > 0)
                     {
-                        lastAction += $" {Utility.PrettyList(dodged.Select(x => x.nameYou)).ToUpper1()} {Utility.S("jump", dodged.Count == 1 && dodged[0] != player)} away " +
-                            $"but {Utility.PrettyList(hit.Select(x => x.nameYou))} {Utility.S("are", hit.Count == 1 && hit[0] != player, "is")} caught in an explosion.";
+                        text.Append($"{Utility.PrettyList(dodged.Select(x => x.nameYou)).ToUpper1()} {Utility.S("jump", dodged.Count == 1 && dodged[0] != player)} away " +
+                            $"but {Utility.PrettyList(hit.Select(x => x.nameYou))} {Utility.S("are", hit.Count == 1 && hit[0] != player, "is")} caught in an explosion.");
                     }
                     else
                     {
                         if (dodged.Count == team.heroes.Count && dodged.Count > 1)
-                            lastAction += " Everone jump away from an explosion.";
+                            text.Append("Everone jump away from an explosion.");
                         else
-                            lastAction += $" {Utility.PrettyList(dodged.Select(x => x.nameYou)).ToUpper1()} {Utility.S("jump", dodged.Count == 1 && dodged[0] != player)} away from an explosion.";
+                            text.Append($"{Utility.PrettyList(dodged.Select(x => x.nameYou)).ToUpper1()} {Utility.S("jump", dodged.Count == 1 && dodged[0] != player)} away from an explosion.");
                     }
                 }
                 else
                 {
                     if (hit.Count == team.heroes.Count && hit.Count > 1)
-                        lastAction += " Everyone are caught in an explosion.";
+                        text.Append("Everyone are caught in an explosion.");
                     else
-                        lastAction += $" {Utility.PrettyList(hit.Select(x => x.nameYou)).ToUpper1()} {Utility.S("are", hit.Count == 1 && hit[0] != player, "is")} caught in an explosion.";
+                        text.Append($"{Utility.PrettyList(hit.Select(x => x.nameYou)).ToUpper1()} {Utility.S("are", hit.Count == 1 && hit[0] != player, "is")} caught in an explosion.");
                 }
             }
         }
@@ -443,7 +441,7 @@ public class Game : MonoBehaviour
             int count = Utility.Random(1, 2);
             team.AddGold(gold);
             player.AddItem(Item.Get(item), count);
-            lastAction = $"You explore the {tile.Name} and find chest. Inside you find <b>{Utility.Plural(item, count)}</b> and <color=#FFD700>{gold}</color> gold.";
+            text.Append($"You explore the {tile.Name} and find chest. Inside you find <b>{Utility.Plural(item, count)}</b> and <color=#FFD700>{gold}</color> gold.");
         }
         else if (c == 9 && tile.type == TileType.Forest && tile.depleted < 4)
         {
@@ -465,14 +463,14 @@ public class Game : MonoBehaviour
             if (bestHero != null && bestHero != player)
             {
                 float trainMod = 1f + 0.01f * (bestValue - player.GetSkill(Skill.Forage));
-                lastAction = $"You explore the {tile.Name} and with {bestHero.name} help find <b>{Utility.Plural(herb.name, count)}</b>.";
-                lastAction += player.Train(Skill.Forage, 0.25f * trainMod);
+                text.Append($"You explore the {tile.Name} and with {bestHero.name} help find <b>{Utility.Plural(herb.name, count)}</b>.");
+                text.Append(player.Train(Skill.Forage, 0.25f * trainMod));
                 bestHero.Train(Skill.Forage, 0.25f);
             }
             else
             {
-                lastAction = $"You explore the {tile.Name} and find <b>{Utility.Plural(herb.name, count)}</b>.";
-                lastAction += player.Train(Skill.Forage, 0.25f);
+                text.Append($"You explore the {tile.Name} and find <b>{Utility.Plural(herb.name, count)}</b>.");
+                text.Append(player.Train(Skill.Forage, 0.25f));
             }
         }
         else if (c == 9 && ((tile.type == TileType.Mountains && tile.depleted == 0) || (tile.type == TileType.Cave && tile.mine && tile.depleted < 4)) && tile.difficulty >= 2)
@@ -497,19 +495,19 @@ public class Game : MonoBehaviour
                 if (bestHero != null && bestHero != player)
                 {
                     float trainMod = 1f + 0.01f * (bestValue - player.GetSkill(Skill.Mining));
-                    lastAction = $"You explore the {tile.Name} and find small <b>{(tile.difficulty == 2 ? "silver" : "gold")} vein</b>. " +
-                        $"You and {bestHero.name} mine <b>{Utility.Plural(nugget.name, count)}</b>.";
-                    lastAction += player.Train(Skill.Mining, 0.25f * trainMod);
+                    text.Append($"You explore the {tile.Name} and find small <b>{(tile.difficulty == 2 ? "silver" : "gold")} vein</b>. " +
+                        $"You and {bestHero.name} mine <b>{Utility.Plural(nugget.name, count)}</b>.");
+                    text.Append(player.Train(Skill.Mining, 0.25f * trainMod));
                     bestHero.Train(Skill.Mining, 0.25f);
                 }
                 else
                 {
-                    lastAction = $"You explore the {tile.Name} and find small <b>{(tile.difficulty == 2 ? "silver" : "gold")} vein</b>. You mine <b>{Utility.Plural(nugget.name, count)}</b>.";
-                    lastAction += player.Train(Skill.Mining, 0.25f);
+                    text.Append($"You explore the {tile.Name} and find small <b>{(tile.difficulty == 2 ? "silver" : "gold")} vein</b>. You mine <b>{Utility.Plural(nugget.name, count)}</b>.");
+                    text.Append(player.Train(Skill.Mining, 0.25f));
                 }
             }
             else
-                lastAction = $"You explore the {tile.Name} and find small <b>{(tile.difficulty == 2 ? "silver" : "gold")} vein</b> but you don't have a pickaxe...";
+                text.Append($"You explore the {tile.Name} and find small <b>{(tile.difficulty == 2 ? "silver" : "gold")} vein</b> but you don't have a pickaxe...");
         }
         else if (c == 9 && tile.type == TileType.Cave && !tile.mine && !tile.boss && tile.depleted < tile.difficulty + 2)
         {
@@ -531,21 +529,21 @@ public class Game : MonoBehaviour
                 if (bestHero != null && bestHero != player)
                 {
                     float trainMod = 1f + 0.01f * (bestValue - player.GetSkill(Skill.Mining));
-                    lastAction = $"You explore the {tile.Name} and find small <b>magic crystals cluster</b>. You and {bestHero.name} mine <b>{Utility.Plural("magic crystal", count)}</b>.";
-                    lastAction += player.Train(Skill.Mining, 0.25f * trainMod);
+                    text.Append($"You explore the {tile.Name} and find small <b>magic crystals cluster</b>. You and {bestHero.name} mine <b>{Utility.Plural("magic crystal", count)}</b>.");
+                    text.Append(player.Train(Skill.Mining, 0.25f * trainMod));
                     bestHero.Train(Skill.Mining, 0.25f);
                 }
                 else
                 {
-                    lastAction = $"You explore the {tile.Name} and find small <b>magic crystals cluster</b>. You mine <b>{Utility.Plural("magic crystal", count)}</b>.";
-                    lastAction += player.Train(Skill.Mining, 0.25f);
+                    text.Append($"You explore the {tile.Name} and find small <b>magic crystals cluster</b>. You mine <b>{Utility.Plural("magic crystal", count)}</b>.");
+                    text.Append(player.Train(Skill.Mining, 0.25f));
                 }
             }
             else
-                lastAction = $"You explore the {tile.Name} and find small <b>magic crystals cluster</b> but you don't have a pickaxe...";
+                text.Append($"You explore the {tile.Name} and find small <b>magic crystals cluster</b> but you don't have a pickaxe...");
         }
         else
-            lastAction = $"You explore the {tile.Name} but find nothing interesting.";
+            text.Append($"You explore the {tile.Name} but find nothing interesting.");
 
         if (isSmall)
             AddTime(minutes: 30);
@@ -619,7 +617,7 @@ public class Game : MonoBehaviour
         }
 
         if (restCombat)
-            combatScreen.Init(enemyList, lastAction, true);
+            combatScreen.Init(enemyList, text.Flush(), true);
         else
             combatScreen.Init(enemyList, startAction, false);
         ui.lockDialog = true;
@@ -694,16 +692,14 @@ public class Game : MonoBehaviour
             if (enemyList.Any(x => x.name == "dragon"))
             {
                 dragonStatus = DragonStatus.Defeated;
-                lastAction = "With a final blow, the dragon falls. Its roar fades into silence, and the cavern grows still. The beast is slain—its hoard and your legend now yours to claim. " +
-                    $"You found {pickups}.";
+                text.Set("With a final blow, the dragon falls. Its roar fades into silence, and the cavern grows still. The beast is slain—its hoard and your legend now yours to claim. " +
+                    $"You found {pickups}.");
                 Quest quest = activeQuests.FirstOrDefault(x => x.type == Quest.Type.UniqueDragon);
                 if (quest != null)
                     RemoveQuest(quest);
                 tile.clear = true;
                 tile.timer = 0;
-                TextBuilder tb = new() { text = lastAction };
-                team.ChangeAffection(10, tb);
-                lastAction = tb.text;
+                team.ChangeAffection(10, text);
                 foreach (Hero hero in team.heroes)
                     hero.winToday = true;
             }
@@ -725,18 +721,16 @@ public class Game : MonoBehaviour
                 }
 
                 if (pickups != null)
-                    lastAction = $"You win a fight with <b>{Utility.PrettyGroup(enemyList.Select(x => x.name))}</b> ({pickups} found).";
+                    text.Set($"You win a fight with <b>{Utility.PrettyGroup(enemyList.Select(x => x.name))}</b> ({pickups} found).");
                 else
-                    lastAction = $"You win a fight with <b>{Utility.PrettyGroup(enemyList.Select(x => x.name))}</b>.";
-                TextBuilder tb = new() { text = lastAction };
-                team.ChangeAffection(1, tb, hero =>
+                    text.Set($"You win a fight with <b>{Utility.PrettyGroup(enemyList.Select(x => x.name))}</b>.");
+                team.ChangeAffection(1, text, hero =>
                 {
                     if (hero.winToday)
                         return false;
                     hero.winToday = true;
                     return true;
                 });
-                lastAction = tb.text;
             }
             team.AddGold(gold);
 
@@ -760,7 +754,7 @@ public class Game : MonoBehaviour
                 foreach (var group in levelups.GroupBy(x => x.level))
                 {
                     string isAre = group.Count() > 1 || group.First() is Player ? "are" : "is";
-                    lastAction += $" {Utility.PrettyList(group.Select(x => x.nameYou)).ToUpper1()} {isAre} now level {group.Key}.";
+                    text.Append($"{Utility.PrettyList(group.Select(x => x.nameYou)).ToUpper1()} {isAre} now level {group.Key}.");
                 }
             }
 
@@ -784,14 +778,14 @@ public class Game : MonoBehaviour
                         if (property != null)
                         {
                             property.status = Property.Status.Cleared;
-                            lastAction += " You can build a <b>mine</b> here.";
+                            text.Append("You can build a <b>mine</b> here.");
                         }
                     }
                 }
                 else if (tile.type == TileType.Mine || tile.type == TileType.Sawmill || tile.type == TileType.Farm)
                 {
                     tile.timer = 0;
-                    lastAction += " You <b>cleared</b> this place.";
+                    text.Append("You <b>cleared</b> this place.");
                     Property property = player.properties.FirstOrDefault(x => x.locationIndex == world.CurrentLocationIndex);
                     property?.RemoveEvent("Infested");
                 }
@@ -807,10 +801,8 @@ public class Game : MonoBehaviour
         {
             if (result == Combat.Result.Escape)
             {
-                lastAction = $"You run away from {Utility.PrettyGroup(enemyList.Select(x => x.name))}.";
-                TextBuilder tb = new() { text = lastAction };
-                team.ChangeAffection(-1, tb);
-                lastAction = tb.text;
+                text.Set($"You run away from {Utility.PrettyGroup(enemyList.Select(x => x.name))}.");
+                team.ChangeAffection(-1, text);
             }
             else
             {
@@ -841,13 +833,11 @@ public class Game : MonoBehaviour
                     lost = $"{rationsTaken} rations lost";
 
                 if (lost == null)
-                    lastAction = $"You <color=red>lost</color> a fight with <b>{Utility.PrettyGroup(enemyList.Select(x => x.name))}</b>.";
+                    text.Set($"You <color=red>lost</color> a fight with <b>{Utility.PrettyGroup(enemyList.Select(x => x.name))}</b>.");
                 else
-                    lastAction = $"You <color=red>lost</color> a fight with <b>{Utility.PrettyGroup(enemyList.Select(x => x.name))}</b> ({lost}).";
+                    text.Set($"You <color=red>lost</color> a fight with <b>{Utility.PrettyGroup(enemyList.Select(x => x.name))}</b> ({lost}).");
 
-                TextBuilder tb = new() { text = lastAction };
-                team.ChangeAffection(-5, tb);
-                lastAction = tb.text;
+                team.ChangeAffection(-5, text);
             }
 
             if (enemyList.Any(x => x.name == "dragon" || x.name == "spider queen"))
@@ -876,7 +866,7 @@ public class Game : MonoBehaviour
                         hero.hp = Mathf.Min(hero.hp + (int)(restCombatHeal * hero.hpMax), hero.hpMax);
                 }
                 player.energy = Mathf.Min(player.energy + restCombatEnergy, 100);
-                lastAction += " You finish your rest.";
+                text.Append("You finish your rest.");
             }
 
             if (hour < 8)
@@ -902,10 +892,10 @@ public class Game : MonoBehaviour
 
     public void Rest()
     {
-        lastAction = string.Empty;
+        text.Clear();
         if (OnRest())
         {
-            lastAction += " It's a new day.";
+            text.Append("It's a new day.");
             UpdateText();
         }
     }
@@ -913,11 +903,11 @@ public class Game : MonoBehaviour
     public void Work()
     {
         if (hour > 16)
-            lastAction = "It's too late to work.";
+            text.Set("It's too late to work.");
         else if (player.energy < 50)
-            lastAction = "You are too tired to work.";
+            text.Set("You are too tired to work.");
         else if (!world.CurrentTile.clear && world.Location.IsClearable())
-            lastAction = $"You can't work while monsters occupy the {world.CurrentTile.Name}.";
+            text.Set($"You can't work while monsters occupy the {world.CurrentTile.Name}.");
         else
         {
             DoWork();
@@ -969,7 +959,7 @@ public class Game : MonoBehaviour
             payment *= 2;
         // give payment & train all team members
         if (!skipTime)
-            lastAction = $"You earned <color=#FFD700>{payment}</color> gold from working.";
+            text.Set($"You earned <color=#FFD700>{payment}</color> gold from working.");
         foreach (Hero hero in team.heroes)
         {
             float trainMod;
@@ -983,7 +973,7 @@ public class Game : MonoBehaviour
             {
                 string str = player.Train(skill, trainMod);
                 if (hero == player && !skipTime)
-                    lastAction += str;
+                    text.Append(str);
             }
         }
         return payment;
@@ -1041,13 +1031,13 @@ public class Game : MonoBehaviour
     {
         if (player.energy < 5)
         {
-            lastAction = "You are too tired to travel.";
+            text.Set("You are too tired to travel.");
             UpdateText();
             return;
         }
 
         player.energy -= 5;
-        lastAction = "You enter the sewers.";
+        text.Set("You enter the sewers.");
         world.sublocation = 1;
         AddTime(minutes: 30);
         OnChangeLocation();
@@ -1057,12 +1047,12 @@ public class Game : MonoBehaviour
     {
         if (player.HaveProperty("House", cityIndex: world.CityIndex))
         {
-            lastAction = "You enter your house.";
+            text.Set("You enter your house.");
             world.sublocation = 2;
         }
         else
         {
-            lastAction = "You enter your mansion.";
+            text.Set("You enter your mansion.");
             world.sublocation = 3;
         }
         AddTime(minutes: 5);
@@ -1073,12 +1063,12 @@ public class Game : MonoBehaviour
     {
         if (world.sublocation == 1 && player.energy < 5)
         {
-            lastAction = "You are too tired to travel.";
+            text.Set("You are too tired to travel.");
             UpdateText();
             return;
         }
 
-        lastAction = $"You exit to the {(world.RealLocation == TileType.Village ? "village" : "city")}.";
+        text.Set($"You exit to the {(world.RealLocation == TileType.Village ? "village" : "city")}.");
         if (world.sublocation == 1)
         {
             player.energy -= 5;
@@ -1093,7 +1083,7 @@ public class Game : MonoBehaviour
     public void GoUp()
     {
         --world.level;
-        lastAction = $"You go upstairs to level {world.level + 1}.";
+        text.Set($"You go upstairs to level {world.level + 1}.");
         AddTime(minutes: 30);
         UpdateText();
         UpdateButtons();
@@ -1102,7 +1092,7 @@ public class Game : MonoBehaviour
     public void GoDown()
     {
         ++world.level;
-        lastAction = $"You go downstairs to level {world.level + 1}.";
+        text.Set($"You go downstairs to level {world.level + 1}.");
         AddTime(minutes: 30);
         UpdateText();
         UpdateButtons();
@@ -1114,8 +1104,8 @@ public class Game : MonoBehaviour
         if (tile.type == TileType.City && dragonStatus == DragonStatus.Defeated)
         {
             dragonStatus = DragonStatus.Win;
-            lastAction = "You return to the city as a hero. The Adventurer’s Guild erupts in cheers, mugs raised high in your honor. " +
-                "Songs of your victory begin to spread, and your name will not be forgotten.";
+            text.Set("You return to the city as a hero. The Adventurer’s Guild erupts in cheers, mugs raised high in your honor. " +
+                "Songs of your victory begin to spread, and your name will not be forgotten.");
         }
         else if (tile.type == TileType.Village && world.CityIndex == 1 && spiderStatus == SpiderStatus.Defeated)
         {
@@ -1125,24 +1115,24 @@ public class Game : MonoBehaviour
             player.properties.Add(inn);
             properties.Remove(inn);
             team.PayForProperty(player, inn.value / 2);
-            lastAction = $"You travel to the {tile.Name}. Inn owner is thankful for defeating the spider queen and hands over the deed to <b>inn</b>.";
+            text.Set($"You travel to the {tile.Name}. Inn owner is thankful for defeating the spider queen and hands over the deed to <b>inn</b>.");
         }
         else
-            lastAction = $"You travel to the {tile.Name}.";
+            text.Set($"You travel to the {tile.Name}.");
 
         if (tile.boss)
         {
             if (tile.difficulty == 3)
-                lastAction += " There are <b>dragon engravings</b> near entrance.";
+                text.Append("There are <b>dragon engravings</b> near entrance.");
             else
-                lastAction += " There are more <b>cobwebs</b> then in an usual cave.";
+                text.Append("There are more <b>cobwebs</b> then in an usual cave.");
         }
         else if (tile.mine && tile.type == TileType.Cave)
-            lastAction += $" There are <b>{(tile.difficulty == 2 ? "silver" : "gold")} veins</b> inside this cave.";
+            text.Append($"There are <b>{(tile.difficulty == 2 ? "silver" : "gold")} veins</b> inside this cave.");
 
         Property property = player.properties.FirstOrDefault(x => x.status == Property.Status.Building && x.locationIndex == world.CurrentLocationIndex);
         if (property != null)
-            lastAction += $" {property.name} is being build here.";
+            text.Append($"{property.name} is being build here.");
         if ((tile.type == TileType.City || tile.type == TileType.Village) && team.heroes.Skip(1).Any(x => (x.affection <= -25 && !x.complained) || x.affection <= -50))
         {
             Hero[] complainers = team.heroes.Skip(1).Where(x => x.affection <= -25 && !x.complained).ToArray();
@@ -1151,14 +1141,14 @@ public class Game : MonoBehaviour
             {
                 foreach (Hero hero in complainers)
                     hero.complained = true;
-                lastAction += $" {Utility.PrettyList(complainers.Select(x => x.name))} <b>{Utility.S("complain", complainers.Length == 1)}</b> about your lidership.";
+                text.Append($"{Utility.PrettyList(complainers.Select(x => x.name))} <b>{Utility.S("complain", complainers.Length == 1)}</b> about your lidership.");
             }
             if (quitters.Length > 0)
             {
                 foreach (Hero hero in quitters)
                     team.heroes.Remove(hero);
                 team.CancelOutDebts();
-                lastAction += $" {Utility.PrettyList(quitters.Select(x => x.name))} <color=red>{Utility.S("leave", quitters.Length == 1)}</color> your party.";
+                text.Append($"{Utility.PrettyList(quitters.Select(x => x.name))} <color=red>{Utility.S("leave", quitters.Length == 1)}</color> your party.");
             }
         }
         OnChangeLocation();
@@ -1166,9 +1156,7 @@ public class Game : MonoBehaviour
 
     private void OnChangeLocation()
     {
-        TextBuilder tb = new() { text = lastAction };
-        team.CheckBoredAllies(tb);
-        lastAction = tb.text;
+        team.CheckBoredAllies(text);
 
         Tile tile = world.CurrentTile;
 
@@ -1179,9 +1167,9 @@ public class Game : MonoBehaviour
         {
             if (player.goldWaiting != 0)
             {
-                lastAction += player.goldWaiting > 0
-                    ? $" You receive <color=#FFD700>{player.goldWaiting}</color> gold from your properties."
-                    : $" You pay <color=#FFD700>{-player.goldWaiting}</color> gold for your properties.";
+                text.Append(player.goldWaiting > 0
+                    ? $"You receive <color=#FFD700>{player.goldWaiting}</color> gold from your properties."
+                    : $"You pay <color=#FFD700>{-player.goldWaiting}</color> gold for your properties.");
                 player.AddGold(player.goldWaiting);
                 player.goldWaiting = 0;
             }
@@ -1743,13 +1731,13 @@ public class Game : MonoBehaviour
         Quest activeQuest = activeQuests.FirstOrDefault(x => x.tracked);
         if (activeQuest != null)
             sb.Append($"\nQuest: {activeQuest.Text}\n");
+        string lastAction = text.Flush();
         if (!string.IsNullOrEmpty(lastAction))
         {
             sb.Append('\n');
             sb.Append(lastAction);
         }
-        lastAction = null;
-        text.text = sb.ToString();
+        mainText.text = sb.ToString();
 
         // allies health
         for (int i = 1; i < team.heroes.Count; ++i)
@@ -1774,7 +1762,7 @@ public class Game : MonoBehaviour
         hour += hours;
         if (hour >= 24)
         {
-            lastAction += " It's a new day. ";
+            text.Append("It's a new day.");
             OnRest();
         }
     }
@@ -1794,7 +1782,7 @@ public class Game : MonoBehaviour
         {
             FullRest();
             if (!skipTime)
-                lastAction += "You rest in your house.";
+                text.Append("You rest in your house.");
         }
         else if (((location == TileType.City || location == TileType.Village) && player.HaveProperty("Mansion", cityIndex: cityIndex)) || location == TileType.Mansion)
         {
@@ -1804,13 +1792,13 @@ public class Game : MonoBehaviour
             if (player.HaveProperty("Horses") && player.HavePropertyUpgrade("Mansion", "Stables", cityIndex: cityIndex))
                 freshHorses = 11;
             if (!skipTime)
-                lastAction += "You rest in your mansion.";
+                text.Append("You rest in your mansion.");
         }
         else if ((location == TileType.City || location == TileType.Village) && player.HaveProperty("Inn", cityIndex: cityIndex))
         {
             FullRest();
             if (!skipTime)
-                lastAction += "You rest in your inn.";
+                text.Append("You rest in your inn.");
         }
         else if ((location == TileType.City || location == TileType.Village) && player.gold > 0)
         {
@@ -1818,19 +1806,19 @@ public class Game : MonoBehaviour
             foreach (Hero hero in team.heroes)
                 hero.AddGold(-1);
             if (!skipTime)
-                lastAction += "You rest in an inn (<color=#FFD700>-1</color> gold).";
+                text.Append("You rest in an inn (<color=#FFD700>-1</color> gold).");
         }
         else if (location == TileType.Sawmill || location == TileType.Mine || location == TileType.Farm)
         {
             FullRest();
             if (!skipTime)
-                lastAction += "You rest in a barracks.";
+                text.Append("You rest in a barracks.");
         }
         else if (location == TileType.MageTower)
         {
             FullRest();
             if (!skipTime)
-                lastAction += "You rest in a guest room.";
+                text.Append("You rest in a guest room.");
         }
         else
         {
@@ -1870,12 +1858,12 @@ public class Game : MonoBehaviour
                     heal = ratio;
                 }
                 if (!skipTime)
-                    lastAction += $"You rest {where} and eat rations.";
+                    text.Append($"You rest {where} and eat rations.");
             }
             else
             {
                 if (!skipTime)
-                    lastAction += $"You rest {where}.";
+                    text.Append($"You rest {where}.");
                 heal = 0;
             }
 
@@ -1945,15 +1933,13 @@ public class Game : MonoBehaviour
 
         if (!skipTime)
         {
-            TextBuilder tb = new() { text = lastAction };
-            team.CheckBoredAllies(tb);
-            lastAction = tb.text;
+            team.CheckBoredAllies(text);
 
             if (player.goldWaiting != 0 && location.IsSafe())
             {
-                lastAction += player.goldWaiting > 0
-                    ? $" You receive <color=#FFD700>{player.goldWaiting}</color> gold from your properties."
-                    : $" You pay <color=#FFD700>{-player.goldWaiting}</color> gold for your properties.";
+                text.Append(player.goldWaiting > 0
+                    ? $"You receive <color=#FFD700>{player.goldWaiting}</color> gold from your properties."
+                    : $"You pay <color=#FFD700>{-player.goldWaiting}</color> gold for your properties.");
                 player.AddGold(player.goldWaiting);
                 player.goldWaiting = 0;
             }
@@ -2018,7 +2004,7 @@ public class Game : MonoBehaviour
                 {
                     ui.UpdateBackground((int)tile.type);
                     UpdateButtons();
-                    lastAction += $" {property.name} has been built.";
+                    text.Append($"{property.name} has been built.");
                 }
                 AddNotification($"The construction of {property.Name.ToLower()} has been completed.");
             }
@@ -2172,8 +2158,8 @@ public class Game : MonoBehaviour
         }
         GenerateInitialQuests();
         GenerateWorkers();
-        lastAction = "You are an adventurer seeking glory and gold. Rumors speak of a dragon lurking deep within a forgotten cave beyond the wilds. " +
-            "Find its lair, face the beast, and carve your name into legend.";
+        text.Set("You are an adventurer seeking glory and gold. Rumors speak of a dragon lurking deep within a forgotten cave beyond the wilds. " +
+            "Find its lair, face the beast, and carve your name into legend.");
     }
 
     private void SaveGame()
@@ -2346,14 +2332,14 @@ public class Game : MonoBehaviour
             {
                 if (yes)
                 {
-                    lastAction = $"You recruit {hero.name} to your team.";
+                    text.Set($"You recruit {hero.name} to your team.");
                     team.heroes.Add(hero);
                     hero.BuyItems();
                     UpdateButtons();
                 }
             }
             else
-                lastAction = $"You <b>failed</b> to convince {hero.name} to join your team.";
+                text.Set($"You <b>failed</b> to convince {hero.name} to join your team.");
 
             AddTime(minutes: 30);
             if (ui.TopDialog == guildScreen)
@@ -2391,7 +2377,7 @@ public class Game : MonoBehaviour
 
         ui.ShowConfirm($"Are you sure you want to remove {activeAlly.name} from your team?", () =>
         {
-            lastAction = $"{activeAlly.name} is sad and leave.";
+            text.Set($"{activeAlly.name} is sad and leave.");
             team.heroes.Remove(activeAlly);
             team.CancelOutDebts();
             UpdateButtons();
@@ -2440,8 +2426,7 @@ public class Game : MonoBehaviour
 
     private void RefreshProperties()
     {
-        propertiesScreen.transform.Find("Text").GetComponent<TMP_Text>().text = lastAction ?? string.Empty;
-        lastAction = null;
+        propertiesScreen.transform.Find("Text").GetComponent<TMP_Text>().text = text.Flush();
 
         ItemEntryList list = propertiesScreen.transform.Find("List").GetComponent<ItemEntryList>();
         list.Clear();
@@ -2482,7 +2467,7 @@ public class Game : MonoBehaviour
                         if (worker != null)
                             worker.locationIndex = -1;
                         property.events.Clear();
-                        lastAction = $"You sell {property.Name.ToLower()} for <color=#FFD700>{property.value / 2}</color> gold.";
+                        text.Set($"You sell {property.Name.ToLower()} for <color=#FFD700>{property.value / 2}</color> gold.");
                         if (property.name == "House" || property.name == "Mansion" || (property.name == "Inn" && property.cityIndex == world.CityIndex))
                             UpdateButtons();
                         if (property.name == "Horses" || property.name == "Mansion")
@@ -2534,13 +2519,13 @@ public class Game : MonoBehaviour
                 properties.Remove(property);
                 if (build)
                 {
-                    lastAction = $"You pay <color=#FFD700>{cost}</color> gold to build {property.Name.ToLower()}.";
+                    text.Set($"You pay <color=#FFD700>{cost}</color> gold to build {property.Name.ToLower()}.");
                     property.status = Property.Status.Building;
                     world.GetLocation(property.locationIndex).timer = 0; // prevent resetting
                 }
                 else
                 {
-                    lastAction = $"You buy {property.Name.ToLower()} for <color=#FFD700>{cost}</color> gold.";
+                    text.Set($"You buy {property.Name.ToLower()} for <color=#FFD700>{cost}</color> gold.");
 
                     // remove quests assigned to this location
                     if (property.locationIndex != -1)
@@ -2548,7 +2533,7 @@ public class Game : MonoBehaviour
                         Quest quest = activeQuests.FirstOrDefault(x => x.type == Quest.Type.Clear && x.location == property.locationIndex);
                         if (quest != null)
                         {
-                            lastAction += $" Quest '{quest.Title}' is reassigned to other party.";
+                            text.Append($"Quest '{quest.Title}' is reassigned to other party.");
                             RemoveQuest(quest);
                         }
                         availableQuests.RemoveAll(x => x.type == Quest.Type.Clear && x.location == property.locationIndex);
@@ -2571,7 +2556,7 @@ public class Game : MonoBehaviour
                         if (spiderStatus == SpiderStatus.Accepted)
                         {
                             Quest quest = activeQuests.First(x => x.type == Quest.Type.UniqueSpider);
-                            lastAction += $" Quest '{quest.Title}' is canceled.";
+                            text.Append($"Quest '{quest.Title}' is canceled.");
                             RemoveQuest(quest);
                         }
                         spiderStatus = SpiderStatus.Skipped;
@@ -2595,10 +2580,7 @@ public class Game : MonoBehaviour
     public void RefreshPropertyDetails()
     {
         if (manageProperty)
-        {
-            propertiesScreen.transform.Find("Text").GetComponent<TMP_Text>().text = lastAction ?? string.Empty;
-            lastAction = null;
-        }
+            propertiesScreen.transform.Find("Text").GetComponent<TMP_Text>().text = text.Flush();
         else
         {
             ItemEntryList list = propertiesScreen.transform.Find("List").GetComponent<ItemEntryList>();
@@ -2664,7 +2646,7 @@ public class Game : MonoBehaviour
                     selectedProperty.value += upgrade.value;
                     selectedProperty.income += upgrade.income;
                     selectedProperty.upkeep += upgrade.upkeep;
-                    lastAction = $"You buy {upgrade.name.ToLower()} for <color=#FFD700>{upgrade.value}</color> gold.";
+                    text.Set($"You buy {upgrade.name.ToLower()} for <color=#FFD700>{upgrade.value}</color> gold.");
                     if (upgrade.name == "Extra guards")
                     {
                         Property.Event even = selectedProperty.events.FirstOrDefault(e => e.name == "Infested" && e.timer == -1);
@@ -2673,7 +2655,7 @@ public class Game : MonoBehaviour
                             int days = world.CalculateTravelDaysNonTeam(World.IndexToPoint(selectedProperty.locationIndex));
                             even.timer = days;
                             even.state = 1;
-                            lastAction += $" They will take care of monsters infestation in {Utility.Plural("day", days, true)}.";
+                            text.Append($"They will take care of monsters infestation in {Utility.Plural("day", days, true)}.");
                         }
                     }
                     else if (upgrade.name == "Stables")
@@ -2699,14 +2681,9 @@ public class Game : MonoBehaviour
 
     private void RefreshGuild()
     {
-        string guildText;
-        if (!string.IsNullOrEmpty(lastAction))
-        {
-            guildText = lastAction;
+        string guildText = text.Flush();
+        if (guildText != string.Empty)
             guildText += "\n\n";
-        }
-        else
-            guildText = string.Empty;
         guildText += $"Your rank: {GuildRanks[guildRank]}";
         guildScreen.transform.Find("Text").GetComponent<TMP_Text>().text = guildText;
 
@@ -2772,7 +2749,7 @@ public class Game : MonoBehaviour
                         quest.count = tile.defeatedEnemies;
                     }
                     availableQuests.Remove(quest);
-                    lastAction = $"You accepted quest '{quest.Title}'.";
+                    text.Set($"You accepted quest '{quest.Title}'.");
                     AddTime(minutes: 15);
                     if (ui.CurrentDialog == guildScreen)
                         RefreshGuild();
@@ -2805,8 +2782,8 @@ public class Game : MonoBehaviour
 
                     player.AddGold(-property.infestedCost);
                     prop.events.First(e => e.name == "Infested").timer = days;
-                    lastAction = $"You pay <color=#FFD700>{property.infestedCost}</color> gold to adventurers to clear the {property.Name.ToLower()}. " +
-                        $"It will take them {Utility.Plural("day", days, true)}.";
+                    text.Set($"You pay <color=#FFD700>{property.infestedCost}</color> gold to adventurers to clear the {property.Name.ToLower()}. " +
+                        $"It will take them {Utility.Plural("day", days, true)}.");
                     AddTime(minutes: 15);
                     if (ui.CurrentDialog == guildScreen)
                         RefreshGuild();
@@ -2973,7 +2950,7 @@ public class Game : MonoBehaviour
     private void FinishQuest(Quest quest)
     {
         int reward = quest.Reward;
-        lastAction = $"You received <color=#FFD700>{reward}</color> gold for quest '{quest.Title}'.";
+        text.Set($"You received <color=#FFD700>{reward}</color> gold for quest '{quest.Title}'.");
         bool promoted = false;
         if (guildRank != MaxGuildRank)
         {
@@ -2990,19 +2967,15 @@ public class Game : MonoBehaviour
                 {
                     ++guildRank;
                     guildProgress = 0;
-                    lastAction += $" You were promoted to <b>{GuildRanks[guildRank]}</b> rank.";
-                    TextBuilder tb = new() { text = lastAction };
-                    team.ChangeAffection(5, tb);
-                    lastAction = tb.text;
+                    text.Append($"You were promoted to <b>{GuildRanks[guildRank]}</b> rank.");
+                    team.ChangeAffection(5, text);
                     promoted = true;
                 }
             }
         }
         if (!promoted)
         {
-            TextBuilder tb = new() { text = lastAction };
-            team.ChangeAffection(1, tb);
-            lastAction = tb.text;
+            team.ChangeAffection(1, text);
         }
         team.AddGold(reward);
         quest.Finish();
@@ -3015,23 +2988,17 @@ public class Game : MonoBehaviour
 
     private void CancelQuest(Quest quest)
     {
-        lastAction = $"You canceled quest '{quest.Title}'.";
+        text.Set($"You canceled quest '{quest.Title}'.");
         guildProgress -= quest.difficultyMod;
         if (guildRank > 1 && guildProgress < -guildRank)
         {
             --guildRank;
             guildProgress = 0;
-            lastAction += $" You are degraded to <b>{GuildRanks[guildRank]}</b> rank.";
-            TextBuilder tb = new() { text = lastAction };
-            team.ChangeAffection(-5, tb);
-            lastAction = tb.text;
+            text.Append($"You are degraded to <b>{GuildRanks[guildRank]}</b> rank.");
+            team.ChangeAffection(-5, text);
         }
         else
-        {
-            TextBuilder tb = new() { text = lastAction };
-            team.ChangeAffection(-1, tb);
-            lastAction = tb.text;
-        }
+            team.ChangeAffection(-1, text);
         RemoveQuest(quest);
 
         // readd quest if it can be completed
@@ -3078,7 +3045,7 @@ public class Game : MonoBehaviour
 
         if (tile.type == TileType.Cave && !team.HaveItem("pickaxe"))
         {
-            lastAction = "You need a pickaxe for that.";
+            text.Set("You need a pickaxe for that.");
             UpdateText();
             return;
         }
@@ -3086,7 +3053,7 @@ public class Game : MonoBehaviour
         int energy = tile.type == TileType.Forest ? 10 : 5;
         if (player.energy < energy)
         {
-            lastAction = $"You are too tired to {(tile.type == TileType.Forest ? "forage" : "prospect")}.";
+            text.Set($"You are too tired to {(tile.type == TileType.Forest ? "forage" : "prospect")}.");
             UpdateText();
             return;
         }
@@ -3102,7 +3069,7 @@ public class Game : MonoBehaviour
         else if (tile.type == TileType.Forest)
         {
             if (tile.depleted >= 4)
-                lastAction = $"You forage in the {tile.Name} but find nothing of value.";
+                text.Set($"You forage in the {tile.Name} but find nothing of value.");
             else
             {
                 // herbs/rare herbs
@@ -3123,24 +3090,24 @@ public class Game : MonoBehaviour
                 if (bestHero != null && bestHero != player)
                 {
                     float trainMod = 1f + 0.01f * (bestValue - player.GetSkill(Skill.Forage));
-                    lastAction = $"You forage the {tile.Name} and with {bestHero.name} help find <b>{Utility.Plural(herb.name, count)}</b>.";
+                    text.Set($"You forage the {tile.Name} and with {bestHero.name} help find <b>{Utility.Plural(herb.name, count)}</b>.");
                     if (Utility.Rand % 100 < bestValue)
                     {
-                        lastAction += $" You also find some edible {(Utility.Rand % 2 == 0 ? "fruits" : "vegetables")} (<b>+1 rations</b>).";
+                        text.Append($"You also find some edible {(Utility.Rand % 2 == 0 ? "fruits" : "vegetables")} (<b>+1 rations</b>).");
                         player.AddItem(Item.Get("rations"));
                     }
-                    lastAction += player.Train(Skill.Forage, 0.25f * trainMod);
+                    text.Append(player.Train(Skill.Forage, 0.25f * trainMod));
                     bestHero.Train(Skill.Forage, 0.25f);
                 }
                 else
                 {
-                    lastAction = $"You forage the {tile.Name} and find <b>{Utility.Plural(herb.name, count)}</b>.";
+                    text.Set($"You forage the {tile.Name} and find <b>{Utility.Plural(herb.name, count)}</b>.");
                     if (Utility.Rand % 100 < bestValue)
                     {
-                        lastAction += $" You also find some edible {(Utility.Rand % 2 == 0 ? "fruits" : "vegetables")} (<b>+1 rations</b>).";
+                        text.Append($"You also find some edible {(Utility.Rand % 2 == 0 ? "fruits" : "vegetables")} (<b>+1 rations</b>).");
                         player.AddItem(Item.Get("rations"));
                     }
-                    lastAction += player.Train(Skill.Forage, 0.25f);
+                    text.Append(player.Train(Skill.Forage, 0.25f));
                 }
             }
             AddTime(hours: 1);
@@ -3148,7 +3115,7 @@ public class Game : MonoBehaviour
         else
         {
             if (tile.boss || (tile.mine && tile.depleted >= 4) || (!tile.mine && tile.depleted >= tile.difficulty + 2))
-                lastAction = $"You prospect the {tile.Name} but find nothing of value.";
+                text.Set($"You prospect the {tile.Name} but find nothing of value.");
             else if (tile.mine)
             {
                 // silver/gold nuggets
@@ -3169,15 +3136,15 @@ public class Game : MonoBehaviour
                 if (bestHero != null && bestHero != player)
                 {
                     float trainMod = 1f + 0.01f * (bestValue - player.GetSkill(Skill.Mining));
-                    lastAction = $"You prospect the {tile.Name} and find small <b>{(tile.difficulty == 2 ? "silver" : "gold")} vein</b>. " +
-                        $"You and {bestHero.name} mine <b>{Utility.Plural(nugget.name, count)}</b>.";
-                    lastAction += player.Train(Skill.Mining, 0.25f * trainMod);
+                    text.Set($"You prospect the {tile.Name} and find small <b>{(tile.difficulty == 2 ? "silver" : "gold")} vein</b>. " +
+                        $"You and {bestHero.name} mine <b>{Utility.Plural(nugget.name, count)}</b>.");
+                    text.Append(player.Train(Skill.Mining, 0.25f * trainMod));
                     bestHero.Train(Skill.Mining, 0.25f);
                 }
                 else
                 {
-                    lastAction = $"You prospect the {tile.Name} and find small <b>{(tile.difficulty == 2 ? "silver" : "gold")} vein</b>. You mine <b>{Utility.Plural(nugget.name, count)}</b>.";
-                    lastAction += player.Train(Skill.Mining, 0.25f);
+                    text.Set($"You prospect the {tile.Name} and find small <b>{(tile.difficulty == 2 ? "silver" : "gold")} vein</b>. You mine <b>{Utility.Plural(nugget.name, count)}</b>.");
+                    text.Append(player.Train(Skill.Mining, 0.25f));
                 }
             }
             else
@@ -3198,14 +3165,14 @@ public class Game : MonoBehaviour
                 if (bestHero != null && bestHero != player)
                 {
                     float trainMod = 1f + 0.01f * (bestValue - player.GetSkill(Skill.Mining));
-                    lastAction = $"You prospect the {tile.Name} and find small <b>magic crystals cluster</b>. You and {bestHero.name} mine <b>{Utility.Plural("magic crystal", count)}</b>.";
-                    lastAction += player.Train(Skill.Mining, 0.25f * trainMod);
+                    text.Set($"You prospect the {tile.Name} and find small <b>magic crystals cluster</b>. You and {bestHero.name} mine <b>{Utility.Plural("magic crystal", count)}</b>.");
+                    text.Append(player.Train(Skill.Mining, 0.25f * trainMod));
                     bestHero.Train(Skill.Mining, 0.25f);
                 }
                 else
                 {
-                    lastAction = $"You prospect the {tile.Name} and find small <b>magic crystals cluster</b>. You mine <b>{Utility.Plural("magic crystal", count)}</b>.";
-                    lastAction += player.Train(Skill.Mining, 0.25f);
+                    text.Set($"You prospect the {tile.Name} and find small <b>magic crystals cluster</b>. You mine <b>{Utility.Plural("magic crystal", count)}</b>.");
+                    text.Append(player.Train(Skill.Mining, 0.25f));
                 }
             }
             AddTime(minutes: 30);
@@ -3223,7 +3190,7 @@ public class Game : MonoBehaviour
     private void RefreshCraft()
     {
         // text
-        craftScreen.transform.Find("Text").GetComponent<TMP_Text>().text = lastAction ?? string.Empty;
+        craftScreen.transform.Find("Text").GetComponent<TMP_Text>().text = text.Flush();
 
         // ingredients
         Transform content = craftScreen.transform.Find("Ingredients/Viewport/Content");
@@ -3269,16 +3236,16 @@ public class Game : MonoBehaviour
             float trainMod;
             if (bestHero == null || bestHero is Player)
             {
-                lastAction = $"You created {Utility.Plural(recipe.result.name, count + extra)}.";
+                text.Set($"You created {Utility.Plural(recipe.result.name, count + extra)}.");
                 trainMod = 1f;
             }
             else
             {
-                lastAction = $"You and {bestHero.name} created {Utility.Plural(recipe.result.name, count + extra)}.";
+                text.Set($"You and {bestHero.name} created {Utility.Plural(recipe.result.name, count + extra)}.");
                 trainMod = 1f + 0.01f * (alchemy - bonus - player.GetSkill(Skill.Alchemy));
                 bestHero.Train(Skill.Alchemy, recipe.trainMod * count);
             }
-            lastAction += player.Train(Skill.Alchemy, recipe.trainMod * trainMod * count);
+            text.Append(player.Train(Skill.Alchemy, recipe.trainMod * trainMod * count));
             AddTime(minutes: count * 5);
             if (ui.IsOpen(craftScreen))
                 RefreshCraft();
@@ -3352,17 +3319,17 @@ public class Game : MonoBehaviour
         player.AddItem(recipe.result, totalCount);
         if (hero == bestHero)
         {
-            lastAction = $"{hero.name} creates {Utility.Plural(recipe.result.name, totalCount)} and gives {(totalCount == 1 ? "it" : "them")} to you.";
+            text.Set($"{hero.name} creates {Utility.Plural(recipe.result.name, totalCount)} and gives {(totalCount == 1 ? "it" : "them")} to you.");
             hero.Train(Skill.Alchemy, recipe.trainMod * count);
         }
         else
         {
-            lastAction = $"{hero.name} and {bestHero.nameYou} create {Utility.Plural(recipe.result.name, totalCount)}. You receive {(totalCount == 1 ? "it" : "them")}.";
+            text.Set($"{hero.name} and {bestHero.nameYou} create {Utility.Plural(recipe.result.name, totalCount)}. You receive {(totalCount == 1 ? "it" : "them")}.");
             float trainMod = 1f + 0.01f * (alchemy - bonus - hero.GetSkill(Skill.Alchemy));
             hero.Train(Skill.Alchemy, recipe.trainMod * trainMod * count);
             string str = bestHero.Train(Skill.Alchemy, recipe.trainMod * count);
             if (bestHero is Player)
-                lastAction += str;
+                text.Append(str);
         }
 
         if (ui.IsOpen(giveAllyItemsScreen))
@@ -3376,7 +3343,7 @@ public class Game : MonoBehaviour
     public void Choice(string str, System.Action<bool> action)
     {
         choiceAction = action;
-        lastAction = str;
+        text.Set(str);
         UpdateText();
         transform.Find("Buttons").gameObject.SetActive(false);
         transform.Find("ChoiceButtons").gameObject.SetActive(true);
@@ -3539,8 +3506,8 @@ public class Game : MonoBehaviour
     public void JoinGuild()
     {
         guildRank = 1;
-        lastAction = "You fill out form and register as adventurer. From this day forward, you are free to accept quests, earn rewards, and carve your own path through the dungeons. " +
-            "May your courage be greater than the dangers ahead, and your pack always heavy with treasure.";
+        text.Set("You fill out form and register as adventurer. From this day forward, you are free to accept quests, earn rewards, and carve your own path through the dungeons. " +
+            "May your courage be greater than the dangers ahead, and your pack always heavy with treasure.");
         AddTime(minutes: 15);
         if (ui.CurrentDialog == guildScreen)
             RefreshGuild();
@@ -3707,7 +3674,7 @@ public class Game : MonoBehaviour
             Item rations = Item.Get("rations");
             player.RemoveItem(meat, count);
             player.AddItem(rations, count);
-            lastAction = $"You cooked {count} pieces of meat into rations.";
+            text.Set($"You cooked {count} pieces of meat into rations.");
             AddTime(minutes: count * 5);
             if (ui.TopDialog == guildScreen)
                 RefreshGuild();
@@ -3718,7 +3685,7 @@ public class Game : MonoBehaviour
 
     public void SetText(string txt)
     {
-        lastAction = txt;
+        text.Set(txt);
         UpdateText();
     }
 
@@ -3800,19 +3767,19 @@ public class Game : MonoBehaviour
     {
         if (dragonStatus == DragonStatus.None)
         {
-            lastAction = "The portal is sealed by dragon seal.";
+            text.Set("The portal is sealed by dragon seal.");
             UpdateText();
             return;
         }
 
         if (world.sublocation != 4)
         {
-            lastAction = "You enter the portal and arrive in dark dimension.";
+            text.Set("You enter the portal and arrive in dark dimension.");
             world.sublocation = 4;
         }
         else
         {
-            lastAction = "You enter the portal and arrive back in mage tower.";
+            text.Set("You enter the portal and arrive back in mage tower.");
             world.sublocation = 0;
         }
         OnChangeLocation();
@@ -4027,13 +3994,13 @@ public class Game : MonoBehaviour
     public void Train()
     {
         if (hour > 16)
-            lastAction = "It's too late to train.";
+            text.Set("It's too late to train.");
         else if (player.energy < 50)
-            lastAction = "You are too tired to train.";
+            text.Set("You are too tired to train.");
         else
         {
             player.energy -= 50;
-            lastAction = "You train fighting.";
+            text.Set("You train fighting.");
             List<Hero> levelups = null;
             foreach (Hero hero in team.heroes)
             {
@@ -4049,7 +4016,7 @@ public class Game : MonoBehaviour
                 foreach (var group in levelups.GroupBy(x => x.level))
                 {
                     string isAre = group.Count() > 1 || group.First() is Player ? "are" : "is";
-                    lastAction += $" {Utility.PrettyList(group.Select(x => x.nameYou)).ToUpper1()} {isAre} now level {group.Key}.";
+                    text.Append($"{Utility.PrettyList(group.Select(x => x.nameYou)).ToUpper1()} {isAre} now level {group.Key}.");
                 }
             }
 
@@ -4148,50 +4115,48 @@ public class Game : MonoBehaviour
             verb = $"managing the {property.name.ToLower()}";
         else
             verb = action.ToLower() + "ing";
-        lastAction = $"You spend {Utility.Plural("day", skippedDays)} {verb}.";
+        text.Set($"You spend {Utility.Plural("day", skippedDays)} {verb}.");
 
         if (payment > 0)
-            lastAction += $" You earned <color=#FFD700>{payment}</color> gold.";
+            text.Append($"You earned <color=#FFD700>{payment}</color> gold.");
 
         if (levelups != null)
         {
             foreach (var group in levelups.GroupBy(x => x.level))
             {
                 string isAre = group.Count() > 1 || group.First() is Player ? "are" : "is";
-                lastAction += $" {Utility.PrettyList(group.Select(x => x.nameYou)).ToUpper1()} {isAre} now level {group.Key}.";
+                text.Append($"{Utility.PrettyList(group.Select(x => x.nameYou)).ToUpper1()} {isAre} now level {group.Key}.");
             }
         }
 
         if (property != null)
         {
             if (property.efficiency > prevEfficiency)
-                lastAction += $" Efficiency increased by {property.efficiency - prevEfficiency}.";
+                text.Append($"Efficiency increased by {property.efficiency - prevEfficiency}.");
             else if (property.efficiency < prevEfficiency)
-                lastAction += $" Efficiency decreased by {prevEfficiency - property.efficiency}.";
+                text.Append($"Efficiency decreased by {prevEfficiency - property.efficiency}.");
         }
 
         foreach (KeyValuePair<Skill, SkillEntry> sk in player.skills)
         {
             if (!prevSkills.TryGetValue(sk.Key, out int prevValue) || prevValue < sk.Value.level)
-                lastAction += $" Your {sk.Key.AsString()} skill increased to {sk.Value.level}.";
+                text.Append($"Your {sk.Key.AsString()} skill increased to {sk.Value.level}.");
         }
 
-        TextBuilder tb = new() { text = lastAction };
-        team.CheckBoredAllies(tb);
-        lastAction = tb.text;
+        team.CheckBoredAllies(text);
 
         if (player.goldWaiting != 0 && tile.type.IsSafe())
         {
-            lastAction += player.goldWaiting > 0
-                ? $" You receive <color=#FFD700>{player.goldWaiting}</color> gold from your properties."
-                : $" You pay <color=#FFD700>{-player.goldWaiting}</color> gold for your properties.";
+            text.Append(player.goldWaiting > 0
+                ? $"You receive <color=#FFD700>{player.goldWaiting}</color> gold from your properties."
+                : $"You pay <color=#FFD700>{-player.goldWaiting}</color> gold for your properties.");
             player.AddGold(player.goldWaiting);
             player.goldWaiting = 0;
         }
 
         if (!world.CurrentTile.CanSkipTime())
         {
-            lastAction += $" Monsters <b>attacked</b> the {world.CurrentTile.Name}.";
+            text.Append($"Monsters <b>attacked</b> the {world.CurrentTile.Name}.");
             UpdateButtons();
         }
 
@@ -4212,11 +4177,11 @@ public class Game : MonoBehaviour
     public void DoManage()
     {
         if (hour > 16)
-            lastAction = "It's too late to manage.";
+            text.Set("It's too late to manage.");
         else if (player.energy < 25)
-            lastAction = "You are too tired to manage.";
+            text.Set("You are too tired to manage.");
         else if (!world.CurrentTile.clear && world.Location.IsClearable())
-            lastAction = $"You can't manage while monsters occupy the {world.CurrentTile.Name}.";
+            text.Set($"You can't manage while monsters occupy the {world.CurrentTile.Name}.");
         else
         {
             DoManageInternal(selectedProperty, false, !manageProperty);
@@ -4241,13 +4206,13 @@ public class Game : MonoBehaviour
         if (bestAlly == null || bestAlly == player)
         {
             if (!skipTime)
-                lastAction = $"You manage the {property.name.ToLower()}.";
+                text.Set($"You manage the {property.name.ToLower()}.");
             trainMod = 1f;
         }
         else
         {
             if (!skipTime)
-                lastAction = $"You and {bestAlly.name} manage the {property.name.ToLower()}.";
+                text.Set($"You and {bestAlly.name} manage the {property.name.ToLower()}.");
             int skill = player.GetSkill(Skill.Management);
             if (remote)
                 skill = skill * 3 / 4;
@@ -4258,16 +4223,16 @@ public class Game : MonoBehaviour
         if (!skipTime)
         {
             if (newEfficiency > property.efficiency)
-                lastAction += $" Efficiency increased by {newEfficiency - property.efficiency}.";
+                text.Append($"Efficiency increased by {newEfficiency - property.efficiency}.");
             else if (newEfficiency < property.efficiency)
-                lastAction += $" Efficiency decreased by {property.efficiency - newEfficiency}.";
+                text.Append($"Efficiency decreased by {property.efficiency - newEfficiency}.");
         }
         property.efficiency = newEfficiency;
         property.lastManaged = day;
 
         string str = player.Train(Skill.Management, trainMod);
         if (!skipTime)
-            lastAction += str;
+            text.Append(str);
     }
 
     private static int CalculateEfficiencyChange(int skill, int efficiency)
@@ -4325,7 +4290,7 @@ public class Game : MonoBehaviour
             header.text = $"Hired people ({2 * hiredWorkers.Count} upkeep):";
 
         // text
-        peopleScreen.transform.Find("Text").GetComponent<TMP_Text>().text = lastAction ?? string.Empty;
+        peopleScreen.transform.Find("Text").GetComponent<TMP_Text>().text = text.Flush();
 
         // list
         Transform content = peopleScreen.transform.Find("List/Viewport/Content");
@@ -4347,7 +4312,7 @@ public class Game : MonoBehaviour
                         return;
                     }
 
-                    lastAction = $"You pay <color=#FFD700>{cost}</color> gold to hire {worker.name}.";
+                    text.Set($"You pay <color=#FFD700>{cost}</color> gold to hire {worker.name}.");
                     player.AddGold(-cost);
                     worker.locationIndex = -1;
                     hiredWorkers.Add(worker);
@@ -4377,7 +4342,7 @@ public class Game : MonoBehaviour
                     actionText = "Unassign";
                     action = () =>
                     {
-                        lastAction = $"You unassign {worker.name} from {selectedProperty.Name}.";
+                        text.Set($"You unassign {worker.name} from {selectedProperty.Name}.");
                         worker.locationIndex = -1;
                         RefreshPeople();
                     };
@@ -4391,11 +4356,11 @@ public class Game : MonoBehaviour
                         Worker currentWorker = hiredWorkers.FirstOrDefault(x => x.locationIndex == locationIndex);
                         if (currentWorker != null)
                         {
-                            lastAction = $"You unassign {currentWorker.name} and assign {worker.name} to {selectedProperty.Name}.";
+                            text.Set($"You unassign {currentWorker.name} and assign {worker.name} to {selectedProperty.Name}.");
                             currentWorker.locationIndex = -1;
                         }
                         else
-                            lastAction = $"You assign {worker.name} to {selectedProperty.Name}.";
+                            text.Set($"You assign {worker.name} to {selectedProperty.Name}.");
                         worker.locationIndex = locationIndex;
                         RefreshPeople();
                     };
@@ -4403,7 +4368,7 @@ public class Game : MonoBehaviour
 
                 itemEntry.Init2(worker.ToStringHired(property?.Name), actionText, action, "Fire", () =>
                 {
-                    lastAction = $"You fire {worker.name}.";
+                    text.Set($"You fire {worker.name}.");
                     hiredWorkers.Remove(worker);
                     RefreshPeople();
                 });
@@ -4475,10 +4440,10 @@ public class Game : MonoBehaviour
                     quest.tracked = true;
                 activeQuests.Add(quest);
                 UpdateButtons();
-                lastAction = "You accepted the quest to defeat the spider queen.";
+                text.Set("You accepted the quest to defeat the spider queen.");
             }
             else
-                lastAction = null;
+                text.Clear();
             UpdateText();
         });
     }

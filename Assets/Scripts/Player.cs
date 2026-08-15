@@ -12,6 +12,7 @@ public class Player : Hero
 
     public override string nameYou => "you";
     public override string NameYou => "You";
+    public override string He => "You";
     public override string him => "you";
     public override string isAre => "are";
 

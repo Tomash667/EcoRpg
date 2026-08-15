@@ -70,7 +70,7 @@ public class Hero : ISerializationCallbackReceiver
     public char GenderSign => female ? '♀' : '♂';
     public virtual string nameYou => name;
     public virtual string NameYou => name;
-    public string He => female ? "She" : "He";
+    public virtual string He => female ? "She" : "He";
     public virtual string him => female ? "her" : "him";
     public virtual string isAre => "is";
     public string Portrait => $"Portraits/{(female ? "female" : "male")} {clas.AsString()}";
