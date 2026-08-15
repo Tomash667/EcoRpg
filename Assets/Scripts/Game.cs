@@ -45,11 +45,12 @@ public class Game : MonoBehaviour
     public int day, hour, minute, guildRank, freshHorses;
 
     private GameUI ui;
-    private GameObject shopScreen, characterScreen, journalScreen, allyScreen, giveAllyItemsScreen, storeItemsScreen, activeInventory, propertiesScreen, guildScreen, gardenScreen, craftScreen,
-        enchantItemsScreen, skipTimeScreen, peopleScreen;
+    private GameObject shopScreen, characterScreen, allyScreen, giveAllyItemsScreen, storeItemsScreen, activeInventory, propertiesScreen, guildScreen, gardenScreen, craftScreen, enchantItemsScreen,
+        skipTimeScreen, peopleScreen;
     private RectTransform[] alliesHealthRect;
     private Map map;
     private Combat combatScreen;
+    private Journal journal;
     private TMP_Text mainText;
     private Hero activeAlly;
     private Property selectedProperty;
@@ -69,7 +70,7 @@ public class Game : MonoBehaviour
         mainText = transform.Find("Text").GetComponent<TMP_Text>();
         shopScreen = transform.Find("Shop").gameObject;
         characterScreen = transform.Find("Character").gameObject;
-        journalScreen = transform.Find("Journal").gameObject;
+        journal = transform.Find("Journal").GetComponent<Journal>();
         allyScreen = transform.Find("Ally").gameObject;
         giveAllyItemsScreen = transform.Find("GiveItems").gameObject;
         storeItemsScreen = transform.Find("StoreItems").gameObject;
@@ -1712,7 +1713,7 @@ public class Game : MonoBehaviour
         }
     }
 
-    private void UpdateText()
+    public void UpdateText()
     {
         sb.Clear();
         string name = world.CurrentTile.Name.ToUpper1();
@@ -2180,7 +2181,7 @@ public class Game : MonoBehaviour
         SceneManager.LoadScene("Menu");
     }
 
-    private void UpdateButtons()
+    public void UpdateButtons()
     {
         TileType location = world.Location;
         int cityIndex = world.CityIndex;
@@ -3685,69 +3686,8 @@ public class Game : MonoBehaviour
 
     public void Journal()
     {
-        RefreshJournal();
-        ui.ShowDialog(journalScreen);
-    }
-
-    private void RefreshJournal()
-    {
-        bool notificationChanges = false;
-
-        // notifications
-        sb.Clear();
-        if (notifications.Any(x => x.status != Notification.Status.Waiting))
-        {
-            foreach (Notification notification in notifications.Where(x => x.status != Notification.Status.Waiting))
-            {
-                if (notification.status == Notification.Status.Available)
-                    sb.Append("<b>");
-                sb.Append($"Day {notification.day} - {notification.text}");
-                if (notification.status == Notification.Status.Available)
-                {
-                    sb.Append("</b>");
-                    notification.status = Notification.Status.Read;
-                    notificationChanges = true;
-                }
-                sb.Append("\n");
-            }
-        }
-        else
-            sb.Append("...");
-        journalScreen.transform.Find("Notifications/Viewport/Content/Text").GetComponent<TMP_Text>().text = sb.ToString();
-        StartCoroutine(MoveScrollRectToPos(journalScreen.transform.Find("Notifications").GetComponent<ScrollRect>(), 0f));
-
-        // active quests
-        Transform content = journalScreen.transform.Find("List/Viewport/Content");
-        foreach (Transform child in content)
-            Destroy(child.gameObject);
-
-        foreach (Quest quest in activeQuests)
-        {
-            ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
-            if (quest.tracked)
-                itemEntry.Init(quest.TextReward);
-            else
-            {
-                itemEntry.Init(quest.TextReward, "Track", () =>
-                {
-                    Quest prevQuest = activeQuests.FirstOrDefault(x => x.tracked);
-                    if (prevQuest != null)
-                        prevQuest.tracked = false;
-                    quest.tracked = true;
-                    RefreshJournal();
-                    UpdateText();
-                });
-            }
-        }
-
-        if (notificationChanges)
-            UpdateButtons();
-    }
-
-    private IEnumerator MoveScrollRectToPos(ScrollRect scrollRect, float pos)
-    {
-        yield return new WaitForEndOfFrame();
-        scrollRect.verticalNormalizedPosition = pos;
+        ui.ShowDialog(journal.gameObject);
+        journal.Refresh();
     }
 
     public void EnchantItems()

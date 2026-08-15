@@ -237,6 +237,9 @@ ui:
 + shop tabs?, separate shops
 + animate datetime, gold
 
+refactoring:
++ store worker assigned property as reference
+
 investments:
 + cottage/big house
 + manage mine/sawmill

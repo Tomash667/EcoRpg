@@ -26615,33 +26615,9 @@ MonoBehaviour:
     sublocation: 0
     level: 0
   player:
-    items: []
-    savedSkills: []
-    name: 
-    weaponName: 
-    armorName: 
-    shieldName: 
-    clas: 0
-    level: 1
-    exp: 0
-    hp: 100
-    hpMax: 100
-    attack: 25
-    defense: 5
-    dex: 0
-    gold: 5000
-    owedGold: 0
-    rested: 0
-    affection: 0
-    bored: 0
-    lastGift: 0
-    female: 0
-    winToday: 0
-    complained: 0
-    properties: []
-    goldWaiting: 0
-    energy: 100
-  allies: []
+    rid: -2
+  team:
+    heroes: []
   availableQuests: []
   activeQuests: []
   properties: []
@@ -26656,6 +26632,11 @@ MonoBehaviour:
   minute: 0
   guildRank: 0
   freshHorses: 0
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
 --- !u!114 &1380054796
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -33317,6 +33298,7 @@ GameObject:
   - component: {fileID: 1696012902}
   - component: {fileID: 1696012904}
   - component: {fileID: 1696012903}
+  - component: {fileID: 1696012905}
   m_Layer: 5
   m_Name: Journal
   m_TagString: Untagged
@@ -33388,6 +33370,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1696012901}
   m_CullTransparentMesh: 1
+--- !u!114 &1696012905
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1696012901}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a4f7a49bd611fa449ae8e18aa9a6ef00, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1703019817
 GameObject:
   m_ObjectHideFlags: 0
