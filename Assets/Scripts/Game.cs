@@ -45,8 +45,7 @@ public class Game : MonoBehaviour
     public int day, hour, minute, guildRank, freshHorses;
 
     private GameUI ui;
-    private GameObject shopScreen, characterScreen, allyScreen, giveAllyItemsScreen, storeItemsScreen, activeInventory, propertiesScreen, guildScreen, craftScreen, enchantItemsScreen,
-        skipTimeScreen, peopleScreen;
+    private GameObject shopScreen, characterScreen, allyScreen, giveAllyItemsScreen, storeItemsScreen, activeInventory, propertiesScreen, guildScreen, craftScreen, enchantItemsScreen, peopleScreen;
     private RectTransform[] alliesHealthRect;
     private Combat combatScreen;
     private Garden garden;
@@ -64,6 +63,7 @@ public class Game : MonoBehaviour
     private bool inChoice, traveled, restCombat, manageProperty, recruitWorkers;
 
     public GameUI UI => ui;
+    public TextBuilder Text => text;
 
     private void Awake()
     {
@@ -84,7 +84,6 @@ public class Game : MonoBehaviour
         map = transform.Find("Map").GetComponent<Map>();
         map.Init();
         enchantItemsScreen = transform.Find("EnchantItems").gameObject;
-        skipTimeScreen = transform.Find("SkipTime").gameObject;
         peopleScreen = transform.Find("People").gameObject;
         alliesHealthRect = new[] { transform.Find("Buttons/BtAlly/Health") as RectTransform, transform.Find("Buttons/BtAlly2/Health") as RectTransform };
 
@@ -122,11 +121,6 @@ public class Game : MonoBehaviour
                         Train();
                 }
             }
-            else if (currentDialog == skipTimeScreen)
-            {
-                if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
-                    DoSkipTime();
-            }
             else if (currentDialog == propertiesScreen)
             {
                 bool canManage = manageProperty || ((world.Location == TileType.City || world.Location == TileType.Mansion)
@@ -160,7 +154,7 @@ public class Game : MonoBehaviour
             if (Input.GetKeyDown(KeyCode.C))
                 Character();
             if (Input.GetKeyDown(KeyCode.J))
-                Journal();
+                journal.Show();
             if (Input.GetKeyDown(KeyCode.E))
                 Explore();
             if (Input.GetKeyDown(KeyCode.R))
@@ -232,7 +226,7 @@ public class Game : MonoBehaviour
                     ManageProperties();
                 if (Input.GetKeyDown(KeyCode.G) && ((world.Location == TileType.House && player.HavePropertyUpgrade("House", "Garden", cityIndex: world.CityIndex))
                     || (world.Location == TileType.Mansion && player.HavePropertyUpgrade("Mansion", "Garden", cityIndex: world.CityIndex))))
-                    Garden();
+                    garden.Show();
                 break;
             case TileType.Sawmill:
             case TileType.Mine:
@@ -918,7 +912,7 @@ public class Game : MonoBehaviour
         UpdateText();
     }
 
-    private int DoWork(bool skipTime = false)
+    public int DoWork(bool skipTime = false)
     {
         player.energy -= 50;
         TileType location = world.Location;
@@ -1765,7 +1759,7 @@ public class Game : MonoBehaviour
         }
     }
 
-    private bool OnRest(bool skipTime = false)
+    public bool OnRest(bool skipTime = false)
     {
         void FullRest()
         {
@@ -3581,12 +3575,6 @@ public class Game : MonoBehaviour
             GetPropertyInside().storedItems.Remove(itemSlot);
     }
 
-    public void Garden()
-    {
-        ui.ShowDialog(garden.gameObject);
-        garden.Refresh();
-    }
-
     public void Cook()
     {
         Item meat = Item.Get("meat");
@@ -3616,12 +3604,6 @@ public class Game : MonoBehaviour
     {
         text.Set(txt);
         UpdateText();
-    }
-
-    public void Journal()
-    {
-        ui.ShowDialog(journal.gameObject);
-        journal.Refresh();
     }
 
     public void EnchantItems()
@@ -3895,143 +3877,6 @@ public class Game : MonoBehaviour
         UpdateText();
     }
 
-    public void SkipTime()
-    {
-        List<string> options = new();
-        TileType location = world.Location;
-        if (location == TileType.City || location == TileType.Village || location == TileType.Mine || location == TileType.Sawmill || location == TileType.Farm)
-            options.Add("Work");
-        if (GetPropertyHere() != null)
-            options.Add("Manage");
-        if (location == TileType.City)
-            options.Add("Train");
-        options.Add("Relax");
-        TMP_Dropdown dropdown = skipTimeScreen.transform.Find("Dropdown").GetComponent<TMP_Dropdown>();
-        dropdown.ClearOptions();
-        dropdown.AddOptions(options);
-        dropdown.value = 0;
-        skipTimeScreen.transform.Find("Input").GetComponent<TMP_InputField>().text = "1";
-        ui.ShowDialog(skipTimeScreen);
-    }
-
-    public void DoSkipTime()
-    {
-        int days = int.Parse(skipTimeScreen.transform.Find("Input").GetComponent<TMP_InputField>().text);
-        if (days < 1 || days > 30)
-        {
-            ui.ShowDialog("Invalid number of days to skip.");
-            return;
-        }
-
-        string action = skipTimeScreen.transform.Find("Dropdown").GetComponent<TMP_Dropdown>().captionText.text;
-
-        List<Hero> levelups = null;
-        Dictionary<Skill, int> prevSkills = player.skills.ToDictionary(x => x.Key, x => x.Value.level);
-        Tile tile = world.CurrentTile;
-        Property property = null;
-        int skippedDays = 0;
-        int payment = 0;
-        int prevEfficiency = 0;
-
-        if (action == "Manage")
-        {
-            property = GetPropertyHere();
-            prevEfficiency = property.efficiency;
-        }
-
-        // skip first day if tired
-        if (((action == "Work" || action == "Train") && (player.energy < 50 || hour > 16))
-            || (action == "Manage" && (player.energy < 25 || hour > 16)))
-        {
-            OnRest(true);
-            --days;
-            ++skippedDays;
-        }
-
-        while (days > 0)
-        {
-            switch (action)
-            {
-            case "Train":
-                foreach (Hero hero in team.heroes)
-                {
-                    if (hero.AddExp(100))
-                    {
-                        levelups ??= new();
-                        levelups.Add(hero);
-                    }
-                }
-                break;
-            case "Work":
-                payment += DoWork(true);
-                break;
-            case "Manage":
-                DoManageInternal(property, true, false);
-                break;
-            }
-
-            OnRest(true);
-            --days;
-            ++skippedDays;
-
-            if (!tile.CanSkipTime())
-                break;
-        }
-
-        string verb;
-        if (action == "Manage")
-            verb = $"managing the {property.name.ToLower()}";
-        else
-            verb = action.ToLower() + "ing";
-        text.Set($"You spend {Utility.Plural("day", skippedDays)} {verb}.");
-
-        if (payment > 0)
-            text.Append($"You earned <color=#FFD700>{payment}</color> gold.");
-
-        if (levelups != null)
-        {
-            foreach (var group in levelups.GroupBy(x => x.level))
-            {
-                string isAre = group.Count() > 1 || group.First() is Player ? "are" : "is";
-                text.Append($"{Utility.PrettyList(group.Select(x => x.nameYou)).ToUpper1()} {isAre} now level {group.Key}.");
-            }
-        }
-
-        if (property != null)
-        {
-            if (property.efficiency > prevEfficiency)
-                text.Append($"Efficiency increased by {property.efficiency - prevEfficiency}.");
-            else if (property.efficiency < prevEfficiency)
-                text.Append($"Efficiency decreased by {prevEfficiency - property.efficiency}.");
-        }
-
-        foreach (KeyValuePair<Skill, SkillEntry> sk in player.skills)
-        {
-            if (!prevSkills.TryGetValue(sk.Key, out int prevValue) || prevValue < sk.Value.level)
-                text.Append($"Your {sk.Key.AsString()} skill increased to {sk.Value.level}.");
-        }
-
-        team.CheckBoredAllies(text);
-
-        if (player.goldWaiting != 0 && tile.type.IsSafe())
-        {
-            text.Append(player.goldWaiting > 0
-                ? $"You receive <color=#FFD700>{player.goldWaiting}</color> gold from your properties."
-                : $"You pay <color=#FFD700>{-player.goldWaiting}</color> gold for your properties.");
-            player.AddGold(player.goldWaiting);
-            player.goldWaiting = 0;
-        }
-
-        if (!world.CurrentTile.CanSkipTime())
-        {
-            text.Append($"Monsters <b>attacked</b> the {world.CurrentTile.Name}.");
-            UpdateButtons();
-        }
-
-        ui.CloseDialog();
-        UpdateText();
-    }
-
     public void Manage()
     {
         selectedProperty = GetPropertyHere();
@@ -4064,7 +3909,7 @@ public class Game : MonoBehaviour
         UpdateText();
     }
 
-    private void DoManageInternal(Property property, bool skipTime, bool remote)
+    public void DoManageInternal(Property property, bool skipTime, bool remote)
     {
         player.energy -= 25;
         (Hero bestAlly, int bestValue) = team.GetSkill(Skill.Management);
@@ -4115,7 +3960,7 @@ public class Game : MonoBehaviour
         return Mathf.Clamp(efficiency + step, 1, 100);
     }
 
-    private Property GetPropertyHere()
+    public Property GetPropertyHere()
     {
         return world.Location switch
         {

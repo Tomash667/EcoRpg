@@ -9,6 +9,12 @@ public class Journal : MonoBehaviour
 {
     private readonly StringBuilder sb = new();
 
+    public void Show()
+    {
+        Global.UI.ShowDialog(gameObject);
+        Refresh();
+    }
+
     public void Refresh()
     {
         Game game = Global.Game;

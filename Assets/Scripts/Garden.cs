@@ -2,6 +2,12 @@ using UnityEngine;
 
 public class Garden : MonoBehaviour
 {
+    public void Show()
+    {
+        Global.UI.ShowDialog(gameObject);
+        Refresh();
+    }
+
     public void Refresh()
     {
         Game game = Global.Game;
