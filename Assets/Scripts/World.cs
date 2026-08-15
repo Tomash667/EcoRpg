@@ -463,8 +463,8 @@ public class World
 
         Game game = Global.Game;
         int step = 1;
-        int rations = game.CountTeamItem(Item.Get("rations"));
-        int teamSize = game.Team.Count();
+        int rations = game.team.CountItem(Item.Get("rations"));
+        int teamSize = game.team.heroes.Count;
         int freshHorses = 0;
         float speed = RationsToSpeed(rations, teamSize);
         float speedMod;
@@ -589,8 +589,8 @@ public class World
         List<Vector2Int> path = FindPath(currentPt, pt);
         int step = 1;
         Item rationsItem = Item.Get("rations");
-        int rations = game.CountTeamItem(rationsItem);
-        int teamSize = game.Team.Count();
+        int rations = game.team.CountItem(rationsItem);
+        int teamSize = game.team.heroes.Count;
         int freshHorses = 0;
         float speed = RationsToSpeed(rations, teamSize);
         float speedMod;
@@ -616,10 +616,10 @@ public class World
             game.minute = 0;
             ++game.day;
             game.OnNewDay();
-            game.RemoveTeamItem(rationsItem, teamSize);
+            game.team.RemoveItem(rationsItem, teamSize);
             rations -= teamSize;
             speed = RationsToSpeed(rations, teamSize);
-            foreach (Hero hero in game.Team)
+            foreach (Hero hero in game.team.heroes)
                 hero.hp = hero.hpMax;
             game.player.energy = Mathf.Min(game.player.energy + (haveTent ? 100 : 75), 100);
             if (freshHorses > 0)

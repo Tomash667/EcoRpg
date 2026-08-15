@@ -28,7 +28,7 @@ public class Player : Hero
         gold += value;
         goldReceived += value;
         if (value > 0 && owedGold > 0 && gold > MinGold)
-            Global.Game.PayOwedGold(this);
+            Global.Game.team.PayOwedGold(this);
     }
 
     public bool HaveProperty(string name, bool isActive = false, int cityIndex = -1)

@@ -256,8 +256,17 @@ public class Hero : ISerializationCallbackReceiver
     public virtual void AddGold(int value)
     {
         gold += value;
-        if (value > 0 && owedGold > 0 && gold > MinGold)
-            Global.Game.PayOwedGold(this);
+        if (value > 0)
+        {
+            if (owedGold > 0 && gold > MinGold)
+                Global.Game.team.PayOwedGold(this);
+
+            TileType location = Global.World.Location;
+            if (location.IsSafe())
+                BuyItems();
+            else if (location == TileType.MageTower)
+                EnchantItems();
+        }
     }
 
     public void AddItem(Item item, int count = 1, bool team = false)
@@ -449,7 +458,7 @@ public class Hero : ISerializationCallbackReceiver
         // if owe gold, pay it and don't buy anything
         if (gold > prevGold && owedGold > 0)
         {
-            Global.Game.PayOwedGold(this);
+            Global.Game.team.PayOwedGold(this);
             if (owedGold > 0)
                 return;
         }
@@ -724,5 +733,39 @@ public class Hero : ISerializationCallbackReceiver
             return optional;
         else
             return word + 's';
+    }
+
+    public void ChangeAffection(int value)
+    {
+        if (value > 0)
+        {
+            if (affection == 100)
+                return;
+        }
+        else
+        {
+            if (affection == -100)
+                return;
+        }
+
+        affection = Mathf.Clamp(affection + value, -100, 100);
+    }
+
+    public void IncreaseAffectionFromValue(Item item, int count)
+    {
+        if (item.type == Item.Type.Usable && item.subtype == Item.Subtype.Ingredient)
+            return; // ingredients are turned into potion and given back
+        IncreaseAffectionFromValue(item.value * count);
+    }
+
+    public void IncreaseAffectionFromValue(int value)
+    {
+        int affectionGain = ValueToAffectionGain(value);
+        int actualAffectionGain = affectionGain - lastGift;
+        if (actualAffectionGain > 0)
+        {
+            lastGift = affectionGain;
+            ChangeAffection(actualAffectionGain);
+        }
     }
 }

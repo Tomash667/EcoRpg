@@ -1,3 +1,5 @@
++ TextBuilder
+
 v3
 hero:
 + longer main quest that require investing
@@ -63,6 +65,7 @@ ui:
 + smoother travel
 + ok/confirm dialog auto size
 + show text on ally craft, apply to other texts not shown
+	show affection change from give gold/item
 + Utility.Plural should inclue a/an (sometimes?)
 + show item value on character screen (and other places?)
 + new game class description
@@ -76,7 +79,6 @@ ui:
 + map background
 
 refactoring:
-+ Team class
 + classes from UI screens
 
 investments:

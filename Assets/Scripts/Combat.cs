@@ -47,9 +47,9 @@ public class Combat : MonoBehaviour
     private readonly List<DelayedText> delayedTexts = new();
     private readonly List<Unit> enemies = new();
     private readonly List<Hero> hitHeroes = new();
+    private List<Hero> heroes;
     private List<Enemy> enemyList;
     private List<object> order = new();
-    private Game game;
     private TMP_Text text;
     private GameObject arrow;
     private Unit playerTarget;
@@ -66,7 +66,7 @@ public class Combat : MonoBehaviour
 
     public void Init(List<Enemy> enemyList, string startAction, bool restCombat)
     {
-        game = Global.Game;
+        heroes = Global.Game.team.heroes;
         this.enemyList = enemyList;
 
         Transform container = transform.GetChild(1);
@@ -79,8 +79,8 @@ public class Combat : MonoBehaviour
         delayedTexts.Clear();
 
         int index = 0;
-        bool multiRow = game.Team.Any(x => x.BackRow != game.player.BackRow);
-        foreach (Hero hero in game.Team)
+        bool multiRow = heroes.Any(x => x.BackRow != heroes[0].BackRow);
+        foreach (Hero hero in heroes)
         {
             CharacterCard card = Instantiate(characterCardPrefab, container).GetComponent<CharacterCard>();
             card.Init(hero.name, hero.hpp, false, Resources.Load<Sprite>(hero.Portrait));
@@ -188,12 +188,12 @@ public class Combat : MonoBehaviour
                 AppendText("You win!");
                 result = Result.Win;
                 timer = 1f;
-                foreach (Hero hero2 in game.Team)
+                foreach (Hero hero2 in heroes)
                     hero2.card.Approach();
                 break;
             default:
                 transform.parent.Find("Buttons").gameObject.SetActive(true);
-                game.PostCombat(result, enemyList);
+                Global.Game.PostCombat(result, enemyList);
                 break;
             }
             return;
@@ -237,7 +237,7 @@ public class Combat : MonoBehaviour
                 // escape from combat
                 result = Result.Escape;
                 timer = 1f;
-                foreach (Hero hero2 in game.Team)
+                foreach (Hero hero2 in heroes)
                     hero2.card.Escape();
                 arrow.SetActive(false);
                 action = Action.None;
@@ -269,7 +269,7 @@ public class Combat : MonoBehaviour
                     hero.confused = 0;
                     hero.poison = 0;
                     AppendText($"{hero.NameYou} {hero.S("take")} {hero.poison} poison damage and {hero.isAre} defeated.");
-                    if (game.Team.All(x => x.hp <= 0))
+                    if (heroes.All(x => x.hp <= 0))
                     {
                         result = Result.DefeatWait;
                         timer = 0.5f;
@@ -298,7 +298,7 @@ public class Combat : MonoBehaviour
                 if (Utility.Rand % 2 == 0)
                 {
                     // attack ally
-                    Hero targetHero = game.Team.RandomItem(x => x.hp > 0);
+                    Hero targetHero = heroes.RandomItem(x => x.hp > 0);
                     if (targetHero == hero)
                     {
                         AppendText($"{hero.NameYou} {hero.S("don't", "doesn't")} know what to do.");
@@ -416,7 +416,7 @@ public class Combat : MonoBehaviour
         if (hero is Player
             || hero.hpp > 0.5f
             || hero.potionTimer != 0
-            || game.Team.Count(x => x.hp > 0) > 1) // if there are other heroes attack and heal when defeated
+            || heroes.Count(x => x.hp > 0) > 1) // if there are other heroes attack and heal when defeated
             return false;
 
         ItemSlot potion = hero.FindHealingItem();
@@ -491,7 +491,7 @@ public class Combat : MonoBehaviour
                 --me.cooldown2;
         }
 
-        if ((me.enemy.summonMummy || me.enemy.summonSpider) && me.cooldown2 == 0 && enemies.Count < Game.MaxTeamSize && Utility.Rand % 3 != 0)
+        if ((me.enemy.summonMummy || me.enemy.summonSpider) && me.cooldown2 == 0 && enemies.Count < Team.MaxSize && Utility.Rand % 3 != 0)
         {
             EnemySummon(me);
             return true;
@@ -509,14 +509,14 @@ public class Combat : MonoBehaviour
             spellName = me.enemy.fireball ? "fireball" : "darkbolt";
             me.cooldown = 2;
         }
-        Hero hero = game.Team.RandomItem(x => x.hp > 0 && !hitHeroes.Contains(x));
+        Hero hero = heroes.RandomItem(x => x.hp > 0 && !hitHeroes.Contains(x));
         bool isBlocking = false;
         if (hero == null)
             return true;
         else if (hero.BackRow)
         {
             // front row heroes can block attack once per round
-            Hero blockingHero = game.Team.RandomItem(x => x.hp > 0 && x.canBlock && x.shield != null);
+            Hero blockingHero = heroes.RandomItem(x => x.hp > 0 && x.canBlock && x.shield != null);
             if (blockingHero != null)
             {
                 hero = blockingHero;
@@ -548,7 +548,7 @@ public class Combat : MonoBehaviour
                 AppendText(spellName != null
                     ? $"{me.enemy.name.ToUpper1()} shoots {spellName} at {hero.nameYou} for {dmg} damage and defeats {hero.him}."
                     : $"{me.enemy.name.ToUpper1()} hits {hero.nameYou} for {dmg} damage and defeats {hero.him}.", 0.15f);
-                if (game.Team.All(x => x.hp <= 0))
+                if (heroes.All(x => x.hp <= 0))
                     result = Result.DefeatWait;
             }
             else
@@ -623,7 +623,7 @@ public class Combat : MonoBehaviour
     private void EnemyFirebreath(Unit me)
     {
         me.cooldown = 2;
-        foreach (Hero hero in game.Team.Where(x => x.hp > 0))
+        foreach (Hero hero in heroes.Where(x => x.hp > 0))
         {
             if (AttackChance(me.enemy.dex, hero.dex))
             {
@@ -636,7 +636,7 @@ public class Combat : MonoBehaviour
                     hero.confused = 0;
                     hero.poison = 0;
                     AppendText($"{me.enemy.name.ToUpper1()} breaths fire at {hero.nameYou} for {dmg} damage and defeats {hero.him}.", 0.15f);
-                    if (game.Team.All(x => x.hp <= 0))
+                    if (heroes.All(x => x.hp <= 0))
                         result = Result.DefeatWait;
                 }
                 else
@@ -723,7 +723,7 @@ public class Combat : MonoBehaviour
             if (textParts.Count > 5)
                 textParts.RemoveAt(0);
             text.text = string.Join('\n', textParts);
-            game.SetText(null);
+            Global.Game.SetText(null);
         }
     }
 

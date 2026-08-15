@@ -27,14 +27,14 @@ public class Game : MonoBehaviour
         Skipped
     }
 
-    public const int MaxTeamSize = 3;
     private const int MaxGuildRank = 4;
 
     private static readonly string[] GuildRanks = new[] { "None", "Copper", "Silver", "Gold", "Diamond" };
 
     public World world;
+    [SerializeReference]
     public Player player;
-    public List<Hero> allies;
+    public Team team;
     public List<Quest> availableQuests, activeQuests;
     public List<Property> properties;
     public List<Notification> notifications;
@@ -60,15 +60,6 @@ public class Game : MonoBehaviour
     private int restCombatEnergy;
     private bool inChoice, traveled, restCombat, manageProperty, recruitWorkers;
 
-    public IEnumerable<Hero> Team
-    {
-        get
-        {
-            yield return player;
-            foreach (Hero ally in allies)
-                yield return ally;
-        }
-    }
     public GameUI UI => ui;
 
     private void Awake()
@@ -159,9 +150,9 @@ public class Game : MonoBehaviour
         }
         else
         {
-            if (allies.Count >= 1 && Input.GetKeyDown(KeyCode.Alpha1))
+            if (team.heroes.Count >= 2 && Input.GetKeyDown(KeyCode.Alpha1))
                 Ally(0);
-            if (allies.Count >= 2 && Input.GetKeyDown(KeyCode.Alpha2))
+            if (team.heroes.Count >= 3 && Input.GetKeyDown(KeyCode.Alpha2))
                 Ally(1);
             if (Input.GetKeyDown(KeyCode.C))
                 Character();
@@ -308,8 +299,8 @@ public class Game : MonoBehaviour
                 if (quest != null)
                     availableQuests.Remove(quest);
             }
-            AddTeamGold(gold);
-            player.AddItem(item, team: allies.Count > 0);
+            team.AddGold(gold);
+            player.AddItem(item, team: team.heroes.Count > 1);
             tile.foundTreasure = true;
         }
         else if (world.level + 1 < tile.levels && tile.foundLevel == world.level && tile.defeatedEnemies >= 10)
@@ -334,7 +325,7 @@ public class Game : MonoBehaviour
         else if (c == 8 && tile.type == TileType.Dungeon && (!tile.foundTreasure || Utility.Rand % 2 == 0))
         {
             // trap
-            Hero target = Team.RandomItem();
+            Hero target = team.heroes.RandomItem();
             lastAction = target == player
                 ? $"You explore the {tile.Name} and step on a <color=red>trap</color>."
                 : $"You explore the {tile.Name} and {target.name} step on a <color=red>trap</color>.";
@@ -359,7 +350,7 @@ public class Game : MonoBehaviour
             else if (tile.difficulty == 2)
             {
                 List<Hero> dodged = new(), hit = new();
-                foreach (Hero hero in Team)
+                foreach (Hero hero in team.heroes)
                 {
                     if (Combat.AttackChance(15, hero.dex))
                     {
@@ -383,7 +374,7 @@ public class Game : MonoBehaviour
                     }
                     else
                     {
-                        if (dodged.Count == Team.Count() && dodged.Count > 1)
+                        if (dodged.Count == team.heroes.Count && dodged.Count > 1)
                             lastAction += " Everone jump away from a pit.";
                         else
                             lastAction += $" {Utility.PrettyList(dodged.Select(x => x.nameYou)).ToUpper1()} {Utility.S("jump", dodged.Count == 1 && dodged[0] != player)} away from a pit.";
@@ -391,7 +382,7 @@ public class Game : MonoBehaviour
                 }
                 else
                 {
-                    if (hit.Count == Team.Count() && hit.Count > 1)
+                    if (hit.Count == team.heroes.Count && hit.Count > 1)
                         lastAction += " Everyone fall into a pit.";
                     else
                         lastAction += $" {Utility.PrettyList(hit.Select(x => x.nameYou)).ToUpper1()} {Utility.S("fall", hit.Count == 1 && hit[0] != player)} into a pit.";
@@ -400,7 +391,7 @@ public class Game : MonoBehaviour
             else
             {
                 List<Hero> dodged = new(), hit = new();
-                foreach (Hero hero in Team)
+                foreach (Hero hero in team.heroes)
                 {
                     if (Combat.AttackChance(20, hero.dex))
                     {
@@ -424,7 +415,7 @@ public class Game : MonoBehaviour
                     }
                     else
                     {
-                        if (dodged.Count == Team.Count() && dodged.Count > 1)
+                        if (dodged.Count == team.heroes.Count && dodged.Count > 1)
                             lastAction += " Everone jump away from an explosion.";
                         else
                             lastAction += $" {Utility.PrettyList(dodged.Select(x => x.nameYou)).ToUpper1()} {Utility.S("jump", dodged.Count == 1 && dodged[0] != player)} away from an explosion.";
@@ -432,7 +423,7 @@ public class Game : MonoBehaviour
                 }
                 else
                 {
-                    if (hit.Count == Team.Count() && hit.Count > 1)
+                    if (hit.Count == team.heroes.Count && hit.Count > 1)
                         lastAction += " Everyone are caught in an explosion.";
                     else
                         lastAction += $" {Utility.PrettyList(hit.Select(x => x.nameYou)).ToUpper1()} {Utility.S("are", hit.Count == 1 && hit[0] != player, "is")} caught in an explosion.";
@@ -450,14 +441,14 @@ public class Game : MonoBehaviour
             };
             int gold = Utility.Round(Utility.Random(100 * tile.difficulty, 200 * tile.difficulty));
             int count = Utility.Random(1, 2);
-            AddTeamGold(gold);
+            team.AddGold(gold);
             player.AddItem(Item.Get(item), count);
             lastAction = $"You explore the {tile.Name} and find chest. Inside you find <b>{Utility.Plural(item, count)}</b> and <color=#FFD700>{gold}</color> gold.";
         }
         else if (c == 9 && tile.type == TileType.Forest && tile.depleted < 4)
         {
             // herbs/rare herbs
-            (Hero bestHero, int bestValue) = GetTeamSkill(Skill.Forage);
+            (Hero bestHero, int bestValue) = team.GetSkill(Skill.Forage);
             int count = (Utility.Rand % 6) switch
             {
                 1 or 2 => 2,
@@ -487,9 +478,9 @@ public class Game : MonoBehaviour
         else if (c == 9 && ((tile.type == TileType.Mountains && tile.depleted == 0) || (tile.type == TileType.Cave && tile.mine && tile.depleted < 4)) && tile.difficulty >= 2)
         {
             // silver/gold nuggets
-            if (HaveTeamItem("pickaxe"))
+            if (team.HaveItem("pickaxe"))
             {
-                (Hero bestHero, int bestValue) = GetTeamSkill(Skill.Mining);
+                (Hero bestHero, int bestValue) = team.GetSkill(Skill.Mining);
                 int count = (Utility.Rand % 6) switch
                 {
                     1 or 2 => 2,
@@ -502,7 +493,7 @@ public class Game : MonoBehaviour
                     count = 1;
                 tile.depleted++;
                 Item nugget = Item.Get(tile.difficulty == 2 ? "silver nugget" : "gold nugget");
-                player.AddItem(nugget, count, allies.Count > 0);
+                player.AddItem(nugget, count, team.heroes.Count > 1);
                 if (bestHero != null && bestHero != player)
                 {
                     float trainMod = 1f + 0.01f * (bestValue - player.GetSkill(Skill.Mining));
@@ -523,9 +514,9 @@ public class Game : MonoBehaviour
         else if (c == 9 && tile.type == TileType.Cave && !tile.mine && !tile.boss && tile.depleted < tile.difficulty + 2)
         {
             // magic crystals
-            if (HaveTeamItem("pickaxe"))
+            if (team.HaveItem("pickaxe"))
             {
-                (Hero bestHero, int bestValue) = GetTeamSkill(Skill.Mining);
+                (Hero bestHero, int bestValue) = team.GetSkill(Skill.Mining);
                 int count = (Utility.Rand % 4) switch
                 {
                     1 or 2 => 2,
@@ -686,7 +677,7 @@ public class Game : MonoBehaviour
             foreach (ItemSlot itemSlot in drops)
             {
                 items.Add(Utility.Plural(itemSlot.item.name, itemSlot.count));
-                player.AddItem(itemSlot.item, itemSlot.count, allies.Count > 0 && itemSlot.item.subtype == Item.Subtype.Treasure);
+                player.AddItem(itemSlot.item, itemSlot.count, team.heroes.Count > 1 && itemSlot.item.subtype == Item.Subtype.Treasure);
             }
             gold = Utility.Round(gold);
             string pickups;
@@ -710,9 +701,11 @@ public class Game : MonoBehaviour
                     RemoveQuest(quest);
                 tile.clear = true;
                 tile.timer = 0;
-                ChangeTeamAffection(10);
-                foreach (Hero ally in allies)
-                    ally.winToday = true;
+                TextBuilder tb = new() { text = lastAction };
+                team.ChangeAffection(10, tb);
+                lastAction = tb.text;
+                foreach (Hero hero in team.heroes)
+                    hero.winToday = true;
             }
             else
             {
@@ -735,34 +728,31 @@ public class Game : MonoBehaviour
                     lastAction = $"You win a fight with <b>{Utility.PrettyGroup(enemyList.Select(x => x.name))}</b> ({pickups} found).";
                 else
                     lastAction = $"You win a fight with <b>{Utility.PrettyGroup(enemyList.Select(x => x.name))}</b>.";
-                ChangeTeamAffection(1, ally =>
+                TextBuilder tb = new() { text = lastAction };
+                team.ChangeAffection(1, tb, hero =>
                 {
-                    if (ally.winToday)
+                    if (hero.winToday)
                         return false;
-                    ally.winToday = true;
+                    hero.winToday = true;
                     return true;
                 });
+                lastAction = tb.text;
             }
-            AddTeamGold(gold);
+            team.AddGold(gold);
 
             // exp
             List<Hero> levelups = null;
             float ratio;
-            if (allies.Count == 0)
+            if (team.heroes.Count == 1)
                 ratio = 1f;
             else
-                ratio = 1f / (allies.Count + 1);
-            if (player.AddExp(enemyList, ratio))
+                ratio = 1f / team.heroes.Count;
+            foreach (Hero hero in team.heroes)
             {
-                levelups ??= new();
-                levelups.Add(player);
-            }
-            foreach (Hero ally in allies)
-            {
-                if (ally.AddExp(enemyList, ratio))
+                if (hero.AddExp(enemyList, ratio))
                 {
                     levelups ??= new();
-                    levelups.Add(ally);
+                    levelups.Add(hero);
                 }
             }
             if (levelups != null)
@@ -818,7 +808,9 @@ public class Game : MonoBehaviour
             if (result == Combat.Result.Escape)
             {
                 lastAction = $"You run away from {Utility.PrettyGroup(enemyList.Select(x => x.name))}.";
-                ChangeTeamAffection(-1);
+                TextBuilder tb = new() { text = lastAction };
+                team.ChangeAffection(-1, tb);
+                lastAction = tb.text;
             }
             else
             {
@@ -833,9 +825,9 @@ public class Game : MonoBehaviour
                 }
 
                 if (goldTaken > 0)
-                    goldTaken = RemoveTeamGold(Utility.Round(goldTaken));
+                    goldTaken = team.RemoveGold(Utility.Round(goldTaken));
                 if (rationsTaken > 0)
-                    rationsTaken = RemoveTeamItem(Item.Get("rations"), rationsTaken);
+                    rationsTaken = team.RemoveItem(Item.Get("rations"), rationsTaken);
 
                 string lost = null;
                 if (goldTaken > 0)
@@ -853,7 +845,9 @@ public class Game : MonoBehaviour
                 else
                     lastAction = $"You <color=red>lost</color> a fight with <b>{Utility.PrettyGroup(enemyList.Select(x => x.name))}</b> ({lost}).";
 
-                ChangeTeamAffection(-5);
+                TextBuilder tb = new() { text = lastAction };
+                team.ChangeAffection(-5, tb);
+                lastAction = tb.text;
             }
 
             if (enemyList.Any(x => x.name == "dragon" || x.name == "spider queen"))
@@ -863,15 +857,13 @@ public class Game : MonoBehaviour
         }
 
         // heal after combat
-        player.bored = 0;
-        if (player.hp < 1)
-            player.hp = 1;
-        foreach (Hero ally in allies)
+        foreach (Hero hero in team.heroes)
         {
-            ally.bored = 0;
-            if (ally.hp < 1)
-                ally.hp = 1;
-            ally.ApplyHealing();
+            hero.bored = 0;
+            if (hero.hp < 1)
+                hero.hp = 1;
+            if (hero is not Player)
+                hero.ApplyHealing();
         }
 
         if (restCombat)
@@ -880,9 +872,8 @@ public class Game : MonoBehaviour
             {
                 if (restCombatHeal != 0)
                 {
-                    player.hp = Mathf.Min(player.hp + (int)(restCombatHeal * player.hpMax), player.hpMax);
-                    foreach (Hero ally in allies)
-                        ally.hp = Mathf.Min(ally.hp + (int)(restCombatHeal * ally.hpMax), ally.hpMax);
+                    foreach (Hero hero in team.heroes)
+                        hero.hp = Mathf.Min(hero.hp + (int)(restCombatHeal * hero.hpMax), hero.hpMax);
                 }
                 player.energy = Mathf.Min(player.energy + restCombatEnergy, 100);
                 lastAction += " You finish your rest.";
@@ -931,11 +922,6 @@ public class Game : MonoBehaviour
         {
             DoWork();
             AddTime(hours: 8);
-            if (world.Location.IsSafe())
-            {
-                foreach (Hero ally in allies)
-                    ally.BuyItems();
-            }
         }
         UpdateText();
     }
@@ -970,7 +956,7 @@ public class Game : MonoBehaviour
         int skillValue;
         if (skill != Skill.None)
         {
-            (bestHero, skillValue) = GetTeamSkill(skill);
+            (bestHero, skillValue) = team.GetSkill(skill);
             payment += skillValue / 10;
         }
         else
@@ -984,7 +970,7 @@ public class Game : MonoBehaviour
         // give payment & train all team members
         if (!skipTime)
             lastAction = $"You earned <color=#FFD700>{payment}</color> gold from working.";
-        foreach (Hero hero in Team)
+        foreach (Hero hero in team.heroes)
         {
             float trainMod;
             if (skill != Skill.None && bestHero != null && bestHero != hero)
@@ -1138,7 +1124,7 @@ public class Game : MonoBehaviour
             Property inn = properties.First(x => x.name == "Inn" && x.cityIndex == 1);
             player.properties.Add(inn);
             properties.Remove(inn);
-            PayForTeamProperty(player, inn.value / 2);
+            team.PayForProperty(player, inn.value / 2);
             lastAction = $"You travel to the {tile.Name}. Inn owner is thankful for defeating the spider queen and hands over the deed to <b>inn</b>.";
         }
         else
@@ -1157,10 +1143,10 @@ public class Game : MonoBehaviour
         Property property = player.properties.FirstOrDefault(x => x.status == Property.Status.Building && x.locationIndex == world.CurrentLocationIndex);
         if (property != null)
             lastAction += $" {property.name} is being build here.";
-        if ((tile.type == TileType.City || tile.type == TileType.Village) && allies.Any(x => (x.affection <= -25 && !x.complained) || x.affection <= -50))
+        if ((tile.type == TileType.City || tile.type == TileType.Village) && team.heroes.Skip(1).Any(x => (x.affection <= -25 && !x.complained) || x.affection <= -50))
         {
-            Hero[] complainers = allies.Where(x => x.affection <= -25 && !x.complained).ToArray();
-            Hero[] quitters = allies.Where(x => x.affection <= -50 && x.complained).ToArray();
+            Hero[] complainers = team.heroes.Skip(1).Where(x => x.affection <= -25 && !x.complained).ToArray();
+            Hero[] quitters = team.heroes.Skip(1).Where(x => x.affection <= -50 && x.complained).ToArray();
             if (complainers.Length > 0)
             {
                 foreach (Hero hero in complainers)
@@ -1170,8 +1156,8 @@ public class Game : MonoBehaviour
             if (quitters.Length > 0)
             {
                 foreach (Hero hero in quitters)
-                    allies.Remove(hero);
-                CancelOutDebts();
+                    team.heroes.Remove(hero);
+                team.CancelOutDebts();
                 lastAction += $" {Utility.PrettyList(quitters.Select(x => x.name))} <color=red>{Utility.S("leave", quitters.Length == 1)}</color> your party.";
             }
         }
@@ -1180,7 +1166,9 @@ public class Game : MonoBehaviour
 
     private void OnChangeLocation()
     {
-        CheckBoredAllies();
+        TextBuilder tb = new() { text = lastAction };
+        team.CheckBoredAllies(tb);
+        lastAction = tb.text;
 
         Tile tile = world.CurrentTile;
 
@@ -1198,7 +1186,7 @@ public class Game : MonoBehaviour
                 player.goldWaiting = 0;
             }
 
-            foreach (Hero ally in allies)
+            foreach (Hero ally in team.heroes.Skip(1))
                 ally.BuyItems();
 
             foreach (Notification notification in notifications.Where(x => x.status == Notification.Status.Waiting))
@@ -1206,7 +1194,7 @@ public class Game : MonoBehaviour
         }
         else if (tile.type == TileType.MageTower)
         {
-            foreach (Hero ally in allies)
+            foreach (Hero ally in team.heroes.Skip(1))
                 ally.EnchantItems();
         }
 
@@ -1233,7 +1221,7 @@ public class Game : MonoBehaviour
 
     public void Ally(int index)
     {
-        activeAlly = allies[index];
+        activeAlly = team.heroes[index + 1];
         RefreshAllyScreen();
         ui.ShowDialog(allyScreen);
     }
@@ -1432,7 +1420,7 @@ public class Game : MonoBehaviour
                     itemEntry.Init2(itemSlot.ToString(Price.None), "Equip", () =>
                     {
                         if (itemSlot.team)
-                            PayForTeamItem(player, itemSlot.item);
+                            team.PayForItem(player, itemSlot.item);
 
                         switch (itemSlot.item.type)
                         {
@@ -1479,7 +1467,7 @@ public class Game : MonoBehaviour
                     if (Input.GetKey(KeyCode.LeftShift))
                     {
                         if (itemSlot.team)
-                            AddTeamGold(itemSlot.item.value * itemSlot.count / 2);
+                            team.AddGold(itemSlot.item.value * itemSlot.count / 2);
                         else
                             player.AddGold(itemSlot.item.value * itemSlot.count / 2);
                         player.RemoveItem(itemSlot, itemSlot.count);
@@ -1494,7 +1482,7 @@ public class Game : MonoBehaviour
                                 return true;
                             count = Mathf.Min(count, itemSlot.count);
                             if (itemSlot.team)
-                                AddTeamGold(itemSlot.item.value * count / 2);
+                                team.AddGold(itemSlot.item.value * count / 2);
                             else
                                 player.AddGold(itemSlot.item.value * count / 2);
                             player.RemoveItem(itemSlot, count);
@@ -1506,7 +1494,7 @@ public class Game : MonoBehaviour
                     else
                     {
                         if (itemSlot.team)
-                            AddTeamGold(itemSlot.item.value / 2);
+                            team.AddGold(itemSlot.item.value / 2);
                         else
                             player.AddGold(itemSlot.item.value / 2);
                         player.RemoveItem(itemSlot);
@@ -1525,9 +1513,9 @@ public class Game : MonoBehaviour
                             || !(Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.LeftControl)))
                         {
                             if (itemSlot.team)
-                                PayForTeamItem(activeAlly, itemSlot.item);
+                                team.PayForItem(activeAlly, itemSlot.item);
                             else
-                                IncreaseAffectionFromValue(activeAlly, itemSlot.item, 1);
+                                activeAlly.IncreaseAffectionFromValue(itemSlot.item, 1);
                             activeAlly.GiveItem(itemSlot.item);
                             player.RemoveItem(itemSlot);
                             RefreshPlayerItems();
@@ -1537,9 +1525,9 @@ public class Game : MonoBehaviour
                         else if (Input.GetKey(KeyCode.LeftShift))
                         {
                             if (itemSlot.team)
-                                PayForTeamItem(activeAlly, itemSlot.item, itemSlot.count);
+                                team.PayForItem(activeAlly, itemSlot.item, itemSlot.count);
                             else
-                                IncreaseAffectionFromValue(activeAlly, itemSlot.item, itemSlot.count);
+                                activeAlly.IncreaseAffectionFromValue(itemSlot.item, itemSlot.count);
                             activeAlly.GiveItem(itemSlot.item, itemSlot.count);
                             player.RemoveItem(itemSlot, itemSlot.count);
                             RefreshPlayerItems();
@@ -1554,9 +1542,9 @@ public class Game : MonoBehaviour
                                     return true;
                                 count = Mathf.Min(count, itemSlot.count);
                                 if (itemSlot.team)
-                                    PayForTeamItem(activeAlly, itemSlot.item, count);
+                                    team.PayForItem(activeAlly, itemSlot.item, count);
                                 else
-                                    IncreaseAffectionFromValue(activeAlly, itemSlot.item, count);
+                                    activeAlly.IncreaseAffectionFromValue(itemSlot.item, count);
                                 activeAlly.GiveItem(itemSlot.item, count);
                                 player.RemoveItem(itemSlot, count);
                                 RefreshPlayerItems();
@@ -1577,7 +1565,7 @@ public class Game : MonoBehaviour
                     if (Input.GetKey(KeyCode.LeftShift))
                     {
                         if (itemSlot.team)
-                            PayForTeamItem(player, itemSlot.item, itemSlot.count);
+                            team.PayForItem(player, itemSlot.item, itemSlot.count);
                         AddStoredItem(itemSlot.item, itemSlot.count);
                         player.RemoveItem(itemSlot, itemSlot.count);
                         RefreshPlayerItems();
@@ -1592,7 +1580,7 @@ public class Game : MonoBehaviour
                                 return true;
                             count = Mathf.Min(count, itemSlot.count);
                             if (itemSlot.team)
-                                PayForTeamItem(player, itemSlot.item, count);
+                                team.PayForItem(player, itemSlot.item, count);
                             AddStoredItem(itemSlot.item, count);
                             player.RemoveItem(itemSlot, count);
                             RefreshPlayerItems();
@@ -1604,7 +1592,7 @@ public class Game : MonoBehaviour
                     else
                     {
                         if (itemSlot.team)
-                            PayForTeamItem(player, itemSlot.item);
+                            team.PayForItem(player, itemSlot.item);
                         AddStoredItem(itemSlot.item);
                         player.RemoveItem(itemSlot);
                         RefreshPlayerItems();
@@ -1626,7 +1614,7 @@ public class Game : MonoBehaviour
                         {
                             Item item = itemSlot.item;
                             if (itemSlot.team)
-                                PayForTeamItem(player, itemSlot.item);
+                                team.PayForItem(player, itemSlot.item);
                             player.RemoveItem(itemSlot);
                             player.AddItem(item.GetEnchanted());
                             player.AddGold(-cost);
@@ -1764,14 +1752,14 @@ public class Game : MonoBehaviour
         text.text = sb.ToString();
 
         // allies health
-        for (int i = 0; i < allies.Count; ++i)
+        for (int i = 1; i < team.heroes.Count; ++i)
         {
-            float hp = allies[i].hpp;
+            float hp = team.heroes[i].hpp;
             if (hp < 0)
                 hp = 0;
             else if (hp > 0 && hp < 0.01f)
                 hp = 0.01f;
-            alliesHealthRect[i].sizeDelta = new Vector2(156f * hp, 5f);
+            alliesHealthRect[i - 1].sizeDelta = new Vector2(156f * hp, 5f);
         }
     }
 
@@ -1795,10 +1783,9 @@ public class Game : MonoBehaviour
     {
         void FullRest()
         {
-            player.hp = player.hpMax;
             player.energy = 100;
-            foreach (Hero ally in allies)
-                ally.hp = ally.hpMax;
+            foreach (Hero hero in team.heroes)
+                hero.hp = hero.hpMax;
         }
 
         TileType location = world.Location;
@@ -1812,7 +1799,7 @@ public class Game : MonoBehaviour
         else if (((location == TileType.City || location == TileType.Village) && player.HaveProperty("Mansion", cityIndex: cityIndex)) || location == TileType.Mansion)
         {
             FullRest();
-            foreach (Hero hero in Team)
+            foreach (Hero hero in team.heroes)
                 hero.rested = 11;
             if (player.HaveProperty("Horses") && player.HavePropertyUpgrade("Mansion", "Stables", cityIndex: cityIndex))
                 freshHorses = 11;
@@ -1828,9 +1815,8 @@ public class Game : MonoBehaviour
         else if ((location == TileType.City || location == TileType.Village) && player.gold > 0)
         {
             FullRest();
-            player.AddGold(-1);
-            foreach (Hero ally in allies)
-                ally.AddGold(-1);
+            foreach (Hero hero in team.heroes)
+                hero.AddGold(-1);
             if (!skipTime)
                 lastAction += "You rest in an inn (<color=#FFD700>-1</color> gold).";
         }
@@ -1867,8 +1853,8 @@ public class Game : MonoBehaviour
             }
 
             Item rations = Item.Get("rations");
-            int count = 1 + allies.Count;
-            int eaten = RemoveTeamItem(rations, count);
+            int count = team.heroes.Count;
+            int eaten = team.RemoveItem(rations, count);
             float heal;
             if (eaten > 0)
             {
@@ -1923,9 +1909,8 @@ public class Game : MonoBehaviour
                 energy /= 2;
                 if (heal != 0)
                 {
-                    player.hp = Mathf.Min(player.hp + (int)(heal * player.hpMax), player.hpMax);
-                    foreach (Hero ally in allies)
-                        ally.hp = Mathf.Min(ally.hp + (int)(heal * ally.hpMax), ally.hpMax);
+                    foreach (Hero hero in team.heroes)
+                        hero.hp = Mathf.Min(hero.hp + (int)(heal * hero.hpMax), hero.hpMax);
                 }
                 player.energy = Mathf.Min(player.energy + energy, 100);
                 Tile tile = world.CurrentTile;
@@ -1940,15 +1925,13 @@ public class Game : MonoBehaviour
             {
                 if (heal == 1)
                 {
-                    player.hp = player.hpMax;
-                    foreach (Hero ally in allies)
-                        ally.hp = ally.hpMax;
+                    foreach (Hero hero in team.heroes)
+                        hero.hp = hero.hpMax;
                 }
                 else if (heal > 0)
                 {
-                    player.hp = Mathf.Min(player.hp + (int)(heal * player.hpMax), player.hpMax);
-                    foreach (Hero ally in allies)
-                        ally.hp = Mathf.Min(ally.hp + (int)(heal * ally.hpMax), ally.hpMax);
+                    foreach (Hero hero in team.heroes)
+                        hero.hp = Mathf.Min(hero.hp + (int)(heal * hero.hpMax), hero.hpMax);
                 }
                 player.energy = Mathf.Min(player.energy + energy, 100);
             }
@@ -1962,7 +1945,9 @@ public class Game : MonoBehaviour
 
         if (!skipTime)
         {
-            CheckBoredAllies();
+            TextBuilder tb = new() { text = lastAction };
+            team.CheckBoredAllies(tb);
+            lastAction = tb.text;
 
             if (player.goldWaiting != 0 && location.IsSafe())
             {
@@ -1976,28 +1961,6 @@ public class Game : MonoBehaviour
 
         ui.CloseDialogs(x => x == propertiesScreen || x == guildScreen || x == characterScreen || x == craftScreen || x == peopleScreen);
         return true;
-    }
-
-    private void CheckBoredAllies()
-    {
-        List<(Hero ally, int count)> changes = null;
-        foreach (Hero ally in allies)
-        {
-            if (ally.bored >= 30)
-            {
-                int count = ally.bored / 30;
-                ally.bored -= count * 30;
-                ally.affection -= count;
-                changes ??= new();
-                changes.Add((ally, count));
-            }
-        }
-
-        if (changes != null)
-        {
-            foreach (var group in changes.GroupBy(x => x.count))
-                lastAction += $" {Utility.PrettyList(group.Select(x => x.ally.name))} {(group.Count() == 1 ? "is" : "are")} bored (-{group.Key} affection).";
-        }
     }
 
     public void OnNewDay()
@@ -2086,20 +2049,7 @@ public class Game : MonoBehaviour
             }
         }
 
-        // update heroes
-        foreach (Hero hero in Team)
-        {
-            if (hero.rested > 0)
-                --hero.rested;
-            ++hero.bored;
-            hero.winToday = false;
-            hero.lastGift = 0;
-        }
-
-        if (allies.Count == 0)
-            player.affection = 0;
-        else
-            player.affection = allies.Max(x => x.affection);
+        team.OnNewDay();
 
         if (freshHorses > 0)
             --freshHorses;
@@ -2181,80 +2131,12 @@ public class Game : MonoBehaviour
         }
     }
 
-    public int CountTeamItem(Item item)
-    {
-        return Team.Sum(x => x.CountItem(item));
-    }
-
-    public int RemoveTeamGold(int count)
-    {
-        int removed = 0;
-
-        while (count > 0)
-        {
-            Hero[] available = Team.Where(x => x.gold > 0).ToArray();
-            if (available.Length == 0)
-                break; // nothing left to remove
-
-            int perHero = Mathf.Max(1, count / available.Length);
-            foreach (Hero hero in available)
-            {
-                if (count <= 0)
-                    break;
-
-                int canRemove = Mathf.Min(perHero, hero.gold);
-                hero.AddGold(-canRemove);
-                count -= canRemove;
-                removed += canRemove;
-            }
-        }
-
-        return removed;
-    }
-
-    public int RemoveTeamItem(Item item, int count)
-    {
-        int removed = 0;
-
-        // Cache counts so we don't call CountItem repeatedly
-        Dictionary<Hero, int> counts = new();
-        foreach (Hero hero in Team)
-            counts[hero] = hero.CountItem(item);
-
-        while (count > 0)
-        {
-            // Heroes that still have items
-            var available = counts
-                .Where(kv => kv.Value > 0)
-                .Select(kv => kv.Key)
-                .ToList();
-
-            if (available.Count == 0)
-                break; // nothing left to remove
-
-            int perHero = Mathf.Max(1, count / available.Count);
-            foreach (var hero in available)
-            {
-                if (count <= 0)
-                    break;
-
-                int canRemove = Mathf.Min(perHero, counts[hero]);
-                hero.RemoveItem(item, canRemove);
-                counts[hero] -= canRemove;
-                count -= canRemove;
-                removed += canRemove;
-            }
-        }
-
-        return removed;
-    }
-
     private void NewGame()
     {
         Global global = Global.Instance;
         player = new() { name = global.playerName, clas = global.playerClass, female = global.playerFemale };
         player.Init();
-        allies = new();
+        team = new() { heroes = new() { player } };
         world = new();
         world.Init();
         map.Build();
@@ -2415,26 +2297,26 @@ public class Game : MonoBehaviour
             || (location == TileType.Mansion && player.HavePropertyUpgrade("Mansion", "Garden", cityIndex: cityIndex)));
 
         GameObject btAlly = buttons.Find("BtAlly").gameObject;
-        if (allies.Count < 1)
+        if (team.heroes.Count < 2)
             btAlly.SetActive(false);
         else
         {
-            btAlly.GetComponentInChildren<TMP_Text>().text = allies[0].name;
+            btAlly.GetComponentInChildren<TMP_Text>().text = team.heroes[1].name;
             btAlly.SetActive(true);
         }
         btAlly = buttons.Find("BtAlly2").gameObject;
-        if (allies.Count < 2)
+        if (team.heroes.Count < 3)
             btAlly.SetActive(false);
         else
         {
-            btAlly.GetComponentInChildren<TMP_Text>().text = allies[1].name;
+            btAlly.GetComponentInChildren<TMP_Text>().text = team.heroes[2].name;
             btAlly.SetActive(true);
         }
     }
 
     public void Recruit()
     {
-        if (allies.Count + 1 >= MaxTeamSize)
+        if (team.heroes.Count >= Team.MaxSize)
         {
             ui.ShowDialog("Your team is full.");
             return;
@@ -2465,7 +2347,7 @@ public class Game : MonoBehaviour
                 if (yes)
                 {
                     lastAction = $"You recruit {hero.name} to your team.";
-                    allies.Add(hero);
+                    team.heroes.Add(hero);
                     hero.BuyItems();
                     UpdateButtons();
                 }
@@ -2494,7 +2376,7 @@ public class Game : MonoBehaviour
         while (true)
         {
             string name = names.RandomItem();
-            if (!Team.Select(x => x.name).Union(hiredWorkers.Select(x => x.name)).Union(availableWorkers.Select(x => x.name)).Contains(name))
+            if (!team.heroes.Select(x => x.name).Union(hiredWorkers.Select(x => x.name)).Union(availableWorkers.Select(x => x.name)).Contains(name))
                 return name;
         }
     }
@@ -2510,8 +2392,8 @@ public class Game : MonoBehaviour
         ui.ShowConfirm($"Are you sure you want to remove {activeAlly.name} from your team?", () =>
         {
             lastAction = $"{activeAlly.name} is sad and leave.";
-            allies.Remove(activeAlly);
-            CancelOutDebts();
+            team.heroes.Remove(activeAlly);
+            team.CancelOutDebts();
             UpdateButtons();
             UpdateText();
             ui.CloseDialog();
@@ -2535,11 +2417,7 @@ public class Game : MonoBehaviour
                 return true;
             player.AddGold(-count);
             activeAlly.AddGold(count);
-            IncreaseAffectionFromValue(activeAlly, count);
-            if (world.Location.IsSafe())
-                activeAlly.BuyItems();
-            else if (world.Location == TileType.MageTower)
-                activeAlly.EnchantItems();
+            activeAlly.IncreaseAffectionFromValue(count);
             RefreshAllyScreen();
             UpdateText();
             return true;
@@ -3113,14 +2991,20 @@ public class Game : MonoBehaviour
                     ++guildRank;
                     guildProgress = 0;
                     lastAction += $" You were promoted to <b>{GuildRanks[guildRank]}</b> rank.";
-                    ChangeTeamAffection(5);
+                    TextBuilder tb = new() { text = lastAction };
+                    team.ChangeAffection(5, tb);
+                    lastAction = tb.text;
                     promoted = true;
                 }
             }
         }
         if (!promoted)
-            ChangeTeamAffection(1);
-        AddTeamGold(reward);
+        {
+            TextBuilder tb = new() { text = lastAction };
+            team.ChangeAffection(1, tb);
+            lastAction = tb.text;
+        }
+        team.AddGold(reward);
         quest.Finish();
         RemoveQuest(quest);
         AddTime(minutes: 15);
@@ -3138,10 +3022,16 @@ public class Game : MonoBehaviour
             --guildRank;
             guildProgress = 0;
             lastAction += $" You are degraded to <b>{GuildRanks[guildRank]}</b> rank.";
-            ChangeTeamAffection(-5);
+            TextBuilder tb = new() { text = lastAction };
+            team.ChangeAffection(-5, tb);
+            lastAction = tb.text;
         }
         else
-            ChangeTeamAffection(-1);
+        {
+            TextBuilder tb = new() { text = lastAction };
+            team.ChangeAffection(-1, tb);
+            lastAction = tb.text;
+        }
         RemoveQuest(quest);
 
         // readd quest if it can be completed
@@ -3186,7 +3076,7 @@ public class Game : MonoBehaviour
     {
         Tile tile = world.CurrentTile;
 
-        if (tile.type == TileType.Cave && !HaveTeamItem("pickaxe"))
+        if (tile.type == TileType.Cave && !team.HaveItem("pickaxe"))
         {
             lastAction = "You need a pickaxe for that.";
             UpdateText();
@@ -3216,7 +3106,7 @@ public class Game : MonoBehaviour
             else
             {
                 // herbs/rare herbs
-                (Hero bestHero, int bestValue) = GetTeamSkill(Skill.Forage);
+                (Hero bestHero, int bestValue) = team.GetSkill(Skill.Forage);
                 int count = (Utility.Rand % 6) switch
                 {
                     1 or 2 => 2,
@@ -3262,7 +3152,7 @@ public class Game : MonoBehaviour
             else if (tile.mine)
             {
                 // silver/gold nuggets
-                (Hero bestHero, int bestValue) = GetTeamSkill(Skill.Mining);
+                (Hero bestHero, int bestValue) = team.GetSkill(Skill.Mining);
                 int count = (Utility.Rand % 6) switch
                 {
                     1 or 2 => 2,
@@ -3275,7 +3165,7 @@ public class Game : MonoBehaviour
                     count = 1;
                 tile.depleted++;
                 Item nugget = Item.Get(tile.difficulty == 2 ? "silver nugget" : "gold nugget");
-                player.AddItem(nugget, count, allies.Count > 0);
+                player.AddItem(nugget, count, team.heroes.Count > 1);
                 if (bestHero != null && bestHero != player)
                 {
                     float trainMod = 1f + 0.01f * (bestValue - player.GetSkill(Skill.Mining));
@@ -3293,7 +3183,7 @@ public class Game : MonoBehaviour
             else
             {
                 // magic crystals
-                (Hero bestHero, int bestValue) = GetTeamSkill(Skill.Mining);
+                (Hero bestHero, int bestValue) = team.GetSkill(Skill.Mining);
                 int count = (Utility.Rand % 4) switch
                 {
                     1 or 2 => 2,
@@ -3348,7 +3238,7 @@ public class Game : MonoBehaviour
         }
 
         // potions
-        (Hero bestHero, int alchemy) = GetTeamSkill(Skill.Alchemy);
+        (Hero bestHero, int alchemy) = team.GetSkill(Skill.Alchemy);
         int bonus = 0;
         if ((world.Location == TileType.House && player.HavePropertyUpgrade("House", "Alchemy lab", world.CityIndex))
             || (world.Location == TileType.Mansion && player.HavePropertyUpgrade("Mansion", "Alchemy lab", world.CityIndex)))
@@ -3430,7 +3320,7 @@ public class Game : MonoBehaviour
 
     public void DoAlchemy(Hero hero, Item item)
     {
-        (Hero bestHero, int alchemy) = GetTeamSkill(Skill.Alchemy);
+        (Hero bestHero, int alchemy) = team.GetSkill(Skill.Alchemy);
         int bonus = 0;
         if ((world.Location == TileType.House && player.HavePropertyUpgrade("House", "Alchemy lab", world.CityIndex))
             || (world.Location == TileType.Mansion && player.HavePropertyUpgrade("Mansion", "Alchemy lab", world.CityIndex)))
@@ -3481,38 +3371,6 @@ public class Game : MonoBehaviour
             RefreshAllyScreen();
         }
         UpdateText();
-    }
-
-    private void AddTeamGold(int gold)
-    {
-        if (gold <= 0)
-            return;
-
-        if (allies.Count == 0)
-        {
-            player.AddGold(gold);
-            return;
-        }
-
-        int share = gold / (allies.Count + 1);
-        int extraGold = gold - share * (allies.Count + 1);
-        foreach (Hero hero in Team)
-        {
-            int goldReceived = share;
-            if (extraGold > 0)
-            {
-                ++goldReceived;
-                --extraGold;
-            }
-            hero.AddGold(goldReceived);
-            if (hero is not Player)
-            {
-                if (world.Location.IsSafe())
-                    hero.BuyItems();
-                else if (world.Location == TileType.MageTower)
-                    hero.EnchantItems();
-            }
-        }
     }
 
     public void Choice(string str, System.Action<bool> action)
@@ -3617,10 +3475,10 @@ public class Game : MonoBehaviour
     [ContextMenu("Give all")]
     private void GiveAll()
     {
-        while (allies.Count + 1 < MaxTeamSize)
-            allies.Add(SpawnHero());
+        while (team.heroes.Count < Team.MaxSize)
+            team.heroes.Add(SpawnHero());
 
-        foreach (Hero hero in Team)
+        foreach (Hero hero in team.heroes)
         {
             if (hero.level < 10)
                 hero.SetLevel(10);
@@ -3961,72 +3819,6 @@ public class Game : MonoBehaviour
         AddTime(minutes: 15);
     }
 
-    private void ChangeAffection(Hero ally, int value)
-    {
-        if (value > 0)
-        {
-            if (ally.affection == 100)
-                return;
-        }
-        else
-        {
-            if (ally.affection == -100)
-                return;
-        }
-
-        ally.affection = Mathf.Clamp(ally.affection + value, -100, 100);
-    }
-
-    private void IncreaseAffectionFromValue(Hero ally, Item item, int count)
-    {
-        if (item.type == Item.Type.Usable && item.subtype == Item.Subtype.Ingredient)
-            return;
-        IncreaseAffectionFromValue(ally, item.value * count);
-    }
-
-    private void IncreaseAffectionFromValue(Hero ally, int value)
-    {
-        int affectionGain = ally.ValueToAffectionGain(value);
-        int actualAffectionGain = affectionGain - ally.lastGift;
-        if (actualAffectionGain > 0)
-        {
-            ally.lastGift = affectionGain;
-            ChangeAffection(ally, actualAffectionGain);
-        }
-    }
-
-    private void ChangeTeamAffection(int value, System.Func<Hero, bool> pred = null)
-    {
-        List<(Hero ally, int change)> changes = null;
-        foreach (Hero ally in allies)
-        {
-            if (pred != null && !pred(ally))
-                continue;
-            if (value > 0)
-            {
-                if (ally.affection == 100)
-                    continue;
-            }
-            else
-            {
-                if (ally.affection == -100)
-                    continue;
-            }
-
-            int prev = ally.affection;
-            ally.affection = Mathf.Clamp(ally.affection + value, -100, 100);
-            int actualChange = ally.affection - prev;
-            changes ??= new();
-            changes.Add((ally, actualChange));
-        }
-
-        if (changes != null)
-        {
-            foreach (var group in changes.GroupBy(x => x.change))
-                lastAction += $" {Utility.PrettyList(group.Select(x => x.ally.name))} affection {(value > 0 ? "increased" : "decreased")} ({group.Key:+0;-#}).";
-        }
-    }
-
     [ContextMenu("Test images")]
     private void TestImages()
     {
@@ -4090,7 +3882,7 @@ public class Game : MonoBehaviour
             return false;
         }
 
-        if (enemyList.Count > MaxTeamSize)
+        if (enemyList.Count > Team.MaxSize)
         {
             ui.ShowDialog("Too many enemies.");
             return false;
@@ -4137,104 +3929,7 @@ public class Game : MonoBehaviour
         return property;
     }
 
-    private (Hero hero, int value) GetTeamSkill(Skill skill)
-    {
-        Hero bestHero = null;
-        int bestValue = 0;
-        foreach (Hero hero in Team)
-        {
-            int value = hero.GetSkill(skill);
-            if (value > bestValue)
-            {
-                bestValue = value;
-                bestHero = hero;
-            }
-        }
-        return (bestHero, bestValue);
-    }
 
-    private bool HaveTeamItem(string itemName)
-    {
-        Item item = Item.Get(itemName);
-        return Team.Any(x => x.HaveItem(item));
-    }
-
-    private void PayForTeamItem(Hero hero, Item item, int count = 1)
-    {
-        int cost = (item.value * count / 2) * allies.Count / (allies.Count + 1);
-        hero.owedGold += cost;
-        CancelOutDebts();
-        if (hero.owedGold > 0)
-            PayOwedGold(hero);
-    }
-
-    private void PayForTeamProperty(Hero hero, int value)
-    {
-        int cost = value * allies.Count / (allies.Count + 1);
-        hero.owedGold += cost;
-        CancelOutDebts();
-        if (hero.owedGold > 0)
-            PayOwedGold(hero);
-    }
-
-    public void PayOwedGold(Hero hero)
-    {
-        int availableGold = hero.gold - Hero.MinGold;
-        if (availableGold <= 0)
-            return;
-
-        if (availableGold >= hero.owedGold)
-        {
-            // pay all
-            int goldPerHero = hero.owedGold / allies.Count;
-            int extraGold = hero.owedGold - goldPerHero * allies.Count;
-            hero.AddGold(-hero.owedGold);
-            hero.owedGold = 0;
-            foreach (Hero hero2 in Team)
-            {
-                if (hero2 == hero)
-                    continue;
-                int goldReceived = goldPerHero;
-                if (extraGold > 0)
-                {
-                    ++goldReceived;
-                    --extraGold;
-                }
-                hero2.AddGold(goldReceived);
-            }
-        }
-        else
-        {
-            // pay partial
-            int goldPerHero = availableGold / allies.Count;
-            if (goldPerHero == 0)
-                return;
-            hero.AddGold(-goldPerHero * allies.Count);
-            hero.owedGold -= goldPerHero * allies.Count;
-            foreach (Hero hero2 in Team)
-            {
-                if (hero2 != hero)
-                    hero2.AddGold(goldPerHero);
-            }
-        }
-    }
-
-    private void CancelOutDebts()
-    {
-        if (allies.Count == 0)
-        {
-            player.TurnItemsNonTeam();
-            player.owedGold = 0;
-            return;
-        }
-
-        int minDebt = Team.Min(x => x.owedGold);
-        if (minDebt > 0)
-        {
-            foreach (Hero hero in Team)
-                hero.owedGold -= minDebt;
-        }
-    }
 
     [ContextMenu("Give item")]
     private void GiveItem()
@@ -4340,7 +4035,7 @@ public class Game : MonoBehaviour
             player.energy -= 50;
             lastAction = "You train fighting.";
             List<Hero> levelups = null;
-            foreach (Hero hero in Team)
+            foreach (Hero hero in team.heroes)
             {
                 if (hero.AddExp(100))
                 {
@@ -4423,7 +4118,7 @@ public class Game : MonoBehaviour
             switch (action)
             {
             case "Train":
-                foreach (Hero hero in Team)
+                foreach (Hero hero in team.heroes)
                 {
                     if (hero.AddExp(100))
                     {
@@ -4481,7 +4176,9 @@ public class Game : MonoBehaviour
                 lastAction += $" Your {sk.Key.AsString()} skill increased to {sk.Value.level}.";
         }
 
-        CheckBoredAllies();
+        TextBuilder tb = new() { text = lastAction };
+        team.CheckBoredAllies(tb);
+        lastAction = tb.text;
 
         if (player.goldWaiting != 0 && tile.type.IsSafe())
         {
@@ -4537,7 +4234,7 @@ public class Game : MonoBehaviour
     private void DoManageInternal(Property property, bool skipTime, bool remote)
     {
         player.energy -= 25;
-        (Hero bestAlly, int bestValue) = GetTeamSkill(Skill.Management);
+        (Hero bestAlly, int bestValue) = team.GetSkill(Skill.Management);
         if (remote)
             bestValue = bestValue * 3 / 4;
         float trainMod;

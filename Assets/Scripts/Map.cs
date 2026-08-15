@@ -107,7 +107,7 @@ public class Map : MonoBehaviour
             moveViewPos = Input.mousePosition;
             outlineTarget.SetActive(false);
             arrow.gameObject.SetActive(false);
-            text.text = $"Rations: {Global.Game.CountTeamItem(Item.Get("rations"))}";
+            text.text = $"Rations: {Global.Game.team.CountItem(Item.Get("rations"))}";
             lastCheckedPos.x = -1;
         }
 
@@ -155,7 +155,7 @@ public class Map : MonoBehaviour
             // outside map
             arrow.gameObject.SetActive(false);
             outlineTarget.SetActive(false);
-            text.text = $"Rations: {Global.Game.CountTeamItem(Item.Get("rations"))}";
+            text.text = $"Rations: {Global.Game.team.CountItem(Item.Get("rations"))}";
         }
         else
         {
@@ -166,7 +166,7 @@ public class Map : MonoBehaviour
             {
                 // same position as current
                 arrow.gameObject.SetActive(false);
-                text.text = $"Rations: {Global.Game.CountTeamItem(Item.Get("rations"))}\nTarget: {tile.Name.ToUpper1()}";
+                text.text = $"Rations: {Global.Game.team.CountItem(Item.Get("rations"))}\nTarget: {tile.Name.ToUpper1()}";
             }
             else
             {
@@ -175,7 +175,7 @@ public class Map : MonoBehaviour
                 {
                     // blocked
                     arrow.gameObject.SetActive(false);
-                    text.text = $"Rations: {Global.Game.CountTeamItem(Item.Get("rations"))}\nTarget: {tile.Name.ToUpper1()}";
+                    text.text = $"Rations: {Global.Game.team.CountItem(Item.Get("rations"))}\nTarget: {tile.Name.ToUpper1()}";
                 }
                 else
                 {
@@ -262,10 +262,10 @@ public class Map : MonoBehaviour
         Tile tile = world.map[targetPt.x + targetPt.y * World.sizeX];
         string str;
 #if UNITY_EDITOR
-        str = $"Rations: {Global.Game.CountTeamItem(Item.Get("rations"))}\nTarget: {tile.Name.ToUpper1()} [{World.CalculateIndex(targetPt.x, targetPt.y, 0)}]\nDistance: {dist}km\n" +
+        str = $"Rations: {Global.Game.team.CountItem(Item.Get("rations"))}\nTarget: {tile.Name.ToUpper1()} [{World.CalculateIndex(targetPt.x, targetPt.y, 0)}]\nDistance: {dist}km\n" +
             $"Travel time: {daysText}\nLevels: {tile.levels}";
 #else
-        str = $"Rations: {Global.Game.CountTeamItem(Item.Get("rations"))}\nTarget: {tile.Name.ToUpper1()}\nDistance: {dist}km\nTravel time: {daysText}";
+        str = $"Rations: {Global.Game.team.CountItem(Item.Get("rations"))}\nTarget: {tile.Name.ToUpper1()}\nDistance: {dist}km\nTravel time: {daysText}";
 #endif
         text.text = str;
         text.gameObject.SetActive(true);
