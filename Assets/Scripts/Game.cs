@@ -38,8 +38,9 @@ public class Game : MonoBehaviour
     public int day, hour, minute;
 
     private GameUI ui;
-    private GameObject shopScreen, characterScreen, allyScreen, giveAllyItemsScreen, storeItemsScreen, activeInventory, enchantItemsScreen;
+    private GameObject shopScreen, allyScreen, giveAllyItemsScreen, storeItemsScreen, activeInventory, enchantItemsScreen;
     private RectTransform[] alliesHealthRect;
+    private CharacterScreen characterScreen;
     private Combat combatScreen;
     private Craft craft;
     private Garden garden;
@@ -65,7 +66,7 @@ public class Game : MonoBehaviour
         ui = GetComponent<GameUI>();
         mainText = transform.Find("Text").GetComponent<TMP_Text>();
         shopScreen = transform.Find("Shop").gameObject;
-        characterScreen = transform.Find("Character").gameObject;
+        characterScreen = transform.Find("Character").GetComponent<CharacterScreen>();
         journal = transform.Find("Journal").GetComponent<Journal>();
         allyScreen = transform.Find("Ally").gameObject;
         giveAllyItemsScreen = transform.Find("GiveItems").gameObject;
@@ -122,7 +123,7 @@ public class Game : MonoBehaviour
             if (team.heroes.Count >= 3 && Input.GetKeyDown(KeyCode.Alpha2))
                 Ally(1);
             if (Input.GetKeyDown(KeyCode.C))
-                Character();
+                characterScreen.Show();
             if (Input.GetKeyDown(KeyCode.J))
                 journal.Show();
             if (Input.GetKeyDown(KeyCode.E))
@@ -1158,15 +1159,8 @@ public class Game : MonoBehaviour
     {
         activeInventory = shopScreen;
         RefreshShopItems();
-        RefreshPlayerItems();
+        RefreshShopPlayerItems();
         ui.ShowDialog(shopScreen);
-    }
-
-    public void Character()
-    {
-        activeInventory = characterScreen;
-        RefreshPlayerScreen();
-        ui.ShowDialog(characterScreen);
     }
 
     public void Ally(int index)
@@ -1174,6 +1168,56 @@ public class Game : MonoBehaviour
         activeAlly = team.heroes[index + 1];
         RefreshAllyScreen();
         ui.ShowDialog(allyScreen);
+    }
+
+    private void RefreshShopPlayerItems()
+    {
+        characterScreen.PopulateInventory(shopScreen,
+            (itemEntry, item) => itemEntry.Init(item.ToString(Price.Sell)),
+            (itemEntry, itemSlot) =>
+            {
+                itemEntry.Init(itemSlot.ToString(Price.Sell), "Sell", () =>
+                {
+                    if (Input.GetKey(KeyCode.LeftShift))
+                    {
+                        if (itemSlot.team)
+                            team.AddGold(itemSlot.item.value * itemSlot.count / 2);
+                        else
+                            player.AddGold(itemSlot.item.value * itemSlot.count / 2);
+                        player.RemoveItem(itemSlot, itemSlot.count);
+                        RefreshShopPlayerItems();
+                        UpdateText();
+                    }
+                    else if (Input.GetKey(KeyCode.LeftControl))
+                    {
+                        ui.ShowInput($"How many {Utility.Plural(itemSlot.item.name)} to sell for {itemSlot.item.value / 2} gold each?", count =>
+                        {
+                            if (count <= 0)
+                                return true;
+                            count = Mathf.Min(count, itemSlot.count);
+                            if (itemSlot.team)
+                                team.AddGold(itemSlot.item.value * count / 2);
+                            else
+                                player.AddGold(itemSlot.item.value * count / 2);
+                            player.RemoveItem(itemSlot, count);
+                            RefreshShopPlayerItems();
+                            UpdateText();
+                            return true;
+                        });
+                    }
+                    else
+                    {
+                        if (itemSlot.team)
+                            team.AddGold(itemSlot.item.value / 2);
+                        else
+                            player.AddGold(itemSlot.item.value / 2);
+                        player.RemoveItem(itemSlot);
+                        RefreshShopPlayerItems();
+                        UpdateText();
+                    }
+                });
+            }
+        );
     }
 
     private void RefreshShopItems()
@@ -1198,7 +1242,7 @@ public class Game : MonoBehaviour
                         {
                             player.AddItem(item, count);
                             player.AddGold(-price);
-                            RefreshPlayerItems();
+                            RefreshShopPlayerItems();
                             UpdateText();
                             return true;
                         }
@@ -1213,7 +1257,7 @@ public class Game : MonoBehaviour
                 {
                     player.AddItem(item);
                     player.AddGold(-item.value);
-                    RefreshPlayerItems();
+                    RefreshShopPlayerItems();
                     UpdateText();
                 }
                 else
@@ -1221,399 +1265,6 @@ public class Game : MonoBehaviour
             });
             itemEntry.SetImage(ui.itemIcons[(int)item.GetIcon()]);
         }
-    }
-
-    private void RefreshPlayerItems()
-    {
-        Transform content = activeInventory.transform.Find("PlayerItems/Viewport/Content");
-        foreach (Transform child in content)
-            Destroy(child.gameObject);
-
-        if (player.weapon != null)
-        {
-            ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
-            if (activeInventory == characterScreen)
-            {
-                itemEntry.Init(player.weapon.ToString(Price.None), "Unequip", () =>
-                {
-                    player.AddItem(player.weapon);
-                    player.weapon = null;
-                    RefreshPlayerScreen();
-                });
-            }
-            else if (activeInventory == enchantItemsScreen && player.weapon.level < Item.MaxLevelEnchant)
-            {
-                itemEntry.Init(player.weapon.ToString(Price.Enchant), "Enchant", () =>
-                {
-                    int cost = player.weapon.GetEnchantCost();
-                    if (player.gold < cost)
-                        ui.ShowDialog($"You need {cost} gold to enchant {player.weapon.name}.");
-                    else
-                    {
-                        player.weapon = player.weapon.GetEnchanted();
-                        player.AddGold(-cost);
-                        RefreshPlayerItems();
-                        UpdateText();
-                    }
-                });
-            }
-            else
-                itemEntry.Init(player.weapon.ToString(activeInventory == shopScreen ? Price.Sell : Price.None));
-            itemEntry.SetImage(ui.itemIcons[(int)player.weapon.GetIcon()]);
-        }
-
-        if (player.armor != null)
-        {
-            ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
-            if (activeInventory == characterScreen)
-            {
-                itemEntry.Init(player.armor.ToString(Price.None), "Unequip", () =>
-                {
-                    player.AddItem(player.armor);
-                    player.armor = null;
-                    RefreshPlayerScreen();
-                });
-            }
-            else if (activeInventory == enchantItemsScreen && player.armor.level < Item.MaxLevelEnchant)
-            {
-                itemEntry.Init(player.armor.ToString(Price.Enchant), "Enchant", () =>
-                {
-                    int cost = player.armor.GetEnchantCost();
-                    if (player.gold < cost)
-                        ui.ShowDialog($"You need {cost} gold to enchant {player.armor.name}.");
-                    else
-                    {
-                        player.armor = player.armor.GetEnchanted();
-                        player.AddGold(-cost);
-                        RefreshPlayerItems();
-                        UpdateText();
-                    }
-                });
-            }
-            else
-                itemEntry.Init(player.armor.ToString(activeInventory == shopScreen ? Price.Sell : Price.None));
-            itemEntry.SetImage(ui.itemIcons[(int)player.armor.GetIcon()]);
-        }
-
-        if (player.shield != null)
-        {
-            ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
-            if (activeInventory == characterScreen)
-            {
-                itemEntry.Init(player.shield.ToString(Price.None), "Unequip", () =>
-                {
-                    player.AddItem(player.shield);
-                    player.shield = null;
-                    RefreshPlayerScreen();
-                });
-            }
-            else if (activeInventory == enchantItemsScreen && player.shield.level < Item.MaxLevelEnchant)
-            {
-                itemEntry.Init(player.shield.ToString(Price.Enchant), "Enchant", () =>
-                {
-                    int cost = player.shield.GetEnchantCost();
-                    if (player.gold < cost)
-                        ui.ShowDialog($"You need {cost} gold to enchant {player.shield.name}.");
-                    else
-                    {
-                        player.shield = player.shield.GetEnchanted();
-                        player.AddGold(-cost);
-                        RefreshPlayerItems();
-                        UpdateText();
-                    }
-                });
-            }
-            else
-                itemEntry.Init(player.shield.ToString(activeInventory == shopScreen ? Price.Sell : Price.None));
-            itemEntry.SetImage(ui.itemIcons[(int)player.shield.GetIcon()]);
-        }
-
-        if ((player.weapon != null || player.armor != null || player.shield != null) && player.items.Count > 0)
-            Instantiate(ui.lineSeparatorPrefab, content);
-
-        foreach (ItemSlot itemSlot in player.items)
-        {
-            ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
-            if (activeInventory == characterScreen)
-            {
-                void Drop()
-                {
-                    if (Input.GetKey(KeyCode.LeftShift))
-                    {
-                        player.RemoveItem(itemSlot, itemSlot.count);
-                        RefreshPlayerItems();
-                        UpdateText();
-                    }
-                    else if (Input.GetKey(KeyCode.LeftControl))
-                    {
-                        ui.ShowInput($"How many {Utility.Plural(itemSlot.item.name)} to drop away?", count =>
-                        {
-                            if (count <= 0)
-                                return true;
-                            count = Mathf.Min(count, itemSlot.count);
-                            player.RemoveItem(itemSlot, count);
-                            RefreshPlayerItems();
-                            UpdateText();
-                            return true;
-                        });
-                    }
-                    else
-                    {
-                        player.RemoveItem(itemSlot);
-                        RefreshPlayerItems();
-                        UpdateText();
-                    }
-                }
-
-                if (player.CanEquip(itemSlot.item))
-                {
-                    itemEntry.Init2(itemSlot.ToString(Price.None), "Equip", () =>
-                    {
-                        if (itemSlot.team)
-                            team.PayForItem(player, itemSlot.item);
-
-                        switch (itemSlot.item.type)
-                        {
-                        case Item.Type.Weapon:
-                            if (player.weapon != null)
-                                player.AddItem(player.weapon);
-                            player.weapon = itemSlot.item;
-                            break;
-                        case Item.Type.Armor:
-                            if (player.armor != null)
-                                player.AddItem(player.armor);
-                            player.armor = itemSlot.item;
-                            break;
-                        case Item.Type.Shield:
-                            if (player.shield != null)
-                                player.AddItem(player.shield);
-                            player.shield = itemSlot.item;
-                            break;
-                        }
-                        player.RemoveItem(itemSlot);
-                        RefreshPlayerScreen();
-                        UpdateText();
-                    }, "Drop", Drop);
-                }
-                else if (itemSlot.item.type == Item.Type.Usable)
-                {
-                    itemEntry.Init2(itemSlot.ToString(Price.None), "Use", () =>
-                    {
-                        player.hp = Mathf.Min(player.hp + itemSlot.item.power, player.hpMax);
-                        player.RemoveItem(itemSlot);
-                        RefreshPlayerScreen();
-                        UpdateText();
-                    }, "Drop", Drop);
-                }
-                else if (itemSlot.item.type == Item.Type.Tool && itemSlot.item.name == "alchemy set")
-                    itemEntry.Init2(itemSlot.ToString(Price.None), "Use", craft.Show, "Drop", Drop);
-                else
-                    itemEntry.Init2(itemSlot.ToString(Price.None), null, null, "Drop", Drop);
-            }
-            else if (activeInventory == shopScreen)
-            {
-                itemEntry.Init(itemSlot.ToString(Price.Sell), "Sell", () =>
-                {
-                    if (Input.GetKey(KeyCode.LeftShift))
-                    {
-                        if (itemSlot.team)
-                            team.AddGold(itemSlot.item.value * itemSlot.count / 2);
-                        else
-                            player.AddGold(itemSlot.item.value * itemSlot.count / 2);
-                        player.RemoveItem(itemSlot, itemSlot.count);
-                        RefreshPlayerItems();
-                        UpdateText();
-                    }
-                    else if (Input.GetKey(KeyCode.LeftControl))
-                    {
-                        ui.ShowInput($"How many {Utility.Plural(itemSlot.item.name)} to sell for {itemSlot.item.value / 2} gold each?", count =>
-                        {
-                            if (count <= 0)
-                                return true;
-                            count = Mathf.Min(count, itemSlot.count);
-                            if (itemSlot.team)
-                                team.AddGold(itemSlot.item.value * count / 2);
-                            else
-                                player.AddGold(itemSlot.item.value * count / 2);
-                            player.RemoveItem(itemSlot, count);
-                            RefreshPlayerItems();
-                            UpdateText();
-                            return true;
-                        });
-                    }
-                    else
-                    {
-                        if (itemSlot.team)
-                            team.AddGold(itemSlot.item.value / 2);
-                        else
-                            player.AddGold(itemSlot.item.value / 2);
-                        player.RemoveItem(itemSlot);
-                        RefreshPlayerItems();
-                        UpdateText();
-                    }
-                });
-            }
-            else if (activeInventory == giveAllyItemsScreen)
-            {
-                if (activeAlly.WillTakeItem(itemSlot.item))
-                {
-                    itemEntry.Init(itemSlot.ToString(Price.None), "Give", () =>
-                    {
-                        if (itemSlot.item.type == Item.Type.Weapon || itemSlot.item.type == Item.Type.Armor || itemSlot.item.type == Item.Type.Shield
-                            || !(Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.LeftControl)))
-                        {
-                            if (itemSlot.team)
-                                team.PayForItem(activeAlly, itemSlot.item);
-                            else
-                                activeAlly.IncreaseAffectionFromValue(itemSlot.item, 1);
-                            activeAlly.GiveItem(itemSlot.item);
-                            player.RemoveItem(itemSlot);
-                            RefreshPlayerItems();
-                            RefreshAllyScreen();
-                            UpdateText();
-                        }
-                        else if (Input.GetKey(KeyCode.LeftShift))
-                        {
-                            if (itemSlot.team)
-                                team.PayForItem(activeAlly, itemSlot.item, itemSlot.count);
-                            else
-                                activeAlly.IncreaseAffectionFromValue(itemSlot.item, itemSlot.count);
-                            activeAlly.GiveItem(itemSlot.item, itemSlot.count);
-                            player.RemoveItem(itemSlot, itemSlot.count);
-                            RefreshPlayerItems();
-                            RefreshAllyScreen();
-                            UpdateText();
-                        }
-                        else
-                        {
-                            ui.ShowInput($"How many {Utility.Plural(itemSlot.item.name)} give to {activeAlly.name}?", count =>
-                            {
-                                if (count <= 0)
-                                    return true;
-                                count = Mathf.Min(count, itemSlot.count);
-                                if (itemSlot.team)
-                                    team.PayForItem(activeAlly, itemSlot.item, count);
-                                else
-                                    activeAlly.IncreaseAffectionFromValue(itemSlot.item, count);
-                                activeAlly.GiveItem(itemSlot.item, count);
-                                player.RemoveItem(itemSlot, count);
-                                RefreshPlayerItems();
-                                RefreshAllyScreen();
-                                UpdateText();
-                                return true;
-                            });
-                        }
-                    });
-                }
-                else
-                    itemEntry.Init(itemSlot.ToString(Price.None));
-            }
-            else if (activeInventory == storeItemsScreen)
-            {
-                itemEntry.Init(itemSlot.ToString(Price.None), "Store", () =>
-                {
-                    if (Input.GetKey(KeyCode.LeftShift))
-                    {
-                        if (itemSlot.team)
-                            team.PayForItem(player, itemSlot.item, itemSlot.count);
-                        AddStoredItem(itemSlot.item, itemSlot.count);
-                        player.RemoveItem(itemSlot, itemSlot.count);
-                        RefreshPlayerItems();
-                        RefreshStoredItems();
-                        UpdateText();
-                    }
-                    else if (Input.GetKey(KeyCode.LeftControl))
-                    {
-                        ui.ShowInput($"How many {Utility.Plural(itemSlot.item.name)} to store?", count =>
-                        {
-                            if (count <= 0)
-                                return true;
-                            count = Mathf.Min(count, itemSlot.count);
-                            if (itemSlot.team)
-                                team.PayForItem(player, itemSlot.item, count);
-                            AddStoredItem(itemSlot.item, count);
-                            player.RemoveItem(itemSlot, count);
-                            RefreshPlayerItems();
-                            RefreshStoredItems();
-                            UpdateText();
-                            return true;
-                        });
-                    }
-                    else
-                    {
-                        if (itemSlot.team)
-                            team.PayForItem(player, itemSlot.item);
-                        AddStoredItem(itemSlot.item);
-                        player.RemoveItem(itemSlot);
-                        RefreshPlayerItems();
-                        RefreshStoredItems();
-                        UpdateText();
-                    }
-                });
-            }
-            else if (activeInventory == enchantItemsScreen)
-            {
-                if (itemSlot.item.CanEnchant())
-                {
-                    itemEntry.Init(itemSlot.ToString(Price.Enchant), "Enchant", () =>
-                    {
-                        int cost = itemSlot.item.GetEnchantCost();
-                        if (player.gold < cost)
-                            ui.ShowDialog($"You need {cost} gold to enchant {itemSlot.item.name}.");
-                        else
-                        {
-                            Item item = itemSlot.item;
-                            if (itemSlot.team)
-                                team.PayForItem(player, itemSlot.item);
-                            player.RemoveItem(itemSlot);
-                            player.AddItem(item.GetEnchanted());
-                            player.AddGold(-cost);
-                            RefreshPlayerItems();
-                            UpdateText();
-                        }
-                    });
-                }
-                else
-                    itemEntry.Init(itemSlot.ToString(Price.None));
-            }
-            itemEntry.SetImage(ui.itemIcons[(int)itemSlot.item.GetIcon()]);
-        }
-    }
-
-    public void RefreshPlayerScreenIfOpen()
-    {
-        if (ui.IsOpen(characterScreen))
-            RefreshPlayerScreen();
-    }
-
-    private void RefreshPlayerScreen()
-    {
-        TMP_Text charText = characterScreen.transform.Find("Text").GetComponent<TMP_Text>();
-        sb.Clear();
-        sb.Append($"{player.GenderSign}{player.name}\n" +
-            $"Level: {player.level} {player.clas.AsString()} ({player.ExpP}%)\n" +
-            $"Attack: {player.Attack}\n" +
-            $"Defense: {player.Defense}\n" +
-            $"Health: {player.hp}/{player.hpMax}\n");
-        if (player.owedGold > 0)
-            sb.Append($"Owed gold: {player.owedGold}\n");
-        if (player.skills.Count > 0)
-        {
-            sb.Append("Skills:\n");
-            foreach (var skill in player.skills.Select(kvp => (name: kvp.Key.AsString().ToUpper1(), kvp.Value.level)).OrderBy(x => x.name))
-                sb.Append($"  {skill.name}: {skill.level}\n");
-        }
-        if (player.rested > 0 || team.freshHorses > 0)
-        {
-            sb.Append("Effects:\n");
-            if (player.rested > 0)
-                sb.Append($"  Well rested ({Utility.Plural("day", player.rested, true)})\n");
-            if (team.freshHorses > 0)
-                sb.Append($"  Fresh horses ({Utility.Plural("day", team.freshHorses, true)})\n");
-        }
-        charText.text = sb.ToString();
-
-        RefreshPlayerItems();
     }
 
     private void RefreshAllyScreen()
@@ -1644,6 +1295,68 @@ public class Game : MonoBehaviour
         RefreshAllyItems(allyScreen);
         if (activeInventory == giveAllyItemsScreen)
             RefreshAllyItems(giveAllyItemsScreen);
+    }
+
+    private void RefreshGiveAllyPlayerItems()
+    {
+        characterScreen.PopulateInventory(giveAllyItemsScreen,
+            (itemEntry, item) => itemEntry.Init(item.ToString(Price.None)),
+            (itemEntry, itemSlot) =>
+            {
+                if (activeAlly.WillTakeItem(itemSlot.item))
+                {
+                    itemEntry.Init(itemSlot.ToString(Price.None), "Give", () =>
+                    {
+                        if (itemSlot.item.type == Item.Type.Weapon || itemSlot.item.type == Item.Type.Armor || itemSlot.item.type == Item.Type.Shield
+                            || !(Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.LeftControl)))
+                        {
+                            if (itemSlot.team)
+                                team.PayForItem(activeAlly, itemSlot.item);
+                            else
+                                activeAlly.IncreaseAffectionFromValue(itemSlot.item, 1);
+                            activeAlly.GiveItem(itemSlot.item);
+                            player.RemoveItem(itemSlot);
+                            RefreshGiveAllyPlayerItems();
+                            RefreshAllyScreen();
+                            UpdateText();
+                        }
+                        else if (Input.GetKey(KeyCode.LeftShift))
+                        {
+                            if (itemSlot.team)
+                                team.PayForItem(activeAlly, itemSlot.item, itemSlot.count);
+                            else
+                                activeAlly.IncreaseAffectionFromValue(itemSlot.item, itemSlot.count);
+                            activeAlly.GiveItem(itemSlot.item, itemSlot.count);
+                            player.RemoveItem(itemSlot, itemSlot.count);
+                            RefreshGiveAllyPlayerItems();
+                            RefreshAllyScreen();
+                            UpdateText();
+                        }
+                        else
+                        {
+                            ui.ShowInput($"How many {Utility.Plural(itemSlot.item.name)} give to {activeAlly.name}?", count =>
+                            {
+                                if (count <= 0)
+                                    return true;
+                                count = Mathf.Min(count, itemSlot.count);
+                                if (itemSlot.team)
+                                    team.PayForItem(activeAlly, itemSlot.item, count);
+                                else
+                                    activeAlly.IncreaseAffectionFromValue(itemSlot.item, count);
+                                activeAlly.GiveItem(itemSlot.item, count);
+                                player.RemoveItem(itemSlot, count);
+                                RefreshGiveAllyPlayerItems();
+                                RefreshAllyScreen();
+                                UpdateText();
+                                return true;
+                            });
+                        }
+                    });
+                }
+                else
+                    itemEntry.Init(itemSlot.ToString(Price.None));
+            }
+        );
     }
 
     private void RefreshAllyItems(GameObject dialog)
@@ -1917,7 +1630,7 @@ public class Game : MonoBehaviour
         {
             if (dialog.TryGetComponent(out GameDialog gameDialog))
                 return gameDialog.Autoclose;
-            return dialog == characterScreen;
+            return false;
         });
 
         return true;
@@ -2313,7 +2026,7 @@ public class Game : MonoBehaviour
     {
         activeInventory = giveAllyItemsScreen;
         ui.ShowDialog(giveAllyItemsScreen);
-        RefreshPlayerItems();
+        RefreshGiveAllyPlayerItems();
         RefreshAllyItems(giveAllyItemsScreen);
     }
 
@@ -2678,7 +2391,7 @@ public class Game : MonoBehaviour
 
         if (ui.IsOpen(giveAllyItemsScreen))
         {
-            RefreshPlayerItems();
+            RefreshGiveAllyPlayerItems();
             RefreshAllyScreen();
         }
         UpdateText();
@@ -2850,8 +2563,58 @@ public class Game : MonoBehaviour
     {
         activeInventory = storeItemsScreen;
         ui.ShowDialog(storeItemsScreen);
-        RefreshPlayerItems();
+        RefreshStoredPlayerItems();
         RefreshStoredItems();
+    }
+
+    private void RefreshStoredPlayerItems()
+    {
+        characterScreen.PopulateInventory(storeItemsScreen,
+            (itemEntry, item) => itemEntry.Init(item.ToString(Price.None)),
+            (itemEntry, itemSlot) =>
+            {
+                itemEntry.Init(itemSlot.ToString(Price.None), "Store", () =>
+                {
+                    if (Input.GetKey(KeyCode.LeftShift))
+                    {
+                        if (itemSlot.team)
+                            team.PayForItem(player, itemSlot.item, itemSlot.count);
+                        AddStoredItem(itemSlot.item, itemSlot.count);
+                        player.RemoveItem(itemSlot, itemSlot.count);
+                        RefreshStoredPlayerItems();
+                        RefreshStoredItems();
+                        UpdateText();
+                    }
+                    else if (Input.GetKey(KeyCode.LeftControl))
+                    {
+                        ui.ShowInput($"How many {Utility.Plural(itemSlot.item.name)} to store?", count =>
+                        {
+                            if (count <= 0)
+                                return true;
+                            count = Mathf.Min(count, itemSlot.count);
+                            if (itemSlot.team)
+                                team.PayForItem(player, itemSlot.item, count);
+                            AddStoredItem(itemSlot.item, count);
+                            player.RemoveItem(itemSlot, count);
+                            RefreshStoredPlayerItems();
+                            RefreshStoredItems();
+                            UpdateText();
+                            return true;
+                        });
+                    }
+                    else
+                    {
+                        if (itemSlot.team)
+                            team.PayForItem(player, itemSlot.item);
+                        AddStoredItem(itemSlot.item);
+                        player.RemoveItem(itemSlot);
+                        RefreshStoredPlayerItems();
+                        RefreshStoredItems();
+                        UpdateText();
+                    }
+                });
+            }
+        );
     }
 
     private void RefreshStoredItems()
@@ -2871,7 +2634,7 @@ public class Game : MonoBehaviour
                 {
                     player.AddItem(itemSlot.item, itemSlot.count);
                     RemoveStoredItem(itemSlot, itemSlot.count);
-                    RefreshPlayerItems();
+                    RefreshStoredPlayerItems();
                     RefreshStoredItems();
                 }
                 else if (Input.GetKey(KeyCode.LeftControl))
@@ -2883,7 +2646,7 @@ public class Game : MonoBehaviour
                         count = Mathf.Min(count, itemSlot.count);
                         player.AddItem(itemSlot.item, count);
                         RemoveStoredItem(itemSlot, count);
-                        RefreshPlayerItems();
+                        RefreshStoredPlayerItems();
                         RefreshStoredItems();
                         return true;
                     });
@@ -2892,7 +2655,7 @@ public class Game : MonoBehaviour
                 {
                     player.AddItem(itemSlot.item);
                     RemoveStoredItem(itemSlot);
-                    RefreshPlayerItems();
+                    RefreshStoredPlayerItems();
                     RefreshStoredItems();
                 }
             });
@@ -2944,8 +2707,72 @@ public class Game : MonoBehaviour
     public void EnchantItems()
     {
         activeInventory = enchantItemsScreen;
-        RefreshPlayerItems();
+        RefreshEnchantPlayerItems();
         ui.ShowDialog(enchantItemsScreen);
+    }
+
+    private void RefreshEnchantPlayerItems()
+    {
+        characterScreen.PopulateInventory(enchantItemsScreen,
+            (itemEntry, item) =>
+            {
+                if (item.level < Item.MaxLevelEnchant)
+                {
+                    itemEntry.Init(item.ToString(Price.Enchant), "Enchant", () =>
+                    {
+                        int cost = item.GetEnchantCost();
+                        if (player.gold < cost)
+                            ui.ShowDialog($"You need {cost} gold to enchant {item.name}.");
+                        else
+                        {
+                            Item newItem = item.GetEnchanted();
+                            switch (newItem.type)
+                            {
+                            case Item.Type.Weapon:
+                                player.weapon = newItem;
+                                break;
+                            case Item.Type.Shield:
+                                player.shield = newItem;
+                                break;
+                            case Item.Type.Armor:
+                                player.armor = newItem;
+                                break;
+                            }
+                            player.AddGold(-cost);
+                            RefreshEnchantPlayerItems();
+                            UpdateText();
+                        }
+                    });
+                }
+                else
+                    itemEntry.Init(item.ToString(activeInventory == shopScreen ? Price.Sell : Price.None));
+            },
+            (itemEntry, itemSlot) =>
+            {
+                if (itemSlot.item.CanEnchant())
+                {
+                    itemEntry.Init(itemSlot.ToString(Price.Enchant), "Enchant", () =>
+                    {
+                        int cost = itemSlot.item.GetEnchantCost();
+                        if (player.gold < cost)
+                            ui.ShowDialog($"You need {cost} gold to enchant {itemSlot.item.name}.");
+                        else
+                        {
+                            Item item = itemSlot.item;
+                            if (itemSlot.team)
+                                team.PayForItem(player, itemSlot.item);
+                            player.RemoveItem(itemSlot);
+                            player.AddItem(item.GetEnchanted());
+                            player.AddGold(-cost);
+                            RefreshEnchantPlayerItems();
+                            UpdateText();
+                        }
+                    });
+                }
+                else
+                    itemEntry.Init(itemSlot.ToString(Price.None));
+            }
+        );
     }
 
     public void EnterPortal()

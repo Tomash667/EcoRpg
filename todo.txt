@@ -1,5 +1,4 @@
 + classes from UI screens
-	character
 	ally
 	shop
 	give items
