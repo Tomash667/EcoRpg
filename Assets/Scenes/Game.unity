@@ -3774,6 +3774,7 @@ GameObject:
   - component: {fileID: 158043192}
   - component: {fileID: 158043194}
   - component: {fileID: 158043193}
+  - component: {fileID: 158043195}
   m_Layer: 5
   m_Name: GiveItems
   m_TagString: Untagged
@@ -3845,6 +3846,20 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 158043191}
   m_CullTransparentMesh: 1
+--- !u!114 &158043195
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 158043191}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d8afc15d431b9c49b521e6d2ef1e1a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  allyScreen: {fileID: 691208512}
+  characterScreen: {fileID: 749224100}
 --- !u!1 &162628561
 GameObject:
   m_ObjectHideFlags: 0
@@ -9352,9 +9367,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1380054795}
-        m_TargetAssemblyTypeName: Game, Assembly-CSharp
-        m_MethodName: RemoveAlly
+      - m_Target: {fileID: 691208512}
+        m_TargetAssemblyTypeName: AllyScreen, Assembly-CSharp
+        m_MethodName: Remove
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -12531,9 +12546,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1380054795}
-        m_TargetAssemblyTypeName: Game, Assembly-CSharp
-        m_MethodName: GiveAllyGold
+      - m_Target: {fileID: 691208512}
+        m_TargetAssemblyTypeName: AllyScreen, Assembly-CSharp
+        m_MethodName: GiveGold
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -13504,6 +13519,7 @@ GameObject:
   - component: {fileID: 691208509}
   - component: {fileID: 691208511}
   - component: {fileID: 691208510}
+  - component: {fileID: 691208512}
   m_Layer: 5
   m_Name: Ally
   m_TagString: Untagged
@@ -13577,6 +13593,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 691208508}
   m_CullTransparentMesh: 1
+--- !u!114 &691208512
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 691208508}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 52d20cc8958b9f34abe8421a43c5f2a6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &693581747
 GameObject:
   m_ObjectHideFlags: 0
@@ -14708,7 +14736,15 @@ PrefabInstance:
     - target: {fileID: 1577657665019974297, guid: 40b676e4532b3e347aca2d9f8360325d, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 1380054795}
+      objectReference: {fileID: 691208512}
+    - target: {fileID: 1577657665019974297, guid: 40b676e4532b3e347aca2d9f8360325d, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: Show
+      objectReference: {fileID: 0}
+    - target: {fileID: 1577657665019974297, guid: 40b676e4532b3e347aca2d9f8360325d, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: AllyScreen, Assembly-CSharp
+      objectReference: {fileID: 0}
     - target: {fileID: 1577657665019974297, guid: 40b676e4532b3e347aca2d9f8360325d, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_IntArgument
       value: 1
@@ -23452,9 +23488,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1380054795}
-        m_TargetAssemblyTypeName: Game, Assembly-CSharp
-        m_MethodName: GiveAllyItems
+      - m_Target: {fileID: 158043195}
+        m_TargetAssemblyTypeName: GiveItemsScreen, Assembly-CSharp
+        m_MethodName: Show
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -43482,7 +43518,15 @@ PrefabInstance:
     - target: {fileID: 1577657665019974297, guid: 40b676e4532b3e347aca2d9f8360325d, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 1380054795}
+      objectReference: {fileID: 691208512}
+    - target: {fileID: 1577657665019974297, guid: 40b676e4532b3e347aca2d9f8360325d, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: Show
+      objectReference: {fileID: 0}
+    - target: {fileID: 1577657665019974297, guid: 40b676e4532b3e347aca2d9f8360325d, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: AllyScreen, Assembly-CSharp
+      objectReference: {fileID: 0}
     - target: {fileID: 8301248689935764365, guid: 40b676e4532b3e347aca2d9f8360325d, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5

@@ -38,19 +38,19 @@ public class Game : MonoBehaviour
     public int day, hour, minute;
 
     private GameUI ui;
-    private GameObject allyScreen, giveAllyItemsScreen, activeInventory;
     private RectTransform[] alliesHealthRect;
+    private AllyScreen allyScreen;
     private CharacterScreen characterScreen;
     private Combat combatScreen;
     private Craft craft;
     private Garden garden;
+    private GiveItemsScreen giveItemsScreen;
     private Guild guild;
     private Journal journal;
     private Map map;
     private Properties propertiesScreen;
     private ShopScreen shopScreen;
     private TMP_Text mainText;
-    private Hero activeAlly;
     private readonly StringBuilder sb = new();
     private readonly TextBuilder text = new();
     private System.Action<bool> choiceAction;
@@ -69,8 +69,8 @@ public class Game : MonoBehaviour
         shopScreen = transform.Find("Shop").GetComponent<ShopScreen>();
         characterScreen = transform.Find("Character").GetComponent<CharacterScreen>();
         journal = transform.Find("Journal").GetComponent<Journal>();
-        allyScreen = transform.Find("Ally").gameObject;
-        giveAllyItemsScreen = transform.Find("GiveItems").gameObject;
+        allyScreen = transform.Find("Ally").GetComponent<AllyScreen>();
+        giveItemsScreen = transform.Find("GiveItems").GetComponent<GiveItemsScreen>();
         propertiesScreen = transform.Find("Properties").GetComponent<Properties>();
         guild = transform.Find("Guild").GetComponent<Guild>();
         garden = transform.Find("Garden").GetComponent<Garden>();
@@ -118,9 +118,9 @@ public class Game : MonoBehaviour
         else
         {
             if (team.heroes.Count >= 2 && Input.GetKeyDown(KeyCode.Alpha1))
-                Ally(0);
+                allyScreen.Show(0);
             if (team.heroes.Count >= 3 && Input.GetKeyDown(KeyCode.Alpha2))
-                Ally(1);
+                allyScreen.Show(1);
             if (Input.GetKeyDown(KeyCode.C))
                 characterScreen.Show();
             if (Input.GetKeyDown(KeyCode.J))
@@ -1154,143 +1154,6 @@ public class Game : MonoBehaviour
         traveled = false;
     }
 
-    public void Ally(int index)
-    {
-        activeAlly = team.heroes[index + 1];
-        RefreshAllyScreen();
-        ui.ShowDialog(allyScreen);
-    }
-
-    private void RefreshAllyScreen()
-    {
-        TMP_Text charText = allyScreen.transform.Find("Text").GetComponent<TMP_Text>();
-        sb.Clear();
-        sb.Append($"{activeAlly.GenderSign}{activeAlly.name}\n" +
-            $"Level: {activeAlly.level} {activeAlly.clas.AsString()} ({activeAlly.ExpP}%)\n" +
-            $"Attack: {activeAlly.Attack}\n" +
-            $"Defense: {activeAlly.Defense}\n" +
-            $"Health: {activeAlly.hp}/{activeAlly.hpMax}\n" +
-            $"Gold: {activeAlly.gold}");
-        if (activeAlly.owedGold > 0)
-            sb.Append($" (owes {activeAlly.owedGold} gold)\n");
-        else
-            sb.Append('\n');
-        sb.Append($"Affection: {activeAlly.affection}\n");
-        if (activeAlly.skills.Count > 0)
-        {
-            sb.Append("Skills:\n");
-            foreach (var skill in activeAlly.skills.Select(kvp => (name: kvp.Key.AsString().ToUpper1(), kvp.Value.level)).OrderBy(x => x.name))
-                sb.Append($"  {skill.name}: {skill.level}\n");
-        }
-        if (activeAlly.rested > 0)
-            sb.Append($"Effects:\n  Well rested ({Utility.Plural("day", activeAlly.rested, true)})");
-        charText.text = sb.ToString();
-
-        RefreshAllyItems(allyScreen);
-        if (activeInventory == giveAllyItemsScreen)
-            RefreshAllyItems(giveAllyItemsScreen);
-    }
-
-    private void RefreshGiveAllyPlayerItems()
-    {
-        characterScreen.PopulateInventory(giveAllyItemsScreen,
-            (itemEntry, item) => itemEntry.Init(item.ToString(Price.None)),
-            (itemEntry, itemSlot) =>
-            {
-                if (activeAlly.WillTakeItem(itemSlot.item))
-                {
-                    itemEntry.Init(itemSlot.ToString(Price.None), "Give", () =>
-                    {
-                        if (itemSlot.item.type == Item.Type.Weapon || itemSlot.item.type == Item.Type.Armor || itemSlot.item.type == Item.Type.Shield
-                            || !(Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.LeftControl)))
-                        {
-                            if (itemSlot.team)
-                                team.PayForItem(activeAlly, itemSlot.item);
-                            else
-                                activeAlly.IncreaseAffectionFromValue(itemSlot.item, 1);
-                            activeAlly.GiveItem(itemSlot.item);
-                            player.RemoveItem(itemSlot);
-                            RefreshGiveAllyPlayerItems();
-                            RefreshAllyScreen();
-                            UpdateText();
-                        }
-                        else if (Input.GetKey(KeyCode.LeftShift))
-                        {
-                            if (itemSlot.team)
-                                team.PayForItem(activeAlly, itemSlot.item, itemSlot.count);
-                            else
-                                activeAlly.IncreaseAffectionFromValue(itemSlot.item, itemSlot.count);
-                            activeAlly.GiveItem(itemSlot.item, itemSlot.count);
-                            player.RemoveItem(itemSlot, itemSlot.count);
-                            RefreshGiveAllyPlayerItems();
-                            RefreshAllyScreen();
-                            UpdateText();
-                        }
-                        else
-                        {
-                            ui.ShowInput($"How many {Utility.Plural(itemSlot.item.name)} give to {activeAlly.name}?", count =>
-                            {
-                                if (count <= 0)
-                                    return true;
-                                count = Mathf.Min(count, itemSlot.count);
-                                if (itemSlot.team)
-                                    team.PayForItem(activeAlly, itemSlot.item, count);
-                                else
-                                    activeAlly.IncreaseAffectionFromValue(itemSlot.item, count);
-                                activeAlly.GiveItem(itemSlot.item, count);
-                                player.RemoveItem(itemSlot, count);
-                                RefreshGiveAllyPlayerItems();
-                                RefreshAllyScreen();
-                                UpdateText();
-                                return true;
-                            });
-                        }
-                    });
-                }
-                else
-                    itemEntry.Init(itemSlot.ToString(Price.None));
-            }
-        );
-    }
-
-    private void RefreshAllyItems(GameObject dialog)
-    {
-        Transform content = dialog.transform.Find("AllyItems/Viewport/Content");
-        foreach (Transform child in content)
-            Destroy(child.gameObject);
-
-        if (activeAlly.weapon != null)
-        {
-            ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
-            itemEntry.Init(activeAlly.weapon.ToString(Price.None));
-            itemEntry.SetImage(ui.itemIcons[(int)activeAlly.weapon.GetIcon()]);
-        }
-
-        if (activeAlly.armor != null)
-        {
-            ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
-            itemEntry.Init(activeAlly.armor.ToString(Price.None));
-            itemEntry.SetImage(ui.itemIcons[(int)activeAlly.armor.GetIcon()]);
-        }
-
-        if (activeAlly.shield != null)
-        {
-            ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
-            itemEntry.Init(activeAlly.shield.ToString(Price.None));
-            itemEntry.SetImage(ui.itemIcons[(int)activeAlly.shield.GetIcon()]);
-        }
-
-        if ((activeAlly.weapon != null || activeAlly.armor != null || activeAlly.shield != null) && activeAlly.items.Count > 0)
-            Instantiate(ui.lineSeparatorPrefab, content);
-
-        foreach (ItemSlot itemSlot in activeAlly.items)
-        {
-            ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
-            itemEntry.Init(itemSlot.ToString(Price.None));
-            itemEntry.SetImage(ui.itemIcons[(int)itemSlot.item.GetIcon()]);
-        }
-    }
-
     public void UpdateText()
     {
         sb.Clear();
@@ -1896,50 +1759,6 @@ public class Game : MonoBehaviour
                 return name;
         }
     }
-
-    public void RemoveAlly()
-    {
-        if (!world.Location.IsSafe())
-        {
-            ui.ShowDialog("You can only remove your allies in city or village.");
-            return;
-        }
-
-        ui.ShowConfirm($"Are you sure you want to remove {activeAlly.name} from your team?", () =>
-        {
-            text.Set($"{activeAlly.name} is sad and leave.");
-            team.heroes.Remove(activeAlly);
-            team.CancelOutDebts();
-            UpdateButtons();
-            UpdateText();
-            ui.CloseDialog();
-        });
-    }
-
-    public void GiveAllyItems()
-    {
-        activeInventory = giveAllyItemsScreen;
-        ui.ShowDialog(giveAllyItemsScreen);
-        RefreshGiveAllyPlayerItems();
-        RefreshAllyItems(giveAllyItemsScreen);
-    }
-
-    public void GiveAllyGold()
-    {
-        ui.ShowInput($"How much gold give to {activeAlly.name}?", count =>
-        {
-            count = Mathf.Min(count, player.gold);
-            if (count <= 0)
-                return true;
-            player.AddGold(-count);
-            activeAlly.AddGold(count);
-            activeAlly.IncreaseAffectionFromValue(count);
-            RefreshAllyScreen();
-            UpdateText();
-            return true;
-        });
-    }
-
     private Quest GenerateQuest(int difficulty)
     {
         Quest quest = new() { difficulty = difficulty, timer = Utility.Random(5, 20) };
@@ -2283,11 +2102,7 @@ public class Game : MonoBehaviour
             bestHero.Train(Skill.Alchemy, bestHero == player ? text : null, recipe.trainMod * count);
         }
 
-        if (ui.IsOpen(giveAllyItemsScreen))
-        {
-            RefreshGiveAllyPlayerItems();
-            RefreshAllyScreen();
-        }
+        giveItemsScreen.RefreshIfOpen();
         UpdateText();
     }
 

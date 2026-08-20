@@ -1,9 +1,9 @@
-+ classes from UI screens
-	ally
-	give items
-	enchant items
 + rename Guild -> GuildScreen etc?
-+ remove activeInventory
+? is ally screen updated (stats, affection)
++ auto call refresh on prev gamedialog
+	character -> craft
+	ally -> give (item, herbs)
+	properties -> people
 
 v3
 hero:
