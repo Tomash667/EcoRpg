@@ -154,6 +154,13 @@ public class GameUI : MonoBehaviour
             if (confirmAction == null)
                 confirmAction2(false);
         }
+
+        if (dialogs.Count > 0)
+        {
+            currentDialog = dialogs[^1];
+            if (currentDialog != null && currentDialog.TryGetComponent(out GameDialog gameDialog))
+                gameDialog.Restore();
+        }
     }
 
     private void CloseDialogInternal()

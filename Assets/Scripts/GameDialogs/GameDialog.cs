@@ -29,4 +29,9 @@ public abstract class GameDialog : MonoBehaviour
         if (ui.IsOpen(gameObject))
             Refresh();
     }
+
+    public virtual void Restore()
+    {
+        Refresh();
+    }
 }

@@ -132,7 +132,7 @@ public class Game : MonoBehaviour
             if (world.level == 0 && world.Location != TileType.DarkDimension)
             {
                 if (Input.GetKeyDown(KeyCode.T))
-                    Travel();
+                    map.Show();
             }
             else
             {
@@ -939,12 +939,6 @@ public class Game : MonoBehaviour
                 player.Train(skill, hero == player && !skipTime ? text : null, trainMod);
         }
         return payment;
-    }
-
-    public void Travel()
-    {
-        ui.ShowDialog(map.gameObject);
-        map.Show();
     }
 
     public void Travel(Vector2Int pt, bool enter)

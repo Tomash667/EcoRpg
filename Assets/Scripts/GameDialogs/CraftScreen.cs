@@ -4,8 +4,6 @@ using UnityEngine;
 
 public class CraftScreen : GameDialog
 {
-    public CharacterScreen characterScreen;
-
     protected override void Refresh()
     {
         // text
@@ -58,7 +56,6 @@ public class CraftScreen : GameDialog
             player.Train(Skill.Alchemy, text, recipe.trainMod * trainMod * count);
             game.AddTime(minutes: count * 5);
             RefreshIfOpen();
-            characterScreen.RefreshIfOpen();
             game.UpdateText();
         }
 

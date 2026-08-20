@@ -4,7 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class Map : MonoBehaviour
+public class Map : GameDialog
 {
     private const float tileSize = 50f;
     private const float borderSize = 6f;
@@ -46,6 +46,7 @@ public class Map : MonoBehaviour
 
     public void Build()
     {
+        // this is called before GameDialog members are set!
         Tile[] map = Global.World.map;
         tilesContainer = transform.Find("MapView/Viewport/Content/Tiles");
         for (int y = 0; y < World.sizeY; ++y)
@@ -63,13 +64,13 @@ public class Map : MonoBehaviour
         }
     }
 
-    public void Show()
+    public override void Show()
     {
-        World world = Global.World;
+        World world = game.world;
         currentPos = PtToPos(world.currentPt);
         flag.GetComponent<RectTransform>().anchoredPosition = currentPos;
         outlineTarget.SetActive(false);
-        Quest quest = Global.Game.activeQuests.FirstOrDefault(x => x.tracked && x.location != -1 && world.GetLocation(x.location).discovered);
+        Quest quest = game.activeQuests.FirstOrDefault(x => x.tracked && x.location != -1 && world.GetLocation(x.location).discovered);
         if (quest != null)
         {
             outlineQuest.GetComponent<RectTransform>().anchoredPosition = PtToPos(World.IndexToPoint(quest.location));
@@ -79,6 +80,7 @@ public class Map : MonoBehaviour
             outlineQuest.SetActive(false);
         arrow.gameObject.SetActive(false);
         CenterOnPlayer();
+        ui.ShowDialog(gameObject);
     }
 
     private void Update()
@@ -97,7 +99,7 @@ public class Map : MonoBehaviour
         if (inTravel)
         {
             if (Input.GetKeyDown(GameUI.escKey))
-                Global.World.cancelTravel = true;
+                game.world.cancelTravel = true;
             return;
         }
 
@@ -107,7 +109,7 @@ public class Map : MonoBehaviour
             moveViewPos = Input.mousePosition;
             outlineTarget.SetActive(false);
             arrow.gameObject.SetActive(false);
-            text.text = $"Rations: {Global.Game.team.CountItem(Item.Get("rations"))}";
+            text.text = $"Rations: {game.team.CountItem(Item.Get("rations"))}";
             lastCheckedPos.x = -1;
         }
 
@@ -136,10 +138,10 @@ public class Map : MonoBehaviour
         if (!GetTile(Input.mousePosition, out Vector2Int targetPt))
             targetPt.x = -1;
 
-        World world = Global.World;
+        World world = game.world;
 
         if ((targetPt == world.currentPt || path != null) && Input.GetMouseButtonDown(0))
-            Global.Game.Travel(targetPt, !Input.GetKey(KeyCode.LeftShift));
+            game.Travel(targetPt, !Input.GetKey(KeyCode.LeftShift));
 
         if (targetPt == lastCheckedPos)
             return;
@@ -155,7 +157,7 @@ public class Map : MonoBehaviour
             // outside map
             arrow.gameObject.SetActive(false);
             outlineTarget.SetActive(false);
-            text.text = $"Rations: {Global.Game.team.CountItem(Item.Get("rations"))}";
+            text.text = $"Rations: {game.team.CountItem(Item.Get("rations"))}";
         }
         else
         {
@@ -166,7 +168,7 @@ public class Map : MonoBehaviour
             {
                 // same position as current
                 arrow.gameObject.SetActive(false);
-                text.text = $"Rations: {Global.Game.team.CountItem(Item.Get("rations"))}\nTarget: {tile.Name.ToUpper1()}";
+                text.text = $"Rations: {game.team.CountItem(Item.Get("rations"))}\nTarget: {tile.Name.ToUpper1()}";
             }
             else
             {
@@ -175,7 +177,7 @@ public class Map : MonoBehaviour
                 {
                     // blocked
                     arrow.gameObject.SetActive(false);
-                    text.text = $"Rations: {Global.Game.team.CountItem(Item.Get("rations"))}\nTarget: {tile.Name.ToUpper1()}";
+                    text.text = $"Rations: {game.team.CountItem(Item.Get("rations"))}\nTarget: {tile.Name.ToUpper1()}";
                 }
                 else
                 {
@@ -226,7 +228,7 @@ public class Map : MonoBehaviour
 
     public void UpdateTravel()
     {
-        World world = Global.World;
+        World world = game.world;
         Vector2 startPos = PtToPos(world.currentPt);
         Vector2 targetPos = startPos + new Vector2(tileSize * world.travelDir.x, -tileSize * world.travelDir.y);
         currentPos = Vector2.Lerp(startPos, targetPos, world.travelDelta);
@@ -262,10 +264,10 @@ public class Map : MonoBehaviour
         Tile tile = world.map[targetPt.x + targetPt.y * World.sizeX];
         string str;
 #if UNITY_EDITOR
-        str = $"Rations: {Global.Game.team.CountItem(Item.Get("rations"))}\nTarget: {tile.Name.ToUpper1()} [{World.CalculateIndex(targetPt.x, targetPt.y, 0)}]\nDistance: {dist}km\n" +
+        str = $"Rations: {game.team.CountItem(Item.Get("rations"))}\nTarget: {tile.Name.ToUpper1()} [{World.CalculateIndex(targetPt.x, targetPt.y, 0)}]\nDistance: {dist}km\n" +
             $"Travel time: {daysText}\nLevels: {tile.levels}";
 #else
-        str = $"Rations: {Global.Game.team.CountItem(Item.Get("rations"))}\nTarget: {tile.Name.ToUpper1()}\nDistance: {dist}km\nTravel time: {daysText}";
+        str = $"Rations: {game.team.CountItem(Item.Get("rations"))}\nTarget: {tile.Name.ToUpper1()}\nDistance: {dist}km\nTravel time: {daysText}";
 #endif
         text.text = str;
         text.gameObject.SetActive(true);
@@ -273,7 +275,7 @@ public class Map : MonoBehaviour
 
     public void EndTravel()
     {
-        currentPos = PtToPos(Global.World.currentPt);
+        currentPos = PtToPos(game.world.currentPt);
         flag.GetComponent<RectTransform>().anchoredPosition = currentPos;
         outlineTarget.SetActive(false);
         arrow.gameObject.SetActive(false);
@@ -284,11 +286,11 @@ public class Map : MonoBehaviour
     public void UpdateMap(Vector2Int pos)
     {
         int index = pos.x + pos.y * World.sizeX;
-        Tile tile = Global.World.map[index];
+        Tile tile = game.world.map[index];
         Image image = tilesContainer.GetChild(index).GetComponent<Image>();
         image.sprite = sprites[(int)tile.image];
         image.color = tile.discovered ? Color.white : Color.gray;
-        Quest quest = Global.Game.activeQuests.FirstOrDefault(x => x.tracked && x.location == index);
+        Quest quest = game.activeQuests.FirstOrDefault(x => x.tracked && x.location == index);
         if (quest != null)
         {
             outlineQuest.GetComponent<RectTransform>().anchoredPosition = PtToPos(World.IndexToPoint(quest.location));
@@ -326,9 +328,9 @@ public class Map : MonoBehaviour
     public void Cancel()
     {
         if (inTravel)
-            Global.World.cancelTravel = true;
+            game.world.cancelTravel = true;
         else
-            Global.UI.CloseDialog();
+            ui.CloseDialog();
     }
 
     private Vector2 PtToPos(Vector2Int pt)
