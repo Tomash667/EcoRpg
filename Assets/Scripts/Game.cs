@@ -64,6 +64,10 @@ public class Game : MonoBehaviour
 
     private void Awake()
     {
+#if UNITY_EDITOR
+        Application.targetFrameRate = 60;
+#endif
+
         ui = GetComponent<GameUI>();
         mainText = transform.Find("Text").GetComponent<TMP_Text>();
         shopScreen = transform.Find("Shop").GetComponent<ShopScreen>();
@@ -1437,7 +1441,9 @@ public class Game : MonoBehaviour
                 }
                 else
                     tile.SetType(TileType.Mine);
-                map.UpdateMap(World.IndexToPoint(property.locationIndex));
+                Vector2Int pt = World.IndexToPoint(property.locationIndex);
+                map.RemoveIcon(pt);
+                map.UpdateMap(pt);
                 if (world.CurrentLocationIndex == property.locationIndex)
                 {
                     ui.UpdateBackground((int)tile.type);
@@ -1610,6 +1616,8 @@ public class Game : MonoBehaviour
         string json = global.GetSaveData();
         JsonUtility.FromJsonOverwrite(json, this);
         map.Build();
+        foreach (Property property in player.properties.Where(x => x.status == Property.Status.Building))
+            map.AddIcon(World.IndexToPoint(property.locationIndex));
         ui.UpdateBackground((int)world.Location);
     }
 

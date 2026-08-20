@@ -12,14 +12,14 @@ public class Map : GameDialog
     private static readonly Vector2 gridSize = new(tileSize * World.sizeX, tileSize * World.sizeY);
     private static readonly Vector2 contentSize = new(gridSize.x + borderSize * 2, gridSize.y + borderSize * 2);
 
-    public GameObject tilePrefab;
+    public GameObject tilePrefab, mapIconPrefab;
     public Sprite[] sprites;
 
     private Arrow arrow;
     private GameObject flag, outlineTarget, outlineQuest;
     private TMP_Text text, buttonText;
     private ScrollRect scrollRect;
-    private Transform tilesContainer;
+    private Transform tilesContainer, iconsContainer;
     private RectTransform rectTransform;
     private List<Vector2Int> path;
     private Vector2 currentPos, travelPos, viewportSize, moveViewPos, lastCheckedPos;
@@ -42,6 +42,7 @@ public class Map : GameDialog
         outlineQuest = mapContent.Find("OutlineQuest").gameObject;
         arrow = mapContent.Find("Arrow").GetComponent<Arrow>();
         tilesContainer = mapContent.Find("Tiles");
+        iconsContainer = mapContent.Find("Icons");
     }
 
     public void Build()
@@ -85,7 +86,7 @@ public class Map : GameDialog
 
     private void Update()
     {
-        if (Input.mouseScrollDelta != Vector2.zero)
+        if (Input.mouseScrollDelta != Vector2.zero && RectTransformUtility.RectangleContainsScreenPoint(rectTransform, Input.mousePosition))
         {
             float newZoom = Mathf.Clamp(zoom + Input.mouseScrollDelta.y / 10, 0.7f, 1f);
             if (newZoom != zoom)
@@ -336,5 +337,19 @@ public class Map : GameDialog
     private Vector2 PtToPos(Vector2Int pt)
     {
         return new(gridOrigin.x + tileSize * pt.x, gridOrigin.y - tileSize * pt.y);
+    }
+
+    public void AddIcon(Vector2Int pt)
+    {
+        GameObject mapIcon = Instantiate(mapIconPrefab, iconsContainer);
+        mapIcon.GetComponent<RectTransform>().anchoredPosition = PtToPos(pt);
+        mapIcon.GetComponent<MapIcon>().pt = pt;
+    }
+
+    public void RemoveIcon(Vector2Int pt)
+    {
+        MapIcon mapIcon = iconsContainer.GetComponentsInChildren<MapIcon>().FirstOrDefault(x => x.pt == pt);
+        if (mapIcon != null)
+            Destroy(mapIcon.gameObject);
     }
 }

@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 public class PropertiesScreen : GameDialog
 {
+    public Map map;
     public PeopleScreen peopleScreen;
 
     private Property selectedProperty;
@@ -144,6 +145,7 @@ public class PropertiesScreen : GameDialog
                     game.Text.Set($"You pay <color=#FFD700>{cost}</color> gold to build {property.Name.ToLower()}.");
                     property.status = Property.Status.Building;
                     game.world.GetLocation(property.locationIndex).timer = 0; // prevent resetting
+                    map.AddIcon(World.IndexToPoint(property.locationIndex));
                 }
                 else
                 {

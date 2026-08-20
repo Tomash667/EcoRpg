@@ -54,15 +54,12 @@ events:
 ui:
 + interact portair
 + permanent action confirm (drop, ?)
-+ vsync
 + player healthbar, fixed top ui
 + move map - cursor stays in place
 + s&l map zoom
 + combat key shortcuts
 + open journal on map?
 + auto position buttons in smart way
-+ map zoom only when mouse over tiles
-+ construction icon visible on map
 + smoother travel
 + ok/confirm dialog auto size
 + show text on ally craft, apply to other texts not shown
@@ -77,7 +74,6 @@ ui:
 + visible shortcuts
 + better button naming for Properties/Manage if there a people there too
 + move map speed vs zoom
-+ map background
 + train -> show progress
 
 investments:
@@ -237,6 +233,8 @@ ui:
 + shop tabs?, separate shops
 + animate datetime, gold
 + race/class portraits
++ map hight max zoom out
++ map zoom out relative to mouse position
 
 refactoring:
 + store worker assigned property as reference

@@ -11,6 +11,10 @@ public class Menu : MonoBehaviour
 
     private void Awake()
     {
+#if UNITY_EDITOR
+        Application.targetFrameRate = 60;
+#endif
+
         ui = GetComponent<GameUI>();
         newGameDialog = transform.Find("NewGameDialog").gameObject;
         loadGameDialog = transform.Find("LoadGameDialog").gameObject;
