@@ -4,6 +4,7 @@
 	character -> craft
 	ally -> give (item, herbs)
 	properties -> people
++ Map GameDialog
 
 v3
 hero:
@@ -244,6 +245,7 @@ ui:
 
 refactoring:
 + store worker assigned property as reference
++ move code to Location classes for explore/work/forage/available buttons
 
 investments:
 + cottage/big house
