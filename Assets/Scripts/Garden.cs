@@ -1,16 +1,9 @@
 using UnityEngine;
 
-public class Garden : MonoBehaviour
+public class Garden : GameDialog
 {
-    public void Show()
+    protected override void Refresh()
     {
-        Global.UI.ShowDialog(gameObject);
-        Refresh();
-    }
-
-    private void Refresh()
-    {
-        Game game = Global.Game;
         Transform content = transform.Find("List/Viewport/Content");
         foreach (Transform child in content)
             Destroy(child.gameObject);
@@ -33,11 +26,11 @@ public class Garden : MonoBehaviour
                     // vegetables
                     if (plant == "Vegetables")
                         game.UI.ShowDialog("Vegetables are already planted here.");
-                    else if (game.player.gold < 10)
+                    else if (player.gold < 10)
                         game.UI.ShowDialog("You need 10 gold.");
                     else
                     {
-                        game.player.AddGold(-10);
+                        player.AddGold(-10);
                         property.gardenPlants[index] = "Vegetables";
                         Refresh();
                         game.UpdateText();
@@ -48,11 +41,11 @@ public class Garden : MonoBehaviour
                     Item herb = Item.Get("herb");
                     if (plant == "Herbs")
                         game.UI.ShowDialog("Herbs are already planted here.");
-                    else if (game.player.CountItem(herb) < 10)
+                    else if (player.CountItem(herb) < 10)
                         game.UI.ShowDialog("You need 10 herbs.");
                     else
                     {
-                        game.player.RemoveItem(herb, 10);
+                        player.RemoveItem(herb, 10);
                         property.gardenPlants[index] = "Herbs";
                         Refresh();
                     }
@@ -62,11 +55,11 @@ public class Garden : MonoBehaviour
                     Item rareHerb = Item.Get("rare herb");
                     if (plant == "Rare herbs")
                         game.UI.ShowDialog("Rare herbs are already planted here.");
-                    else if (game.player.CountItem(rareHerb) < 10)
+                    else if (player.CountItem(rareHerb) < 10)
                         game.UI.ShowDialog("You need 10 rare herbs.");
                     else
                     {
-                        game.player.RemoveItem(rareHerb, 10);
+                        player.RemoveItem(rareHerb, 10);
                         property.gardenPlants[index] = "Rare herbs";
                         Refresh();
                     }

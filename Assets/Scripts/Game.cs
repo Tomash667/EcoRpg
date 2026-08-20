@@ -27,10 +27,6 @@ public class Game : MonoBehaviour
         Skipped
     }
 
-    private const int MaxGuildRank = 4;
-
-    private static readonly string[] GuildRanks = new[] { "None", "Copper", "Silver", "Gold", "Diamond" };
-
     public World world;
     [SerializeReference]
     public Player player;
@@ -41,15 +37,15 @@ public class Game : MonoBehaviour
     public List<Worker> availableWorkers, hiredWorkers;
     public DragonStatus dragonStatus;
     public SpiderStatus spiderStatus;
-    public float guildProgress;
-    public int day, hour, minute, guildRank, freshHorses;
+    public int day, hour, minute, freshHorses;
 
     private GameUI ui;
-    private GameObject shopScreen, characterScreen, allyScreen, giveAllyItemsScreen, storeItemsScreen, activeInventory, propertiesScreen, guildScreen, enchantItemsScreen, peopleScreen;
+    private GameObject shopScreen, characterScreen, allyScreen, giveAllyItemsScreen, storeItemsScreen, activeInventory, propertiesScreen, enchantItemsScreen, peopleScreen;
     private RectTransform[] alliesHealthRect;
     private Combat combatScreen;
     private Craft craft;
     private Garden garden;
+    private Guild guild;
     private Journal journal;
     private Map map;
     private TMP_Text mainText;
@@ -77,7 +73,7 @@ public class Game : MonoBehaviour
         giveAllyItemsScreen = transform.Find("GiveItems").gameObject;
         storeItemsScreen = transform.Find("StoreItems").gameObject;
         propertiesScreen = transform.Find("Properties").gameObject;
-        guildScreen = transform.Find("Guild").gameObject;
+        guild = transform.Find("Guild").GetComponent<Guild>();
         garden = transform.Find("Garden").GetComponent<Garden>();
         craft = transform.Find("Craft").GetComponent<Craft>();
         combatScreen = transform.Find("Combat").GetComponent<Combat>();
@@ -98,6 +94,12 @@ public class Game : MonoBehaviour
         UpdateButtons();
     }
 
+    private void OnEnable()
+    {
+        GameDialog.game = this;
+        GameDialog.player = player;
+    }
+
     private void Update()
     {
 #if UNITY_EDITOR
@@ -108,21 +110,7 @@ public class Game : MonoBehaviour
         if (ui.HasDialog)
         {
             GameObject currentDialog = ui.CurrentDialog;
-            if (currentDialog == guildScreen)
-            {
-                if (guildRank != 0)
-                {
-                    if (Input.GetKeyDown(KeyCode.C))
-                        craft.Show();
-                    if (Input.GetKeyDown(KeyCode.K))
-                        Cook();
-                    if (Input.GetKeyDown(KeyCode.R))
-                        Recruit();
-                    if (Input.GetKeyDown(KeyCode.T))
-                        Train();
-                }
-            }
-            else if (currentDialog == propertiesScreen)
+            if (currentDialog == propertiesScreen)
             {
                 bool canManage = manageProperty || ((world.Location == TileType.City || world.Location == TileType.Mansion)
                     && selectedProperty != null && selectedProperty.income > 0 && player.HavePropertyUpgrade("Mansion", "Office"));
@@ -180,7 +168,7 @@ public class Game : MonoBehaviour
             {
             case TileType.City:
                 if (Input.GetKeyDown(KeyCode.G))
-                    Guild();
+                    guild.Show();
                 if (Input.GetKeyDown(KeyCode.P))
                     ManageProperties();
                 if (Input.GetKeyDown(KeyCode.W))
@@ -1944,7 +1932,7 @@ public class Game : MonoBehaviour
             }
         }
 
-        ui.CloseDialogs(x => x == propertiesScreen || x == guildScreen || x == characterScreen || x == craft.gameObject || x == peopleScreen);
+        ui.CloseDialogs(x => x == propertiesScreen || x == guild.gameObject || x == characterScreen || x == craft.gameObject || x == peopleScreen);
         return true;
     }
 
@@ -2299,55 +2287,7 @@ public class Game : MonoBehaviour
         }
     }
 
-    public void Recruit()
-    {
-        if (team.heroes.Count >= Team.MaxSize)
-        {
-            ui.ShowDialog("Your team is full.");
-            return;
-        }
-
-        int level = Mathf.Max(Utility.Random(-3, 1) + guildRank, 0);
-        Hero hero = SpawnHero(level);
-        // Novice(0) -> Apprentice(2) -> Journeyman(4) -> Adept(8) -> Expert(12) -> Master(16) -> Grandmaster(20)
-        string levelName = (level / 2) switch
-        {
-            1 => "apprentice",
-            2 => "journeyman",
-            _ => "novice",
-        };
-
-        string skill;
-        if (hero.skills.Count > 0)
-            skill = $" and knows {hero.skills.First().Key.AsString()}";
-        else
-            skill = string.Empty;
-
-        ui.ShowConfirm($"You meet <b>{hero.name}</b> and talk with {hero.him} about adventurers. " +
-            $"{hero.He} is {Utility.A(levelName)} <b>{levelName} {hero.clas.AsString()}</b>{skill}. Do you want to recruit {hero.him}?", yes =>
-        {
-            int chance = 100 + (player.level - hero.level) * 5;
-            if (Utility.Rand % 100 < chance)
-            {
-                if (yes)
-                {
-                    text.Set($"You recruit {hero.name} to your team.");
-                    team.heroes.Add(hero);
-                    hero.BuyItems();
-                    UpdateButtons();
-                }
-            }
-            else
-                text.Set($"You <b>failed</b> to convince {hero.name} to join your team.");
-
-            AddTime(minutes: 30);
-            if (ui.TopDialog == guildScreen)
-                RefreshGuild();
-            UpdateText();
-        });
-    }
-
-    private Hero SpawnHero(int level = 0)
+    public Hero SpawnHero(int level = 0)
     {
         Hero hero = new();
         hero.Init(level);
@@ -2672,126 +2612,6 @@ public class Game : MonoBehaviour
         }
     }
 
-    public void Guild()
-    {
-        RefreshGuild();
-        ui.ShowDialog(guildScreen);
-    }
-
-    private void RefreshGuild()
-    {
-        string guildText = text.Flush();
-        if (guildText != string.Empty)
-            guildText += "\n\n";
-        guildText += $"Your rank: {GuildRanks[guildRank]}";
-        guildScreen.transform.Find("Text").GetComponent<TMP_Text>().text = guildText;
-
-        guildScreen.transform.Find("BtJoin").GetComponent<Button>().interactable = guildRank == 0;
-        guildScreen.transform.Find("BtRecruit").GetComponent<Button>().interactable = guildRank != 0;
-        guildScreen.transform.Find("BtTrain").GetComponent<Button>().interactable = guildRank != 0;
-        guildScreen.transform.Find("BtCook").GetComponent<Button>().interactable = guildRank != 0;
-        guildScreen.transform.Find("BtCraft").GetComponent<Button>().interactable = guildRank != 0;
-
-        // populate list with quests
-        Transform content = guildScreen.transform.Find("List/Viewport/Content");
-        foreach (Transform child in content)
-            Destroy(child.gameObject);
-
-        bool haveItems = false;
-        int acceptedQuestCount = activeQuests.Count(x => !x.IsUnique);
-        if (acceptedQuestCount > 0)
-        {
-            ui.AddTextHeader($"Accepted quests ({acceptedQuestCount}/{guildRank}):", content);
-            foreach (Quest quest in activeQuests.Where(x => !x.IsUnique))
-            {
-                ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
-                if (quest.IsDone())
-                    itemEntry.Init2(quest.TextReward, "Finish", () => FinishQuest(quest), "Cancel", () => CancelQuest(quest));
-                else
-                    itemEntry.Init2(quest.TextReward, null, null, "Cancel", () => CancelQuest(quest));
-            }
-            haveItems = true;
-        }
-
-        if (availableQuests.Any(x => x.difficulty <= guildRank))
-        {
-            if (haveItems)
-                Instantiate(ui.lineSeparatorPrefab, content);
-            ui.AddTextHeader("Available quests:", content);
-            haveItems = true;
-        }
-
-        bool unavailable = false;
-        foreach (Quest quest in availableQuests)
-        {
-            if (!unavailable && quest.difficulty > guildRank)
-            {
-                unavailable = true;
-                if (haveItems)
-                    Instantiate(ui.lineSeparatorPrefab, content);
-                ui.AddTextHeader("Unavailable quests:", content);
-                haveItems = true;
-            }
-
-            ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
-            if (acceptedQuestCount < guildRank && !unavailable)
-            {
-                itemEntry.Init(quest.TitleReward, "Pick", () =>
-                {
-                    activeQuests.Add(quest);
-                    if (!activeQuests.Any(x => x.tracked))
-                        quest.tracked = true;
-                    if (quest.type == Quest.Type.Clear)
-                    {
-                        // if player already defeat some enemies, update counter
-                        Tile tile = world.GetLocation(quest.location);
-                        quest.count = tile.defeatedEnemies;
-                    }
-                    availableQuests.Remove(quest);
-                    text.Set($"You accepted quest '{quest.Title}'.");
-                    AddTime(minutes: 15);
-                    if (ui.CurrentDialog == guildScreen)
-                        RefreshGuild();
-                    UpdateText();
-                });
-            }
-            else
-                itemEntry.Init(quest.TitleReward);
-        }
-
-        // add player paid quests
-        Property[] infestedProperties = player.properties.Where(p => p.events.Any(e => e.name == "Infested" && e.timer == -1)).ToArray();
-        if (infestedProperties.Length > 0)
-        {
-            if (haveItems)
-                Instantiate(ui.lineSeparatorPrefab, content);
-            ui.AddTextHeader("Quests to offer:", content);
-            foreach (Property prop in infestedProperties)
-            {
-                Property property = prop;
-                ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
-                int days = world.CalculateTravelDaysNonTeam(World.IndexToPoint(property.locationIndex));
-                itemEntry.Init($"Clear {property.Name.ToLower()} ({Utility.Plural("day", days, true)}, {property.infestedCost} gold)", "Pay", () =>
-                {
-                    if (player.gold < property.infestedCost)
-                    {
-                        ui.ShowDialog($"You need {property.infestedCost} gold to pay adventurers to clear the {property.Name.ToLower()}.");
-                        return;
-                    }
-
-                    player.AddGold(-property.infestedCost);
-                    prop.events.First(e => e.name == "Infested").timer = days;
-                    text.Set($"You pay <color=#FFD700>{property.infestedCost}</color> gold to adventurers to clear the {property.Name.ToLower()}. " +
-                        $"It will take them {Utility.Plural("day", days, true)}.");
-                    AddTime(minutes: 15);
-                    if (ui.CurrentDialog == guildScreen)
-                        RefreshGuild();
-                    UpdateText();
-                });
-            }
-        }
-    }
-
     private Quest GenerateQuest(int difficulty)
     {
         Quest quest = new() { difficulty = difficulty, timer = Utility.Random(5, 20) };
@@ -2946,86 +2766,7 @@ public class Game : MonoBehaviour
         }
     }
 
-    private void FinishQuest(Quest quest)
-    {
-        int reward = quest.Reward;
-        text.Set($"You received <color=#FFD700>{reward}</color> gold for quest '{quest.Title}'.");
-        bool promoted = false;
-        if (guildRank != MaxGuildRank)
-        {
-            float value = quest.difficultyMod;
-            if (quest.difficulty + 1 == guildRank)
-                value /= 4;
-            else if (quest.difficulty < guildRank)
-                value = 0;
-
-            if (value > 0)
-            {
-                guildProgress += value;
-                if (guildProgress >= 1f + guildRank)
-                {
-                    ++guildRank;
-                    guildProgress = 0;
-                    text.Append($"You were promoted to <b>{GuildRanks[guildRank]}</b> rank.");
-                    team.ChangeAffection(5, text);
-                    promoted = true;
-                }
-            }
-        }
-        if (!promoted)
-        {
-            team.ChangeAffection(1, text);
-        }
-        team.AddGold(reward);
-        quest.Finish();
-        RemoveQuest(quest);
-        AddTime(minutes: 15);
-        if (ui.CurrentDialog == guildScreen)
-            RefreshGuild();
-        UpdateText();
-    }
-
-    private void CancelQuest(Quest quest)
-    {
-        text.Set($"You canceled quest '{quest.Title}'.");
-        guildProgress -= quest.difficultyMod;
-        if (guildRank > 1 && guildProgress < -guildRank)
-        {
-            --guildRank;
-            guildProgress = 0;
-            text.Append($"You are degraded to <b>{GuildRanks[guildRank]}</b> rank.");
-            team.ChangeAffection(-5, text);
-        }
-        else
-            team.ChangeAffection(-1, text);
-        RemoveQuest(quest);
-
-        // readd quest if it can be completed
-        bool canBeCompleted = true;
-        if (quest.type == Quest.Type.Artifact)
-        {
-            Tile tile = world.GetLocation(quest.location);
-            canBeCompleted = !tile.foundTreasure;
-        }
-        else if (quest.type == Quest.Type.Clear)
-        {
-            Tile tile = world.GetLocation(quest.location);
-            canBeCompleted = !tile.clear;
-        }
-        if (canBeCompleted)
-        {
-            quest.timer = 5;
-            availableQuests.Add(quest);
-            SortQuests();
-        }
-
-        AddTime(minutes: 15);
-        if (ui.CurrentDialog == guildScreen)
-            RefreshGuild();
-        UpdateText();
-    }
-
-    private void RemoveQuest(Quest quest)
+    public void RemoveQuest(Quest quest)
     {
         bool isTracked = quest.tracked;
         activeQuests.Remove(quest);
@@ -3198,18 +2939,7 @@ public class Game : MonoBehaviour
 
         int count = ingredientCount / recipe.ingredientCount;
         hero.RemoveItem(recipe.ingredient, count * 2);
-        float mod;
-        if (alchemy >= 100)
-            mod = 1;
-        else if (alchemy >= 75)
-            mod = 0.5f;
-        else if (alchemy >= 50)
-            mod = 0.25f;
-        else if (alchemy >= 25)
-            mod = 0.1f;
-        else
-            mod = 0;
-        int extra = (int)(count * mod);
+        int extra = (int)(count * Craft.GetAlchemyCountBonus(alchemy));
         int totalCount = count + extra;
         player.AddItem(recipe.result, totalCount);
         if (hero == bestHero)
@@ -3328,8 +3058,7 @@ public class Game : MonoBehaviour
     {
         availableQuests.Clear();
         GenerateInitialQuests();
-        if (ui.CurrentDialog == guildScreen)
-            RefreshGuild();
+        guild.RefreshIfOpen();
     }
 
     [ContextMenu("Give all")]
@@ -3394,17 +3123,6 @@ public class Game : MonoBehaviour
                 properties.Add(copy);
             }
         }
-    }
-
-    public void JoinGuild()
-    {
-        guildRank = 1;
-        text.Set("You fill out form and register as adventurer. From this day forward, you are free to accept quests, earn rewards, and carve your own path through the dungeons. " +
-            "May your courage be greater than the dangers ahead, and your pack always heavy with treasure.");
-        AddTime(minutes: 15);
-        if (ui.CurrentDialog == guildScreen)
-            RefreshGuild();
-        UpdateText();
     }
 
     public void StoreItems()
@@ -3496,17 +3214,15 @@ public class Game : MonoBehaviour
             player.AddItem(rations, count);
             text.Set($"You cooked {count} pieces of meat into rations.");
             AddTime(minutes: count * 5);
-            if (ui.TopDialog == guildScreen)
-                RefreshGuild();
+            guild.RefreshIfOpen();
             UpdateText();
             return true;
         });
     }
 
-    public void SetText(string txt)
+    public void DoCraft()
     {
-        text.Set(txt);
-        UpdateText();
+        craft.Show();
     }
 
     public void EnchantItems()
@@ -3733,7 +3449,7 @@ public class Game : MonoBehaviour
         }
     }
 
-    private void SortQuests()
+    public void SortQuests()
     {
         availableQuests.Sort((a, b) =>
         {
@@ -3742,42 +3458,6 @@ public class Game : MonoBehaviour
                 return result;
             return a.timer.CompareTo(b.timer);
         });
-    }
-
-    public void Train()
-    {
-        if (hour > 16)
-            text.Set("It's too late to train.");
-        else if (player.energy < 50)
-            text.Set("You are too tired to train.");
-        else
-        {
-            player.energy -= 50;
-            text.Set("You train fighting.");
-            List<Hero> levelups = null;
-            foreach (Hero hero in team.heroes)
-            {
-                if (hero.AddExp(100))
-                {
-                    levelups ??= new();
-                    levelups.Add(hero);
-                }
-            }
-
-            if (levelups != null)
-            {
-                foreach (var group in levelups.GroupBy(x => x.level))
-                {
-                    string isAre = group.Count() > 1 || group.First() is Player ? "are" : "is";
-                    text.Append($"{Utility.PrettyList(group.Select(x => x.nameYou)).ToUpper1()} {isAre} now level {group.Key}.");
-                }
-            }
-
-            AddTime(hours: 8);
-            if (ui.CurrentDialog == guildScreen)
-                RefreshGuild();
-        }
-        UpdateText();
     }
 
     public void Manage()

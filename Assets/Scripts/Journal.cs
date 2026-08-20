@@ -5,19 +5,12 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class Journal : MonoBehaviour
+public class Journal : GameDialog
 {
     private readonly StringBuilder sb = new();
 
-    public void Show()
+    protected override void Refresh()
     {
-        Global.UI.ShowDialog(gameObject);
-        Refresh();
-    }
-
-    private void Refresh()
-    {
-        Game game = Global.Game;
         bool notificationChanges = false;
 
         // notifications
@@ -41,7 +34,6 @@ public class Journal : MonoBehaviour
         else
             sb.Append("...");
         transform.Find("Notifications/Viewport/Content/Text").GetComponent<TMP_Text>().text = sb.ToString();
-        StartCoroutine(MoveScrollRectToPos(transform.Find("Notifications").GetComponent<ScrollRect>(), 0f));
 
         // active quests
         Transform content = transform.Find("List/Viewport/Content");
@@ -69,6 +61,11 @@ public class Journal : MonoBehaviour
 
         if (notificationChanges)
             game.UpdateButtons();
+    }
+
+    protected override void AfterShow()
+    {
+        StartCoroutine(MoveScrollRectToPos(transform.Find("Notifications").GetComponent<ScrollRect>(), 0f));
     }
 
     private IEnumerator MoveScrollRectToPos(ScrollRect scrollRect, float pos)

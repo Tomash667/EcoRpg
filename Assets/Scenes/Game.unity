@@ -5231,6 +5231,7 @@ GameObject:
   - component: {fileID: 247081746}
   - component: {fileID: 247081748}
   - component: {fileID: 247081747}
+  - component: {fileID: 247081749}
   m_Layer: 5
   m_Name: Guild
   m_TagString: Untagged
@@ -5305,6 +5306,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 247081745}
   m_CullTransparentMesh: 1
+--- !u!114 &247081749
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 247081745}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 21da4a40e06db6847b30fca91b9c722e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &250163422
 GameObject:
   m_ObjectHideFlags: 0
@@ -26652,11 +26665,9 @@ MonoBehaviour:
   hiredWorkers: []
   dragonStatus: 0
   spiderStatus: 0
-  guildProgress: 0
   day: 0
   hour: 0
   minute: 0
-  guildRank: 0
   freshHorses: 0
   references:
     version: 2
@@ -29101,8 +29112,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1380054795}
-        m_TargetAssemblyTypeName: Game, Assembly-CSharp
+      - m_Target: {fileID: 247081749}
+        m_TargetAssemblyTypeName: Guild, Assembly-CSharp
         m_MethodName: Train
         m_Mode: 1
         m_Arguments:
@@ -32124,9 +32135,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1380054795}
-        m_TargetAssemblyTypeName: Game, Assembly-CSharp
-        m_MethodName: Guild
+      - m_Target: {fileID: 247081749}
+        m_TargetAssemblyTypeName: Guild, Assembly-CSharp
+        m_MethodName: Show
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -39417,9 +39428,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1380054795}
-        m_TargetAssemblyTypeName: Game, Assembly-CSharp
-        m_MethodName: JoinGuild
+      - m_Target: {fileID: 247081749}
+        m_TargetAssemblyTypeName: Guild, Assembly-CSharp
+        m_MethodName: Join
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -40965,8 +40976,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1380054795}
-        m_TargetAssemblyTypeName: Game, Assembly-CSharp
+      - m_Target: {fileID: 247081749}
+        m_TargetAssemblyTypeName: Guild, Assembly-CSharp
         m_MethodName: Recruit
         m_Mode: 1
         m_Arguments:

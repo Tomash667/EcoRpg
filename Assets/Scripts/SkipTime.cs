@@ -3,7 +3,7 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 
-public class SkipTime : MonoBehaviour
+public class SkipTime : GameDialog
 {
     private string lastAction;
     private int lastDays = 1;
@@ -14,9 +14,8 @@ public class SkipTime : MonoBehaviour
             DoSkipTime();
     }
 
-    public void Show()
+    public override void Show()
     {
-        Game game = Global.Game;
         List<string> options = new();
         TileType location = game.world.Location;
         if (location == TileType.City || location == TileType.Village || location == TileType.Mine || location == TileType.Sawmill || location == TileType.Farm)
@@ -43,7 +42,6 @@ public class SkipTime : MonoBehaviour
 
     public void DoSkipTime()
     {
-        Game game = Global.Game;
         int days = int.Parse(transform.Find("Input").GetComponent<TMP_InputField>().text);
         if (days < 1 || days > 30)
         {
@@ -55,7 +53,6 @@ public class SkipTime : MonoBehaviour
         lastAction = action;
         lastDays = days;
 
-        Player player = game.player;
         List<Hero> levelups = null;
         Dictionary<Skill, int> prevSkills = player.skills.ToDictionary(x => x.Key, x => x.Value.level);
         Tile tile = game.world.CurrentTile;

@@ -3,7 +3,7 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 
-public class Combat : MonoBehaviour
+public class Combat : GameDialog
 {
     public enum Result
     {
@@ -66,7 +66,7 @@ public class Combat : MonoBehaviour
 
     public void Init(List<Enemy> enemyList, string startAction, bool restCombat)
     {
-        heroes = Global.Game.team.heroes;
+        heroes = game.team.heroes;
         this.enemyList = enemyList;
 
         Transform container = transform.GetChild(1);
@@ -136,13 +136,14 @@ public class Combat : MonoBehaviour
 
         transform.Find("BtHeal").GetComponentInChildren<TMP_Text>().text = "Heal";
         transform.parent.Find("Buttons").gameObject.SetActive(false);
+        game.Text.Set(string.Empty);
         if (restCombat)
         {
             startAction += $" Suddenly <b>{Utility.PrettyGroup(enemyList.Select(x => x.name))}</b> {Utility.S("attack", enemyList.Count == 1)} you.";
             AppendText(startAction);
         }
         else
-            AppendText($"You {startAction} the {Global.World.CurrentTile.Name} and <b>{Utility.PrettyGroup(enemyList.Select(x => x.name))}</b> {Utility.S("attack", enemyList.Count == 1)} you.");
+            AppendText($"You {startAction} the {game.world.CurrentTile.Name} and <b>{Utility.PrettyGroup(enemyList.Select(x => x.name))}</b> {Utility.S("attack", enemyList.Count == 1)} you.");
     }
 
     private void Update()
@@ -193,7 +194,7 @@ public class Combat : MonoBehaviour
                 break;
             default:
                 transform.parent.Find("Buttons").gameObject.SetActive(true);
-                Global.Game.PostCombat(result, enemyList);
+                game.PostCombat(result, enemyList);
                 break;
             }
             return;
@@ -723,7 +724,7 @@ public class Combat : MonoBehaviour
             if (textParts.Count > 5)
                 textParts.RemoveAt(0);
             text.text = string.Join('\n', textParts);
-            Global.Game.SetText(null);
+            game.UpdateText();
         }
     }
 

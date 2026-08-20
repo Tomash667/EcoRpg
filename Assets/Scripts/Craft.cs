@@ -2,19 +2,11 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 
-public class Craft : MonoBehaviour
+public class Craft : GameDialog
 {
-    public void Show()
+    protected override void Refresh()
     {
-        Global.UI.ShowDialog(gameObject);
-        Refresh();
-    }
-
-    private void Refresh()
-    {
-        Game game = Global.Game;
         GameUI ui = game.UI;
-        Player player = game.player;
 
         // text
         TextBuilder text = game.Text;
@@ -49,18 +41,7 @@ public class Craft : MonoBehaviour
         void Brew(Recipe recipe, int count)
         {
             player.RemoveItem(recipe.ingredient, count * 2);
-            float mod;
-            if (alchemy >= 100)
-                mod = 1;
-            else if (alchemy >= 75)
-                mod = 0.5f;
-            else if (alchemy >= 50)
-                mod = 0.25f;
-            else if (alchemy >= 25)
-                mod = 0.1f;
-            else
-                mod = 0;
-            int extra = (int)(count * mod);
+            int extra = (int)(count * GetAlchemyCountBonus(alchemy));
             player.AddItem(recipe.result, count + extra);
             float trainMod;
             if (bestHero == null || bestHero is Player)
@@ -76,8 +57,7 @@ public class Craft : MonoBehaviour
             }
             player.Train(Skill.Alchemy, text, recipe.trainMod * trainMod * count);
             game.AddTime(minutes: count * 5);
-            if (ui.IsOpen(gameObject))
-                Refresh();
+            RefreshIfOpen();
             game.RefreshPlayerScreenIfOpen();
             game.UpdateText();
         }
@@ -111,5 +91,19 @@ public class Craft : MonoBehaviour
             });
             itemEntry.SetImage(ui.itemIcons[(int)recipe.result.GetIcon()]);
         }
+    }
+
+    public static float GetAlchemyCountBonus(int skill)
+    {
+        if (skill >= 100)
+            return 1;
+        else if (skill >= 75)
+            return 0.5f;
+        else if (skill >= 50)
+            return 0.25f;
+        else if (skill >= 25)
+            return 0.1f;
+        else
+            return 0;
     }
 }

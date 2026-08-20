@@ -6,7 +6,9 @@ using System.Linq;
 public class Player : Hero
 {
     public List<Property> properties;
-    public int goldWaiting, energy;
+    public float guildProgress;
+    public int goldWaiting, energy, guildRank;
+
     [NonSerialized]
     public int goldReceived;
 

@@ -6,7 +6,6 @@
 	store items
 	enchant items
 	properties
-	guild
 	people
 
 v3
@@ -87,6 +86,7 @@ ui:
 + better button naming for Properties/Manage if there a people there too
 + move map speed vs zoom
 + map background
++ train -> show progress
 
 investments:
 + workers skill
