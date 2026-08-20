@@ -470,10 +470,10 @@ public class World
         float speedMod;
         if (game.player.HaveProperty("Horses"))
         {
-            if (game.freshHorses > 0)
+            if (game.team.freshHorses > 0)
             {
                 speedMod = 1.5f;
-                freshHorses = game.freshHorses;
+                freshHorses = game.team.freshHorses;
             }
             else
                 speedMod = 1.25f;
@@ -596,10 +596,10 @@ public class World
         float speedMod;
         if (game.player.HaveProperty("Horses"))
         {
-            if (game.freshHorses > 0)
+            if (game.team.freshHorses > 0)
             {
                 speedMod = 1.5f;
-                freshHorses = game.freshHorses;
+                freshHorses = game.team.freshHorses;
             }
             else
                 speedMod = 1.25f;

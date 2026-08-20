@@ -5,6 +5,8 @@ using UnityEngine.UI;
 
 public class Properties : GameDialog
 {
+    public PeopleScreen peopleScreen;
+
     private Property selectedProperty;
     private bool manageProperty;
 
@@ -17,12 +19,14 @@ public class Properties : GameDialog
         if (Input.GetKeyDown(KeyCode.M) && canManage)
             Manage();
         if (Input.GetKeyDown(KeyCode.P))
-            game.ManageWorkers();
+            peopleScreen.Show();
     }
 
     public override void Show()
     {
-        if (!game.CloseManagePeopleIfOpen())
+        if (peopleScreen.IsOpen)
+            ui.CloseDialog();
+        else
             selectedProperty = null;
         manageProperty = false;
         Refresh();
@@ -89,7 +93,7 @@ public class Properties : GameDialog
                         if (property.name == "House" || property.name == "Mansion" || (property.name == "Inn" && property.cityIndex == game.world.CityIndex))
                             game.UpdateButtons();
                         if (property.name == "Horses" || property.name == "Mansion")
-                            game.freshHorses = 0;
+                            game.team.freshHorses = 0;
                         game.AddTime(minutes: 30);
                         if (IsOpen)
                         {
@@ -277,7 +281,7 @@ public class Properties : GameDialog
                         }
                     }
                     else if (upgrade.name == "Stables")
-                        game.freshHorses = 10;
+                        game.team.freshHorses = 10;
                     game.AddTime(minutes: 30);
                     if (IsOpen)
                     {

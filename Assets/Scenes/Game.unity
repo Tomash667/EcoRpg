@@ -18654,9 +18654,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1380054795}
-        m_TargetAssemblyTypeName: Game, Assembly-CSharp
-        m_MethodName: RecruitWorkers
+      - m_Target: {fileID: 1898520599}
+        m_TargetAssemblyTypeName: PeopleScreen, Assembly-CSharp
+        m_MethodName: ShowRecruit
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -26658,6 +26658,7 @@ MonoBehaviour:
     rid: -2
   team:
     heroes: []
+    freshHorses: 0
   availableQuests: []
   activeQuests: []
   properties: []
@@ -26669,7 +26670,6 @@ MonoBehaviour:
   day: 0
   hour: 0
   minute: 0
-  freshHorses: 0
   references:
     version: 2
     RefIds:
@@ -31318,9 +31318,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1380054795}
-        m_TargetAssemblyTypeName: Game, Assembly-CSharp
-        m_MethodName: ManageWorkers
+      - m_Target: {fileID: 1898520599}
+        m_TargetAssemblyTypeName: PeopleScreen, Assembly-CSharp
+        m_MethodName: Show
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -32283,6 +32283,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a953265fdc6ce1348bea077249d45ca3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  peopleScreen: {fileID: 1898520599}
 --- !u!1 &1638530982
 GameObject:
   m_ObjectHideFlags: 0
@@ -38533,6 +38534,7 @@ GameObject:
   - component: {fileID: 1898520596}
   - component: {fileID: 1898520598}
   - component: {fileID: 1898520597}
+  - component: {fileID: 1898520599}
   m_Layer: 5
   m_Name: People
   m_TagString: Untagged
@@ -38604,6 +38606,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1898520595}
   m_CullTransparentMesh: 1
+--- !u!114 &1898520599
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1898520595}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 91d3f4c1abfa13a4397efac7b900e53d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  properties: {fileID: 1634344780}
 --- !u!1 &1905442599
 GameObject:
   m_ObjectHideFlags: 0

@@ -10,6 +10,7 @@ public class Team
 
     [SerializeReference]
     public List<Hero> heroes;
+    public int freshHorses;
 
     public bool HaveItem(string itemName)
     {
@@ -230,6 +231,9 @@ public class Team
             player.affection = 0;
         else
             player.affection = heroes.Skip(1).Max(x => x.affection);
+
+        if (freshHorses > 0)
+            --freshHorses;
     }
 
     public void PayForItem(Hero hero, Item item, int count = 1)

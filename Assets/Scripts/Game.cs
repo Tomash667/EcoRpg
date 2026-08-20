@@ -5,7 +5,6 @@ using System.Text;
 using TMPro;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 
 public class Game : MonoBehaviour
@@ -36,10 +35,10 @@ public class Game : MonoBehaviour
     public List<Worker> availableWorkers, hiredWorkers;
     public DragonStatus dragonStatus;
     public SpiderStatus spiderStatus;
-    public int day, hour, minute, freshHorses;
+    public int day, hour, minute;
 
     private GameUI ui;
-    private GameObject shopScreen, characterScreen, allyScreen, giveAllyItemsScreen, storeItemsScreen, activeInventory, enchantItemsScreen, peopleScreen;
+    private GameObject shopScreen, characterScreen, allyScreen, giveAllyItemsScreen, storeItemsScreen, activeInventory, enchantItemsScreen;
     private RectTransform[] alliesHealthRect;
     private Combat combatScreen;
     private Craft craft;
@@ -56,7 +55,7 @@ public class Game : MonoBehaviour
     private string lastTestCombat;
     private float restCombatHeal;
     private int restCombatEnergy;
-    private bool inChoice, traveled, restCombat, recruitWorkers;
+    private bool inChoice, traveled, restCombat;
 
     public GameUI UI => ui;
     public TextBuilder Text => text;
@@ -80,7 +79,6 @@ public class Game : MonoBehaviour
         map = transform.Find("Map").GetComponent<Map>();
         map.Init();
         enchantItemsScreen = transform.Find("EnchantItems").gameObject;
-        peopleScreen = transform.Find("People").gameObject;
         alliesHealthRect = new[] { transform.Find("Buttons/BtAlly/Health") as RectTransform, transform.Find("Buttons/BtAlly2/Health") as RectTransform };
 
         Global global = Global.Instance;
@@ -108,14 +106,7 @@ public class Game : MonoBehaviour
 #endif
 
         if (ui.HasDialog)
-        {
-            if (ui.CurrentDialog == peopleScreen)
-            {
-                if (Input.GetKeyDown(KeyCode.P) && !recruitWorkers)
-                    propertiesScreen.Show();
-            }
             return;
-        }
 
         if (inChoice)
         {
@@ -1132,7 +1123,7 @@ public class Game : MonoBehaviour
         Tile tile = world.CurrentTile;
 
         if ((tile.type == TileType.City || tile.type == TileType.Village) && player.HaveProperty("Horses") && player.HavePropertyUpgrade("Mansion", "Stables", world.CityIndex))
-            freshHorses = 10;
+            team.freshHorses = 10;
 
         if (tile.type.IsSafe())
         {
@@ -1612,13 +1603,13 @@ public class Game : MonoBehaviour
             foreach (var skill in player.skills.Select(kvp => (name: kvp.Key.AsString().ToUpper1(), kvp.Value.level)).OrderBy(x => x.name))
                 sb.Append($"  {skill.name}: {skill.level}\n");
         }
-        if (player.rested > 0 || freshHorses > 0)
+        if (player.rested > 0 || team.freshHorses > 0)
         {
             sb.Append("Effects:\n");
             if (player.rested > 0)
                 sb.Append($"  Well rested ({Utility.Plural("day", player.rested, true)})\n");
-            if (freshHorses > 0)
-                sb.Append($"  Fresh horses ({Utility.Plural("day", freshHorses, true)})\n");
+            if (team.freshHorses > 0)
+                sb.Append($"  Fresh horses ({Utility.Plural("day", team.freshHorses, true)})\n");
         }
         charText.text = sb.ToString();
 
@@ -1767,7 +1758,7 @@ public class Game : MonoBehaviour
             foreach (Hero hero in team.heroes)
                 hero.rested = 11;
             if (player.HaveProperty("Horses") && player.HavePropertyUpgrade("Mansion", "Stables", cityIndex: cityIndex))
-                freshHorses = 11;
+                team.freshHorses = 11;
             if (!skipTime)
                 text.Append("You rest in your mansion.");
         }
@@ -1922,7 +1913,13 @@ public class Game : MonoBehaviour
             }
         }
 
-        ui.CloseDialogs(x => x == propertiesScreen.gameObject || x == guild.gameObject || x == characterScreen || x == craft.gameObject || x == peopleScreen);
+        ui.CloseDialogs(dialog =>
+        {
+            if (dialog.TryGetComponent(out GameDialog gameDialog))
+                return gameDialog.Autoclose;
+            return dialog == characterScreen;
+        });
+
         return true;
     }
 
@@ -2013,9 +2010,6 @@ public class Game : MonoBehaviour
         }
 
         team.OnNewDay();
-
-        if (freshHorses > 0)
-            --freshHorses;
 
         UpdateWorkers();
 
@@ -3073,7 +3067,7 @@ public class Game : MonoBehaviour
             return property.locationIndex;
     }
 
-    private Property GetProperty(int locationIndex)
+    public Property GetProperty(int locationIndex)
     {
         if (locationIndex == -1)
             return null;
@@ -3086,8 +3080,6 @@ public class Game : MonoBehaviour
         }
         return property;
     }
-
-
 
     [ContextMenu("Give item")]
     private void GiveItem()
@@ -3196,135 +3188,6 @@ public class Game : MonoBehaviour
             TileType.Sawmill or TileType.Mine or TileType.Farm => player.properties.FirstOrDefault(x => x.locationIndex == world.CurrentLocationIndex),
             _ => null
         };
-    }
-
-    public void RecruitWorkers()
-    {
-        recruitWorkers = true;
-        RefreshPeople();
-        peopleScreen.transform.Find("BtProperties").gameObject.SetActive(false);
-        peopleScreen.transform.Find("BtClose").gameObject.SetActive(true);
-        peopleScreen.transform.Find("BtClose2").gameObject.SetActive(false);
-        ui.ShowDialog(peopleScreen);
-    }
-
-    public bool CloseManagePeopleIfOpen()
-    {
-        if (ui.CurrentDialog == peopleScreen)
-        {
-            ui.CloseDialog();
-            return true;
-        }
-        else
-            return false;
-    }
-
-    public void ManageWorkers()
-    {
-        recruitWorkers = false;
-        RefreshPeople();
-        ui.CloseDialog();
-        peopleScreen.transform.Find("BtProperties").gameObject.SetActive(true);
-        peopleScreen.transform.Find("BtClose").gameObject.SetActive(false);
-        peopleScreen.transform.Find("BtClose2").gameObject.SetActive(true);
-        ui.ShowDialog(peopleScreen);
-    }
-
-    private void RefreshPeople()
-    {
-        // header
-        TMP_Text header = peopleScreen.transform.Find("Header").GetComponent<TMP_Text>();
-        if (recruitWorkers)
-            header.text = "Available people:";
-        else
-            header.text = $"Hired people ({2 * hiredWorkers.Count} upkeep):";
-
-        // text
-        peopleScreen.transform.Find("Text").GetComponent<TMP_Text>().text = text.Flush();
-
-        // list
-        Transform content = peopleScreen.transform.Find("List/Viewport/Content");
-        foreach (Transform child in content)
-            Destroy(child.gameObject);
-
-        if (recruitWorkers)
-        {
-            int cityIndex = world.CityIndex;
-            foreach (Worker worker in availableWorkers.Where(x => x.locationIndex == cityIndex).OrderBy(x => x.name))
-            {
-                ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
-                itemEntry.Init(worker.ToStringHire(), "Hire", () =>
-                {
-                    int cost = worker.Cost;
-                    if (player.gold < cost)
-                    {
-                        ui.ShowDialog($"You need {cost} gold.");
-                        return;
-                    }
-
-                    text.Set($"You pay <color=#FFD700>{cost}</color> gold to hire {worker.name}.");
-                    player.AddGold(-cost);
-                    worker.locationIndex = -1;
-                    hiredWorkers.Add(worker);
-                    availableWorkers.Remove(worker);
-                    AddTime(minutes: 15);
-                    if (ui.IsOpen(peopleScreen))
-                        RefreshPeople();
-                    UpdateText();
-                });
-            }
-        }
-        else
-        {
-            foreach (Worker worker in hiredWorkers.OrderBy(x => x.name))
-            {
-                ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
-                Property property = GetProperty(worker.locationIndex);
-                string actionText;
-                UnityAction action;
-                Property selectedProperty = propertiesScreen.SelectedProperty;
-                if (selectedProperty == null || selectedProperty.income == 0)
-                {
-                    actionText = null;
-                    action = null;
-                }
-                else if (selectedProperty == property)
-                {
-                    actionText = "Unassign";
-                    action = () =>
-                    {
-                        text.Set($"You unassign {worker.name} from {selectedProperty.Name}.");
-                        worker.locationIndex = -1;
-                        RefreshPeople();
-                    };
-                }
-                else
-                {
-                    actionText = "Assign";
-                    action = () =>
-                    {
-                        int locationIndex = GetLocationIndex(selectedProperty);
-                        Worker currentWorker = hiredWorkers.FirstOrDefault(x => x.locationIndex == locationIndex);
-                        if (currentWorker != null)
-                        {
-                            text.Set($"You unassign {currentWorker.name} and assign {worker.name} to {selectedProperty.Name}.");
-                            currentWorker.locationIndex = -1;
-                        }
-                        else
-                            text.Set($"You assign {worker.name} to {selectedProperty.Name}.");
-                        worker.locationIndex = locationIndex;
-                        RefreshPeople();
-                    };
-                }
-
-                itemEntry.Init2(worker.ToStringHired(property?.Name), actionText, action, "Fire", () =>
-                {
-                    text.Set($"You fire {worker.name}.");
-                    hiredWorkers.Remove(worker);
-                    RefreshPeople();
-                });
-            }
-        }
     }
 
     private void GenerateWorkers()

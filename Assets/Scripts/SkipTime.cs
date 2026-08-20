@@ -10,6 +10,8 @@ public class SkipTime : GameDialog
     private string lastAction;
     private int lastDays = 1;
 
+    public override bool Autoclose => false;
+
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))

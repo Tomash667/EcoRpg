@@ -5,9 +5,7 @@
 	give items
 	store items
 	enchant items
-	people
-
-freshHorses -> Team
++ rename Guild -> GuildScreen etc?
 
 v3
 hero:

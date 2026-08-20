@@ -58,6 +58,8 @@ public class Combat : GameDialog
     private float timer;
     private int combatIndex, attacks, effectTick;
 
+    public override bool Autoclose => false;
+
     public void Init()
     {
         text = transform.GetChild(0).GetComponent<TMP_Text>();
