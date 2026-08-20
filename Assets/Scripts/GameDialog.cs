@@ -3,12 +3,15 @@ using UnityEngine;
 public abstract class GameDialog : MonoBehaviour
 {
     public static Game game;
+    public static GameUI ui;
     public static Player player;
+
+    public bool IsOpen => ui.IsOpen(gameObject);
 
     public virtual void Show()
     {
         Refresh();
-        game.UI.ShowDialog(gameObject);
+        ui.ShowDialog(gameObject);
         AfterShow();
     }
 
@@ -22,7 +25,7 @@ public abstract class GameDialog : MonoBehaviour
 
     public void RefreshIfOpen()
     {
-        if (game.UI.IsOpen(gameObject))
+        if (ui.IsOpen(gameObject))
             Refresh();
     }
 }

@@ -6,8 +6,6 @@ public class Craft : GameDialog
 {
     protected override void Refresh()
     {
-        GameUI ui = game.UI;
-
         // text
         TextBuilder text = game.Text;
         transform.Find("Text").GetComponent<TMP_Text>().text = text.Flush();

@@ -5,6 +5,8 @@ using UnityEngine;
 
 public class SkipTime : GameDialog
 {
+    public Properties properties;
+
     private string lastAction;
     private int lastDays = 1;
 
@@ -37,7 +39,7 @@ public class SkipTime : GameDialog
         }
         dropdown.value = index;
         transform.Find("Input").GetComponent<TMP_InputField>().text = lastDays.ToString();
-        game.UI.ShowDialog(gameObject);
+        ui.ShowDialog(gameObject);
     }
 
     public void DoSkipTime()
@@ -45,7 +47,7 @@ public class SkipTime : GameDialog
         int days = int.Parse(transform.Find("Input").GetComponent<TMP_InputField>().text);
         if (days < 1 || days > 30)
         {
-            game.UI.ShowDialog("Invalid number of days to skip.");
+            ui.ShowDialog("Invalid number of days to skip.");
             return;
         }
 
@@ -94,7 +96,7 @@ public class SkipTime : GameDialog
                 payment += game.DoWork(true);
                 break;
             case "Manage":
-                game.DoManageInternal(property, true, false);
+                properties.DoManage(property, null, false);
                 break;
             }
 
@@ -157,7 +159,7 @@ public class SkipTime : GameDialog
             game.UpdateButtons();
         }
 
-        game.UI.CloseDialog();
+        ui.CloseDialog();
         game.UpdateText();
     }
 }

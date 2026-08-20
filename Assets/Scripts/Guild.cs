@@ -10,12 +10,14 @@ public class Guild : GameDialog
 
     private static readonly string[] GuildRanks = new[] { "None", "Copper", "Silver", "Gold", "Diamond" };
 
+    public Craft craft;
+
     private void Update()
     {
         if (player.guildRank != 0)
         {
             if (Input.GetKeyDown(KeyCode.C))
-                game.DoCraft();
+                craft.Show();
             if (Input.GetKeyDown(KeyCode.K))
                 game.Cook();
             if (Input.GetKeyDown(KeyCode.R))
@@ -27,8 +29,6 @@ public class Guild : GameDialog
 
     protected override void Refresh()
     {
-        GameUI ui = game.UI;
-
         // text
         string guildText = game.Text.Flush();
         if (guildText != string.Empty)
@@ -132,8 +132,7 @@ public class Guild : GameDialog
         game.availableQuests.Remove(quest);
         game.Text.Set($"You accepted quest '{quest.Title}'.");
         game.AddTime(minutes: 15);
-        if (game.UI.CurrentDialog == gameObject)
-            Refresh();
+        RefreshIfOpen();
         game.UpdateText();
     }
 
@@ -221,7 +220,7 @@ public class Guild : GameDialog
     {
         if (player.gold < property.infestedCost)
         {
-            game.UI.ShowDialog($"You need {property.infestedCost} gold to pay adventurers to clear the {property.Name.ToLower()}.");
+            ui.ShowDialog($"You need {property.infestedCost} gold to pay adventurers to clear the {property.Name.ToLower()}.");
             return;
         }
 
@@ -275,7 +274,7 @@ public class Guild : GameDialog
     {
         if (game.team.heroes.Count >= Team.MaxSize)
         {
-            game.UI.ShowDialog("Your team is full.");
+            ui.ShowDialog("Your team is full.");
             return;
         }
 
@@ -295,7 +294,7 @@ public class Guild : GameDialog
         else
             skill = string.Empty;
 
-        game.UI.ShowConfirm($"You meet <b>{hero.name}</b> and talk with {hero.him} about adventurers. " +
+        ui.ShowConfirm($"You meet <b>{hero.name}</b> and talk with {hero.him} about adventurers. " +
             $"{hero.He} is {Utility.A(levelName)} <b>{levelName} {hero.clas.AsString()}</b>{skill}. Do you want to recruit {hero.him}?", yes =>
             {
                 int chance = 100 + (player.level - hero.level) * 5;

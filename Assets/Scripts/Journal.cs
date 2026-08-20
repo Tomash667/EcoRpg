@@ -42,7 +42,7 @@ public class Journal : GameDialog
 
         foreach (Quest quest in game.activeQuests)
         {
-            ItemEntry itemEntry = Instantiate(game.UI.itemEntryPrefab, content).GetComponent<ItemEntry>();
+            ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
             if (quest.tracked)
                 itemEntry.Init(quest.TextReward);
             else

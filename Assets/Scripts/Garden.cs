@@ -17,7 +17,7 @@ public class Garden : GameDialog
             string plant = property.gardenPlants[i];
             if (plant == "")
                 plant = "Empty";
-            DropdownEntry dropdownEntry = Instantiate(game.UI.dropdownEntryPrefab, content).GetComponent<DropdownEntry>();
+            DropdownEntry dropdownEntry = Instantiate(ui.dropdownEntryPrefab, content).GetComponent<DropdownEntry>();
             dropdownEntry.Init($"Plot {i + 1}: {plant}", "Change", choices, x =>
             {
                 switch (x)
@@ -25,9 +25,9 @@ public class Garden : GameDialog
                 case 1:
                     // vegetables
                     if (plant == "Vegetables")
-                        game.UI.ShowDialog("Vegetables are already planted here.");
+                        ui.ShowDialog("Vegetables are already planted here.");
                     else if (player.gold < 10)
-                        game.UI.ShowDialog("You need 10 gold.");
+                        ui.ShowDialog("You need 10 gold.");
                     else
                     {
                         player.AddGold(-10);
@@ -40,9 +40,9 @@ public class Garden : GameDialog
                     // herbs
                     Item herb = Item.Get("herb");
                     if (plant == "Herbs")
-                        game.UI.ShowDialog("Herbs are already planted here.");
+                        ui.ShowDialog("Herbs are already planted here.");
                     else if (player.CountItem(herb) < 10)
-                        game.UI.ShowDialog("You need 10 herbs.");
+                        ui.ShowDialog("You need 10 herbs.");
                     else
                     {
                         player.RemoveItem(herb, 10);
@@ -54,9 +54,9 @@ public class Garden : GameDialog
                     // rare herbs
                     Item rareHerb = Item.Get("rare herb");
                     if (plant == "Rare herbs")
-                        game.UI.ShowDialog("Rare herbs are already planted here.");
+                        ui.ShowDialog("Rare herbs are already planted here.");
                     else if (player.CountItem(rareHerb) < 10)
-                        game.UI.ShowDialog("You need 10 rare herbs.");
+                        ui.ShowDialog("You need 10 rare herbs.");
                     else
                     {
                         player.RemoveItem(rareHerb, 10);

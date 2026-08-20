@@ -5318,6 +5318,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 21da4a40e06db6847b30fca91b9c722e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  craft: {fileID: 34146526}
 --- !u!1 &250163422
 GameObject:
   m_ObjectHideFlags: 0
@@ -9018,7 +9019,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -550, y: -280}
+  m_AnchoredPosition: {x: -370, y: -280}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &456474146
@@ -9065,9 +9066,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1380054795}
-        m_TargetAssemblyTypeName: Game, Assembly-CSharp
-        m_MethodName: ManageProperties
+      - m_Target: {fileID: 1634344780}
+        m_TargetAssemblyTypeName: Properties, Assembly-CSharp
+        m_MethodName: Show
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -15062,9 +15063,9 @@ MonoBehaviour:
   onSelectionChanged:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1380054795}
-        m_TargetAssemblyTypeName: Game, Assembly-CSharp
-        m_MethodName: RefreshPropertyDetails
+      - m_Target: {fileID: 1634344780}
+        m_TargetAssemblyTypeName: Properties, Assembly-CSharp
+        m_MethodName: RefreshDetails
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -20145,7 +20146,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -370, y: -280}
+  m_AnchoredPosition: {x: -190, y: -280}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1074368942
@@ -32196,6 +32197,7 @@ GameObject:
   - component: {fileID: 1634344777}
   - component: {fileID: 1634344779}
   - component: {fileID: 1634344778}
+  - component: {fileID: 1634344780}
   m_Layer: 5
   m_Name: Properties
   m_TagString: Untagged
@@ -32269,6 +32271,18 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1634344776}
   m_CullTransparentMesh: 1
+--- !u!114 &1634344780
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1634344776}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a953265fdc6ce1348bea077249d45ca3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1638530982
 GameObject:
   m_ObjectHideFlags: 0
@@ -35064,9 +35078,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1380054795}
-        m_TargetAssemblyTypeName: Game, Assembly-CSharp
-        m_MethodName: ManageProperties
+      - m_Target: {fileID: 1634344780}
+        m_TargetAssemblyTypeName: Properties, Assembly-CSharp
+        m_MethodName: Show
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -39561,9 +39575,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1380054795}
-        m_TargetAssemblyTypeName: Game, Assembly-CSharp
-        m_MethodName: Manage
+      - m_Target: {fileID: 1634344780}
+        m_TargetAssemblyTypeName: Properties, Assembly-CSharp
+        m_MethodName: ShowManage
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -40893,6 +40907,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 436335f1546178849a703ce574d102e9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  properties: {fileID: 1634344780}
 --- !u!1 &2050214456
 GameObject:
   m_ObjectHideFlags: 0
@@ -42827,9 +42842,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1380054795}
-        m_TargetAssemblyTypeName: Game, Assembly-CSharp
-        m_MethodName: DoManage
+      - m_Target: {fileID: 1634344780}
+        m_TargetAssemblyTypeName: Properties, Assembly-CSharp
+        m_MethodName: Manage
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

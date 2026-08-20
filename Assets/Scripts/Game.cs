@@ -7,7 +7,6 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 
 public class Game : MonoBehaviour
 {
@@ -40,7 +39,7 @@ public class Game : MonoBehaviour
     public int day, hour, minute, freshHorses;
 
     private GameUI ui;
-    private GameObject shopScreen, characterScreen, allyScreen, giveAllyItemsScreen, storeItemsScreen, activeInventory, propertiesScreen, enchantItemsScreen, peopleScreen;
+    private GameObject shopScreen, characterScreen, allyScreen, giveAllyItemsScreen, storeItemsScreen, activeInventory, enchantItemsScreen, peopleScreen;
     private RectTransform[] alliesHealthRect;
     private Combat combatScreen;
     private Craft craft;
@@ -48,16 +47,16 @@ public class Game : MonoBehaviour
     private Guild guild;
     private Journal journal;
     private Map map;
+    private Properties propertiesScreen;
     private TMP_Text mainText;
     private Hero activeAlly;
-    private Property selectedProperty;
     private readonly StringBuilder sb = new();
     private readonly TextBuilder text = new();
     private System.Action<bool> choiceAction;
     private string lastTestCombat;
     private float restCombatHeal;
     private int restCombatEnergy;
-    private bool inChoice, traveled, restCombat, manageProperty, recruitWorkers;
+    private bool inChoice, traveled, restCombat, recruitWorkers;
 
     public GameUI UI => ui;
     public TextBuilder Text => text;
@@ -72,7 +71,7 @@ public class Game : MonoBehaviour
         allyScreen = transform.Find("Ally").gameObject;
         giveAllyItemsScreen = transform.Find("GiveItems").gameObject;
         storeItemsScreen = transform.Find("StoreItems").gameObject;
-        propertiesScreen = transform.Find("Properties").gameObject;
+        propertiesScreen = transform.Find("Properties").GetComponent<Properties>();
         guild = transform.Find("Guild").GetComponent<Guild>();
         garden = transform.Find("Garden").GetComponent<Garden>();
         craft = transform.Find("Craft").GetComponent<Craft>();
@@ -97,6 +96,7 @@ public class Game : MonoBehaviour
     private void OnEnable()
     {
         GameDialog.game = this;
+        GameDialog.ui = ui;
         GameDialog.player = player;
     }
 
@@ -109,20 +109,10 @@ public class Game : MonoBehaviour
 
         if (ui.HasDialog)
         {
-            GameObject currentDialog = ui.CurrentDialog;
-            if (currentDialog == propertiesScreen)
-            {
-                bool canManage = manageProperty || ((world.Location == TileType.City || world.Location == TileType.Mansion)
-                    && selectedProperty != null && selectedProperty.income > 0 && player.HavePropertyUpgrade("Mansion", "Office"));
-                if (Input.GetKeyDown(KeyCode.M) && canManage)
-                    DoManage();
-                if (Input.GetKeyDown(KeyCode.P))
-                    ManageWorkers();
-            }
-            else if (currentDialog == peopleScreen)
+            if (ui.CurrentDialog == peopleScreen)
             {
                 if (Input.GetKeyDown(KeyCode.P) && !recruitWorkers)
-                    ManageProperties();
+                    propertiesScreen.Show();
             }
             return;
         }
@@ -170,7 +160,7 @@ public class Game : MonoBehaviour
                 if (Input.GetKeyDown(KeyCode.G))
                     guild.Show();
                 if (Input.GetKeyDown(KeyCode.P))
-                    ManageProperties();
+                    propertiesScreen.Show();
                 if (Input.GetKeyDown(KeyCode.W))
                     Work();
                 if (Input.GetKeyDown(KeyCode.S))
@@ -180,7 +170,7 @@ public class Game : MonoBehaviour
                 if (Input.GetKeyDown(KeyCode.H) && (player.HaveProperty("House", cityIndex: world.CityIndex) || player.HaveProperty("Mansion", cityIndex: world.CityIndex)))
                     EnterHouse();
                 if (Input.GetKeyDown(KeyCode.M) && player.HaveProperty("Inn", cityIndex: world.CityIndex))
-                    Manage();
+                    propertiesScreen.ShowManage();
                 break;
             case TileType.Village:
                 if (Input.GetKeyDown(KeyCode.W))
@@ -188,11 +178,11 @@ public class Game : MonoBehaviour
                 if (Input.GetKeyDown(KeyCode.S))
                     Shop();
                 if (Input.GetKeyDown(KeyCode.P))
-                    ManageProperties();
+                    propertiesScreen.Show();
                 if (Input.GetKeyDown(KeyCode.H) && (player.HaveProperty("House", cityIndex: world.CityIndex) || player.HaveProperty("Mansion", cityIndex: world.CityIndex)))
                     EnterHouse();
                 if (Input.GetKeyDown(KeyCode.M) && player.HaveProperty("Inn", cityIndex: world.CityIndex))
-                    Manage();
+                    propertiesScreen.ShowManage();
                 break;
             case TileType.Forest:
                 if (Input.GetKeyDown(KeyCode.F))
@@ -212,7 +202,7 @@ public class Game : MonoBehaviour
                 if (Input.GetKeyDown(KeyCode.K))
                     Cook();
                 if (Input.GetKeyDown(KeyCode.M) && world.Location == TileType.Mansion && player.HavePropertyUpgrade("Mansion", "Office"))
-                    ManageProperties();
+                    propertiesScreen.Show();
                 if (Input.GetKeyDown(KeyCode.G) && ((world.Location == TileType.House && player.HavePropertyUpgrade("House", "Garden", cityIndex: world.CityIndex))
                     || (world.Location == TileType.Mansion && player.HavePropertyUpgrade("Mansion", "Garden", cityIndex: world.CityIndex))))
                     garden.Show();
@@ -223,7 +213,7 @@ public class Game : MonoBehaviour
                 if (Input.GetKeyDown(KeyCode.W))
                     Work();
                 if (Input.GetKeyDown(KeyCode.M) && player.HaveProperty(world.CurrentLocationIndex))
-                    Manage();
+                    propertiesScreen.ShowManage();
                 break;
             case TileType.Cave:
                 if (Input.GetKeyDown(KeyCode.P))
@@ -1932,7 +1922,7 @@ public class Game : MonoBehaviour
             }
         }
 
-        ui.CloseDialogs(x => x == propertiesScreen || x == guild.gameObject || x == characterScreen || x == craft.gameObject || x == peopleScreen);
+        ui.CloseDialogs(x => x == propertiesScreen.gameObject || x == guild.gameObject || x == characterScreen || x == craft.gameObject || x == peopleScreen);
         return true;
     }
 
@@ -2347,269 +2337,6 @@ public class Game : MonoBehaviour
             UpdateText();
             return true;
         });
-    }
-
-    public void ManageProperties()
-    {
-        if (ui.CurrentDialog == peopleScreen)
-            ui.CloseDialog();
-        else
-            selectedProperty = null;
-        manageProperty = false;
-        RefreshProperties();
-        RefreshPropertyDetails();
-        propertiesScreen.transform.Find("List").gameObject.SetActive(true);
-        propertiesScreen.transform.Find("BtManage").GetComponent<Button>().interactable = false;
-        ui.ShowDialog(propertiesScreen);
-    }
-
-    private void RefreshProperties()
-    {
-        propertiesScreen.transform.Find("Text").GetComponent<TMP_Text>().text = text.Flush();
-
-        ItemEntryList list = propertiesScreen.transform.Find("List").GetComponent<ItemEntryList>();
-        list.Clear();
-        Transform content = propertiesScreen.transform.Find("List/Viewport/Content");
-        foreach (Transform child in content)
-            Destroy(child.gameObject);
-
-        int cityIndex = world.CityIndex;
-        Property[] propertiesToBuy = properties.Where(x => x.status != Property.Status.None && (x.cityIndex == -1 || x.cityIndex == cityIndex))
-            .OrderBy(x => x.value).ThenBy(x => x.Name).ToArray();
-
-        // player properties
-        if (player.properties.Count > 0)
-        {
-            ui.AddTextHeader("Your properties:", content);
-            foreach (Property property in player.properties.OrderBy(x => x.value).ThenBy(x => x.Name))
-            {
-                ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
-                itemEntry.SetImage(ui.propertyIcons[(int)property.GetImage()]);
-                itemEntry.data = property;
-                itemEntry.canSelect = true;
-                if (property == selectedProperty)
-                    list.Select(itemEntry);
-
-                if (property.status == Property.Status.Building)
-                    itemEntry.Init(property.ToString(Property.DescStatus.Building));
-                else if (property.HaveEvent("Infested"))
-                    itemEntry.Init(property.ToString(Property.DescStatus.Infested));
-                else
-                {
-                    itemEntry.Init(property.ToString(Property.DescStatus.Sell), "Sell", () =>
-                    {
-                        properties.Add(property);
-                        player.AddGold(property.value / 2);
-                        player.properties.Remove(property);
-                        int locationIndex = GetLocationIndex(property);
-                        Worker worker = hiredWorkers.FirstOrDefault(x => x.locationIndex == locationIndex);
-                        if (worker != null)
-                            worker.locationIndex = -1;
-                        property.events.Clear();
-                        text.Set($"You sell {property.Name.ToLower()} for <color=#FFD700>{property.value / 2}</color> gold.");
-                        if (property.name == "House" || property.name == "Mansion" || (property.name == "Inn" && property.cityIndex == world.CityIndex))
-                            UpdateButtons();
-                        if (property.name == "Horses" || property.name == "Mansion")
-                            freshHorses = 0;
-                        AddTime(minutes: 30);
-                        if (ui.CurrentDialog == propertiesScreen)
-                        {
-                            if (selectedProperty == property)
-                            {
-                                selectedProperty = null;
-                                RefreshPropertyDetails();
-                            }
-                            RefreshProperties();
-                        }
-                        UpdateText();
-                    });
-                }
-            }
-
-            if (propertiesToBuy.Length > 0)
-                Instantiate(ui.lineSeparatorPrefab, content);
-        }
-
-        // available properties
-        if (propertiesToBuy.Length > 0)
-            ui.AddTextHeader("Available properties:", content);
-        foreach (Property property in propertiesToBuy)
-        {
-            bool build = property.status == Property.Status.Cleared;
-            ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
-            itemEntry.Init(property.ToString(build ? Property.DescStatus.Build : Property.DescStatus.Buy), build ? "Build" : "Buy", () =>
-            {
-                int cost = build ? property.BuildPrice : property.value;
-                if (player.gold < cost)
-                {
-                    ui.ShowDialog($"You need {cost} gold to {(build ? "build" : "buy")} {property.Name.ToLower()}.");
-                    return;
-                }
-
-                if ((property.name == "House" && player.HaveProperty("Mansion", cityIndex: cityIndex))
-                    || (property.name == "Mansion" && player.HaveProperty("House", cityIndex: cityIndex)))
-                {
-                    ui.ShowDialog("You can't own both a house and a mansion. It's a law!");
-                    return;
-                }
-
-                player.AddGold(-cost);
-                player.properties.Add(property);
-                properties.Remove(property);
-                if (build)
-                {
-                    text.Set($"You pay <color=#FFD700>{cost}</color> gold to build {property.Name.ToLower()}.");
-                    property.status = Property.Status.Building;
-                    world.GetLocation(property.locationIndex).timer = 0; // prevent resetting
-                }
-                else
-                {
-                    text.Set($"You buy {property.Name.ToLower()} for <color=#FFD700>{cost}</color> gold.");
-
-                    // remove quests assigned to this location
-                    if (property.locationIndex != -1)
-                    {
-                        Quest quest = activeQuests.FirstOrDefault(x => x.type == Quest.Type.Clear && x.location == property.locationIndex);
-                        if (quest != null)
-                        {
-                            text.Append($"Quest '{quest.Title}' is reassigned to other party.");
-                            RemoveQuest(quest);
-                        }
-                        availableQuests.RemoveAll(x => x.type == Quest.Type.Clear && x.location == property.locationIndex);
-                    }
-                }
-
-                if (property.name == "House" || property.name == "Mansion")
-                {
-                    UpdateButtons();
-                    property.storedItems = new();
-                    int size = property.name == "House" ? 2 : 6;
-                    property.gardenPlants = new();
-                    for (int i = 0; i < size; ++i)
-                        property.gardenPlants.Add(string.Empty);
-                }
-                else if (property.name == "Inn")
-                {
-                    if (property.cityIndex == 1)
-                    {
-                        if (spiderStatus == SpiderStatus.Accepted)
-                        {
-                            Quest quest = activeQuests.First(x => x.type == Quest.Type.UniqueSpider);
-                            text.Append($"Quest '{quest.Title}' is canceled.");
-                            RemoveQuest(quest);
-                        }
-                        spiderStatus = SpiderStatus.Skipped;
-                    }
-                    UpdateButtons();
-                }
-
-                AddTime(minutes: 30);
-                if (ui.CurrentDialog == propertiesScreen)
-                {
-                    selectedProperty = property;
-                    RefreshProperties();
-                    RefreshPropertyDetails();
-                }
-                UpdateText();
-            });
-            itemEntry.SetImage(ui.propertyIcons[(int)property.GetImage()]);
-        }
-    }
-
-    public void RefreshPropertyDetails()
-    {
-        if (manageProperty)
-            propertiesScreen.transform.Find("Text").GetComponent<TMP_Text>().text = text.Flush();
-        else
-        {
-            ItemEntryList list = propertiesScreen.transform.Find("List").GetComponent<ItemEntryList>();
-            selectedProperty = list.GetSelectedData() as Property;
-            bool canManage = (world.Location == TileType.City || world.Location == TileType.Mansion)
-                && selectedProperty != null && selectedProperty.income > 0 && player.HavePropertyUpgrade("Mansion", "Office");
-            propertiesScreen.transform.Find("BtManage").GetComponent<Button>().interactable = canManage;
-        }
-
-        string str;
-        if (selectedProperty == null)
-            str = string.Empty;
-        else if (selectedProperty.status == Property.Status.Building)
-            str = $"<b>{selectedProperty.Name}</b>\n{Utility.Plural("day", selectedProperty.buildTime, true)} left to end of construction";
-        else
-        {
-            str = $"<b>{selectedProperty.Name}</b>\n";
-            Property.Event even = selectedProperty.events.FirstOrDefault();
-            if (even != null)
-            {
-                if (even.timer == -1)
-                    str += $"Events: {even.name}\n";
-                else
-                    str += $"Events: {even.name} ({even.timer})\n";
-            }
-            str += $"Income:{selectedProperty.Income}  Upkeep:{selectedProperty.Upkeep}  Profit:{selectedProperty.Profit}\n";
-            if (selectedProperty.income > 0)
-            {
-                int locationIndex = GetLocationIndex(selectedProperty);
-                Worker manager = hiredWorkers.FirstOrDefault(x => locationIndex != -1 && x.locationIndex == locationIndex);
-                str += $"Efficiency: {selectedProperty.Efficiency} ({selectedProperty.efficiency})\nManager: {(manager == null ? "(none)" : manager.ToStringShort())}\n";
-            }
-            str += "Upgrades: ";
-            if (selectedProperty.upgrades != null && selectedProperty.upgrades.Any(x => x.active))
-                str += string.Join(", ", selectedProperty.upgrades.Where(x => x.active).Select(x => x.name).OrderBy(x => x));
-            else
-                str += "(none)";
-        }
-        propertiesScreen.transform.Find("Text2").GetComponent<TMP_Text>().text = str;
-
-        Transform content = propertiesScreen.transform.Find("Upgrades/Viewport/Content");
-        foreach (Transform child in content)
-            Destroy(child.gameObject);
-
-        if (selectedProperty != null && selectedProperty.status == Property.Status.Active && selectedProperty.upgrades != null && selectedProperty.upgrades.Any(x => !x.active))
-        {
-            ui.AddTextHeader("Available upgrades:", content);
-            foreach (Property.Upgrade upgrade in selectedProperty.upgrades.Where(x => !x.active).OrderBy(x => x.name))
-            {
-                ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
-                itemEntry.Init(upgrade.ToString(), "Buy", () =>
-                {
-                    if (player.gold < upgrade.value)
-                    {
-                        ui.ShowDialog($"You need {upgrade.value} gold to buy {upgrade.name.ToLower()}.");
-                        return;
-                    }
-
-                    player.AddGold(-upgrade.value);
-                    upgrade.active = true;
-                    if (upgrade.upkeep > 0 && selectedProperty.upkeep == 0)
-                        selectedProperty.desc += ", UPKEEP upkeep";
-                    selectedProperty.value += upgrade.value;
-                    selectedProperty.income += upgrade.income;
-                    selectedProperty.upkeep += upgrade.upkeep;
-                    text.Set($"You buy {upgrade.name.ToLower()} for <color=#FFD700>{upgrade.value}</color> gold.");
-                    if (upgrade.name == "Extra guards")
-                    {
-                        Property.Event even = selectedProperty.events.FirstOrDefault(e => e.name == "Infested" && e.timer == -1);
-                        if (even != null)
-                        {
-                            int days = world.CalculateTravelDaysNonTeam(World.IndexToPoint(selectedProperty.locationIndex));
-                            even.timer = days;
-                            even.state = 1;
-                            text.Append($"They will take care of monsters infestation in {Utility.Plural("day", days, true)}.");
-                        }
-                    }
-                    else if (upgrade.name == "Stables")
-                        freshHorses = 10;
-                    AddTime(minutes: 30);
-                    if (ui.CurrentDialog == propertiesScreen)
-                    {
-                        if (!manageProperty)
-                            RefreshProperties();
-                        RefreshPropertyDetails();
-                    }
-                    UpdateText();
-                });
-            }
-        }
     }
 
     private Quest GenerateQuest(int difficulty)
@@ -3220,11 +2947,6 @@ public class Game : MonoBehaviour
         });
     }
 
-    public void DoCraft()
-    {
-        craft.Show();
-    }
-
     public void EnchantItems()
     {
         activeInventory = enchantItemsScreen;
@@ -3343,7 +3065,7 @@ public class Game : MonoBehaviour
             return null;
     }
 
-    private int GetLocationIndex(Property property)
+    public int GetLocationIndex(Property property)
     {
         if (property.name == "Inn")
             return world.cityMapping[property.cityIndex];
@@ -3460,88 +3182,11 @@ public class Game : MonoBehaviour
         });
     }
 
-    public void Manage()
-    {
-        selectedProperty = GetPropertyHere();
-        manageProperty = true;
-        RefreshPropertyDetails();
-        propertiesScreen.transform.Find("List").gameObject.SetActive(false);
-        propertiesScreen.transform.Find("BtManage").GetComponent<Button>().interactable = true;
-        ui.ShowDialog(propertiesScreen);
-    }
 
-    public void DoManage()
-    {
-        if (hour > 16)
-            text.Set("It's too late to manage.");
-        else if (player.energy < 25)
-            text.Set("You are too tired to manage.");
-        else if (!world.CurrentTile.clear && world.Location.IsClearable())
-            text.Set($"You can't manage while monsters occupy the {world.CurrentTile.Name}.");
-        else
-        {
-            DoManageInternal(selectedProperty, false, !manageProperty);
-            AddTime(hours: 8);
-        }
-        if (ui.CurrentDialog == propertiesScreen)
-        {
-            if (!manageProperty)
-                RefreshProperties();
-            RefreshPropertyDetails();
-        }
-        UpdateText();
-    }
 
-    public void DoManageInternal(Property property, bool skipTime, bool remote)
-    {
-        player.energy -= 25;
-        (Hero bestAlly, int bestValue) = team.GetSkill(Skill.Management);
-        if (remote)
-            bestValue = bestValue * 3 / 4;
-        float trainMod;
-        if (bestAlly == null || bestAlly == player)
-        {
-            if (!skipTime)
-                text.Set($"You manage the {property.name.ToLower()}.");
-            trainMod = 1f;
-        }
-        else
-        {
-            if (!skipTime)
-                text.Set($"You and {bestAlly.name} manage the {property.name.ToLower()}.");
-            int skill = player.GetSkill(Skill.Management);
-            if (remote)
-                skill = skill * 3 / 4;
-            trainMod = 1f + 0.01f * (bestValue - skill);
-        }
 
-        int newEfficiency = CalculateEfficiencyChange(bestValue, property.efficiency);
-        if (!skipTime)
-        {
-            if (newEfficiency > property.efficiency)
-                text.Append($"Efficiency increased by {newEfficiency - property.efficiency}.");
-            else if (newEfficiency < property.efficiency)
-                text.Append($"Efficiency decreased by {property.efficiency - newEfficiency}.");
-        }
-        property.efficiency = newEfficiency;
-        property.lastManaged = day;
 
-        player.Train(Skill.Management, !skipTime ? text : null, trainMod);
-    }
 
-    private static int CalculateEfficiencyChange(int skill, int efficiency)
-    {
-        int targetEfficiency = skill + 25 + Utility.Random(-10, 10);
-        if (targetEfficiency == efficiency)
-            return efficiency;
-
-        int difference = targetEfficiency - efficiency;
-        int maxStep = Mathf.Max(Mathf.RoundToInt(Mathf.Abs(difference) * 0.2f), 1);
-        int step = Utility.Random(1, maxStep);
-        if (difference < 0)
-            step = -step;
-        return Mathf.Clamp(efficiency + step, 1, 100);
-    }
 
     public Property GetPropertyHere()
     {
@@ -3561,6 +3206,17 @@ public class Game : MonoBehaviour
         peopleScreen.transform.Find("BtClose").gameObject.SetActive(true);
         peopleScreen.transform.Find("BtClose2").gameObject.SetActive(false);
         ui.ShowDialog(peopleScreen);
+    }
+
+    public bool CloseManagePeopleIfOpen()
+    {
+        if (ui.CurrentDialog == peopleScreen)
+        {
+            ui.CloseDialog();
+            return true;
+        }
+        else
+            return false;
     }
 
     public void ManageWorkers()
@@ -3626,6 +3282,7 @@ public class Game : MonoBehaviour
                 Property property = GetProperty(worker.locationIndex);
                 string actionText;
                 UnityAction action;
+                Property selectedProperty = propertiesScreen.SelectedProperty;
                 if (selectedProperty == null || selectedProperty.income == 0)
                 {
                     actionText = null;
@@ -3710,7 +3367,7 @@ public class Game : MonoBehaviour
             Property property = GetProperty(worker.locationIndex);
             if (property.lastManaged != prevDay)
             {
-                property.efficiency = CalculateEfficiencyChange(worker.skill, property.efficiency);
+                property.efficiency = Properties.CalculateEfficiencyChange(worker.skill, property.efficiency);
                 property.lastManaged = prevDay;
                 worker.Train();
             }
