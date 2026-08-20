@@ -5,14 +5,14 @@ using UnityEngine.Events;
 
 public class PeopleScreen : GameDialog
 {
-    public Properties properties;
+    public PropertiesScreen propertiesScreen;
 
     private bool recruitWorkers;
 
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.P) && !recruitWorkers)
-            properties.Show();
+            propertiesScreen.Show();
     }
 
     public override void Show()
@@ -87,7 +87,7 @@ public class PeopleScreen : GameDialog
                 Property property = game.GetProperty(worker.locationIndex);
                 string actionText;
                 UnityAction action;
-                Property selectedProperty = properties.SelectedProperty;
+                Property selectedProperty = propertiesScreen.SelectedProperty;
                 if (selectedProperty == null || selectedProperty.income == 0)
                 {
                     actionText = null;

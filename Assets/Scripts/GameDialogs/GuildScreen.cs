@@ -4,20 +4,20 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class Guild : GameDialog
+public class GuildScreen : GameDialog
 {
     private const int MaxGuildRank = 4;
 
     private static readonly string[] GuildRanks = new[] { "None", "Copper", "Silver", "Gold", "Diamond" };
 
-    public Craft craft;
+    public CraftScreen craftScreen;
 
     private void Update()
     {
         if (player.guildRank != 0)
         {
             if (Input.GetKeyDown(KeyCode.C))
-                craft.Show();
+                craftScreen.Show();
             if (Input.GetKeyDown(KeyCode.K))
                 game.Cook();
             if (Input.GetKeyDown(KeyCode.R))

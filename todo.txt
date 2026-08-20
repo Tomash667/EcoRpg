@@ -1,4 +1,3 @@
-+ rename Guild -> GuildScreen etc?
 ? is ally screen updated (stats, affection)
 + auto call refresh on prev gamedialog
 	character -> craft

@@ -2,7 +2,7 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 
-public class Craft : GameDialog
+public class CraftScreen : GameDialog
 {
     public CharacterScreen characterScreen;
 

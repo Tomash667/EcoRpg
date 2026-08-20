@@ -1,6 +1,6 @@
 using UnityEngine;
 
-public class Garden : GameDialog
+public class GardenScreen : GameDialog
 {
     protected override void Refresh()
     {

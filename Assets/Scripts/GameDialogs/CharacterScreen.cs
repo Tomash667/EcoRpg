@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class CharacterScreen : GameDialog
 {
-    public Craft craft;
+    public CraftScreen craftScreen;
 
     private readonly StringBuilder sb = new();
 
@@ -135,7 +135,7 @@ public class CharacterScreen : GameDialog
                     }, "Drop", Drop);
                 }
                 else if (itemSlot.item.type == Item.Type.Tool && itemSlot.item.name == "alchemy set")
-                    itemEntry.Init2(itemSlot.ToString(Price.None), "Use", craft.Show, "Drop", Drop);
+                    itemEntry.Init2(itemSlot.ToString(Price.None), "Use", craftScreen.Show, "Drop", Drop);
                 else
                     itemEntry.Init2(itemSlot.ToString(Price.None), null, null, "Drop", Drop);
             }

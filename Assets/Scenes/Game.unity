@@ -5334,7 +5334,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 21da4a40e06db6847b30fca91b9c722e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  craft: {fileID: 34146526}
+  craftScreen: {fileID: 34146526}
 --- !u!1 &250163422
 GameObject:
   m_ObjectHideFlags: 0
@@ -14414,7 +14414,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1082d6d7b179a404183ff5ecf5f6ca88, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  craft: {fileID: 34146526}
+  craftScreen: {fileID: 34146526}
 --- !u!1 &750513625
 GameObject:
   m_ObjectHideFlags: 0
@@ -38711,7 +38711,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 91d3f4c1abfa13a4397efac7b900e53d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  properties: {fileID: 1634344780}
+  propertiesScreen: {fileID: 1634344780}
 --- !u!1 &1905442599
 GameObject:
   m_ObjectHideFlags: 0
@@ -41015,7 +41015,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 436335f1546178849a703ce574d102e9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  properties: {fileID: 1634344780}
+  propertiesScreen: {fileID: 1634344780}
 --- !u!1 &2050214456
 GameObject:
   m_ObjectHideFlags: 0

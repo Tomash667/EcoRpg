@@ -42,13 +42,13 @@ public class Game : MonoBehaviour
     private AllyScreen allyScreen;
     private CharacterScreen characterScreen;
     private Combat combatScreen;
-    private Craft craft;
-    private Garden garden;
+    private CraftScreen craftScreen;
+    private GardenScreen gardenScreen;
     private GiveItemsScreen giveItemsScreen;
-    private Guild guild;
+    private GuildScreen guildScreen;
     private Journal journal;
     private Map map;
-    private Properties propertiesScreen;
+    private PropertiesScreen propertiesScreen;
     private ShopScreen shopScreen;
     private TMP_Text mainText;
     private readonly StringBuilder sb = new();
@@ -71,10 +71,10 @@ public class Game : MonoBehaviour
         journal = transform.Find("Journal").GetComponent<Journal>();
         allyScreen = transform.Find("Ally").GetComponent<AllyScreen>();
         giveItemsScreen = transform.Find("GiveItems").GetComponent<GiveItemsScreen>();
-        propertiesScreen = transform.Find("Properties").GetComponent<Properties>();
-        guild = transform.Find("Guild").GetComponent<Guild>();
-        garden = transform.Find("Garden").GetComponent<Garden>();
-        craft = transform.Find("Craft").GetComponent<Craft>();
+        propertiesScreen = transform.Find("Properties").GetComponent<PropertiesScreen>();
+        guildScreen = transform.Find("Guild").GetComponent<GuildScreen>();
+        gardenScreen = transform.Find("Garden").GetComponent<GardenScreen>();
+        craftScreen = transform.Find("Craft").GetComponent<CraftScreen>();
         combatScreen = transform.Find("Combat").GetComponent<Combat>();
         combatScreen.Init();
         map = transform.Find("Map").GetComponent<Map>();
@@ -149,7 +149,7 @@ public class Game : MonoBehaviour
             {
             case TileType.City:
                 if (Input.GetKeyDown(KeyCode.G))
-                    guild.Show();
+                    guildScreen.Show();
                 if (Input.GetKeyDown(KeyCode.P))
                     propertiesScreen.Show();
                 if (Input.GetKeyDown(KeyCode.W))
@@ -189,14 +189,14 @@ public class Game : MonoBehaviour
                     ExitToCity();
                 if (Input.GetKeyDown(KeyCode.C) && ((world.Location == TileType.House && player.HavePropertyUpgrade("House", "Alchemy lab", cityIndex: world.CityIndex))
                     || (world.Location == TileType.Mansion && player.HavePropertyUpgrade("Mansion", "Alchemy lab", cityIndex: world.CityIndex))))
-                    craft.Show();
+                    craftScreen.Show();
                 if (Input.GetKeyDown(KeyCode.K))
                     Cook();
                 if (Input.GetKeyDown(KeyCode.M) && world.Location == TileType.Mansion && player.HavePropertyUpgrade("Mansion", "Office"))
                     propertiesScreen.Show();
                 if (Input.GetKeyDown(KeyCode.G) && ((world.Location == TileType.House && player.HavePropertyUpgrade("House", "Garden", cityIndex: world.CityIndex))
                     || (world.Location == TileType.Mansion && player.HavePropertyUpgrade("Mansion", "Garden", cityIndex: world.CityIndex))))
-                    garden.Show();
+                    gardenScreen.Show();
                 break;
             case TileType.Sawmill:
             case TileType.Mine:
@@ -2086,7 +2086,7 @@ public class Game : MonoBehaviour
 
         int count = ingredientCount / recipe.ingredientCount;
         hero.RemoveItem(recipe.ingredient, count * 2);
-        int extra = (int)(count * Craft.GetAlchemyCountBonus(alchemy));
+        int extra = (int)(count * CraftScreen.GetAlchemyCountBonus(alchemy));
         int totalCount = count + extra;
         player.AddItem(recipe.result, totalCount);
         if (hero == bestHero)
@@ -2201,7 +2201,7 @@ public class Game : MonoBehaviour
     {
         availableQuests.Clear();
         GenerateInitialQuests();
-        guild.RefreshIfOpen();
+        guildScreen.RefreshIfOpen();
     }
 
     [ContextMenu("Give all")]
@@ -2286,7 +2286,7 @@ public class Game : MonoBehaviour
             player.AddItem(rations, count);
             text.Set($"You cooked {count} pieces of meat into rations.");
             AddTime(minutes: count * 5);
-            guild.RefreshIfOpen();
+            guildScreen.RefreshIfOpen();
             UpdateText();
             return true;
         });
@@ -2574,7 +2574,7 @@ public class Game : MonoBehaviour
             Property property = GetProperty(worker.locationIndex);
             if (property.lastManaged != prevDay)
             {
-                property.efficiency = Properties.CalculateEfficiencyChange(worker.skill, property.efficiency);
+                property.efficiency = PropertiesScreen.CalculateEfficiencyChange(worker.skill, property.efficiency);
                 property.lastManaged = prevDay;
                 worker.Train();
             }

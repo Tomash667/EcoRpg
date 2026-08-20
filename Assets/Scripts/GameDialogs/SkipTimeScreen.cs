@@ -3,9 +3,9 @@ using System.Linq;
 using TMPro;
 using UnityEngine;
 
-public class SkipTime : GameDialog
+public class SkipTimeScreen : GameDialog
 {
-    public Properties properties;
+    public PropertiesScreen propertiesScreen;
 
     private string lastAction;
     private int lastDays = 1;
@@ -98,7 +98,7 @@ public class SkipTime : GameDialog
                 payment += game.DoWork(true);
                 break;
             case "Manage":
-                properties.DoManage(property, null, false);
+                propertiesScreen.DoManage(property, null, false);
                 break;
             }
 

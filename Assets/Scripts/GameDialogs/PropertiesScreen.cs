@@ -3,7 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class Properties : GameDialog
+public class PropertiesScreen : GameDialog
 {
     public PeopleScreen peopleScreen;
 
