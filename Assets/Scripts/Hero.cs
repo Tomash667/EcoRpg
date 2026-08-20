@@ -15,6 +15,7 @@ public class Hero : ISerializationCallbackReceiver
     public Item weapon, armor, shield;
     public string name, weaponName, armorName, shieldName;
     public Class clas;
+    public Race race;
     public int level, exp, hp, hpMax, attack, defense, dex, gold, owedGold, rested, affection, bored, lastGift;
     public bool female, winToday, complained;
 
@@ -78,7 +79,8 @@ public class Hero : ISerializationCallbackReceiver
     public void Init(int startLevel = 0)
     {
         female = Utility.Rand % 2 == 0;
-        clas = ClassMethods.all.RandomItem();
+        race = RaceMethods.random.RandomItem();
+        clas = ClassMethods.GetRandom(race);
         InitCommon();
         if (startLevel > 0)
         {

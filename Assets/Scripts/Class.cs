@@ -1,5 +1,3 @@
-using System;
-
 public enum Class
 {
     Warrior,
@@ -10,7 +8,7 @@ public static class ClassMethods
 {
     public static readonly Class[] all = new[] { Class.Archer, Class.Warrior };
 
-    public static readonly int defaultClass = Array.IndexOf(all, Class.Warrior);
+    public static readonly int defaultClass = all.IndexOf(Class.Warrior);
 
     public static string AsString(this Class clas)
     {
@@ -19,6 +17,16 @@ public static class ClassMethods
             Class.Warrior => "warrior",
             Class.Archer => "archer",
             _ => $"[ERROR class {clas}]"
+        };
+    }
+
+    public static Class GetRandom(Race race)
+    {
+        return race switch
+        {
+            Race.Elf => Utility.Rand % 3 != 0 ? Class.Archer : Class.Warrior,
+            Race.Dwarf => Utility.Rand % 3 != 0 ? Class.Warrior : Class.Archer,
+            _ => all.RandomItem()
         };
     }
 }

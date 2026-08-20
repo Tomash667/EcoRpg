@@ -40,6 +40,7 @@ public class Global : MonoBehaviour
     public Game game;
     public string playerName;
     public Class playerClass;
+    public Race playerRace;
     public bool loadGame, playerFemale;
 
     private SaveState saveState;

@@ -3,7 +3,9 @@ hero:
 + longer main quest that require investing
 	lessen infinite supply of quests & treasure
 + classes - cleric
-+ races - elf, human
++ races
+	player desc
+	affect stats
 + quests
 	quests in village, no guild?
 	untrack quest
@@ -234,6 +236,7 @@ ui:
 + background music
 + shop tabs?, separate shops
 + animate datetime, gold
++ race/class portraits
 
 refactoring:
 + store worker assigned property as reference
@@ -354,3 +357,5 @@ world:
 + region safety/corruption/economy
 	affects bandits
 	thieves guild
++ dwarf (any race) city/kingdom
+	mixed, pure kingdoms (some percentage)

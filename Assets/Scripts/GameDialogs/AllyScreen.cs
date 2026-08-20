@@ -21,6 +21,7 @@ public class AllyScreen : GameDialog
         TMP_Text charText = transform.Find("Text").GetComponent<TMP_Text>();
         sb.Clear();
         sb.Append($"{ally.GenderSign}{ally.name}\n" +
+            $"Race: {ally.race.AsString()}\n" +
             $"Level: {ally.level} {ally.clas.AsString()} ({ally.ExpP}%)\n" +
             $"Attack: {ally.Attack}\n" +
             $"Defense: {ally.Defense}\n" +

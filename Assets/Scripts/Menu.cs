@@ -1,3 +1,4 @@
+using System.Linq;
 using TMPro;
 using UnityEditor;
 using UnityEngine;
@@ -17,9 +18,12 @@ public class Menu : MonoBehaviour
             transform.Find("BtContinue").GetComponent<Button>().interactable = false;
 
         TMP_Dropdown dropdown = newGameDialog.transform.Find("Panel/Class").GetComponent<TMP_Dropdown>();
-        foreach (Class clas in ClassMethods.all)
-            dropdown.options.Add(new TMP_Dropdown.OptionData { text = clas.AsString().ToUpper1() });
+        dropdown.AddOptions(ClassMethods.all.Select(clas => clas.AsString().ToUpper1()).ToList());
         dropdown.value = ClassMethods.defaultClass;
+
+        dropdown = newGameDialog.transform.Find("Panel/Race").GetComponent<TMP_Dropdown>();
+        dropdown.AddOptions(RaceMethods.all.Select(race => race.AsString().ToUpper1()).ToList());
+        dropdown.value = RaceMethods.defaultRace;
     }
 
     private void Update()
@@ -82,7 +86,8 @@ public class Menu : MonoBehaviour
         {
             Global global = Global.Instance;
             global.playerName = name;
-            global.playerClass = ClassMethods.all[newGameDialog.GetComponentInChildren<TMP_Dropdown>().value];
+            global.playerClass = ClassMethods.all[newGameDialog.transform.Find("Panel/Class").GetComponent<TMP_Dropdown>().value];
+            global.playerRace = RaceMethods.all[newGameDialog.transform.Find("Panel/Race").GetComponent<TMP_Dropdown>().value];
             global.playerFemale = newGameDialog.GetComponentInChildren<Toggle>().isOn;
             global.NewGame();
         }

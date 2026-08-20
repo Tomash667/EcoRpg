@@ -15,6 +15,7 @@ public class CharacterScreen : GameDialog
         TMP_Text charText = transform.Find("Text").GetComponent<TMP_Text>();
         sb.Clear();
         sb.Append($"{player.GenderSign}{player.name}\n" +
+            $"Race: {player.race.AsString()}\n" +
             $"Level: {player.level} {player.clas.AsString()} ({player.ExpP}%)\n" +
             $"Attack: {player.Attack}\n" +
             $"Defense: {player.Defense}\n" +

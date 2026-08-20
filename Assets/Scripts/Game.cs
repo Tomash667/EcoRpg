@@ -1555,7 +1555,7 @@ public class Game : MonoBehaviour
     private void NewGame()
     {
         Global global = Global.Instance;
-        player = new() { name = global.playerName, clas = global.playerClass, female = global.playerFemale };
+        player = new() { name = global.playerName, clas = global.playerClass, race = global.playerRace, female = global.playerFemale };
         player.Init();
         team = new() { heroes = new() { player } };
         world = new();
