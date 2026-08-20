@@ -38,7 +38,7 @@ public class Game : MonoBehaviour
     public int day, hour, minute;
 
     private GameUI ui;
-    private GameObject allyScreen, giveAllyItemsScreen, activeInventory, enchantItemsScreen;
+    private GameObject allyScreen, giveAllyItemsScreen, activeInventory;
     private RectTransform[] alliesHealthRect;
     private CharacterScreen characterScreen;
     private Combat combatScreen;
@@ -79,7 +79,6 @@ public class Game : MonoBehaviour
         combatScreen.Init();
         map = transform.Find("Map").GetComponent<Map>();
         map.Init();
-        enchantItemsScreen = transform.Find("EnchantItems").gameObject;
         alliesHealthRect = new[] { transform.Find("Buttons/BtAlly/Health") as RectTransform, transform.Find("Buttons/BtAlly2/Health") as RectTransform };
 
         Global global = Global.Instance;
@@ -2476,77 +2475,6 @@ public class Game : MonoBehaviour
             UpdateText();
             return true;
         });
-    }
-
-    public void EnchantItems()
-    {
-        activeInventory = enchantItemsScreen;
-        RefreshEnchantPlayerItems();
-        ui.ShowDialog(enchantItemsScreen);
-    }
-
-    private void RefreshEnchantPlayerItems()
-    {
-        characterScreen.PopulateInventory(enchantItemsScreen,
-            (itemEntry, item) =>
-            {
-                if (item.level < Item.MaxLevelEnchant)
-                {
-                    itemEntry.Init(item.ToString(Price.Enchant), "Enchant", () =>
-                    {
-                        int cost = item.GetEnchantCost();
-                        if (player.gold < cost)
-                            ui.ShowDialog($"You need {cost} gold to enchant {item.name}.");
-                        else
-                        {
-                            Item newItem = item.GetEnchanted();
-                            switch (newItem.type)
-                            {
-                            case Item.Type.Weapon:
-                                player.weapon = newItem;
-                                break;
-                            case Item.Type.Shield:
-                                player.shield = newItem;
-                                break;
-                            case Item.Type.Armor:
-                                player.armor = newItem;
-                                break;
-                            }
-                            player.AddGold(-cost);
-                            RefreshEnchantPlayerItems();
-                            UpdateText();
-                        }
-                    });
-                }
-                else
-                    itemEntry.Init(item.ToString(Price.None));
-            },
-            (itemEntry, itemSlot) =>
-            {
-                if (itemSlot.item.CanEnchant())
-                {
-                    itemEntry.Init(itemSlot.ToString(Price.Enchant), "Enchant", () =>
-                    {
-                        int cost = itemSlot.item.GetEnchantCost();
-                        if (player.gold < cost)
-                            ui.ShowDialog($"You need {cost} gold to enchant {itemSlot.item.name}.");
-                        else
-                        {
-                            Item item = itemSlot.item;
-                            if (itemSlot.team)
-                                team.PayForItem(player, itemSlot.item);
-                            player.RemoveItem(itemSlot);
-                            player.AddItem(item.GetEnchanted());
-                            player.AddGold(-cost);
-                            RefreshEnchantPlayerItems();
-                            UpdateText();
-                        }
-                    });
-                }
-                else
-                    itemEntry.Init(itemSlot.ToString(Price.None));
-            }
-        );
     }
 
     public void EnterPortal()
