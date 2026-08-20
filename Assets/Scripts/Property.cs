@@ -287,6 +287,22 @@ public class Property
         }
     }
 
+    public void AddStoredItem(Item item, int count = 1)
+    {
+        ItemSlot itemSlot = storedItems.FirstOrDefault(x => x.item == item);
+        if (itemSlot != null)
+            itemSlot.count += count;
+        else
+            storedItems.Add(new() { item = item, count = count });
+    }
+
+    public void RemoveStoredItem(ItemSlot itemSlot, int count = 1)
+    {
+        itemSlot.count -= count;
+        if (itemSlot.count <= 0)
+            storedItems.Remove(itemSlot);
+    }
+
     public static readonly Property[] properties = new Property[]
     {
         new()

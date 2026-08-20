@@ -1,10 +1,9 @@
 + classes from UI screens
 	ally
-	shop
 	give items
-	store items
 	enchant items
 + rename Guild -> GuildScreen etc?
++ remove activeInventory
 
 v3
 hero:

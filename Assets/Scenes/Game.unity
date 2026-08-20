@@ -9883,9 +9883,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1380054795}
-        m_TargetAssemblyTypeName: Game, Assembly-CSharp
-        m_MethodName: StoreItems
+      - m_Target: {fileID: 882269061}
+        m_TargetAssemblyTypeName: StoreItemsScreen, Assembly-CSharp
+        m_MethodName: Show
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -16391,6 +16391,7 @@ GameObject:
   - component: {fileID: 882269058}
   - component: {fileID: 882269060}
   - component: {fileID: 882269059}
+  - component: {fileID: 882269061}
   m_Layer: 5
   m_Name: StoreItems
   m_TagString: Untagged
@@ -16462,6 +16463,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 882269057}
   m_CullTransparentMesh: 1
+--- !u!114 &882269061
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 882269057}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9f707c55e067e8a48aa4ee70509aedce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  characterScreen: {fileID: 749224100}
 --- !u!1 &882415997
 GameObject:
   m_ObjectHideFlags: 0
@@ -25324,6 +25338,7 @@ GameObject:
   - component: {fileID: 1327029802}
   - component: {fileID: 1327029804}
   - component: {fileID: 1327029803}
+  - component: {fileID: 1327029805}
   m_Layer: 5
   m_Name: Shop
   m_TagString: Untagged
@@ -25395,6 +25410,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1327029801}
   m_CullTransparentMesh: 1
+--- !u!114 &1327029805
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1327029801}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a0994c6016d1d5b42835648963d9b7ef, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  characterScreen: {fileID: 749224100}
 --- !u!1 &1330989636
 GameObject:
   m_ObjectHideFlags: 0
@@ -31641,9 +31669,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1380054795}
-        m_TargetAssemblyTypeName: Game, Assembly-CSharp
-        m_MethodName: Shop
+      - m_Target: {fileID: 1327029805}
+        m_TargetAssemblyTypeName: ShopScreen, Assembly-CSharp
+        m_MethodName: Show
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
