@@ -696,6 +696,13 @@ public class Hero : ISerializationCallbackReceiver
             text.Append($"Your {skill.AsString()} skill increased to {skillEntry.level}.");
     }
 
+    public void CheckSkillIncrease(Skill skill, int prevValue, TextBuilder text)
+    {
+        int value = GetSkill(skill);
+        if (value != prevValue)
+            text.Append($"Your {skill.AsString()} skill increased to {value}.");
+    }
+
     public static float CalculateRequiredSkillTrain(int value)
     {
         float valueFloat = (float)value;

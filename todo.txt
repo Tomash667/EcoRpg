@@ -62,6 +62,7 @@ ui:
 + auto position buttons in smart way
 + smoother travel
 + ok/confirm dialog auto size
+	- recruit text too long
 + show text on ally craft, apply to other texts not shown
 	show affection change from give gold/item
 + Utility.Plural should inclue a/an (sometimes?)
@@ -94,9 +95,7 @@ investments:
 + higher upkeep for better workers
 
 skills:
-+ alchemy
-	mana potions
-	crafting 100 potions at once give much more skill then crating one potion 100 times
++ alchemy - mana potions
 + farming
 + strength
 + endurance
@@ -294,6 +293,7 @@ investments:
 skills:
 + haggle
 + alchemy - more recipes
+	permanent attribute increase herbs/potions
 + crafting
 	dragon hide -> armor
 + theory vs practice soft cap

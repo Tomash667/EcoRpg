@@ -228,12 +228,12 @@ public class Combat : GameDialog
             if (hero.potionTimer > 0)
             {
                 --hero.potionTimer;
-                if (hero is Player)
+                if (hero == player)
                     transform.Find("BtHeal").GetComponentInChildren<TMP_Text>().text = $"Heal ({hero.potionTimer})";
             }
         }
 
-        if (hero is Player && action != Action.None && (hero.confused == 0 || Utility.Rand % 2 == 0))
+        if (hero == player && action != Action.None && (hero.confused == 0 || Utility.Rand % 2 == 0))
         {
             if (action == Action.Escape)
             {
@@ -349,7 +349,7 @@ public class Combat : GameDialog
 
             timer = 0.5f;
             Unit target;
-            if (playerTarget != null && playerTarget.hp > 0 && (hero is Player || Utility.Rand % 2 == 0))
+            if (playerTarget != null && playerTarget.hp > 0 && (hero == player || Utility.Rand % 2 == 0))
                 target = playerTarget;
             else
                 target = enemies.RandomItem(x => x.hp > 0);
@@ -416,7 +416,7 @@ public class Combat : GameDialog
 
     private bool HeroShouldUsePotion(Hero hero)
     {
-        if (hero is Player
+        if (hero == player
             || hero.hpp > 0.5f
             || hero.potionTimer != 0
             || heroes.Count(x => x.hp > 0) > 1) // if there are other heroes attack and heal when defeated
@@ -455,7 +455,7 @@ public class Combat : GameDialog
         AppendText($"{hero.NameYou} {hero.S("use")} {potion.item.name} and {hero.S("get")} healed for {hero.hp - prevHp}.", 0.15f);
         hero.card.Heal(hero.hpp);
         hero.card.RemoveEffect(Effect.Poison);
-        if (hero is Player)
+        if (hero == player)
             transform.Find("BtHeal").GetComponentInChildren<TMP_Text>().text = $"Heal ({hero.potionTimer})";
         timer = 0.5f;
     }

@@ -27,7 +27,7 @@ public class GiveItemsScreen : GameDialog
                                 ally.IncreaseAffectionFromValue(itemSlot.item, 1);
                             ally.GiveItem(itemSlot.item);
                             player.RemoveItem(itemSlot);
-                            Refresh();
+                            RefreshIfOpen();
                             game.UpdateText();
                         }
                         else if (Input.GetKey(KeyCode.LeftShift))
@@ -38,7 +38,7 @@ public class GiveItemsScreen : GameDialog
                                 ally.IncreaseAffectionFromValue(itemSlot.item, itemSlot.count);
                             ally.GiveItem(itemSlot.item, itemSlot.count);
                             player.RemoveItem(itemSlot, itemSlot.count);
-                            Refresh();
+                            RefreshIfOpen();
                             game.UpdateText();
                         }
                         else
@@ -54,7 +54,7 @@ public class GiveItemsScreen : GameDialog
                                     ally.IncreaseAffectionFromValue(itemSlot.item, count);
                                 ally.GiveItem(itemSlot.item, count);
                                 player.RemoveItem(itemSlot, count);
-                                Refresh();
+                                RefreshIfOpen();
                                 game.UpdateText();
                                 return true;
                             });

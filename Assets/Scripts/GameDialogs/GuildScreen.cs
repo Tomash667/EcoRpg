@@ -259,7 +259,7 @@ public class GuildScreen : GameDialog
             {
                 foreach (var group in levelups.GroupBy(x => x.level))
                 {
-                    string isAre = group.Count() > 1 || group.First() is Player ? "are" : "is";
+                    string isAre = group.Count() > 1 || group.First() == player ? "are" : "is";
                     text.Append($"{Utility.PrettyList(group.Select(x => x.nameYou)).ToUpper1()} {isAre} now level {group.Key}.");
                 }
             }

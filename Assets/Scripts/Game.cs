@@ -726,7 +726,7 @@ public class Game : MonoBehaviour
             {
                 foreach (var group in levelups.GroupBy(x => x.level))
                 {
-                    string isAre = group.Count() > 1 || group.First() is Player ? "are" : "is";
+                    string isAre = group.Count() > 1 || group.First() == player ? "are" : "is";
                     text.Append($"{Utility.PrettyList(group.Select(x => x.nameYou)).ToUpper1()} {isAre} now level {group.Key}.");
                 }
             }
@@ -2092,6 +2092,9 @@ public class Game : MonoBehaviour
             return;
 
         int count = ingredientCount / recipe.ingredientCount;
+        int batches = count / 5;
+        if (count % 5 != 0)
+            ++batches;
         hero.RemoveItem(recipe.ingredient, count * 2);
         int extra = (int)(count * CraftScreen.GetAlchemyCountBonus(alchemy));
         int totalCount = count + extra;
@@ -2104,13 +2107,29 @@ public class Game : MonoBehaviour
         else
         {
             text.Set($"{hero.name} and {bestHero.nameYou} create {Utility.Plural(recipe.result.name, totalCount)}. You receive {(totalCount == 1 ? "it" : "them")}.");
-            float trainMod = 1f + 0.01f * (alchemy - bonus - hero.GetSkill(Skill.Alchemy));
-            hero.Train(Skill.Alchemy, null, recipe.trainMod * trainMod * count);
-            bestHero.Train(Skill.Alchemy, bestHero == player ? text : null, recipe.trainMod * count);
+            if (batches == 1)
+            {
+                float trainMod = 1f + 0.01f * (alchemy - bonus - hero.GetSkill(Skill.Alchemy));
+                bestHero.Train(Skill.Alchemy, bestHero == player ? text : null, recipe.trainMod * count);
+                hero.Train(Skill.Alchemy, null, recipe.trainMod * trainMod * count);
+            }
+            else
+            {
+                int prevSkill = bestHero.GetSkill(Skill.Alchemy);
+                for (int i = 0; i < batches; ++i)
+                {
+                    int currentCount = Mathf.Min(count, 5);
+                    count -= currentCount;
+                    float trainMod = 1f + 0.01f * (bestHero.GetSkill(Skill.Alchemy) - hero.GetSkill(Skill.Alchemy));
+                    bestHero.Train(Skill.Alchemy, null, recipe.trainMod * currentCount);
+                    hero.Train(Skill.Alchemy, null, recipe.trainMod * trainMod * currentCount);
+                }
+                if (bestHero == player)
+                    bestHero.CheckSkillIncrease(Skill.Alchemy, prevSkill, text);
+            }
         }
 
-        giveItemsScreen.RefreshIfOpen();
-        UpdateText();
+        AddTime(minutes: batches * 30);
     }
 
     public void Choice(string str, System.Action<bool> action)

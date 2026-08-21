@@ -40,21 +40,40 @@ public class CraftScreen : GameDialog
         {
             player.RemoveItem(recipe.ingredient, count * 2);
             int extra = (int)(count * GetAlchemyCountBonus(alchemy));
+            int batches = count / 5;
+            if (count % 5 != 0)
+                ++batches;
             player.AddItem(recipe.result, count + extra);
-            float trainMod;
-            if (bestHero == null || bestHero is Player)
+            if (bestHero == null || bestHero == player)
             {
                 text.Set($"You created {Utility.Plural(recipe.result.name, count + extra)}.");
-                trainMod = 1f;
+                player.Train(Skill.Alchemy, text, recipe.trainMod * count);
             }
             else
             {
                 text.Set($"You and {bestHero.name} created {Utility.Plural(recipe.result.name, count + extra)}.");
-                trainMod = 1f + 0.01f * (alchemy - bonus - player.GetSkill(Skill.Alchemy));
-                bestHero.Train(Skill.Alchemy, null, recipe.trainMod * count);
+                if (batches == 1)
+                {
+                    float trainMod = 1f + 0.01f * (alchemy - bonus - player.GetSkill(Skill.Alchemy));
+                    bestHero.Train(Skill.Alchemy, null, recipe.trainMod * count);
+                    player.Train(Skill.Alchemy, text, recipe.trainMod * trainMod * count);
+                }
+                else
+                {
+                    int prevSkill = player.GetSkill(Skill.Alchemy);
+                    for (int i = 0; i < batches; ++i)
+                    {
+                        int currentCount = Mathf.Min(count, 5);
+                        count -= currentCount;
+                        float trainMod = 1f + 0.01f * (bestHero.GetSkill(Skill.Alchemy) - player.GetSkill(Skill.Alchemy));
+                        bestHero.Train(Skill.Alchemy, null, recipe.trainMod * currentCount);
+                        player.Train(Skill.Alchemy, null, recipe.trainMod * trainMod * currentCount);
+                    }
+                    player.CheckSkillIncrease(Skill.Alchemy, prevSkill, text);
+                }
             }
-            player.Train(Skill.Alchemy, text, recipe.trainMod * trainMod * count);
-            game.AddTime(minutes: count * 5);
+
+            game.AddTime(minutes: batches * 30);
             RefreshIfOpen();
             game.UpdateText();
         }
