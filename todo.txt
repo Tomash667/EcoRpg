@@ -75,6 +75,7 @@ ui:
 + better button naming for Properties/Manage if there a people there too
 + move map speed vs zoom
 + train -> show progress
++ debug teleport on map
 
 investments:
 + workers skill
@@ -113,7 +114,6 @@ world:
 + second region with city and villages
 + desert
 + number of enemies in dungeon depends on defeatedEnemies not on treasureFound
-+ enchanted forest -> more herbs, faster regrow
 + month, year
 
 ---------------------------------------------------------------------------------------------------
@@ -173,7 +173,8 @@ hero:
 	ancient dragon
 	sealed horror
 	ghost
-	swamp dragon, bog titan, bog rats, swamp leeches, mud crab, swamp hag, bog zombie, will-o-wisps, snake	
+	swamp dragon, bog titan, bog rats, swamp leeches, mud crab, swamp hag, bog zombie, will-o-wisps, snake
+	enchanted forest -> fairy, pegasus, unicorn?
 + guild rank benefits (cheaper hire for quests, shop, sleep)
 + hunt for deers etc
 + light/heavy armor

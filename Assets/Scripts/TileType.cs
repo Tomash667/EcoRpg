@@ -17,7 +17,8 @@ public enum TileType
     MageTower,
     DarkDimension,
     Lake,
-    Farm
+    Farm,
+    EnchantedForest
 }
 
 public enum TileImage
@@ -36,7 +37,8 @@ public enum TileImage
     SwampDungeon,
     MageTower,
     Lake,
-    Farm
+    Farm,
+    EnchantedForest
 }
 
 public static class TileTypeMethods
@@ -62,6 +64,7 @@ public static class TileTypeMethods
             TileType.DarkDimension => "dark dimension",
             TileType.Lake => "lake",
             TileType.Farm => "farm",
+            TileType.EnchantedForest => "enchanted forest",
             _ => $"[ERROR tileType {tileType}]"
         };
     }
@@ -85,7 +88,8 @@ public static class TileTypeMethods
             || tileType == TileType.Sewers
             || tileType == TileType.Forest
             || tileType == TileType.Mountains
-            || tileType == TileType.Farm;
+            || tileType == TileType.Farm
+            || tileType == TileType.EnchantedForest;
     }
 
     public static bool IsSafe(this TileType tileType)
@@ -96,5 +100,14 @@ public static class TileTypeMethods
     public static bool IsBlocked(this TileType tileType)
     {
         return tileType == TileType.Lake;
+    }
+
+    public static int GetEnemiesCount(this TileType tileType)
+    {
+        return tileType switch
+        {
+            TileType.Forest or TileType.Mountains or TileType.EnchantedForest => 20,
+            _ => 10
+        };
     }
 }

@@ -136,7 +136,7 @@ public class Enemy
         new()
         {
             name = "dryad",
-            locations = new[] { (TileType.Forest, 2), (TileType.Farm, 2) },
+            locations = new[] { (TileType.Forest, 2), (TileType.Farm, 2), (TileType.EnchantedForest, 2) },
             difficulty = 1,
             level = 3,
             hp = 120,

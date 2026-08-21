@@ -180,6 +180,7 @@ public class Game : MonoBehaviour
                     propertiesScreen.ShowManage();
                 break;
             case TileType.Forest:
+            case TileType.EnchantedForest:
                 if (Input.GetKeyDown(KeyCode.F))
                     Forage();
                 break;
@@ -287,7 +288,7 @@ public class Game : MonoBehaviour
             StartCombat(enemy, "explore");
             return;
         }
-        else if (c == 8 && (tile.type == TileType.Forest || tile.type == TileType.Mountains || tile.type == TileType.Plains))
+        else if (c == 8 && (tile.type == TileType.Forest || tile.type == TileType.Mountains || tile.type == TileType.Plains || tile.type == TileType.EnchantedForest))
         {
             // old camp
             int count = Utility.Random(1, 4);
@@ -413,7 +414,7 @@ public class Game : MonoBehaviour
             player.AddItem(Item.Get(item), count);
             text.Append($"You explore the {tile.Name} and find chest. Inside you find <b>{Utility.Plural(item, count)}</b> and <color=#FFD700>{gold}</color> gold.");
         }
-        else if (c == 9 && tile.type == TileType.Forest && tile.depleted < 4)
+        else if (c == 9 && (tile.type == TileType.Forest || tile.type == TileType.EnchantedForest) && tile.depleted < (tile.type == TileType.Forest ? 4 : 6))
         {
             // herbs/rare herbs
             (Hero bestHero, int bestValue) = team.GetSkill(Skill.Forage);
@@ -425,6 +426,8 @@ public class Game : MonoBehaviour
                 _ => 1,
             };
             count += bestValue / 25 - tile.depleted;
+            if (tile.type == TileType.EnchantedForest)
+                count += 2;
             if (count < 1)
                 count = 1;
             tile.depleted++;
@@ -736,7 +739,7 @@ public class Game : MonoBehaviour
             if (tile.type == TileType.DarkDimension && enemyList.Any(x => x.name == "nameless horror"))
                 tile.defeatedEnemies = 0;
 
-            if (!tile.boss && tile.type.IsClearable() && tile.defeatedEnemies >= ((tile.type == TileType.Forest || tile.type == TileType.Mountains) ? 20 : 10))
+            if (!tile.boss && tile.type.IsClearable() && tile.defeatedEnemies >= tile.type.GetEnemiesCount())
             {
                 tile.clear = true;
                 if (tile.type == TileType.Cave)
@@ -1269,7 +1272,7 @@ public class Game : MonoBehaviour
             {
                 if (location == TileType.City || location == TileType.Village)
                     where = "on a street";
-                else if (location == TileType.Plains || location == TileType.Forest)
+                else if (location == TileType.Plains || location == TileType.Forest || location == TileType.EnchantedForest)
                     where = "on a grass";
                 else
                     where = "on a ground";
@@ -1308,7 +1311,7 @@ public class Game : MonoBehaviour
             {
                 int attackChance = location switch
                 {
-                    TileType.Forest or TileType.Mountains or TileType.Swamp or TileType.Sewers => 5,
+                    TileType.Forest or TileType.Mountains or TileType.Swamp or TileType.Sewers or TileType.EnchantedForest => 5,
                     TileType.Cave or TileType.Dungeon => 10,
                     TileType.DarkDimension => 20,
                     _ => 0,
@@ -1699,10 +1702,10 @@ public class Game : MonoBehaviour
         buttons.Find("BtQuest").gameObject.SetActive(cityIndex == 1 && spiderStatus == SpiderStatus.None);
 
         button = buttons.Find("BtForage");
-        if (location == TileType.Forest || location == TileType.Cave)
+        if (location == TileType.Forest || location == TileType.Cave || location == TileType.EnchantedForest)
         {
             button.gameObject.SetActive(true);
-            button.GetComponentInChildren<TMP_Text>().text = location == TileType.Forest ? "Forage" : "Prospect";
+            button.GetComponentInChildren<TMP_Text>().text = (location == TileType.Forest || location == TileType.EnchantedForest) ? "Forage" : "Prospect";
         }
         else
             button.gameObject.SetActive(false);
@@ -1939,7 +1942,7 @@ public class Game : MonoBehaviour
             return;
         }
 
-        int energy = tile.type == TileType.Forest ? 10 : 5;
+        int energy = (tile.type == TileType.Forest || tile.type == TileType.EnchantedForest) ? 10 : 5;
         if (player.energy < energy)
         {
             text.Set($"You are too tired to {(tile.type == TileType.Forest ? "forage" : "prospect")}.");
@@ -1952,12 +1955,12 @@ public class Game : MonoBehaviour
         Enemy enemy;
         if (!tile.clear && Utility.Rand % 10 == 0 && (enemy = Enemy.GetRandom(tile.type, tile.difficulty)) != null)
         {
-            StartCombat(enemy, tile.type == TileType.Forest ? "forage in" : "prospect");
+            StartCombat(enemy, (tile.type == TileType.Forest || tile.type == TileType.EnchantedForest) ? "forage in" : "prospect");
             return;
         }
-        else if (tile.type == TileType.Forest)
+        else if (tile.type == TileType.Forest || tile.type == TileType.EnchantedForest)
         {
-            if (tile.depleted >= 4)
+            if (tile.depleted >= (tile.type == TileType.Forest ? 4 : 6))
                 text.Set($"You forage in the {tile.Name} but find nothing of value.");
             else
             {
@@ -1971,6 +1974,8 @@ public class Game : MonoBehaviour
                     _ => 1,
                 };
                 count += bestValue / 25 - tile.depleted;
+                if (tile.type == TileType.EnchantedForest)
+                    count += 2;
                 if (count < 1)
                     count = 1;
                 tile.depleted++;

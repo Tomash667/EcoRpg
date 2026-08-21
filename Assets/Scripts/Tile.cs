@@ -122,6 +122,9 @@ public class Tile
         case TileType.Farm:
             image = TileImage.Farm;
             break;
+        case TileType.EnchantedForest:
+            image = TileImage.EnchantedForest;
+            break;
         }
         type = newType;
     }

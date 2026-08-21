@@ -257,6 +257,16 @@ public class World
         // mage tower
         SpawnHiddenLocations(30, 33, 1, TileType.Plains, TileType.MageTower, null);
 
+        // enchanted forest
+        Tile enchantedForest = GetLocation(FindBestTile(15, 24, (tile, pt) =>
+        {
+            if (tile.type != TileType.Forest || tile.hidden != TileType.None)
+                return -1;
+            else
+                return 1 + GetAdjacentTiles(pt).Count(x => x.type == TileType.Forest);
+        }));
+        enchantedForest.hidden = TileType.EnchantedForest;
+
         RevealArea(cityPos, false);
         currentPt = cityPos;
         level = 0;
@@ -443,6 +453,45 @@ public class World
         }
 
         return new Vector2Int(-1, -1);
+    }
+
+    private Vector2Int FindBestTile(int xMin, int xMax, Func<Tile, Vector2Int, int> pred)
+    {
+        int bestValue = 0;
+        List<Vector2Int> bestPts = new();
+
+        for (int y = 0; y < sizeY; ++y)
+        {
+            for (int x = xMin; x <= xMax; ++x)
+            {
+                Vector2Int pt = new(x, y);
+                int value = pred(map[x + y * sizeX], pt);
+                if (value > bestValue)
+                {
+                    bestPts.Clear();
+                    bestPts.Add(pt);
+                    bestValue = value;
+                }
+                else if (value == bestValue)
+                    bestPts.Add(pt);
+            }
+        }
+
+        if (bestPts.Count > 0)
+            return bestPts.RandomItem();
+        else
+            return new Vector2Int(-1, -1);
+    }
+
+    private IEnumerable<Tile> GetAdjacentTiles(Vector2Int pt)
+    {
+        foreach (Vector2Int adj in adjacient)
+        {
+            int x = pt.x + adj.x;
+            int y = pt.y + adj.y;
+            if (IsInBounds(x, y))
+                yield return map[x + y * sizeX];
+        }
     }
 
     // Team move slower, need to forage for food
@@ -754,6 +803,11 @@ public class World
             return map[index];
     }
 
+    public Tile GetLocation(Vector2Int pt)
+    {
+        return map[pt.x + pt.y * sizeX];
+    }
+
     public int FindLocationIndex(Func<Tile, bool> pred, int sublocation = 0)
     {
         for (int index = 0; index < sizeX * sizeY; ++index)
@@ -800,7 +854,11 @@ public class World
         {
             // mountain/cave mine nuggets don't regrow
             if (tile.depleted > 0 && !(tile.type == TileType.Mountains || (tile.type == TileType.Cave && tile.mine)))
+            {
                 --tile.depleted;
+                if (tile.type == TileType.EnchantedForest && tile.depleted > 0)
+                    --tile.depleted;
+            }
 
             if (tile.timer == 0)
                 continue;

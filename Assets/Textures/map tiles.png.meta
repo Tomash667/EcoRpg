@@ -426,6 +426,28 @@ TextureImporter:
       indices: 
       edges: []
       weights: []
+    - serializedVersion: 2
+      name: enchanted forest
+      rect:
+        serializedVersion: 2
+        x: 96
+        y: 0
+        width: 32
+        height: 32
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 77506d98033b27042ba8a2e59884633e
+      internalID: 1574667488
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
     outline: []
     customData: 
     physicsShape: []
@@ -443,6 +465,7 @@ TextureImporter:
       cave: 605992368
       city: -1763866205
       dungeon: -349523790
+      enchanted forest: 1574667488
       farm: -236607163
       forest: -1939850107
       forest dungeon: 603060327
