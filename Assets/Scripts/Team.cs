@@ -6,7 +6,7 @@ using UnityEngine;
 [Serializable]
 public class Team
 {
-    public const int MaxSize = 3;
+    public const int MaxSize = 4;
 
     [SerializeReference]
     public List<Hero> heroes;
@@ -61,13 +61,6 @@ public class Team
                 --extraGold;
             }
             hero.AddGold(goldReceived);
-            /*if (hero is not Player)
-			{
-				if (world.Location.IsSafe())
-					hero.BuyItems();
-				else if (world.Location == TileType.MageTower)
-					hero.EnchantItems();
-			}*/
         }
     }
 

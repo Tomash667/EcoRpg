@@ -38,10 +38,13 @@ public class Combat : GameDialog
         public float delay;
     }
 
+    public const int MaxEnemies = 5;
+
     public GameObject characterCardPrefab, arrowPrefab;
 
-    private readonly Vector2[] teamPos = new Vector2[] { new(0, -125), new(-200, -125), new(200, -125) };
-    private readonly Vector2[] enemyPos = new Vector2[] { new(0, 200), new(-200, 200), new(200, 200) };
+    private const float alliesY = -125f;
+    private const float enemiesY = 200f;
+    private const float spaceBetweenCards = 180f;
 
     private readonly List<string> textParts = new();
     private readonly List<DelayedText> delayedTexts = new();
@@ -56,7 +59,7 @@ public class Combat : GameDialog
     private Result result;
     private Action action;
     private float timer;
-    private int combatIndex, attacks, effectTick;
+    private int combatIndex, attacks, effectTick, maxAlliesCount, maxEnemiesCount;
 
     public override bool Autoclose => false;
 
@@ -82,12 +85,13 @@ public class Combat : GameDialog
 
         int index = 0;
         bool multiRow = heroes.Any(x => x.BackRow != heroes[0].BackRow);
+        maxAlliesCount = heroes.Count;
         foreach (Hero hero in heroes)
         {
             CharacterCard card = Instantiate(characterCardPrefab, container).GetComponent<CharacterCard>();
             card.Init(hero.name, hero.hpp, false, Resources.Load<Sprite>(hero.Portrait));
             RectTransform transform = card.GetComponent<RectTransform>();
-            Vector2 pos = teamPos[index];
+            Vector2 pos = GetCardPosition(index, true);
             if (multiRow && !hero.BackRow)
                 pos.y += 25;
             transform.anchoredPosition = pos;
@@ -101,13 +105,14 @@ public class Combat : GameDialog
 
         bool summoned = enemyList[0].name == "spider queen";
         multiRow = enemyList.Any(x => x.blocks != enemyList[0].blocks);
+        maxEnemiesCount = enemyList.Count;
         for (int i = 0; i < enemyList.Count; ++i)
         {
             Enemy enemy = enemyList[i];
             CharacterCard card = Instantiate(characterCardPrefab, container).GetComponent<CharacterCard>();
             card.Init(enemy.name, 1f, true, Resources.Load<Sprite>(enemy.Portrait));
             RectTransform transform = card.GetComponent<RectTransform>();
-            Vector2 pos = enemyPos[i];
+            Vector2 pos = GetCardPosition(i, false);
             if (multiRow && enemy.blocks)
                 pos.y -= 25;
             transform.anchoredPosition = pos;
@@ -494,7 +499,7 @@ public class Combat : GameDialog
                 --me.cooldown2;
         }
 
-        if ((me.enemy.summonMummy || me.enemy.summonSpider) && me.cooldown2 == 0 && enemies.Count < Team.MaxSize && Utility.Rand % 3 != 0)
+        if ((me.enemy.summonMummy || me.enemy.summonSpider) && me.cooldown2 == 0 && enemies.Count < MaxEnemies && Utility.Rand % 3 != 0)
         {
             EnemySummon(me);
             return true;
@@ -664,12 +669,22 @@ public class Combat : GameDialog
         card.Init(enemy.name, 1f, true, Resources.Load<Sprite>(enemy.Portrait));
         RectTransform rectTransform = card.GetComponent<RectTransform>();
         int emptySlot = -1;
-        for (int i = 0; i < 3; ++i)
+        if (enemies.Count < maxEnemiesCount)
         {
-            if (!enemies.Any(x => x.card.slot == i))
-                emptySlot = i;
+            for (int i = 0; i < maxEnemiesCount; ++i)
+            {
+                if (!enemies.Any(x => x.card.slot == i))
+                    emptySlot = i;
+            }
         }
-        Vector2 pos = enemyPos[emptySlot];
+        else
+        {
+            ++maxEnemiesCount;
+            for (int i = 0; i < maxEnemiesCount - 1; ++i)
+                enemies[i].card.Move(GetCardPosition(i, false));
+            emptySlot = maxEnemiesCount - 1;
+        }
+        Vector2 pos = GetCardPosition(emptySlot, false);
         if (enemy.blocks && enemies.Any(x => x.enemy.blocks != enemy.blocks))
             pos.y -= 25;
         rectTransform.anchoredPosition = pos;
@@ -770,5 +785,29 @@ public class Combat : GameDialog
             playerTarget = unit;
             playerTarget.card.SetColor(Color.blue);
         }
+    }
+
+    public Vector2 GetCardPosition(int index, bool ally)
+    {
+        int maxCount;
+        float y;
+        if (ally)
+        {
+            maxCount = maxAlliesCount;
+            y = alliesY;
+        }
+        else
+        {
+            maxCount = maxEnemiesCount;
+            y = enemiesY;
+        }
+
+        int shift = (index + 1) / 2;
+        int dir = index % 2 == 1 ? 1 : -1;
+        float x = spaceBetweenCards * shift * dir;
+        if (maxCount % 2 == 0)
+            x -= spaceBetweenCards / 2;
+
+        return new(x, y);
     }
 }

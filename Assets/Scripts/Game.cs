@@ -83,7 +83,12 @@ public class Game : MonoBehaviour
         combatScreen.Init();
         map = transform.Find("Map").GetComponent<Map>();
         map.Init();
-        alliesHealthRect = new[] { transform.Find("Buttons/BtAlly/Health") as RectTransform, transform.Find("Buttons/BtAlly2/Health") as RectTransform };
+        alliesHealthRect = new[]
+        {
+            transform.Find("Buttons/BtAlly1/Health") as RectTransform,
+            transform.Find("Buttons/BtAlly2/Health") as RectTransform,
+            transform.Find("Buttons/BtAlly3/Health") as RectTransform
+        };
 
         Global global = Global.Instance;
         global.game = this;
@@ -121,10 +126,12 @@ public class Game : MonoBehaviour
         }
         else
         {
-            if (team.heroes.Count >= 2 && Input.GetKeyDown(KeyCode.Alpha1))
-                allyScreen.Show(0);
-            if (team.heroes.Count >= 3 && Input.GetKeyDown(KeyCode.Alpha2))
-                allyScreen.Show(1);
+            for (int i = 1; i < team.heroes.Count; ++i)
+            {
+                if (Input.GetKeyDown(KeyCode.Alpha0 + i))
+                    allyScreen.Show(i - 1);
+            }
+
             if (Input.GetKeyDown(KeyCode.C))
                 characterScreen.Show();
             if (Input.GetKeyDown(KeyCode.J))
@@ -527,11 +534,12 @@ public class Game : MonoBehaviour
 
     public void StartCombat(Enemy enemy, string startAction)
     {
-        int count = (Utility.Rand % 4) switch
+        int count = (Utility.Rand % 10) switch
         {
-            1 or 2 => 2,
-            3 => 3,
-            _ => 1,
+            0 => 1, // 10%
+            1 or 2 or 3 => 2, // 30%
+            4 or 5 or 6 or 7 => 3, // 40%
+            8 or 9 or _ => 4 // 20%
         };
 
         List<Enemy> enemyList = new();
@@ -1728,21 +1736,16 @@ public class Game : MonoBehaviour
         buttons.Find("BtGarden").gameObject.SetActive((location == TileType.House && player.HavePropertyUpgrade("House", "Garden", cityIndex: cityIndex))
             || (location == TileType.Mansion && player.HavePropertyUpgrade("Mansion", "Garden", cityIndex: cityIndex)));
 
-        GameObject btAlly = buttons.Find("BtAlly").gameObject;
-        if (team.heroes.Count < 2)
-            btAlly.SetActive(false);
-        else
+        for (int i = 1; i < Team.MaxSize; ++i)
         {
-            btAlly.GetComponentInChildren<TMP_Text>().text = team.heroes[1].name;
-            btAlly.SetActive(true);
-        }
-        btAlly = buttons.Find("BtAlly2").gameObject;
-        if (team.heroes.Count < 3)
-            btAlly.SetActive(false);
-        else
-        {
-            btAlly.GetComponentInChildren<TMP_Text>().text = team.heroes[2].name;
-            btAlly.SetActive(true);
+            GameObject btAlly = buttons.Find($"BtAlly{i}").gameObject;
+            if (i >= team.heroes.Count)
+                btAlly.SetActive(false);
+            else
+            {
+                btAlly.GetComponentInChildren<TMP_Text>().text = team.heroes[i].name;
+                btAlly.SetActive(true);
+            }
         }
     }
 
@@ -2404,7 +2407,7 @@ public class Game : MonoBehaviour
             return false;
         }
 
-        if (enemyList.Count > Team.MaxSize)
+        if (enemyList.Count > Combat.MaxEnemies)
         {
             ui.ShowDialog("Too many enemies.");
             return false;

@@ -11,9 +11,7 @@ hero:
 	untrack quest
 	defeat x enemies in region
 	capture bandits leader in forest
-+ allies
-	3rd ally
-	buy rations to match up player
++ allies buy rations to match up player
 + damage type
 	holy vs undead
 	hero fire/poison weapon
@@ -235,6 +233,8 @@ ui:
 + race/class portraits
 + map hight max zoom out
 + map zoom out relative to mouse position
++ button/key to switch to prev/next ally screen
++ click on enemy to remove target
 
 refactoring:
 + store worker assigned property as reference

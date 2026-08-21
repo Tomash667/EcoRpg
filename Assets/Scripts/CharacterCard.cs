@@ -19,7 +19,8 @@ public class CharacterCard : MonoBehaviour, IPointerClickHandler
         PoisonDamage,
         Confused,
         Summon,
-        Unsummon
+        Unsummon,
+        Move
     }
 
     public Sprite[] effectSprites;
@@ -27,6 +28,7 @@ public class CharacterCard : MonoBehaviour, IPointerClickHandler
     public object owner;
     public int slot;
 
+    private Vector2 fromPos, toPos;
     private Action action;
     private Effect addEffect, removeEffect;
     private float timer, prevPos, nextHp;
@@ -234,6 +236,15 @@ public class CharacterCard : MonoBehaviour, IPointerClickHandler
                 Destroy(gameObject);
             }
             break;
+        case Action.Move:
+            {
+                timer += Time.deltaTime;
+                RectTransform rectTransform = transform as RectTransform;
+                rectTransform.anchoredPosition = Vector2.Lerp(fromPos, toPos, timer / 0.3f);
+                if (timer >= 0.3f)
+                    action = Action.None;
+            }
+            break;
         }
     }
 
@@ -372,5 +383,13 @@ public class CharacterCard : MonoBehaviour, IPointerClickHandler
     public void SetColor(Color color)
     {
         GetComponent<Image>().color = color;
+    }
+
+    public void Move(Vector2 pos)
+    {
+        action = Action.Move;
+        timer = 0;
+        fromPos = position;
+        toPos = pos;
     }
 }

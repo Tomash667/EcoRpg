@@ -10,7 +10,8 @@ public static class Utility
         "one",
         "two",
         "three",
-        "four"
+        "four",
+        "five"
     };
 
     private static readonly Dictionary<string, string> plurals = new()
