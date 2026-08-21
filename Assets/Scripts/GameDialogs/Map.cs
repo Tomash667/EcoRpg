@@ -144,6 +144,16 @@ public class Map : GameDialog
         if ((targetPt == world.currentPt || path != null) && Input.GetMouseButtonDown(0))
             game.Travel(targetPt, !Input.GetKey(KeyCode.LeftShift));
 
+#if UNITY_EDITOR
+        if (targetPt != world.currentPt && path != null && Input.GetKeyDown(KeyCode.T))
+        {
+            game.Teleport(targetPt);
+            currentPos = PtToPos(world.currentPt);
+            flag.GetComponent<RectTransform>().anchoredPosition = currentPos;
+            arrow.gameObject.SetActive(false);
+        }
+#endif
+
         if (targetPt == lastCheckedPos)
             return;
 
@@ -284,9 +294,9 @@ public class Map : GameDialog
         inTravel = false;
     }
 
-    public void UpdateMap(Vector2Int pos)
+    public void UpdateMap(Vector2Int pt)
     {
-        int index = pos.x + pos.y * World.sizeX;
+        int index = pt.x + pt.y * World.sizeX;
         Tile tile = game.world.map[index];
         Image image = tilesContainer.GetChild(index).GetComponent<Image>();
         image.sprite = sprites[(int)tile.image];

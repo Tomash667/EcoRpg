@@ -162,6 +162,11 @@ public class Combat : GameDialog
             Time.timeScale = 1f;
 #endif
 
+        if (Input.GetKeyDown(KeyCode.H))
+            Heal();
+        if (Input.GetKeyDown(KeyCode.E))
+            Escape();
+
         delayedTexts.RemoveAll(delayedText =>
         {
             delayedText.delay -= Time.deltaTime;

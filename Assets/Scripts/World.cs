@@ -1031,4 +1031,10 @@ public class World
         int index = cityMapping[cityIndex];
         return map[index];
     }
+
+    public void Teleport(Vector2Int pt)
+    {
+        currentPt = pt;
+        RevealArea(currentPt, true);
+    }
 }

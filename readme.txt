@@ -35,6 +35,8 @@ X - exit or enter
 
 Combat:
 Left button - focus on enemy
+H - order heal
+E - order escape
 
 Shop/Craft:
 Left button - buy/sell/craft one

@@ -993,9 +993,16 @@ public class Game : MonoBehaviour
         UpdateText();
     }
 
-    public void RevealLocation(Vector2Int pos)
+    public void RevealLocation(Vector2Int pt)
     {
-        map.UpdateMap(pos);
+        map.UpdateMap(pt);
+    }
+
+    public void Teleport(Vector2Int pt)
+    {
+        world.Teleport(pt);
+        UpdateText();
+        traveled = true;
     }
 
     public void EnterSewers()
@@ -2109,7 +2116,11 @@ public class Game : MonoBehaviour
         }
         else
         {
-            text.Set($"{hero.name} and {bestHero.nameYou} create {Utility.Plural(recipe.result.name, totalCount)}. You receive {(totalCount == 1 ? "it" : "them")}.");
+            if (bestHero == player)
+                text.Set($"You and {hero.name} create {Utility.Plural(recipe.result.name, totalCount)}.");
+            else
+                text.Set($"{hero.name} and {bestHero.name} create {Utility.Plural(recipe.result.name, totalCount)}. You receive {(totalCount == 1 ? "it" : "them")}.");
+
             if (batches == 1)
             {
                 float trainMod = 1f + 0.01f * (alchemy - bonus - hero.GetSkill(Skill.Alchemy));
