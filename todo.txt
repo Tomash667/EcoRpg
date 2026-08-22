@@ -1,3 +1,7 @@
++ use bottom text
+- manage mansion text cutoff
+- you can manage house/mansion
+
 v3
 hero:
 + longer main quest that require investing
@@ -197,6 +201,8 @@ hero:
 + recruit hero from list
 + look for specific hero
 + race skills (dwarves higher chance to know mining or always have some, elf -> forage, etc)
++ quiver (poison, magic, fire)
++ skip time do two things (work & train etc)
 
 units:
 + last name
@@ -233,6 +239,7 @@ ui:
 + button/key to switch to prev/next ally screen
 + click on enemy to remove target
 + skills tooltip desc
++ text when ally drinks potion
 
 refactoring:
 + store worker assigned property as reference
@@ -290,6 +297,8 @@ investments:
 + infested property can be bought/sell at discount, no automatic clearing
 + close property
 + mansion upgrades -> training room(s)
++ can click at available buildings and see text/upgrades (but no manage/people/buy upgrades)
++ disaster -> not enough people -> increase payment or work at less eficiency
 
 skills:
 + haggle

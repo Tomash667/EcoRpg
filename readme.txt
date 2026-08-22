@@ -31,7 +31,7 @@ T - travel
 U - go up
 S - shop
 W - work
-X - exit or enter
+X - exit building
 
 Combat:
 Left button - focus on enemy
