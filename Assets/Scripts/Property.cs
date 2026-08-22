@@ -59,7 +59,7 @@ public class Property
     public Status status;
     public float infestedDifficultyMod;
     public int value, infestedCost, infestedDifficulty, income, upkeep, upkeepDiscount, buildPrice, buildPriceDiscount, buildTime, locationIndex, cityIndex, efficiency, lastManaged;
-    public bool multi, producer;
+    public bool multi, producer, farmedToday;
 
     public int Income
     {

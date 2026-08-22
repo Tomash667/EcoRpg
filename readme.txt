@@ -57,6 +57,7 @@ Mouse wheel - zoom in/out map
 
 Skills:
 Alchemy - create extra potions and better recipes
+Farming - more resources when working in garden, extra payment in farm
 Forage - more resources when foraging
 Management - improve property efficiency
 Mining - more resources when mining, extra payment in mine

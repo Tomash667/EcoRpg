@@ -1486,20 +1486,12 @@ public class Game : MonoBehaviour
         // grow garden plants
         foreach (Property property in player.properties.Where(x => x.gardenPlants != null && x.gardenPlants.Count > 0))
         {
-            foreach (var plant in property.gardenPlants.GroupBy(x => x).Select(x => (name: x.Key, count: x.Count())))
+            if (property.farmedToday)
+                property.farmedToday = false;
+            else
             {
-                switch (plant.name)
-                {
-                case "Vegetables":
-                    property.AddStoredItem(Item.Get("rations"), plant.count);
-                    break;
-                case "Herbs":
-                    property.AddStoredItem(Item.Get("herb"), plant.count);
-                    break;
-                case "Rare herbs":
-                    property.AddStoredItem(Item.Get("rare herb"), plant.count);
-                    break;
-                }
+                foreach (var plant in property.gardenPlants.GroupBy(x => x).Select(x => (name: x.Key, count: x.Count())))
+                    property.AddStoredItem(GardenScreen.PlantNameToItem(plant.name), plant.count);
             }
         }
 
@@ -2587,18 +2579,14 @@ public class Game : MonoBehaviour
         });
     }
 
-
-
-
-
-
-
     public Property GetPropertyHere()
     {
         return world.Location switch
         {
             TileType.City or TileType.Village => player.properties.FirstOrDefault(x => x.name == "Inn" && x.cityIndex == world.CityIndex),
             TileType.Sawmill or TileType.Mine or TileType.Farm => player.properties.FirstOrDefault(x => x.locationIndex == world.CurrentLocationIndex),
+            TileType.House => player.properties.FirstOrDefault(x => x.name == "House" && x.cityIndex == world.CityIndex),
+            TileType.Mansion => player.properties.FirstOrDefault(x => x.name == "Mansion" && x.cityIndex == world.CityIndex),
             _ => null
         };
     }

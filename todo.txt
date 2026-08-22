@@ -88,6 +88,7 @@ investments:
 + manage mansion from mansion
 + changing worker assignment takes travel time
 + higher upkeep for better workers
++ toggle - don't pay for gardener
 
 skills:
 + alchemy - mana potions
@@ -101,7 +102,6 @@ skills:
 
 work:
 + inn
-+ farming in your house -> don't pay for gardener
 
 world:
 + second region with city and villages
@@ -232,6 +232,7 @@ ui:
 + map zoom out relative to mouse position
 + button/key to switch to prev/next ally screen
 + click on enemy to remove target
++ skills tooltip desc
 
 refactoring:
 + store worker assigned property as reference
@@ -287,6 +288,8 @@ investments:
 + extra guards -> fortifications (use wood)
 + amazing efficiency can't prevent infestation but can better defend itself (need combat and different invastion types)
 + infested property can be bought/sell at discount, no automatic clearing
++ close property
++ mansion upgrades -> training room(s)
 
 skills:
 + haggle

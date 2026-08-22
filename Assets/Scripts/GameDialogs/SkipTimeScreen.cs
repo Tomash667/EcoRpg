@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class SkipTimeScreen : GameDialog
 {
+    public GardenScreen gardenScreen;
     public PropertiesScreen propertiesScreen;
 
     private string lastAction;
@@ -24,6 +25,9 @@ public class SkipTimeScreen : GameDialog
         TileType location = game.world.Location;
         if (location == TileType.City || location == TileType.Village || location == TileType.Mine || location == TileType.Sawmill || location == TileType.Farm)
             options.Add("Work");
+        if ((location == TileType.House && player.HavePropertyUpgrade("House", "Garden", game.world.CityIndex))
+            || (location == TileType.Mansion && player.HavePropertyUpgrade("Mansion", "Garden", game.world.CityIndex)))
+            options.Add("Work in garden");
         if (game.GetPropertyHere() != null)
             options.Add("Manage");
         if (location == TileType.City)
@@ -58,6 +62,7 @@ public class SkipTimeScreen : GameDialog
         lastDays = days;
 
         List<Hero> levelups = null;
+        List<ItemSlot> produce = null;
         Dictionary<Skill, int> prevSkills = player.skills.ToDictionary(x => x.Key, x => x.Value.level);
         Tile tile = game.world.CurrentTile;
         Property property = null;
@@ -70,10 +75,21 @@ public class SkipTimeScreen : GameDialog
             property = game.GetPropertyHere();
             prevEfficiency = property.efficiency;
         }
+        else if (action == "Work in garden")
+        {
+            property = game.GetPropertyHere();
+            if (!property.gardenPlants.Any(x => !string.IsNullOrEmpty(x)))
+            {
+                ui.ShowDialog("You need to plant something first.");
+                return;
+            }
+            produce = new();
+        }
 
         // skip first day if tired
-        if (((action == "Work" || action == "Train") && (player.energy < 50 || game.hour > 16))
-            || (action == "Manage" && (player.energy < 25 || game.hour > 16)))
+        if (((action == "Work" || action == "Work in garden" || action == "Train") && (player.energy < 50 || game.hour > 16))
+            || (action == "Manage" && (player.energy < 25 || game.hour > 16))
+            || (action == "Work in garden" && property.farmedToday))
         {
             game.OnRest(true);
             --days;
@@ -96,6 +112,9 @@ public class SkipTimeScreen : GameDialog
                 break;
             case "Work":
                 payment += game.DoWork(true);
+                break;
+            case "Work in garden":
+                gardenScreen.DoWork(property, null, produce);
                 break;
             case "Manage":
                 propertiesScreen.DoManage(property, null, false);
@@ -120,6 +139,9 @@ public class SkipTimeScreen : GameDialog
 
         if (payment > 0)
             text.Append($"You earned <color=#FFD700>{payment}</color> gold.");
+
+        if (produce != null)
+            text.Append($"You produced {Utility.PrettyList(produce.Select(x => Utility.Plural(x.item.name, x.count)))}.");
 
         if (levelups != null)
         {
