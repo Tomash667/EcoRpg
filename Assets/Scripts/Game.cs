@@ -883,12 +883,12 @@ public class Game : MonoBehaviour
 
     public void Work()
     {
-        if (hour > 16)
+        if (!world.CurrentTile.clear && world.Location.IsClearable())
+            text.Set($"You can't work while monsters occupy the {world.CurrentTile.Name}.");
+        else if (hour > 16)
             text.Set("It's too late to work.");
         else if (player.energy < 50)
             text.Set("You are too tired to work.");
-        else if (!world.CurrentTile.clear && world.Location.IsClearable())
-            text.Set($"You can't work while monsters occupy the {world.CurrentTile.Name}.");
         else
         {
             DoWork();
@@ -1107,6 +1107,8 @@ public class Game : MonoBehaviour
         }
         else if (tile.mine && tile.type == TileType.Cave)
             text.Append($"There are <b>{(tile.difficulty == 2 ? "silver" : "gold")} veins</b> inside this cave.");
+        else if (!tile.clear && tile.type.IsProperty())
+            text.Append("It's infested by monsters.");
 
         Property property = player.properties.FirstOrDefault(x => x.status == Property.Status.Building && x.locationIndex == world.CurrentLocationIndex);
         if (property != null)
@@ -2239,6 +2241,15 @@ public class Game : MonoBehaviour
     [ContextMenu("Refresh quests")]
     private void RefreshQuests()
     {
+        foreach (Quest quest in availableQuests.Where(x => x.type == Quest.Type.Clear))
+        {
+            Tile tile = world.GetLocation(quest.location);
+            if (tile.type.IsProperty())
+            {
+                tile.clear = true;
+                tile.timer = 0;
+            }
+        }
         availableQuests.Clear();
         GenerateInitialQuests();
         guildScreen.RefreshIfOpen();
@@ -2517,7 +2528,21 @@ public class Game : MonoBehaviour
         availableQuests.RemoveAll(quest =>
         {
             --quest.timer;
-            return quest.timer <= 0;
+            if (quest.timer <= 0)
+            {
+                if (quest.type == Quest.Type.Clear)
+                {
+                    Tile tile = world.GetLocation(quest.location);
+                    if (tile.type.IsProperty())
+                    {
+                        tile.clear = true;
+                        tile.timer = 0;
+                    }
+                }
+                return true;
+            }
+            else
+                return false;
         });
 
         // add new quests

@@ -102,6 +102,11 @@ public static class TileTypeMethods
         return tileType == TileType.Lake;
     }
 
+    public static bool IsProperty(this TileType tileType)
+    {
+        return tileType == TileType.Sawmill || tileType == TileType.Mine || tileType == TileType.Farm;
+    }
+
     public static int GetEnemiesCount(this TileType tileType)
     {
         return tileType switch

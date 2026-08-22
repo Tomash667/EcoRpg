@@ -71,6 +71,11 @@ public static class Utility
 
     public static string Plural(string word)
     {
+        // handle enchanted items: magic sword +1 -> magic swords +1
+        int plusPos = word.LastIndexOf('+');
+        if (plusPos != -1)
+            return Plural(word[..^3]) + word.Substring(word.Length - 3, 3);
+
         int spacePos = word.LastIndexOf(' ');
         if (spacePos != -1)
         {
