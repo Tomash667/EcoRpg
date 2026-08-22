@@ -34,6 +34,7 @@ public class PropertiesScreen : GameDialog
         RefreshDetails();
         transform.Find("List").gameObject.SetActive(true);
         transform.Find("BtManage").GetComponent<Button>().interactable = false;
+        game.Text.Clear();
         ui.ShowDialog(gameObject);
     }
 
@@ -49,8 +50,6 @@ public class PropertiesScreen : GameDialog
 
     protected override void Refresh()
     {
-        transform.Find("Text").GetComponent<TMP_Text>().text = game.Text.Flush();
-
         ItemEntryList list = transform.Find("List").GetComponent<ItemEntryList>();
         list.Clear();
         Transform content = transform.Find("List/Viewport/Content");
@@ -90,7 +89,7 @@ public class PropertiesScreen : GameDialog
                         if (worker != null)
                             worker.locationIndex = -1;
                         property.events.Clear();
-                        game.Text.Set($"You sell {property.Name.ToLower()} for <color=#FFD700>{property.value / 2}</color> gold.");
+                        ui.popup.Show($"You sell {property.Name.ToLower()} for <color=#FFD700>{property.value / 2}</color> gold.");
                         if (property.name == "House" || property.name == "Mansion" || (property.name == "Inn" && property.cityIndex == game.world.CityIndex))
                             game.UpdateButtons();
                         if (property.name == "Horses" || property.name == "Mansion")
@@ -243,7 +242,7 @@ public class PropertiesScreen : GameDialog
             else
                 str += "(none)";
         }
-        transform.Find("Text2").GetComponent<TMP_Text>().text = str;
+        transform.Find("Text").GetComponent<TMP_Text>().text = str;
 
         Transform content = transform.Find("Upgrades/Viewport/Content");
         foreach (Transform child in content)

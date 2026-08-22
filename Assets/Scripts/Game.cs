@@ -156,6 +156,12 @@ public class Game : MonoBehaviour
                     GoDown();
             }
 
+            if(Input.GetKeyDown(KeyCode.Q))
+            {
+                string[] texts = new string[] { "Jestem taki sam jak palec albo coœ tam!", "Lepiej by by³o jakbym nie by³ daltonist¹.", "Wyginam œmia³o cia³o, dla mnie to ma³o!" };
+                ui.popup.Show(texts.RandomItem());
+            }
+
             switch (world.CurrentTile.type)
             {
             case TileType.City:
@@ -167,8 +173,6 @@ public class Game : MonoBehaviour
                     Work();
                 if (Input.GetKeyDown(KeyCode.S))
                     shopScreen.Show();
-                if (Input.GetKeyDown(KeyCode.X))
-                    EnterSewers();
                 if (Input.GetKeyDown(KeyCode.H) && (player.HaveProperty("House", cityIndex: world.CityIndex) || player.HaveProperty("Mansion", cityIndex: world.CityIndex)))
                     EnterHouse();
                 if (Input.GetKeyDown(KeyCode.M) && player.HaveProperty("Inn", cityIndex: world.CityIndex))

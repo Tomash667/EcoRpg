@@ -16,6 +16,7 @@ public class GameUI : MonoBehaviour
     public Sprite[] propertyIcons;
     public Sprite[] itemIcons;
     public GameObject itemEntryPrefab, lineSeparatorPrefab, textHeaderPrefab, dropdownEntryPrefab;
+    public Popup popup;
 
     [NonSerialized]
     public bool lockDialog;
