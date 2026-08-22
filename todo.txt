@@ -91,7 +91,6 @@ investments:
 
 skills:
 + alchemy - mana potions
-+ farming
 + strength
 + endurance
 + intelligence
@@ -197,6 +196,7 @@ hero:
 + alignment good/neutral/evil
 + recruit hero from list
 + look for specific hero
++ race skills (dwarves higher chance to know mining or always have some, elf -> forage, etc)
 
 units:
 + last name

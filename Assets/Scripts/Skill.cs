@@ -7,7 +7,8 @@ public enum Skill
     Mining,
     Woodcraft,
     Management,
-    Forage
+    Forage,
+    Farming
 }
 
 public class SkillEntry
@@ -26,7 +27,7 @@ public class SavedSkillEntry
 
 public static class SkillMethods
 {
-    public static readonly Skill[] allRandom = new[] { Skill.None, Skill.Alchemy, Skill.Mining, Skill.Woodcraft, Skill.Management, Skill.Forage };
+    public static readonly Skill[] allRandom = new[] { Skill.None, Skill.Alchemy, Skill.Mining, Skill.Woodcraft, Skill.Management, Skill.Forage, Skill.Farming };
 
     public static string AsString(this Skill skill)
     {
@@ -37,6 +38,7 @@ public static class SkillMethods
             Skill.Woodcraft => "woodcraft",
             Skill.Management => "management",
             Skill.Forage => "forage",
+            Skill.Farming => "farming",
             _ => $"[ERROR skill {skill}]"
         };
     }

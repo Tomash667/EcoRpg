@@ -12,7 +12,7 @@ public class CharacterScreen : GameDialog
 
     protected override void Refresh()
     {
-        TMP_Text charText = transform.Find("Text").GetComponent<TMP_Text>();
+        TMP_Text charText = transform.Find("TextScroll/Viewport/Content/Text").GetComponent<TMP_Text>();
         sb.Clear();
         sb.Append($"{player.GenderSign}{player.name}\n" +
             $"Race: {player.race.AsString()}\n" +

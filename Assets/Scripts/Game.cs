@@ -913,6 +913,10 @@ public class Game : MonoBehaviour
             payment = 20 + world.CurrentTile.difficulty * 10;
             skill = Skill.Mining;
             break;
+        case TileType.Farm:
+            payment = 15;
+            skill = Skill.Farming;
+            break;
         case TileType.City:
             payment = 20;
             skill = Skill.None;
