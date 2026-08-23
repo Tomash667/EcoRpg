@@ -2082,7 +2082,7 @@ public class Game : MonoBehaviour
         UpdateText();
     }
 
-    public void DoAlchemy(Hero hero, Item item)
+    public void DoAlchemy(Hero hero, Item item, TextBuilder tb)
     {
         (Hero bestHero, int alchemy) = team.GetSkill(Skill.Alchemy);
         int bonus = 0;
@@ -2108,20 +2108,16 @@ public class Game : MonoBehaviour
         player.AddItem(recipe.result, totalCount);
         if (hero == bestHero)
         {
-            text.Set($"{hero.name} creates {Utility.Plural(recipe.result.name, totalCount)} and gives {(totalCount == 1 ? "it" : "them")} to you.");
+            tb.Append($"{hero.He} creates {Utility.Plural(recipe.result.name, totalCount)} and gives {(totalCount == 1 ? "it" : "them")} to you.");
             hero.Train(Skill.Alchemy, null, recipe.trainMod * count);
         }
         else
         {
-            if (bestHero == player)
-                text.Set($"You and {hero.name} create {Utility.Plural(recipe.result.name, totalCount)}.");
-            else
-                text.Set($"{hero.name} and {bestHero.name} create {Utility.Plural(recipe.result.name, totalCount)}. You receive {(totalCount == 1 ? "it" : "them")}.");
-
+            tb.Append($"{hero.He} with {bestHero.nameYour} help create {Utility.Plural(recipe.result.name, totalCount)}. You receive {(totalCount == 1 ? "it" : "them")}.");
             if (batches == 1)
             {
                 float trainMod = 1f + 0.01f * (alchemy - bonus - hero.GetSkill(Skill.Alchemy));
-                bestHero.Train(Skill.Alchemy, bestHero == player ? text : null, recipe.trainMod * count);
+                bestHero.Train(Skill.Alchemy, bestHero == player ? tb : null, recipe.trainMod * count);
                 hero.Train(Skill.Alchemy, null, recipe.trainMod * trainMod * count);
             }
             else
@@ -2136,7 +2132,7 @@ public class Game : MonoBehaviour
                     hero.Train(Skill.Alchemy, null, recipe.trainMod * trainMod * currentCount);
                 }
                 if (bestHero == player)
-                    bestHero.CheckSkillIncrease(Skill.Alchemy, prevSkill, text);
+                    bestHero.CheckSkillIncrease(Skill.Alchemy, prevSkill, tb);
             }
         }
 

@@ -21,22 +21,32 @@ public class GiveItemsScreen : GameDialog
                         if (itemSlot.item.type == Item.Type.Weapon || itemSlot.item.type == Item.Type.Armor || itemSlot.item.type == Item.Type.Shield
                             || !(Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.LeftControl)))
                         {
+                            tb.Append($"You give {ally.name} {Utility.A(itemSlot.item.name)}.");
                             if (itemSlot.team)
+                            {
+                                tb.Append($"{ally.He} takes it for {ally.himself}.");
                                 game.team.PayForItem(ally, itemSlot.item);
+                            }
                             else
-                                ally.IncreaseAffectionFromValue(itemSlot.item, 1);
-                            ally.GiveItem(itemSlot.item);
+                                ally.IncreaseAffectionFromValue(itemSlot.item, 1, tb);
+                            ally.GiveItem(itemSlot.item, 1, tb);
+                            game.AddText(tb.Flush());
                             player.RemoveItem(itemSlot);
                             RefreshIfOpen();
                             game.UpdateText();
                         }
                         else if (Input.GetKey(KeyCode.LeftShift))
                         {
+                            tb.Append($"You give {ally.name} {Utility.P(itemSlot.item.name, itemSlot.count)}.");
                             if (itemSlot.team)
+                            {
+                                tb.Append($"{ally.He} takes {(itemSlot.count > 1 ? "them" : "it")} for {ally.himself}.");
                                 game.team.PayForItem(ally, itemSlot.item, itemSlot.count);
+                            }
                             else
-                                ally.IncreaseAffectionFromValue(itemSlot.item, itemSlot.count);
-                            ally.GiveItem(itemSlot.item, itemSlot.count);
+                                ally.IncreaseAffectionFromValue(itemSlot.item, itemSlot.count, tb);
+                            ally.GiveItem(itemSlot.item, itemSlot.count, tb);
+                            game.AddText(tb.Flush());
                             player.RemoveItem(itemSlot, itemSlot.count);
                             RefreshIfOpen();
                             game.UpdateText();
@@ -48,11 +58,16 @@ public class GiveItemsScreen : GameDialog
                                 if (count <= 0)
                                     return true;
                                 count = Mathf.Min(count, itemSlot.count);
+                                tb.Append($"You give {ally.name} {Utility.P(itemSlot.item.name, count)}.");
                                 if (itemSlot.team)
+                                {
+                                    tb.Append($"{ally.He} takes {(count > 1 ? "them" : "it")} for {ally.himself}.");
                                     game.team.PayForItem(ally, itemSlot.item, count);
+                                }
                                 else
-                                    ally.IncreaseAffectionFromValue(itemSlot.item, count);
-                                ally.GiveItem(itemSlot.item, count);
+                                    ally.IncreaseAffectionFromValue(itemSlot.item, count, tb);
+                                ally.GiveItem(itemSlot.item, count, tb);
+                                game.AddText(tb.Flush());
                                 player.RemoveItem(itemSlot, count);
                                 RefreshIfOpen();
                                 game.UpdateText();

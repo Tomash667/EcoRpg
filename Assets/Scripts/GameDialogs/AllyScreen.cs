@@ -87,12 +87,13 @@ public class AllyScreen : GameDialog
     {
         if (!game.world.Location.IsSafe())
         {
-            ui.ShowDialog("You can only remove your allies in city or village.");
+            ui.ShowDialog("You can only remove your allies in a city or village.");
             return;
         }
 
         ui.ShowConfirm($"Are you sure you want to remove {ally.name} from your team?", () =>
         {
+            game.AddText($"You remove {ally.name} from your team.");
             game.Text.Set($"{ally.name} is sad and leave.");
             game.team.heroes.Remove(ally);
             game.team.CancelOutDebts();
@@ -109,9 +110,11 @@ public class AllyScreen : GameDialog
             count = Mathf.Min(count, player.gold);
             if (count <= 0)
                 return true;
+            tb.Append($"You give {ally.name} {count} gold.");
             player.AddGold(-count);
             ally.AddGold(count);
-            ally.IncreaseAffectionFromValue(count);
+            ally.IncreaseAffectionFromValue(count, tb);
+            game.AddText(tb.Flush());
             Refresh();
             game.UpdateText();
             return true;

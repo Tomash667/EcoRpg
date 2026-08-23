@@ -5,6 +5,7 @@ public abstract class GameDialog : MonoBehaviour
     public static Game game;
     public static GameUI ui;
     public static Player player;
+    public static readonly TextBuilder tb = new();
 
     public virtual bool Autoclose => true;
     public bool IsOpen => ui.IsOpen(gameObject);

@@ -103,10 +103,9 @@ public class CharacterScreen : GameDialog
                 {
                     itemEntry.Init2(itemSlot.ToString(Price.None), "Equip", () =>
                     {
-                        string str = string.Empty;
                         if (itemSlot.team)
                         {
-                            str = $"You take {Utility.A(itemSlot.item.name)} for yourself. ";
+                            tb.Append($"You take {Utility.A(itemSlot.item.name)} for yourself.");
                             game.team.PayForItem(player, itemSlot.item);
                         }
 
@@ -130,11 +129,11 @@ public class CharacterScreen : GameDialog
                         if (prevItem != null)
                         {
                             player.AddItem(prevItem);
-                            str += $"You equip {Utility.A(itemSlot.item.name)} and put your old {prevItem.name} into backpack.";
+                            tb.Append($"You equip {Utility.A(itemSlot.item.name)} and put your old {prevItem.name} into backpack.");
                         }
                         else
-                            str += $"You equip {Utility.A(itemSlot.item.name)}.";
-                        game.AddText(str);
+                            tb.Append($"You equip {Utility.A(itemSlot.item.name)}.");
+                        game.AddText(tb.Flush());
                         player.RemoveItem(itemSlot);
                         Refresh();
                         game.UpdateText();
@@ -144,10 +143,10 @@ public class CharacterScreen : GameDialog
                 {
                     itemEntry.Init2(itemSlot.ToString(Price.None), "Use", () =>
                     {
-                        string str = $"You {(itemSlot.item.drink ? "drink" : "eat")} {Utility.A(itemSlot.item.name)}.";
+                        tb.Append($"You {(itemSlot.item.drink ? "drink" : "eat")} {Utility.A(itemSlot.item.name)}.");
                         if (player.hp != player.hpMax)
-                            str += " Your wounds heal.";
-                        game.AddText(str);
+                            tb.Append("Your wounds heal.");
+                        game.AddText(tb.Flush());
                         player.hp = Mathf.Min(player.hp + itemSlot.item.power, player.hpMax);
                         player.RemoveItem(itemSlot);
                         Refresh();

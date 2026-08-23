@@ -1,14 +1,11 @@
 + use bottom text
-	ally
 	combat (start)
 	craft
 	garden
 	game
-	give item
 	map
 	people
 	properties
-	shop
 - manage mansion text cutoff
 - you can manage house/mansion
 - You cooked 1 pieces of meat into rations.
@@ -75,8 +72,6 @@ ui:
 + smoother travel
 + ok/confirm dialog auto size
 	- recruit text too long
-+ show text on ally craft, apply to other texts not shown
-	show affection change from give gold/item
 + Utility.Plural should inclue a/an (sometimes?)
 + show item value on character screen (and other places?)
 + new game class description
@@ -125,6 +120,8 @@ world:
 + month, year
 
 ---------------------------------------------------------------------------------------------------
++ save & load game
+
 hero:
 + tutorial
 + classes
@@ -253,6 +250,7 @@ ui:
 + text when ally drinks potion
 + log paying debt
 + store/buy/sell/give/drop show max count in dialog
++ log ally buy/enchant items
 
 refactoring:
 + store worker assigned property as reference

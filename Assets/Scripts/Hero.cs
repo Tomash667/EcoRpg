@@ -70,9 +70,12 @@ public class Hero : ISerializationCallbackReceiver
     public bool BackRow => clas == Class.Archer;
     public char GenderSign => female ? '♀' : '♂';
     public virtual string nameYou => name;
+    public virtual string nameYour => name;
     public virtual string NameYou => name;
     public virtual string He => female ? "She" : "He";
     public virtual string him => female ? "her" : "him";
+    public string himself => female ? "herself" : "himself";
+    public string His => female ? "Her" : "His";
     public virtual string isAre => "is";
     public string Portrait => $"Portraits/{(female ? "female" : "male")} {clas.AsString()}";
 
@@ -369,11 +372,12 @@ public class Hero : ISerializationCallbackReceiver
         }
     }
 
-    public void GiveItem(Item item, int count = 1)
+    public void GiveItem(Item item, int count, TextBuilder text)
     {
         switch (item.type)
         {
         case Item.Type.Weapon:
+            text.Append("He equips it.");
             if (weapon != null)
             {
                 if (Global.Location.IsSafe())
@@ -384,6 +388,7 @@ public class Hero : ISerializationCallbackReceiver
             weapon = item;
             break;
         case Item.Type.Armor:
+            text.Append("He equips it.");
             if (armor != null)
             {
                 if (Global.Location.IsSafe())
@@ -394,6 +399,7 @@ public class Hero : ISerializationCallbackReceiver
             armor = item;
             break;
         case Item.Type.Shield:
+            text.Append("He equips it.");
             if (shield != null)
             {
                 if (Global.Location.IsSafe())
@@ -406,7 +412,7 @@ public class Hero : ISerializationCallbackReceiver
         case Item.Type.Usable:
             AddItem(item, count);
             if (item.subtype == Item.Subtype.Ingredient)
-                Global.Game.DoAlchemy(this, item);
+                Global.Game.DoAlchemy(this, item, text);
             break;
         default:
             AddItem(item, count);
@@ -742,7 +748,7 @@ public class Hero : ISerializationCallbackReceiver
             return word + 's';
     }
 
-    public void ChangeAffection(int value)
+    public void ChangeAffection(int value, TextBuilder text)
     {
         if (value > 0)
         {
@@ -755,24 +761,26 @@ public class Hero : ISerializationCallbackReceiver
                 return;
         }
 
+        int prevAffection = affection;
         affection = Mathf.Clamp(affection + value, -100, 100);
+        text?.Append(value > 0 ? $"{His} affection increased by {affection - prevAffection}." : $"{His} affection decreased by {prevAffection - affection}");
     }
 
-    public void IncreaseAffectionFromValue(Item item, int count)
+    public void IncreaseAffectionFromValue(Item item, int count, TextBuilder text)
     {
         if (item.type == Item.Type.Usable && item.subtype == Item.Subtype.Ingredient)
             return; // ingredients are turned into potion and given back
-        IncreaseAffectionFromValue(item.value * count);
+        IncreaseAffectionFromValue(item.value * count, text);
     }
 
-    public void IncreaseAffectionFromValue(int value)
+    public void IncreaseAffectionFromValue(int value, TextBuilder text)
     {
         int affectionGain = ValueToAffectionGain(value);
         int actualAffectionGain = affectionGain - lastGift;
         if (actualAffectionGain > 0)
         {
             lastGift = affectionGain;
-            ChangeAffection(actualAffectionGain);
+            ChangeAffection(actualAffectionGain, text);
         }
     }
 }
