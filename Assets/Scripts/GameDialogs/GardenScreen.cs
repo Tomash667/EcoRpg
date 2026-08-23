@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class GardenScreen : GameDialog
 {
-    protected override void Refresh()
+    public override void Refresh()
     {
         Transform content = transform.Find("List/Viewport/Content");
         foreach (Transform child in content)
@@ -142,7 +142,7 @@ public class GardenScreen : GameDialog
     {
         return name switch
         {
-            "Vegetables" => Item.Get("rations"),
+            "Vegetables" => Item.Get("ration"),
             "Herbs" => Item.Get("herb"),
             "Rare herbs" => Item.Get("rare herb"),
             _ => null

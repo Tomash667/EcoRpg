@@ -5,7 +5,7 @@ public class GiveItemsScreen : GameDialog
     public AllyScreen allyScreen;
     public CharacterScreen characterScreen;
 
-    protected override void Refresh()
+    public override void Refresh()
     {
         Hero ally = allyScreen.Ally;
 

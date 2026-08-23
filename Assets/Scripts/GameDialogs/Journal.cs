@@ -9,7 +9,7 @@ public class Journal : GameDialog
 {
     private readonly StringBuilder sb = new();
 
-    protected override void Refresh()
+    public override void Refresh()
     {
         bool notificationChanges = false;
 

@@ -44,13 +44,12 @@ public class Game : MonoBehaviour
     private Combat combatScreen;
     private CraftScreen craftScreen;
     private GardenScreen gardenScreen;
-    private GiveItemsScreen giveItemsScreen;
     private GuildScreen guildScreen;
     private Journal journal;
     private Map map;
     private PropertiesScreen propertiesScreen;
     private ShopScreen shopScreen;
-    private TMP_Text mainText;
+    private TMP_Text mainText, bottomText;
     private readonly StringBuilder sb = new();
     private readonly TextBuilder text = new();
     private System.Action<bool> choiceAction;
@@ -70,11 +69,11 @@ public class Game : MonoBehaviour
 
         ui = GetComponent<GameUI>();
         mainText = transform.Find("Text").GetComponent<TMP_Text>();
+        bottomText = transform.Find("BottomText/Text").GetComponent<TMP_Text>();
         shopScreen = transform.Find("Shop").GetComponent<ShopScreen>();
         characterScreen = transform.Find("Character").GetComponent<CharacterScreen>();
         journal = transform.Find("Journal").GetComponent<Journal>();
         allyScreen = transform.Find("Ally").GetComponent<AllyScreen>();
-        giveItemsScreen = transform.Find("GiveItems").GetComponent<GiveItemsScreen>();
         propertiesScreen = transform.Find("Properties").GetComponent<PropertiesScreen>();
         guildScreen = transform.Find("Guild").GetComponent<GuildScreen>();
         gardenScreen = transform.Find("Garden").GetComponent<GardenScreen>();
@@ -299,8 +298,8 @@ public class Game : MonoBehaviour
         {
             // old camp
             int count = Utility.Random(1, 4);
-            player.AddItem(Item.Get("rations"), count);
-            text.Append($"You explore the {tile.Name} and find old camp. You pick up <b>{Utility.Plural("rations", count)}</b>.");
+            player.AddItem(Item.Get("ration"), count);
+            text.Append($"You explore the {tile.Name} and find old camp. You pick up <b>{Utility.Plural("ration", count)}</b>.");
         }
         else if (c == 8 && tile.type == TileType.Dungeon && (!tile.foundTreasure || Utility.Rand % 2 == 0))
         {
@@ -800,18 +799,18 @@ public class Game : MonoBehaviour
                 if (goldTaken > 0)
                     goldTaken = team.RemoveGold(Utility.Round(goldTaken));
                 if (rationsTaken > 0)
-                    rationsTaken = team.RemoveItem(Item.Get("rations"), rationsTaken);
+                    rationsTaken = team.RemoveItem(Item.Get("ration"), rationsTaken);
 
                 string lost = null;
                 if (goldTaken > 0)
                 {
                     if (rationsTaken > 0)
-                        lost = $"<color=#FFD700>{goldTaken}</color> gold and {rationsTaken} rations lost";
+                        lost = $"<color=#FFD700>{goldTaken}</color> gold and {Utility.P("ration", rationsTaken)} lost";
                     else
                         lost = $"<color=#FFD700>{goldTaken}</color> gold lost";
                 }
                 else
-                    lost = $"{rationsTaken} rations lost";
+                    lost = $"{Utility.P("ration", rationsTaken)} lost";
 
                 if (lost == null)
                     text.Set($"You <color=red>lost</color> a fight with <b>{Utility.PrettyGroup(enemyList.Select(x => x.name))}</b>.");
@@ -1300,9 +1299,9 @@ public class Game : MonoBehaviour
                 energy = 50;
             }
 
-            Item rations = Item.Get("rations");
+            Item ration = Item.Get("ration");
             int count = team.heroes.Count;
-            int eaten = team.RemoveItem(rations, count);
+            int eaten = team.RemoveItem(ration, count);
             float heal;
             if (eaten > 0)
             {
@@ -1995,8 +1994,8 @@ public class Game : MonoBehaviour
                     text.Set($"You forage the {tile.Name} and with {bestHero.name} help find <b>{Utility.Plural(herb.name, count)}</b>.");
                     if (Utility.Rand % 100 < bestValue)
                     {
-                        text.Append($"You also find some edible {(Utility.Rand % 2 == 0 ? "fruits" : "vegetables")} (<b>+1 rations</b>).");
-                        player.AddItem(Item.Get("rations"));
+                        text.Append($"You also find some edible {(Utility.Rand % 2 == 0 ? "fruits" : "vegetables")} (<b>+1 ration</b>).");
+                        player.AddItem(Item.Get("ration"));
                     }
                     player.Train(Skill.Forage, text, 0.25f * trainMod);
                     bestHero.Train(Skill.Forage, null, 0.25f);
@@ -2006,8 +2005,8 @@ public class Game : MonoBehaviour
                     text.Set($"You forage the {tile.Name} and find <b>{Utility.Plural(herb.name, count)}</b>.");
                     if (Utility.Rand % 100 < bestValue)
                     {
-                        text.Append($"You also find some edible {(Utility.Rand % 2 == 0 ? "fruits" : "vegetables")} (<b>+1 rations</b>).");
-                        player.AddItem(Item.Get("rations"));
+                        text.Append($"You also find some edible {(Utility.Rand % 2 == 0 ? "fruits" : "vegetables")} (<b>+1 ration</b>).");
+                        player.AddItem(Item.Get("ration"));
                     }
                     player.Train(Skill.Forage, text, 0.25f);
                 }
@@ -2270,7 +2269,7 @@ public class Game : MonoBehaviour
                 hero.weapon = Item.Get("magic bow");
             hero.armor = Item.Get("magic armor");
             hero.AddItem(Item.Get("elixir"), 100);
-            hero.AddItem(Item.Get("rations"), 1000 - hero.CountItem(Item.Get("rations")));
+            hero.AddItem(Item.Get("ration"), 1000 - hero.CountItem(Item.Get("ration")));
             hero.gold = Mathf.Max(hero.gold, 100000);
             hero.owedGold = 0;
         }
@@ -2285,6 +2284,7 @@ public class Game : MonoBehaviour
             properties.Remove(property);
         }
 
+        ui.RefreshGameDialogIfOpen();
         UpdateText();
         UpdateButtons();
     }
@@ -2328,9 +2328,9 @@ public class Game : MonoBehaviour
                 ui.ShowDialog($"You don't have {count} pieces of meat.");
                 return false;
             }
-            Item rations = Item.Get("rations");
+            Item ration = Item.Get("ration");
             player.RemoveItem(meat, count);
-            player.AddItem(rations, count);
+            player.AddItem(ration, count);
             text.Set($"You cooked {count} pieces of meat into rations.");
             AddTime(minutes: count * 5);
             guildScreen.RefreshIfOpen();
@@ -2503,7 +2503,10 @@ public class Game : MonoBehaviour
         }
 
         if (count > 0)
+        {
             player.AddItem(item, count, team);
+            ui.RefreshGameDialogIfOpen();
+        }
         return true;
     }
 
@@ -2661,5 +2664,10 @@ public class Game : MonoBehaviour
                 text.Clear();
             UpdateText();
         });
+    }
+
+    public void AddText(string str)
+    {
+        bottomText.text = str;
     }
 }

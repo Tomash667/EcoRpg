@@ -512,7 +512,7 @@ public class World
 
         Game game = Global.Game;
         int step = 1;
-        int rations = game.team.CountItem(Item.Get("rations"));
+        int rations = game.team.CountItem(Item.Get("ration"));
         int teamSize = game.team.heroes.Count;
         int freshHorses = 0;
         float speed = RationsToSpeed(rations, teamSize);
@@ -637,7 +637,7 @@ public class World
         Game game = Global.Game;
         List<Vector2Int> path = FindPath(currentPt, pt);
         int step = 1;
-        Item rationsItem = Item.Get("rations");
+        Item rationsItem = Item.Get("ration");
         int rations = game.team.CountItem(rationsItem);
         int teamSize = game.team.heroes.Count;
         int freshHorses = 0;

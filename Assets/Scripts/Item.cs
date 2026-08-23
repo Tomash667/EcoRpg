@@ -52,6 +52,7 @@ public class Item
     public Type type;
     public Subtype subtype;
     public int level, power, value;
+    public bool drink;
 
     public bool CanEnchant()
     {
@@ -445,7 +446,8 @@ public class Item
             desc = "100 heal",
             type = Type.Usable,
             power = 100,
-            value = 10
+            value = 10,
+            drink = true
         },
         new()
         {
@@ -453,11 +455,12 @@ public class Item
             desc = "200 heal",
             type = Type.Usable,
             power = 200,
-            value = 20
+            value = 20,
+            drink = true
         },
         new()
         {
-            name = "rations",
+            name = "ration",
             desc = "traveler's food",
             type = Type.Other,
             value = 5
@@ -534,7 +537,7 @@ public class Item
         Get("iron shield"),
         Get("steel shield"),
         Get("dwarven shield"),
-        Get("rations"),
+        Get("ration"),
         Get("potion"),
         Get("elixir"),
         Get("tent"),
@@ -557,7 +560,7 @@ public class Item
         Get("wooden shield"),
         Get("iron shield"),
         Get("steel shield"),
-        Get("rations"),
+        Get("ration"),
         Get("potion"),
         Get("tent"),
         Get("pickaxe")

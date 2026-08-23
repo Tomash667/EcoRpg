@@ -16,7 +16,7 @@ public class AllyScreen : GameDialog
         base.Show();
     }
 
-    protected override void Refresh()
+    public override void Refresh()
     {
         TMP_Text charText = transform.Find("TextScroll/Viewport/Content/Text").GetComponent<TMP_Text>();
         sb.Clear();

@@ -36,7 +36,7 @@ public class PeopleScreen : GameDialog
         ui.ShowDialog(gameObject);
     }
 
-    protected override void Refresh()
+    public override void Refresh()
     {
         // header
         TMP_Text header = transform.Find("Header").GetComponent<TMP_Text>();

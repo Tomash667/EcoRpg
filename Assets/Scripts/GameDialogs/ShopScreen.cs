@@ -10,7 +10,7 @@ public class ShopScreen : GameDialog
         base.Show();
     }
 
-    protected override void Refresh()
+    public override void Refresh()
     {
         characterScreen.PopulateInventory(gameObject,
             (itemEntry, item) => itemEntry.Init(item.ToString(Price.Sell)),

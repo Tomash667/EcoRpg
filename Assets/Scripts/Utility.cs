@@ -21,7 +21,6 @@ public static class Utility
         ["harpy"] = "harpies",
         ["meat"] = "meat",
         ["mummy"] = "mummies",
-        ["rations"] = "rations",
         ["trophy"] = "trophies",
         ["wolf"] = "wolves"
     };
@@ -51,9 +50,9 @@ public static class Utility
     {
         char c = word[0];
         if (c == 'a' || c == 'e' || c == 'i' || c == 'o' || c == 'u' || c == 'A' || c == 'E' || c == 'I' || c == 'O' || c == 'U')
-            return "an";
+            return "an " + word;
         else
-            return "a";
+            return "a " + word;
     }
 
     public static string S(string word, bool addS, string optional = null)
@@ -88,6 +87,14 @@ public static class Utility
         if (word.EndsWith('s') || word.EndsWith("ch"))
             return word + "es";
         return word + 's';
+    }
+
+    public static string P(string word, int count)
+    {
+        if (count == 1)
+            return A(word);
+        else
+            return $"{count} {Plural(word)}";
     }
 
     public static string Plural(string word, int count, bool alwaysShowNumber = false)

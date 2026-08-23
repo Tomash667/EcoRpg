@@ -4,7 +4,7 @@ public class StoreItemsScreen : GameDialog
 {
     public CharacterScreen characterScreen;
 
-    protected override void Refresh()
+    public override void Refresh()
     {
         Property property = game.GetPropertyInside();
 

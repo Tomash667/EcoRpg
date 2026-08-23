@@ -150,7 +150,7 @@ public class Hero : ISerializationCallbackReceiver
             weapon = Item.Get("short bow");
         armor = Item.Get("leather armor");
         AddItem(Item.Get("potion"));
-        AddItem(Item.Get("rations"), 3);
+        AddItem(Item.Get("ration"), 3);
     }
 
     public void InitCombat()
@@ -346,7 +346,7 @@ public class Hero : ISerializationCallbackReceiver
             Item.Type.Armor => CanEquip(item) && (armor == null || armor.power < item.power),
             Item.Type.Shield => CanEquip(item) && (shield == null || shield.power < item.power),
             Item.Type.Usable => item.subtype == Item.Subtype.None || HaveItem("alchemy set"),
-            Item.Type.Other => item.name == "rations",
+            Item.Type.Other => item.name == "ration",
             _ => false
         };
     }
@@ -431,17 +431,17 @@ public class Hero : ISerializationCallbackReceiver
         });
 
         // buy rations/potions
-        Item rations = Item.Get("rations"), potion = Item.Get(hpMax >= 200 ? "elixir" : "potion"), elixir = Item.Get("elixir");
+        Item ration = Item.Get("ration"), potion = Item.Get(hpMax >= 200 ? "elixir" : "potion"), elixir = Item.Get("elixir");
         Item healingItem = (hpMax >= 200 && isCity) ? elixir : potion;
-        int rationsCount = CountItem(rations), potionsCount = CountItem(potion), elixirCount = CountItem(elixir);
+        int rationsCount = CountItem(ration), potionsCount = CountItem(potion), elixirCount = CountItem(elixir);
         int healingItemCount = potionsCount + elixirCount;
         int requiredRations = 5 + level / 2;
-        while ((rationsCount < requiredRations && gold >= rations.value) || (healingItemCount < 5 && gold >= healingItem.value))
+        while ((rationsCount < requiredRations && gold >= ration.value) || (healingItemCount < 5 && gold >= healingItem.value))
         {
             if (rationsCount < requiredRations)
             {
-                gold -= rations.value;
-                AddItem(rations);
+                gold -= ration.value;
+                AddItem(ration);
                 ++rationsCount;
             }
 

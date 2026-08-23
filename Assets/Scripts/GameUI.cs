@@ -197,4 +197,11 @@ public class GameUI : MonoBehaviour
     {
         return dialogs.Contains(dialog);
     }
+
+    public void RefreshGameDialogIfOpen()
+    {
+        GameObject dialog = CurrentDialog;
+        if (dialog != null && dialog.TryGetComponent(out GameDialog gameDialog))
+            gameDialog.Refresh();
+    }
 }

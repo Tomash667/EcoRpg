@@ -47,7 +47,7 @@ public class PropertiesScreen : GameDialog
         ui.ShowDialog(gameObject);
     }
 
-    protected override void Refresh()
+    public override void Refresh()
     {
         transform.Find("Text").GetComponent<TMP_Text>().text = game.Text.Flush();
 

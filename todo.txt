@@ -1,6 +1,20 @@
 + use bottom text
+	ally
+	combat (start)
+	craft
+	enchant item
+	garden
+	game
+	give item
+	journal
+	map
+	people
+	properties
+	shop
+	store items
 - manage mansion text cutoff
 - you can manage house/mansion
+- You cooked 1 pieces of meat into rations.
 
 v3
 hero:
@@ -240,6 +254,7 @@ ui:
 + click on enemy to remove target
 + skills tooltip desc
 + text when ally drinks potion
++ log paying debt
 
 refactoring:
 + store worker assigned property as reference

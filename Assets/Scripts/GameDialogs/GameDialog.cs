@@ -16,7 +16,7 @@ public abstract class GameDialog : MonoBehaviour
         AfterShow();
     }
 
-    protected virtual void Refresh()
+    public virtual void Refresh()
     {
     }
 

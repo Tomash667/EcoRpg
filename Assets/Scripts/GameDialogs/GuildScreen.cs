@@ -27,7 +27,7 @@ public class GuildScreen : GameDialog
         }
     }
 
-    protected override void Refresh()
+    public override void Refresh()
     {
         // text
         string guildText = game.Text.Flush();
@@ -295,7 +295,7 @@ public class GuildScreen : GameDialog
             skill = string.Empty;
 
         ui.ShowConfirm($"You meet <b>{hero.name} the {hero.race.AsString()}</b> and talk with {hero.him} about adventurers. " +
-            $"{hero.He} is {Utility.A(levelName)} <b>{levelName} {hero.clas.AsString()}</b>{skill}. Do you want to recruit {hero.him}?", yes =>
+            $"{hero.He} is <b>{Utility.A(levelName)} {hero.clas.AsString()}</b>{skill}. Do you want to recruit {hero.him}?", yes =>
             {
                 int chance = 100 + (player.level - hero.level) * 5;
                 if (Utility.Rand % 100 < chance)

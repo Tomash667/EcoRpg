@@ -10,7 +10,7 @@ public class CharacterScreen : GameDialog
 
     private readonly StringBuilder sb = new();
 
-    protected override void Refresh()
+    public override void Refresh()
     {
         TMP_Text charText = transform.Find("TextScroll/Viewport/Content/Text").GetComponent<TMP_Text>();
         sb.Clear();
@@ -48,6 +48,7 @@ public class CharacterScreen : GameDialog
             {
                 itemEntry.Init(item.ToString(Price.None), "Unequip", () =>
                 {
+                    game.AddText($"You unequip {Utility.A(item.name)}.");
                     player.AddItem(item);
                     switch (item.type)
                     {
@@ -70,6 +71,7 @@ public class CharacterScreen : GameDialog
                 {
                     if (Input.GetKey(KeyCode.LeftShift))
                     {
+                        game.AddText($"You drop {Utility.P(itemSlot.item.name, itemSlot.count)}.");
                         player.RemoveItem(itemSlot, itemSlot.count);
                         RefreshItems();
                         game.UpdateText();
@@ -81,6 +83,7 @@ public class CharacterScreen : GameDialog
                             if (count <= 0)
                                 return true;
                             count = Mathf.Min(count, itemSlot.count);
+                            game.AddText($"You drop {Utility.P(itemSlot.item.name, count)}.");
                             player.RemoveItem(itemSlot, count);
                             RefreshItems();
                             game.UpdateText();
@@ -89,6 +92,7 @@ public class CharacterScreen : GameDialog
                     }
                     else
                     {
+                        game.AddText($"You drop {Utility.A(itemSlot.item.name)}.");
                         player.RemoveItem(itemSlot);
                         RefreshItems();
                         game.UpdateText();
@@ -99,27 +103,38 @@ public class CharacterScreen : GameDialog
                 {
                     itemEntry.Init2(itemSlot.ToString(Price.None), "Equip", () =>
                     {
+                        string str = string.Empty;
                         if (itemSlot.team)
+                        {
+                            str = $"You take {Utility.A(itemSlot.item.name)} for yourself. ";
                             game.team.PayForItem(player, itemSlot.item);
+                        }
 
+                        Item prevItem = null;
                         switch (itemSlot.item.type)
                         {
                         case Item.Type.Weapon:
-                            if (player.weapon != null)
-                                player.AddItem(player.weapon);
+                            prevItem = player.weapon;
                             player.weapon = itemSlot.item;
                             break;
                         case Item.Type.Armor:
-                            if (player.armor != null)
-                                player.AddItem(player.armor);
+                            prevItem = player.armor;
                             player.armor = itemSlot.item;
                             break;
                         case Item.Type.Shield:
-                            if (player.shield != null)
-                                player.AddItem(player.shield);
+                            prevItem = player.shield;
                             player.shield = itemSlot.item;
                             break;
                         }
+
+                        if (prevItem != null)
+                        {
+                            player.AddItem(prevItem);
+                            str += $"You equip {Utility.A(itemSlot.item.name)} and put your old {prevItem.name} into backpack.";
+                        }
+                        else
+                            str += $"You equip {Utility.A(itemSlot.item.name)}.";
+                        game.AddText(str);
                         player.RemoveItem(itemSlot);
                         Refresh();
                         game.UpdateText();
@@ -129,6 +144,10 @@ public class CharacterScreen : GameDialog
                 {
                     itemEntry.Init2(itemSlot.ToString(Price.None), "Use", () =>
                     {
+                        string str = $"You {(itemSlot.item.drink ? "drink" : "eat")} {Utility.A(itemSlot.item.name)}.";
+                        if (player.hp != player.hpMax)
+                            str += " Your wounds heal.";
+                        game.AddText(str);
                         player.hp = Mathf.Min(player.hp + itemSlot.item.power, player.hpMax);
                         player.RemoveItem(itemSlot);
                         Refresh();

@@ -2,7 +2,7 @@ public class EnchantItemsScreen : GameDialog
 {
     public CharacterScreen characterScreen;
 
-    protected override void Refresh()
+    public override void Refresh()
     {
         characterScreen.PopulateInventory(gameObject,
             (itemEntry, item) =>

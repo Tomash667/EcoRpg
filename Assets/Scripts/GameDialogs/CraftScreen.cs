@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class CraftScreen : GameDialog
 {
-    protected override void Refresh()
+    public override void Refresh()
     {
         // text
         TextBuilder text = game.Text;
