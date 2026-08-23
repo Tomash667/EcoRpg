@@ -17,11 +17,18 @@ public class StoreItemsScreen : GameDialog
                 {
                     if (Input.GetKey(KeyCode.LeftShift))
                     {
+                        string str = string.Empty;
                         if (itemSlot.team)
+                        {
+                            str = $"You take {Utility.P(itemSlot.item.name, itemSlot.count)} for yourself. ";
                             game.team.PayForItem(player, itemSlot.item, itemSlot.count);
+                        }
+                        str += $"You store {Utility.P(itemSlot.item.name, itemSlot.count)}.";
+                        game.AddText(str);
                         property.AddStoredItem(itemSlot.item, itemSlot.count);
                         player.RemoveItem(itemSlot, itemSlot.count);
                         Refresh();
+                        game.UpdateText();
                     }
                     else if (Input.GetKey(KeyCode.LeftControl))
                     {
@@ -30,21 +37,35 @@ public class StoreItemsScreen : GameDialog
                             if (count <= 0)
                                 return true;
                             count = Mathf.Min(count, itemSlot.count);
+                            string str = string.Empty;
                             if (itemSlot.team)
+                            {
+                                str = $"You take {Utility.P(itemSlot.item.name, count)} for yourself. ";
                                 game.team.PayForItem(player, itemSlot.item, count);
+                            }
+                            str += $"You store {Utility.P(itemSlot.item.name, count)}.";
+                            game.AddText(str);
                             property.AddStoredItem(itemSlot.item, count);
                             player.RemoveItem(itemSlot, count);
                             Refresh();
+                            game.UpdateText();
                             return true;
                         });
                     }
                     else
                     {
+                        string str = string.Empty;
                         if (itemSlot.team)
+                        {
+                            str = $"You take {Utility.A(itemSlot.item.name)} for yourself. ";
                             game.team.PayForItem(player, itemSlot.item);
+                        }
+                        str += $"You store {Utility.A(itemSlot.item.name)}.";
+                        game.AddText(str);
                         property.AddStoredItem(itemSlot.item);
                         player.RemoveItem(itemSlot);
                         Refresh();
+                        game.UpdateText();
                     }
                 });
             }
@@ -62,6 +83,7 @@ public class StoreItemsScreen : GameDialog
             {
                 if (Input.GetKey(KeyCode.LeftShift))
                 {
+                    game.AddText($"You take {Utility.P(itemSlot.item.name, itemSlot.count)}.");
                     player.AddItem(itemSlot.item, itemSlot.count);
                     property.RemoveStoredItem(itemSlot, itemSlot.count);
                     Refresh();
@@ -73,6 +95,7 @@ public class StoreItemsScreen : GameDialog
                         if (count <= 0)
                             return true;
                         count = Mathf.Min(count, itemSlot.count);
+                        game.AddText($"You take {Utility.P(itemSlot.item.name, count)}.");
                         player.AddItem(itemSlot.item, count);
                         property.RemoveStoredItem(itemSlot, count);
                         Refresh();
@@ -81,6 +104,7 @@ public class StoreItemsScreen : GameDialog
                 }
                 else
                 {
+                    game.AddText($"You take {Utility.A(itemSlot.item.name)}.");
                     player.AddItem(itemSlot.item);
                     property.RemoveStoredItem(itemSlot);
                     Refresh();

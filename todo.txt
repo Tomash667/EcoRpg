@@ -2,16 +2,13 @@
 	ally
 	combat (start)
 	craft
-	enchant item
 	garden
 	game
 	give item
-	journal
 	map
 	people
 	properties
 	shop
-	store items
 - manage mansion text cutoff
 - you can manage house/mansion
 - You cooked 1 pieces of meat into rations.
@@ -255,6 +252,7 @@ ui:
 + skills tooltip desc
 + text when ally drinks potion
 + log paying debt
++ store/buy/sell/give/drop show max count in dialog
 
 refactoring:
 + store worker assigned property as reference

@@ -200,8 +200,13 @@ public class GameUI : MonoBehaviour
 
     public void RefreshGameDialogIfOpen()
     {
-        GameObject dialog = CurrentDialog;
-        if (dialog != null && dialog.TryGetComponent(out GameDialog gameDialog))
-            gameDialog.Refresh();
+        for (int i = dialogs.Count - 1; i >= 0; --i)
+        {
+            if (dialogs[i].TryGetComponent(out GameDialog gameDialog))
+            {
+                gameDialog.Refresh();
+                break;
+            }
+        }
     }
 }

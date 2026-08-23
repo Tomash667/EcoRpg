@@ -53,6 +53,7 @@ public class Journal : GameDialog
                     if (prevQuest != null)
                         prevQuest.tracked = false;
                     quest.tracked = true;
+                    game.AddText($"You track quest '{quest.Title}'.");
                     Refresh();
                     game.UpdateText();
                 });

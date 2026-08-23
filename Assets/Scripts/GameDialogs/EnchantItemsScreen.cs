@@ -17,6 +17,7 @@ public class EnchantItemsScreen : GameDialog
                         else
                         {
                             Item newItem = item.GetEnchanted();
+                            game.AddText($"You pay {cost} gold to enchant {Utility.A(item.name)} into {Utility.A(newItem.name)}.");
                             switch (newItem.type)
                             {
                             case Item.Type.Weapon:
@@ -50,10 +51,17 @@ public class EnchantItemsScreen : GameDialog
                         else
                         {
                             Item item = itemSlot.item;
+                            Item newItem = item.GetEnchanted();
+                            string str = string.Empty;
                             if (itemSlot.team)
+                            {
+                                str = $"You take {Utility.A(itemSlot.item.name)} for yourself. ";
                                 game.team.PayForItem(player, itemSlot.item);
+                            }
+                            str += $"You pay {cost} gold to enchant {Utility.A(item.name)} into {Utility.A(newItem.name)}.";
+                            game.AddText(str);
                             player.RemoveItem(itemSlot);
-                            player.AddItem(item.GetEnchanted());
+                            player.AddItem(newItem);
                             player.AddGold(-cost);
                             Refresh();
                             game.UpdateText();
