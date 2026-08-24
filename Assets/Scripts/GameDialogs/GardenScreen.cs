@@ -4,6 +4,12 @@ using UnityEngine;
 
 public class GardenScreen : GameDialog
 {
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.W))
+            Work();
+    }
+
     public override void Refresh()
     {
         Transform content = transform.Find("List/Viewport/Content");
@@ -32,6 +38,7 @@ public class GardenScreen : GameDialog
                         ui.ShowDialog("You need 10 gold.");
                     else
                     {
+                        game.AddText("You plant vegetables.");
                         player.AddGold(-10);
                         property.gardenPlants[index] = "Vegetables";
                         Refresh();
@@ -47,6 +54,7 @@ public class GardenScreen : GameDialog
                         ui.ShowDialog("You need 10 herbs.");
                     else
                     {
+                        game.AddText("You plant herbs.");
                         player.RemoveItem(herb, 10);
                         property.gardenPlants[index] = "Herbs";
                         Refresh();
@@ -61,6 +69,7 @@ public class GardenScreen : GameDialog
                         ui.ShowDialog("You need 10 rare herbs.");
                     else
                     {
+                        game.AddText("You plant rare herbs.");
                         player.RemoveItem(rareHerb, 10);
                         property.gardenPlants[index] = "Rare herbs";
                         Refresh();
@@ -105,7 +114,7 @@ public class GardenScreen : GameDialog
             mod = 1f;
 
         List<string> items = new();
-        foreach (var plant in property.gardenPlants.GroupBy(x => x).Select(x => (name: x.Key, count: x.Count())))
+        foreach (var plant in property.gardenPlants.Where(x => !string.IsNullOrEmpty(x)).GroupBy(x => x).Select(x => (name: x.Key, count: x.Count())))
         {
             int count = (int)(mod * plant.count);
             Item item = PlantNameToItem(plant.name);
@@ -124,7 +133,7 @@ public class GardenScreen : GameDialog
 
         if (bestHero == null || bestHero == player)
         {
-            text?.Set($"You work in garden and produce {Utility.PrettyList(items)}.");
+            text?.Set($"You work in garden and produce {Utility.PrettyList(items)}."); // article
             player.Train(Skill.Farming, text);
         }
         else

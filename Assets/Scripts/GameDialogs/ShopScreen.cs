@@ -25,7 +25,7 @@ public class ShopScreen : GameDialog
                             game.team.AddGold(gold);
                         else
                             player.AddGold(gold);
-                        game.AddText($"You sell {Utility.P(itemSlot.item.name, itemSlot.count)} for {gold} gold.");
+                        game.AddText($"You sell {Utility.Plural(itemSlot.item.name, itemSlot.count)} for {gold} gold.");
                         player.RemoveItem(itemSlot, itemSlot.count);
                         Refresh();
                         game.UpdateText();
@@ -42,7 +42,7 @@ public class ShopScreen : GameDialog
                                 game.team.AddGold(gold);
                             else
                                 player.AddGold(gold);
-                            game.AddText($"You sell {Utility.P(itemSlot.item.name, count)} for {gold} gold.");
+                            game.AddText($"You sell {Utility.Plural(itemSlot.item.name, count)} for {gold} gold.");
                             player.RemoveItem(itemSlot, count);
                             Refresh();
                             game.UpdateText();
@@ -86,7 +86,7 @@ public class ShopScreen : GameDialog
                         int price = count * item.value;
                         if (player.gold >= price)
                         {
-                            game.AddText($"You buy {Utility.P(item.name, count)} for {price} gold.");
+                            game.AddText($"You buy {Utility.Plural(item.name, count)} for {price} gold.");
                             player.AddItem(item, count);
                             player.AddGold(-price);
                             Refresh();

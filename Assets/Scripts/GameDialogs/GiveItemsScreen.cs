@@ -37,7 +37,7 @@ public class GiveItemsScreen : GameDialog
                         }
                         else if (Input.GetKey(KeyCode.LeftShift))
                         {
-                            tb.Append($"You give {ally.name} {Utility.P(itemSlot.item.name, itemSlot.count)}.");
+                            tb.Append($"You give {ally.name} {Utility.Plural(itemSlot.item.name, itemSlot.count)}.");
                             if (itemSlot.team)
                             {
                                 tb.Append($"{ally.He} takes {(itemSlot.count > 1 ? "them" : "it")} for {ally.himself}.");
@@ -58,7 +58,7 @@ public class GiveItemsScreen : GameDialog
                                 if (count <= 0)
                                     return true;
                                 count = Mathf.Min(count, itemSlot.count);
-                                tb.Append($"You give {ally.name} {Utility.P(itemSlot.item.name, count)}.");
+                                tb.Append($"You give {ally.name} {Utility.Plural(itemSlot.item.name, count)}.");
                                 if (itemSlot.team)
                                 {
                                     tb.Append($"{ally.He} takes {(count > 1 ? "them" : "it")} for {ally.himself}.");

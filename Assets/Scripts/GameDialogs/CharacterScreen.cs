@@ -71,7 +71,7 @@ public class CharacterScreen : GameDialog
                 {
                     if (Input.GetKey(KeyCode.LeftShift))
                     {
-                        game.AddText($"You drop {Utility.P(itemSlot.item.name, itemSlot.count)}.");
+                        game.AddText($"You drop {Utility.Plural(itemSlot.item.name, itemSlot.count)}.");
                         player.RemoveItem(itemSlot, itemSlot.count);
                         RefreshItems();
                         game.UpdateText();
@@ -83,7 +83,7 @@ public class CharacterScreen : GameDialog
                             if (count <= 0)
                                 return true;
                             count = Mathf.Min(count, itemSlot.count);
-                            game.AddText($"You drop {Utility.P(itemSlot.item.name, count)}.");
+                            game.AddText($"You drop {Utility.Plural(itemSlot.item.name, count)}.");
                             player.RemoveItem(itemSlot, count);
                             RefreshItems();
                             game.UpdateText();

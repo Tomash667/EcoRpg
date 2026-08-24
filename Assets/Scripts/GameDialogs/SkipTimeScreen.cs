@@ -132,6 +132,8 @@ public class SkipTimeScreen : GameDialog
         string verb;
         if (action == "Manage")
             verb = $"managing the {property.name.ToLower()}";
+        else if (action == "Work in garden")
+            verb = "working in garden";
         else
             verb = action.ToLower() + "ing";
         TextBuilder text = game.Text;

@@ -805,12 +805,12 @@ public class Game : MonoBehaviour
                 if (goldTaken > 0)
                 {
                     if (rationsTaken > 0)
-                        lost = $"<color=#FFD700>{goldTaken}</color> gold and {Utility.P("ration", rationsTaken)} lost";
+                        lost = $"<color=#FFD700>{goldTaken}</color> gold and {Utility.Plural("ration", rationsTaken)} lost";
                     else
                         lost = $"<color=#FFD700>{goldTaken}</color> gold lost";
                 }
                 else
-                    lost = $"{Utility.P("ration", rationsTaken)} lost";
+                    lost = $"{Utility.Plural("ration", rationsTaken)} lost";
 
                 if (lost == null)
                     text.Set($"You <color=red>lost</color> a fight with <b>{Utility.PrettyGroup(enemyList.Select(x => x.name))}</b>.");
@@ -1195,6 +1195,7 @@ public class Game : MonoBehaviour
         {
             sb.Append('\n');
             sb.Append(lastAction);
+            AddText(lastAction);
         }
         mainText.text = sb.ToString();
 
@@ -1489,7 +1490,7 @@ public class Game : MonoBehaviour
                 property.farmedToday = false;
             else
             {
-                foreach (var plant in property.gardenPlants.GroupBy(x => x).Select(x => (name: x.Key, count: x.Count())))
+                foreach (var plant in property.gardenPlants.Where(x => !string.IsNullOrEmpty(x)).GroupBy(x => x).Select(x => (name: x.Key, count: x.Count())))
                     property.AddStoredItem(GardenScreen.PlantNameToItem(plant.name), plant.count);
             }
         }

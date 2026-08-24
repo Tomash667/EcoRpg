@@ -1,13 +1,13 @@
 + use bottom text
 	combat (start)
 	craft
-	garden
 	game
 	map
 	people
 	properties
 - manage mansion text cutoff
 - you can manage house/mansion
+	manage house -> upgrade garden -> buttons not refreshed
 - You cooked 1 pieces of meat into rations.
 
 v3

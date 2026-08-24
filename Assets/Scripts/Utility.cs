@@ -11,7 +11,11 @@ public static class Utility
         "two",
         "three",
         "four",
-        "five"
+        "five",
+        "six",
+        "seven",
+        "eight",
+        "nine"
     };
 
     private static readonly Dictionary<string, string> plurals = new()
@@ -89,14 +93,6 @@ public static class Utility
         return word + 's';
     }
 
-    public static string P(string word, int count)
-    {
-        if (count == 1)
-            return A(word);
-        else
-            return $"{count} {Plural(word)}";
-    }
-
     public static string Plural(string word, int count, bool alwaysShowNumber = false)
     {
         if (count == 1)
@@ -104,7 +100,7 @@ public static class Utility
             if (alwaysShowNumber)
                 return $"1 {word}";
             else
-                return word;
+                return A(word);
         }
         else
             return $"{count} {Plural(word)}";
@@ -113,9 +109,11 @@ public static class Utility
     public static string PluralText(string word, int count)
     {
         if (count == 1)
-            return word;
-        else
+            return A(word);
+        else if (count < 10)
             return $"{counter[count - 1]} {Plural(word)}";
+        else
+            return $"{count} {Plural(word)}";
     }
 
     public static string PrettyList(IList<string> items)

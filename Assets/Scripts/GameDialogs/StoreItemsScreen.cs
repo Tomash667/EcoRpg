@@ -19,10 +19,10 @@ public class StoreItemsScreen : GameDialog
                     {
                         if (itemSlot.team)
                         {
-                            tb.Append($"You take {Utility.P(itemSlot.item.name, itemSlot.count)} for yourself.");
+                            tb.Append($"You take {Utility.Plural(itemSlot.item.name, itemSlot.count)} for yourself.");
                             game.team.PayForItem(player, itemSlot.item, itemSlot.count);
                         }
-                        tb.Append($"You store {Utility.P(itemSlot.item.name, itemSlot.count)}.");
+                        tb.Append($"You store {Utility.Plural(itemSlot.item.name, itemSlot.count)}.");
                         game.AddText(tb.Flush());
                         property.AddStoredItem(itemSlot.item, itemSlot.count);
                         player.RemoveItem(itemSlot, itemSlot.count);
@@ -38,10 +38,10 @@ public class StoreItemsScreen : GameDialog
                             count = Mathf.Min(count, itemSlot.count);
                             if (itemSlot.team)
                             {
-                                tb.Append($"You take {Utility.P(itemSlot.item.name, count)} for yourself.");
+                                tb.Append($"You take {Utility.Plural(itemSlot.item.name, count)} for yourself.");
                                 game.team.PayForItem(player, itemSlot.item, count);
                             }
-                            tb.Append($"You store {Utility.P(itemSlot.item.name, count)}.");
+                            tb.Append($"You store {Utility.Plural(itemSlot.item.name, count)}.");
                             game.AddText(tb.Flush());
                             property.AddStoredItem(itemSlot.item, count);
                             player.RemoveItem(itemSlot, count);
@@ -80,7 +80,7 @@ public class StoreItemsScreen : GameDialog
             {
                 if (Input.GetKey(KeyCode.LeftShift))
                 {
-                    game.AddText($"You take {Utility.P(itemSlot.item.name, itemSlot.count)}.");
+                    game.AddText($"You take {Utility.Plural(itemSlot.item.name, itemSlot.count)}.");
                     player.AddItem(itemSlot.item, itemSlot.count);
                     property.RemoveStoredItem(itemSlot, itemSlot.count);
                     Refresh();
@@ -92,7 +92,7 @@ public class StoreItemsScreen : GameDialog
                         if (count <= 0)
                             return true;
                         count = Mathf.Min(count, itemSlot.count);
-                        game.AddText($"You take {Utility.P(itemSlot.item.name, count)}.");
+                        game.AddText($"You take {Utility.Plural(itemSlot.item.name, count)}.");
                         player.AddItem(itemSlot.item, count);
                         property.RemoveStoredItem(itemSlot, count);
                         Refresh();
