@@ -19,11 +19,11 @@ public class StoreItemsScreen : GameDialog
                     {
                         if (itemSlot.team)
                         {
-                            tb.Append($"You take {Utility.Plural(itemSlot.item.name, itemSlot.count)} for yourself.");
+                            text.Append($"You take {Utility.Plural(itemSlot.item.name, itemSlot.count)} for yourself.");
                             game.team.PayForItem(player, itemSlot.item, itemSlot.count);
                         }
-                        tb.Append($"You store {Utility.Plural(itemSlot.item.name, itemSlot.count)}.");
-                        game.AddText(tb.Flush());
+                        text.Append($"You store {Utility.Plural(itemSlot.item.name, itemSlot.count)}.");
+                        game.AddText(text.Flush());
                         property.AddStoredItem(itemSlot.item, itemSlot.count);
                         player.RemoveItem(itemSlot, itemSlot.count);
                         Refresh();
@@ -38,11 +38,11 @@ public class StoreItemsScreen : GameDialog
                             count = Mathf.Min(count, itemSlot.count);
                             if (itemSlot.team)
                             {
-                                tb.Append($"You take {Utility.Plural(itemSlot.item.name, count)} for yourself.");
+                                text.Append($"You take {Utility.Plural(itemSlot.item.name, count)} for yourself.");
                                 game.team.PayForItem(player, itemSlot.item, count);
                             }
-                            tb.Append($"You store {Utility.Plural(itemSlot.item.name, count)}.");
-                            game.AddText(tb.Flush());
+                            text.Append($"You store {Utility.Plural(itemSlot.item.name, count)}.");
+                            game.AddText(text.Flush());
                             property.AddStoredItem(itemSlot.item, count);
                             player.RemoveItem(itemSlot, count);
                             Refresh();
@@ -54,11 +54,11 @@ public class StoreItemsScreen : GameDialog
                     {
                         if (itemSlot.team)
                         {
-                            tb.Append($"You take {Utility.A(itemSlot.item.name)} for yourself.");
+                            text.Append($"You take {Utility.A(itemSlot.item.name)} for yourself.");
                             game.team.PayForItem(player, itemSlot.item);
                         }
-                        tb.Append($"You store {Utility.A(itemSlot.item.name)}.");
-                        game.AddText(tb.Flush());
+                        text.Append($"You store {Utility.A(itemSlot.item.name)}.");
+                        game.AddText(text.Flush());
                         property.AddStoredItem(itemSlot.item);
                         player.RemoveItem(itemSlot);
                         Refresh();

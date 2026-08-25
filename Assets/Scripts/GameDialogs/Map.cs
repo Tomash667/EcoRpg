@@ -17,7 +17,7 @@ public class Map : GameDialog
 
     private Arrow arrow;
     private GameObject flag, outlineTarget, outlineQuest;
-    private TMP_Text text, buttonText;
+    private TMP_Text sideText, buttonText;
     private ScrollRect scrollRect;
     private Transform tilesContainer, iconsContainer;
     private RectTransform rectTransform;
@@ -30,7 +30,7 @@ public class Map : GameDialog
 
     public void Init()
     {
-        text = transform.Find("Text").GetComponent<TMP_Text>();
+        sideText = transform.Find("Text").GetComponent<TMP_Text>();
         buttonText = transform.Find("BtClose/Text").GetComponent<TMP_Text>();
         scrollRect = transform.Find("MapView").GetComponent<ScrollRect>();
         rectTransform = scrollRect.GetComponent<RectTransform>();
@@ -110,7 +110,7 @@ public class Map : GameDialog
             moveViewPos = Input.mousePosition;
             outlineTarget.SetActive(false);
             arrow.gameObject.SetActive(false);
-            text.text = $"Rations: {game.team.CountItem(Item.Get("ration"))}";
+            sideText.text = $"Rations: {game.team.CountItem(Item.Get("ration"))}";
             lastCheckedPos.x = -1;
         }
 
@@ -168,7 +168,7 @@ public class Map : GameDialog
             // outside map
             arrow.gameObject.SetActive(false);
             outlineTarget.SetActive(false);
-            text.text = $"Rations: {game.team.CountItem(Item.Get("ration"))}";
+            sideText.text = $"Rations: {game.team.CountItem(Item.Get("ration"))}";
         }
         else
         {
@@ -179,7 +179,7 @@ public class Map : GameDialog
             {
                 // same position as current
                 arrow.gameObject.SetActive(false);
-                text.text = $"Rations: {game.team.CountItem(Item.Get("ration"))}\nTarget: {tile.Name.ToUpper1()}";
+                sideText.text = $"Rations: {game.team.CountItem(Item.Get("ration"))}\nTarget: {tile.Name.ToUpper1()}";
             }
             else
             {
@@ -188,7 +188,7 @@ public class Map : GameDialog
                 {
                     // blocked
                     arrow.gameObject.SetActive(false);
-                    text.text = $"Rations: {game.team.CountItem(Item.Get("ration"))}\nTarget: {tile.Name.ToUpper1()}";
+                    sideText.text = $"Rations: {game.team.CountItem(Item.Get("ration"))}\nTarget: {tile.Name.ToUpper1()}";
                 }
                 else
                 {
@@ -280,8 +280,8 @@ public class Map : GameDialog
 #else
         str = $"Rations: {game.team.CountItem(Item.Get("ration"))}\nTarget: {tile.Name.ToUpper1()}\nDistance: {dist}km\nTravel time: {daysText}";
 #endif
-        text.text = str;
-        text.gameObject.SetActive(true);
+        sideText.text = str;
+        sideText.gameObject.SetActive(true);
     }
 
     public void EndTravel()

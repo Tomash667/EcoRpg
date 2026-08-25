@@ -104,6 +104,7 @@ public class Game : MonoBehaviour
         GameDialog.game = this;
         GameDialog.ui = ui;
         GameDialog.player = player;
+        GameDialog.text = text;
     }
 
     private void Update()
@@ -198,9 +199,9 @@ public class Game : MonoBehaviour
             case TileType.Mansion:
                 if (Input.GetKeyDown(KeyCode.X))
                     ExitToCity();
-                if (Input.GetKeyDown(KeyCode.C) && ((world.Location == TileType.House && player.HavePropertyUpgrade("House", "Alchemy lab", cityIndex: world.CityIndex))
+                /*if (Input.GetKeyDown(KeyCode.C) && ((world.Location == TileType.House && player.HavePropertyUpgrade("House", "Alchemy lab", cityIndex: world.CityIndex))
                     || (world.Location == TileType.Mansion && player.HavePropertyUpgrade("Mansion", "Alchemy lab", cityIndex: world.CityIndex))))
-                    craftScreen.Show();
+                    craftScreen.Show();*/
                 if (Input.GetKeyDown(KeyCode.K))
                     Cook();
                 if (Input.GetKeyDown(KeyCode.M) && world.Location == TileType.Mansion && player.HavePropertyUpgrade("Mansion", "Office"))
@@ -2328,7 +2329,7 @@ public class Game : MonoBehaviour
             Item ration = Item.Get("ration");
             player.RemoveItem(meat, count);
             player.AddItem(ration, count);
-            text.Set($"You cooked {count} pieces of meat into rations.");
+            text.Set(count > 1 ? $"You cooked {count} pieces of meat into rations." : $"You cooked piece of meat into ration.");
             AddTime(minutes: count * 5);
             guildScreen.RefreshIfOpen();
             UpdateText();

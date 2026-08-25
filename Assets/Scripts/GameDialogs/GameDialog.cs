@@ -5,7 +5,7 @@ public abstract class GameDialog : MonoBehaviour
     public static Game game;
     public static GameUI ui;
     public static Player player;
-    public static readonly TextBuilder tb = new();
+    public static TextBuilder text;
 
     public virtual bool Autoclose => true;
     public bool IsOpen => ui.IsOpen(gameObject);
@@ -34,5 +34,16 @@ public abstract class GameDialog : MonoBehaviour
     public virtual void Restore()
     {
         Refresh();
+    }
+
+    public void AddTimeAndRefresh(int hours = 0, int minutes = 0)
+    {
+        game.AddTime(hours, minutes);
+        if (ui.IsOpen(gameObject))
+        {
+            game.AddText(text.Flush());
+            Refresh();
+        }
+        game.UpdateText();
     }
 }

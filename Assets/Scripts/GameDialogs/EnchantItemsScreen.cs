@@ -54,11 +54,11 @@ public class EnchantItemsScreen : GameDialog
                             Item newItem = item.GetEnchanted();
                             if (itemSlot.team)
                             {
-                                tb.Append($"You take {Utility.A(itemSlot.item.name)} for yourself.");
+                                text.Append($"You take {Utility.A(itemSlot.item.name)} for yourself.");
                                 game.team.PayForItem(player, itemSlot.item);
                             }
-                            tb.Append($"You pay {cost} gold to enchant {Utility.A(item.name)} into {Utility.A(newItem.name)}.");
-                            game.AddText(tb.Flush());
+                            text.Append($"You pay {cost} gold to enchant {Utility.A(item.name)} into {Utility.A(newItem.name)}.");
+                            game.AddText(text.Flush());
                             player.RemoveItem(itemSlot);
                             player.AddItem(newItem);
                             player.AddGold(-cost);

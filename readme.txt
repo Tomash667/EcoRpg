@@ -14,7 +14,7 @@ Tips:
 Shortcuts:
 1-2 - manage ally
 C - character screen
-C - craft (guild/house/mansion)
+C - craft (guild)
 D - go down
 E - explore
 F - forage

@@ -110,11 +110,11 @@ public class AllyScreen : GameDialog
             count = Mathf.Min(count, player.gold);
             if (count <= 0)
                 return true;
-            tb.Append($"You give {ally.name} {count} gold.");
+            text.Append($"You give {ally.name} {count} gold.");
             player.AddGold(-count);
             ally.AddGold(count);
-            ally.IncreaseAffectionFromValue(count, tb);
-            game.AddText(tb.Flush());
+            ally.IncreaseAffectionFromValue(count, text);
+            game.AddText(text.Flush());
             Refresh();
             game.UpdateText();
             return true;

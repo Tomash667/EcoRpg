@@ -1,6 +1,5 @@
 + use bottom text
 	combat (start)
-	craft
 	game
 	map
 	people
@@ -8,7 +7,6 @@
 - manage mansion text cutoff
 - you can manage house/mansion
 	manage house -> upgrade garden -> buttons not refreshed
-- You cooked 1 pieces of meat into rations.
 
 v3
 hero:
@@ -79,6 +77,7 @@ ui:
 + status bar at bottom with lastAction, click to show previous
 + player healthbar
 + visible shortcuts
+	craft in house/mansion shortcut?
 + better button naming for Properties/Manage if there a people there too
 + move map speed vs zoom
 + train -> show progress
@@ -310,6 +309,12 @@ investments:
 + mansion upgrades -> training room(s)
 + can click at available buildings and see text/upgrades (but no manage/people/buy upgrades)
 + disaster -> not enough people -> increase payment or work at less eficiency
++ assign worker to garden
++ buildings have storage (0/10 wood), producers and consumers, it takes travel time
+	building/upgrades require wood/stones
++ quarry
++ manager don't work if he doesn't need to? but trains at 50%
++ assign multiple managers to office
 
 skills:
 + haggle

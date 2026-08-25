@@ -1,15 +1,10 @@
 using System.Linq;
-using TMPro;
 using UnityEngine;
 
 public class CraftScreen : GameDialog
 {
     public override void Refresh()
     {
-        // text
-        TextBuilder text = game.Text;
-        transform.Find("Text").GetComponent<TMP_Text>().text = text.Flush();
-
         // ingredients
         Transform content = transform.Find("Ingredients/Viewport/Content");
         foreach (Transform child in content)
@@ -73,9 +68,7 @@ public class CraftScreen : GameDialog
                 }
             }
 
-            game.AddTime(minutes: batches * 30);
-            RefreshIfOpen();
-            game.UpdateText();
+            AddTimeAndRefresh(minutes: batches * 30);
         }
 
         foreach (Recipe recipe in Recipe.GetAvailable(alchemy))

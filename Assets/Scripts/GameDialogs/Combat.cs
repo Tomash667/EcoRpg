@@ -53,7 +53,7 @@ public class Combat : GameDialog
     private List<Hero> heroes;
     private List<Enemy> enemyList;
     private List<object> order = new();
-    private TMP_Text text;
+    private TMP_Text textLog;
     private GameObject arrow;
     private Unit playerTarget;
     private Result result;
@@ -65,7 +65,7 @@ public class Combat : GameDialog
 
     public void Init()
     {
-        text = transform.GetChild(0).GetComponent<TMP_Text>();
+        textLog = transform.GetChild(0).GetComponent<TMP_Text>();
         arrow = transform.Find("Arrow").gameObject;
     }
 
@@ -745,7 +745,7 @@ public class Combat : GameDialog
             textParts.Add(str);
             if (textParts.Count > 5)
                 textParts.RemoveAt(0);
-            text.text = string.Join('\n', textParts);
+            textLog.text = string.Join('\n', textParts);
             game.UpdateText();
         }
     }
