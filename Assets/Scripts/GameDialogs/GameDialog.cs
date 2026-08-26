@@ -36,13 +36,16 @@ public abstract class GameDialog : MonoBehaviour
         Refresh();
     }
 
-    public void AddTimeAndRefresh(int hours = 0, int minutes = 0)
+    public void AddTimeAndRefresh(int hours = 0, int minutes = 0, System.Action callback = null)
     {
         game.AddTime(hours, minutes);
         if (ui.IsOpen(gameObject))
         {
             game.AddText(text.Flush());
-            Refresh();
+            if (callback != null)
+                callback.Invoke();
+            else
+                Refresh();
         }
         game.UpdateText();
     }

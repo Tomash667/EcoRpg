@@ -49,8 +49,6 @@ public class PropertiesScreen : GameDialog
 
     public override void Refresh()
     {
-        transform.Find("Text").GetComponent<TMP_Text>().text = game.Text.Flush();
-
         ItemEntryList list = transform.Find("List").GetComponent<ItemEntryList>();
         list.Clear();
         Transform content = transform.Find("List/Viewport/Content");
@@ -90,13 +88,12 @@ public class PropertiesScreen : GameDialog
                         if (worker != null)
                             worker.locationIndex = -1;
                         property.events.Clear();
-                        game.Text.Set($"You sell {property.Name.ToLower()} for <color=#FFD700>{property.value / 2}</color> gold.");
+                        text.Set($"You sell {property.Name.ToLower()} for <color=#FFD700>{property.value / 2}</color> gold.");
                         if (property.name == "House" || property.name == "Mansion" || (property.name == "Inn" && property.cityIndex == game.world.CityIndex))
                             game.UpdateButtons();
                         if (property.name == "Horses" || property.name == "Mansion")
                             game.team.freshHorses = 0;
-                        game.AddTime(minutes: 30);
-                        if (IsOpen)
+                        AddTimeAndRefresh(minutes: 30, callback: () =>
                         {
                             if (selectedProperty == property)
                             {
@@ -104,8 +101,7 @@ public class PropertiesScreen : GameDialog
                                 RefreshDetails();
                             }
                             Refresh();
-                        }
-                        game.UpdateText();
+                        });
                     });
                 }
             }
@@ -142,14 +138,14 @@ public class PropertiesScreen : GameDialog
                 game.properties.Remove(property);
                 if (build)
                 {
-                    game.Text.Set($"You pay <color=#FFD700>{cost}</color> gold to build {property.Name.ToLower()}.");
+                    text.Set($"You pay <color=#FFD700>{cost}</color> gold to build {property.Name.ToLower()}.");
                     property.status = Property.Status.Building;
                     game.world.GetLocation(property.locationIndex).timer = 0; // prevent resetting
                     map.AddIcon(World.IndexToPoint(property.locationIndex));
                 }
                 else
                 {
-                    game.Text.Set($"You buy {property.Name.ToLower()} for <color=#FFD700>{cost}</color> gold.");
+                    text.Set($"You buy {property.Name.ToLower()} for <color=#FFD700>{cost}</color> gold.");
 
                     // remove quests assigned to this location
                     if (property.locationIndex != -1)
@@ -157,10 +153,14 @@ public class PropertiesScreen : GameDialog
                         Quest quest = game.activeQuests.FirstOrDefault(x => x.type == Quest.Type.Clear && x.location == property.locationIndex);
                         if (quest != null)
                         {
-                            game.Text.Append($"Quest '{quest.Title}' is reassigned to other party.");
+                            text.Append($"Quest '{quest.Title}' is reassigned to other party.");
                             game.RemoveQuest(quest);
                         }
                         game.availableQuests.RemoveAll(x => x.type == Quest.Type.Clear && x.location == property.locationIndex);
+
+                        Tile tile = game.world.GetLocation(property.locationIndex);
+                        tile.clear = true;
+                        tile.timer = 0;
                     }
                 }
 
@@ -180,7 +180,7 @@ public class PropertiesScreen : GameDialog
                         if (game.spiderStatus == Game.SpiderStatus.Accepted)
                         {
                             Quest quest = game.activeQuests.First(x => x.type == Quest.Type.UniqueSpider);
-                            game.Text.Append($"Quest '{quest.Title}' is canceled.");
+                            text.Append($"Quest '{quest.Title}' is canceled.");
                             game.RemoveQuest(quest);
                         }
                         game.spiderStatus = Game.SpiderStatus.Skipped;
@@ -188,14 +188,12 @@ public class PropertiesScreen : GameDialog
                     game.UpdateButtons();
                 }
 
-                game.AddTime(minutes: 30);
-                if (IsOpen)
+                AddTimeAndRefresh(minutes: 30, callback: () =>
                 {
                     selectedProperty = property;
                     Refresh();
                     RefreshDetails();
-                }
-                game.UpdateText();
+                });
             });
             itemEntry.SetImage(ui.propertyIcons[(int)property.GetImage()]);
         }
@@ -203,9 +201,7 @@ public class PropertiesScreen : GameDialog
 
     public void RefreshDetails()
     {
-        if (manageProperty)
-            transform.Find("Text").GetComponent<TMP_Text>().text = game.Text.Flush();
-        else
+        if (!manageProperty)
         {
             ItemEntryList list = transform.Find("List").GetComponent<ItemEntryList>();
             selectedProperty = list.GetSelectedData() as Property;
@@ -243,7 +239,7 @@ public class PropertiesScreen : GameDialog
             else
                 str += "(none)";
         }
-        transform.Find("Text2").GetComponent<TMP_Text>().text = str;
+        transform.Find("Text").GetComponent<TMP_Text>().text = str;
 
         Transform content = transform.Find("Upgrades/Viewport/Content");
         foreach (Transform child in content)
@@ -270,7 +266,7 @@ public class PropertiesScreen : GameDialog
                     selectedProperty.value += upgrade.value;
                     selectedProperty.income += upgrade.income;
                     selectedProperty.upkeep += upgrade.upkeep;
-                    game.Text.Set($"You buy {upgrade.name.ToLower()} for <color=#FFD700>{upgrade.value}</color> gold.");
+                    text.Set($"You buy {upgrade.name.ToLower()} for <color=#FFD700>{upgrade.value}</color> gold.");
                     if (upgrade.name == "Extra guards")
                     {
                         Property.Event even = selectedProperty.events.FirstOrDefault(e => e.name == "Infested" && e.timer == -1);
@@ -279,19 +275,20 @@ public class PropertiesScreen : GameDialog
                             int days = game.world.CalculateTravelDaysNonTeam(World.IndexToPoint(selectedProperty.locationIndex));
                             even.timer = days;
                             even.state = 1;
-                            game.Text.Append($"They will take care of monsters infestation in {Utility.Plural("day", days, true)}.");
+                            text.Append($"They will take care of monsters infestation in {Utility.Plural("day", days, true)}.");
                         }
                     }
                     else if (upgrade.name == "Stables")
                         game.team.freshHorses = 10;
-                    game.AddTime(minutes: 30);
-                    if (IsOpen)
+                    else if (game.GetPropertyInside() == selectedProperty && (upgrade.name == "Alchemy lab" || upgrade.name == "Garden"))
+                        game.UpdateButtons();
+
+                    AddTimeAndRefresh(minutes: 30, callback: () =>
                     {
                         if (!manageProperty)
                             Refresh();
                         RefreshDetails();
-                    }
-                    game.UpdateText();
+                    });
                 });
             }
         }
@@ -299,25 +296,22 @@ public class PropertiesScreen : GameDialog
 
     public void Manage()
     {
-        TextBuilder text = game.Text;
         if (game.hour > 16)
-            text.Set("It's too late to manage.");
+            ui.ShowDialog("It's too late to manage.");
         else if (player.energy < 25)
-            text.Set("You are too tired to manage.");
+            ui.ShowDialog("You are too tired to manage.");
         else if (!game.world.CurrentTile.clear && game.world.Location.IsClearable())
-            text.Set($"You can't manage while monsters occupy the {game.world.CurrentTile.Name}.");
+            ui.ShowDialog($"You can't manage while monsters occupy the {game.world.CurrentTile.Name}.");
         else
         {
             DoManage(selectedProperty, text, !manageProperty);
-            game.AddTime(hours: 8);
-            if (IsOpen)
+            AddTimeAndRefresh(hours: 8, callback: () =>
             {
                 if (!manageProperty)
                     Refresh();
                 RefreshDetails();
-            }
+            });
         }
-        game.UpdateText();
     }
 
     public void DoManage(Property property, TextBuilder text, bool remote)

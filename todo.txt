@@ -3,10 +3,8 @@
 	game
 	map
 	people
-	properties
 - manage mansion text cutoff
-- you can manage house/mansion
-	manage house -> upgrade garden -> buttons not refreshed
+- farm infested -> buy farm -> quest is canceled but farm not clear
 
 v3
 hero:
@@ -94,7 +92,6 @@ investments:
 + allow more then one property event
 + office upgrade
 + efficiency affects value
-+ manage mansion from mansion
 + changing worker assignment takes travel time
 + higher upkeep for better workers
 + toggle - don't pay for gardener

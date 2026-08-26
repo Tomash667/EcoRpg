@@ -1713,7 +1713,7 @@ public class Game : MonoBehaviour
             button.gameObject.SetActive(true);
         }
 
-        buttons.Find("BtQuest").gameObject.SetActive(cityIndex == 1 && spiderStatus == SpiderStatus.None);
+        buttons.Find("BtQuest").gameObject.SetActive(location == TileType.Village && cityIndex == 1 && spiderStatus == SpiderStatus.None);
 
         button = buttons.Find("BtForage");
         if (location == TileType.Forest || location == TileType.Cave || location == TileType.EnchantedForest)
