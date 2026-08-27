@@ -93,7 +93,7 @@ public class GardenScreen : GameDialog
             ui.ShowDialog("You are too tired to work.");
         else
         {
-            DoWork(property, game.Text, null);
+            DoWork(property, text, null);
             ui.CloseDialog();
             game.AddTime(hours: 8);
             game.UpdateText();

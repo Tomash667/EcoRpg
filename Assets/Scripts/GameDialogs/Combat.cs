@@ -143,14 +143,14 @@ public class Combat : GameDialog
 
         transform.Find("BtHeal").GetComponentInChildren<TMP_Text>().text = "Heal";
         transform.parent.Find("Buttons").gameObject.SetActive(false);
-        game.Text.Set(string.Empty);
+        text.Clear();
+        string str;
         if (restCombat)
-        {
-            startAction += $" Suddenly <b>{Utility.PrettyGroup(enemyList.Select(x => x.name))}</b> {Utility.S("attack", enemyList.Count == 1)} you.";
-            AppendText(startAction);
-        }
+            str = startAction + $" Suddenly <b>{Utility.PrettyGroup(enemyList.Select(x => x.name))}</b> {Utility.S("attack", enemyList.Count == 1)} you.";
         else
-            AppendText($"You {startAction} the {game.world.CurrentTile.Name} and <b>{Utility.PrettyGroup(enemyList.Select(x => x.name))}</b> {Utility.S("attack", enemyList.Count == 1)} you.");
+            str = $"You {startAction} the {game.world.CurrentTile.Name} and <b>{Utility.PrettyGroup(enemyList.Select(x => x.name))}</b> {Utility.S("attack", enemyList.Count == 1)} you.";
+        game.AddText(str);
+        AppendText(str);
     }
 
     private void Update()

@@ -136,7 +136,6 @@ public class SkipTimeScreen : GameDialog
             verb = "working in garden";
         else
             verb = action.ToLower() + "ing";
-        TextBuilder text = game.Text;
         text.Set($"You spend {Utility.Plural("day", skippedDays)} {verb}.");
 
         if (payment > 0)

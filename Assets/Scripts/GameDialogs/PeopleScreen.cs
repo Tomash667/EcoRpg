@@ -45,9 +45,6 @@ public class PeopleScreen : GameDialog
         else
             header.text = $"Hired people ({2 * game.hiredWorkers.Count} upkeep):";
 
-        // text
-        transform.Find("Text").GetComponent<TMP_Text>().text = game.Text.Flush();
-
         // list
         Transform content = transform.Find("List/Viewport/Content");
         foreach (Transform child in content)
@@ -68,14 +65,12 @@ public class PeopleScreen : GameDialog
                         return;
                     }
 
-                    game.Text.Set($"You pay <color=#FFD700>{cost}</color> gold to hire {worker.name}.");
+                    text.Set($"You pay <color=#FFD700>{cost}</color> gold to hire {worker.name}.");
                     player.AddGold(-cost);
                     worker.locationIndex = -1;
                     game.hiredWorkers.Add(worker);
                     game.availableWorkers.Remove(worker);
-                    game.AddTime(minutes: 15);
-                    RefreshIfOpen();
-                    game.UpdateText();
+                    AddTimeAndRefresh(minutes: 15);
                 });
             }
         }
@@ -98,7 +93,7 @@ public class PeopleScreen : GameDialog
                     actionText = "Unassign";
                     action = () =>
                     {
-                        game.Text.Set($"You unassign {worker.name} from {selectedProperty.Name}.");
+                        game.AddText($"You unassign {worker.name} from {selectedProperty.Name}.");
                         worker.locationIndex = -1;
                         Refresh();
                     };
@@ -112,11 +107,11 @@ public class PeopleScreen : GameDialog
                         Worker currentWorker = game.hiredWorkers.FirstOrDefault(x => x.locationIndex == locationIndex);
                         if (currentWorker != null)
                         {
-                            game.Text.Set($"You unassign {currentWorker.name} and assign {worker.name} to {selectedProperty.Name}.");
+                            game.AddText($"You unassign {currentWorker.name} and assign {worker.name} to {selectedProperty.Name}.");
                             currentWorker.locationIndex = -1;
                         }
                         else
-                            game.Text.Set($"You assign {worker.name} to {selectedProperty.Name}.");
+                            game.AddText($"You assign {worker.name} to {selectedProperty.Name}.");
                         worker.locationIndex = locationIndex;
                         Refresh();
                     };
@@ -124,7 +119,7 @@ public class PeopleScreen : GameDialog
 
                 itemEntry.Init2(worker.ToStringHired(property?.Name), actionText, action, "Fire", () =>
                 {
-                    game.Text.Set($"You fire {worker.name}.");
+                    game.AddText($"You fire {worker.name}.");
                     game.hiredWorkers.Remove(worker);
                     Refresh();
                 });

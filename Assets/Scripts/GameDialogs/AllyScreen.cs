@@ -94,7 +94,7 @@ public class AllyScreen : GameDialog
         ui.ShowConfirm($"Are you sure you want to remove {ally.name} from your team?", () =>
         {
             game.AddText($"You remove {ally.name} from your team.");
-            game.Text.Set($"{ally.name} is sad and leave.");
+            text.Set($"{ally.name} is sad and leave.");
             game.team.heroes.Remove(ally);
             game.team.CancelOutDebts();
             game.UpdateButtons();

@@ -1,10 +1,8 @@
 + use bottom text
-	combat (start)
-	game
 	map
-	people
+	guid
 - manage mansion text cutoff
-- farm infested -> buy farm -> quest is canceled but farm not clear
+?? remove upper text
 
 v3
 hero:
