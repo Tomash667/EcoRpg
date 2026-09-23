@@ -1,8 +1,6 @@
 + use bottom text
 	map
-	guid
 - manage mansion text cutoff
-?? remove upper text
 
 v3
 hero:
@@ -66,6 +64,7 @@ ui:
 + smoother travel
 + ok/confirm dialog auto size
 	- recruit text too long
+	- join guild text too long
 + Utility.Plural should inclue a/an (sometimes?)
 + show item value on character screen (and other places?)
 + new game class description
@@ -245,6 +244,7 @@ ui:
 + log paying debt
 + store/buy/sell/give/drop show max count in dialog
 + log ally buy/enchant items
++ remove upper text??
 
 refactoring:
 + store worker assigned property as reference

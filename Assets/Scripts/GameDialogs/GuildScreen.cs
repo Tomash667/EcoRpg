@@ -30,12 +30,8 @@ public class GuildScreen : GameDialog
     public override void Refresh()
     {
         // text
-        string guildText = game.Text.Flush();
-        if (guildText != string.Empty)
-            guildText += "\n\n";
         int guildRank = player.guildRank;
-        guildText += $"Your rank: {GuildRanks[guildRank]}";
-        transform.Find("Text").GetComponent<TMP_Text>().text = guildText;
+        transform.Find("Text").GetComponent<TMP_Text>().text = $"Your rank: {GuildRanks[guildRank]}";
 
         // enable buttons if player joined guild
         transform.Find("BtJoin").GetComponent<Button>().interactable = guildRank == 0;
@@ -111,11 +107,10 @@ public class GuildScreen : GameDialog
     public void Join()
     {
         player.guildRank = 1;
-        game.Text.Set("You fill out form and register as adventurer. From this day forward, you are free to accept quests, earn rewards, and carve your own path through the dungeons. " +
+        ui.ShowDialog("You fill out form and register as adventurer. From this day forward, you are free to accept quests, earn rewards, and carve your own path through the dungeons. " +
             "May your courage be greater than the dangers ahead, and your pack always heavy with treasure.");
-        game.AddTime(minutes: 15);
-        RefreshIfOpen();
-        game.UpdateText();
+        text.Set("You join the guild.");
+        AddTimeAndRefresh(minutes: 15);
     }
 
     private void AcceptQuest(Quest quest)
@@ -130,15 +125,12 @@ public class GuildScreen : GameDialog
             quest.count = tile.defeatedEnemies;
         }
         game.availableQuests.Remove(quest);
-        game.Text.Set($"You accepted quest '{quest.Title}'.");
-        game.AddTime(minutes: 15);
-        RefreshIfOpen();
-        game.UpdateText();
+        text.Set($"You accepted quest '{quest.Title}'.");
+        AddTimeAndRefresh(minutes: 15);
     }
 
     private void FinishQuest(Quest quest)
     {
-        TextBuilder text = game.Text;
         int reward = quest.Reward;
         text.Set($"You received <color=#FFD700>{reward}</color> gold for quest '{quest.Title}'.");
 
@@ -171,14 +163,11 @@ public class GuildScreen : GameDialog
         game.team.AddGold(reward);
         quest.Finish();
         game.RemoveQuest(quest);
-        game.AddTime(minutes: 15);
-        RefreshIfOpen();
-        game.UpdateText();
+        AddTimeAndRefresh(minutes: 15);
     }
 
     private void CancelQuest(Quest quest)
     {
-        TextBuilder text = game.Text;
         text.Set($"You canceled quest '{quest.Title}'.");
         player.guildProgress -= quest.difficultyMod;
         if (player.guildRank > 1 && player.guildProgress < -player.guildRank)
@@ -211,9 +200,7 @@ public class GuildScreen : GameDialog
             game.SortQuests();
         }
 
-        game.AddTime(minutes: 15);
-        RefreshIfOpen();
-        game.UpdateText();
+        AddTimeAndRefresh(minutes: 15);
     }
 
     private void PayToClear(Property property)
@@ -227,47 +214,47 @@ public class GuildScreen : GameDialog
         int days = game.world.CalculateTravelDaysNonTeam(World.IndexToPoint(property.locationIndex));
         player.AddGold(-property.infestedCost);
         property.events.First(e => e.name == "Infested").timer = days;
-        game.Text.Set($"You pay <color=#FFD700>{property.infestedCost}</color> gold to adventurers to clear the {property.Name.ToLower()}. " +
+        text.Set($"You pay <color=#FFD700>{property.infestedCost}</color> gold to adventurers to clear the {property.Name.ToLower()}. " +
             $"It will take them {Utility.Plural("day", days, true)}.");
-        game.AddTime(minutes: 15);
-        RefreshIfOpen();
-        game.UpdateText();
+        AddTimeAndRefresh(minutes: 15);
     }
 
     public void Train()
     {
-        TextBuilder text = game.Text;
         if (game.hour > 16)
-            text.Set("It's too late to train.");
-        else if (player.energy < 50)
-            text.Set("You are too tired to train.");
-        else
         {
-            player.energy -= 50;
-            text.Set("You train fighting.");
-            List<Hero> levelups = null;
-            foreach (Hero hero in game.team.heroes)
-            {
-                if (hero.AddExp(100))
-                {
-                    levelups ??= new();
-                    levelups.Add(hero);
-                }
-            }
-
-            if (levelups != null)
-            {
-                foreach (var group in levelups.GroupBy(x => x.level))
-                {
-                    string isAre = group.Count() > 1 || group.First() == player ? "are" : "is";
-                    text.Append($"{Utility.PrettyList(group.Select(x => x.nameYou)).ToUpper1()} {isAre} now level {group.Key}.");
-                }
-            }
-
-            game.AddTime(hours: 8);
-            RefreshIfOpen();
+            ui.ShowDialog("It's too late to train.");
+            return;
         }
-        game.UpdateText();
+
+        if (player.energy < 50)
+        {
+            ui.ShowDialog("You are too tired to train.");
+            return;
+        }
+
+        player.energy -= 50;
+        text.Set("You train fighting.");
+        List<Hero> levelups = null;
+        foreach (Hero hero in game.team.heroes)
+        {
+            if (hero.AddExp(100))
+            {
+                levelups ??= new();
+                levelups.Add(hero);
+            }
+        }
+
+        if (levelups != null)
+        {
+            foreach (var group in levelups.GroupBy(x => x.level))
+            {
+                string isAre = group.Count() > 1 || group.First() == player ? "are" : "is";
+                text.Append($"{Utility.PrettyList(group.Select(x => x.nameYou)).ToUpper1()} {isAre} now level {group.Key}.");
+            }
+        }
+
+        AddTimeAndRefresh(hours: 8);
     }
 
     public void Recruit()
@@ -302,18 +289,16 @@ public class GuildScreen : GameDialog
                 {
                     if (yes)
                     {
-                        game.Text.Set($"You recruit {hero.name} to your team.");
+                        text.Set($"You recruit {hero.name} to your team.");
                         game.team.heroes.Add(hero);
                         hero.BuyItems();
                         game.UpdateButtons();
                     }
                 }
                 else
-                    game.Text.Set($"You <b>failed</b> to convince {hero.name} to join your team.");
+                    text.Set($"You <b>failed</b> to convince {hero.name} to join your team.");
 
-                game.AddTime(minutes: 30);
-                RefreshIfOpen();
-                game.UpdateText();
+                AddTimeAndRefresh(minutes: 30);
             });
     }
 }
