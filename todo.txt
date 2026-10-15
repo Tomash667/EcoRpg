@@ -10,7 +10,6 @@ hero:
 	affect stats
 + quests
 	quests in village, no guild?
-	untrack quest
 	defeat x enemies in region
 	capture bandits leader in forest
 + allies buy rations to match up player
@@ -26,7 +25,7 @@ hero:
 	???
 + class perks/attacks
 	bash
-	multishoot
+	double-shot/multishoot
 	extra attack after defeating enemy
 	???
 + combat
@@ -122,6 +121,7 @@ hero:
 	merchant
 	farmer
 	miner
+	monk/martial artist/brawler
 + more races
 + inventory max weight
 	allies
@@ -145,6 +145,7 @@ hero:
 		bandits captured caravan
 		thieves stole family hairloom
 	timed
+	info where to find quest enemy (forest/swamp etc)
 + allies
 	soft limit
 	leave and take from guild

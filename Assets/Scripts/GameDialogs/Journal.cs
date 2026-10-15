@@ -44,7 +44,15 @@ public class Journal : GameDialog
         {
             ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
             if (quest.tracked)
-                itemEntry.Init(quest.TextReward);
+            {
+                itemEntry.SetSelected(true);
+                itemEntry.Init(quest.TextReward, "Don't track", () =>
+                {
+                    quest.tracked = false;
+                    Refresh();
+                    game.UpdateText();
+                });
+            }
             else
             {
                 itemEntry.Init(quest.TextReward, "Track", () =>
@@ -53,7 +61,6 @@ public class Journal : GameDialog
                     if (prevQuest != null)
                         prevQuest.tracked = false;
                     quest.tracked = true;
-                    game.AddText($"You track quest '{quest.Title}'.");
                     Refresh();
                     game.UpdateText();
                 });
