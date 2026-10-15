@@ -751,8 +751,9 @@ public class World
         isTraveling = false;
     }
 
-    private void RevealArea(Vector2Int pos, bool updateMap)
+    private void RevealArea(Vector2Int pos, bool notify)
     {
+        List<string> found = null;
         for (int y = pos.y - 1; y <= pos.y + 1; ++y)
         {
             for (int x = pos.x - 1; x <= pos.x + 1; ++x)
@@ -762,17 +763,27 @@ public class World
                     Tile tile = map[x + y * sizeX];
                     if (tile.discovered)
                         continue;
+
                     tile.discovered = true;
                     if (tile.type != tile.hidden && tile.hidden != TileType.None)
                     {
                         tile.SetType(tile.hidden);
                         tile.hidden = TileType.None;
+                        if (notify)
+                        {
+                            found ??= new();
+                            found.Add(tile.Name);
+                        }
                     }
-                    if (updateMap)
+
+                    if (notify)
                         Global.Game.RevealLocation(new(x, y));
                 }
             }
         }
+
+        if (found != null)
+            Global.Game.AddText($"You found {Utility.PrettyList(found)}.");
     }
 
     public void RevealAllAreas()
