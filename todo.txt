@@ -83,7 +83,6 @@ investments:
 	free food
 	expand farm to extra tile
 + difference what player earn by working vs upkeep from workers
-+ allow more then one property event
 + office upgrade
 + efficiency affects value
 + changing worker assignment takes travel time
@@ -313,6 +312,7 @@ investments:
 + manager don't work if he doesn't need to? but trains at 50%
 + assign multiple managers to office
 + vending machine
++ property events don't always start on 10th day
 
 skills:
 + haggle

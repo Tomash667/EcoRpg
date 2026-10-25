@@ -1514,11 +1514,8 @@ public class Game : MonoBehaviour
             }
 
             // property events
-            foreach (Property property in player.properties.Where(x => x.income > 0 && x.status == Property.Status.Active))
+            foreach (Property property in player.properties.Where(x => x.income > 0 && x.status == Property.Status.Active && x.events.Count == 0))
             {
-                if (property.events != null && property.events.Count > 0)
-                    continue;
-
                 (int buffChance, int infestChance) = property.EventChances;
                 int c = Utility.Rand % 100;
                 if (c < buffChance)
@@ -1538,7 +1535,6 @@ public class Game : MonoBehaviour
                         else
                             str = $"Your {propName} production increased thanks to new ore veins.";
                         AddNotification(str);
-                        break;
                     }
                     else
                         property.lastEvent = null;
@@ -1553,7 +1549,6 @@ public class Game : MonoBehaviour
                         Tile tile = world.GetLocation(property.locationIndex);
                         tile.clear = false;
                         tile.defeatedEnemies = 0;
-                        break;
                     }
                     else
                         property.lastEvent = null;
