@@ -1,4 +1,4 @@
-- manage mansion text cutoff
+- manage mansion/sawmill text cutoff
 
 v3
 hero:
@@ -12,7 +12,6 @@ hero:
 	quests in village, no guild?
 	defeat x enemies in region
 	capture bandits leader in forest
-+ allies buy rations to match up player
 + damage type
 	holy vs undead
 	hero fire/poison weapon
@@ -41,21 +40,21 @@ hero:
 + stronger enemies at lower dungeon levels
 + training required to level up?
 + specialized trainers that are better for archer/warrior
-+ ally with higher level speeds up training
-+ update journal text and point at location after discovering dragon lair
-+ you need to defeat wolf and all you find are elves
++ ally with higher level speeds up training !!!
++ update journal text and point at location after discovering dragon lair !!!
++ you need to defeat wolf and all you find are elves !!!
 ? is tent useful
 
 events:
 + spotted enemy
-+ negative event for decreased income
++ negative event for decreased income (bad weather, slow "season", bad ore quality)
 
 ui:
-+ interact portair
++ interact portair !!!
 + permanent action confirm (drop, ?)
 + player healthbar, fixed top ui
 + move map - cursor stays in place
-+ s&l map zoom
++ s&l map zoom !!!
 + open journal on map?
 + auto position buttons in smart way
 + smoother travel
@@ -66,13 +65,13 @@ ui:
 + show item value on character screen (and other places?)
 + new game class description
 + tooltips (for owed gold info)
-+ status bar at bottom with lastAction, click to show previous
++ status bar at bottom with lastAction, click to show previous !!!
 + player healthbar
 + visible shortcuts
 	craft in house/mansion shortcut?
 + better button naming for Properties/Manage if there a people there too
 + move map speed vs zoom
-+ train -> show progress
++ train -> show progress !!!
 
 investments:
 + workers skill
@@ -84,7 +83,7 @@ investments:
 	expand farm to extra tile
 + difference what player earn by working vs upkeep from workers
 + office upgrade
-+ efficiency affects value
++ efficiency affects value !!!
 + changing worker assignment takes travel time
 + higher upkeep for better workers
 + toggle - don't pay for gardener

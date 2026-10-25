@@ -56,7 +56,7 @@ public class Game : MonoBehaviour
     private string lastTestCombat;
     private float restCombatHeal;
     private int restCombatEnergy;
-    private bool inChoice, traveled, restCombat;
+    private bool inChoice, traveled, restCombat, isInside;
 
     public GameUI UI => ui;
     public TextBuilder Text => text;
@@ -978,6 +978,8 @@ public class Game : MonoBehaviour
 
     private IEnumerator TravelLoop(Vector2Int pt, bool enter)
     {
+        if (isInside)
+            OnLeaveLocation();
         traveled = true;
         ui.lockDialog = true;
         map.BeginTravel(pt);
@@ -1004,6 +1006,8 @@ public class Game : MonoBehaviour
 
     public void Teleport(Vector2Int pt)
     {
+        if (isInside)
+            OnLeaveLocation();
         world.Teleport(pt);
         UpdateText();
         traveled = true;
@@ -1082,6 +1086,8 @@ public class Game : MonoBehaviour
 
     private void OnEnterLocation()
     {
+        isInside = true;
+
         Tile tile = world.CurrentTile;
         if (tile.type == TileType.City && dragonStatus == DragonStatus.Defeated)
         {
@@ -1174,6 +1180,16 @@ public class Game : MonoBehaviour
         UpdateButtons();
         UpdateText();
         traveled = false;
+    }
+
+    private void OnLeaveLocation()
+    {
+        if (world.Location.IsSafe())
+        {
+            foreach (Hero ally in team.heroes.Skip(1))
+                ally.BuyItems();
+        }
+        isInside = false;
     }
 
     public void UpdateText()
@@ -1631,6 +1647,7 @@ public class Game : MonoBehaviour
         foreach (Property property in player.properties.Where(x => x.status == Property.Status.Building))
             map.AddIcon(World.IndexToPoint(property.locationIndex));
         ui.UpdateBackground((int)world.Location);
+        isInside = true;
     }
 
     public void ExitToMenu()

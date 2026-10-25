@@ -442,6 +442,10 @@ public class Hero : ISerializationCallbackReceiver
         int rationsCount = CountItem(ration), potionsCount = CountItem(potion), elixirCount = CountItem(elixir);
         int healingItemCount = potionsCount + elixirCount;
         int requiredRations = 5 + level / 2;
+        int playerRations = Global.Player.CountItem(ration);
+        if (playerRations > requiredRations)
+            requiredRations = playerRations;
+
         while ((rationsCount < requiredRations && gold >= ration.value) || (healingItemCount < 5 && gold >= healingItem.value))
         {
             if (rationsCount < requiredRations)
