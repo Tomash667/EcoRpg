@@ -1,4 +1,5 @@
 - manage mansion/sawmill text cutoff
+- things that look bad in bottom text: work garden, train
 
 v3
 hero:
@@ -40,9 +41,7 @@ hero:
 + stronger enemies at lower dungeon levels
 + training required to level up?
 + specialized trainers that are better for archer/warrior
-+ ally with higher level speeds up training !!!
 + update journal text and point at location after discovering dragon lair !!!
-+ you need to defeat wolf and all you find are elves !!!
 ? is tent useful
 
 events:

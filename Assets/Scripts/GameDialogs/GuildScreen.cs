@@ -235,10 +235,17 @@ public class GuildScreen : GameDialog
 
         player.energy -= 50;
         text.Set("You train fighting.");
+        int highestLevel = game.team.heroes.Max(x => x.level);
         List<Hero> levelups = null;
         foreach (Hero hero in game.team.heroes)
         {
-            if (hero.AddExp(100))
+            int exp;
+            if (hero.level == highestLevel)
+                exp = 100;
+            else
+                exp = 100 + 10 * (highestLevel - hero.level);
+
+            if (hero.AddExp(exp))
             {
                 levelups ??= new();
                 levelups.Add(hero);

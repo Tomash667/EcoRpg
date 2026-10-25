@@ -53,7 +53,7 @@ public class Game : MonoBehaviour
     private readonly StringBuilder sb = new();
     private readonly TextBuilder text = new();
     private System.Action<bool> choiceAction;
-    private string lastTestCombat;
+    private string lastEnemy, lastTestCombat;
     private float restCombatHeal;
     private int restCombatEnergy;
     private bool inChoice, traveled, restCombat, isInside;
@@ -290,7 +290,7 @@ public class Game : MonoBehaviour
             tile.defeatedEnemies = 0;
             UpdateButtons();
         }
-        else if (c < chance && (enemy = Enemy.GetRandom(tile.type, tile.difficulty)) != null)
+        else if (c < chance && (enemy = Enemy.GetRandom(tile.type, tile.difficulty, lastEnemy)) != null)
         {
             StartCombat(enemy, "explore");
             return;
@@ -597,6 +597,7 @@ public class Game : MonoBehaviour
                 enemyList.Add(Utility.Rand % 2 == 0 ? ally : enemy);
         }
 
+        lastEnemy = enemyList[0].name;
         if (restCombat)
             combatScreen.Init(enemyList, text.Flush(), true);
         else
@@ -1379,7 +1380,7 @@ public class Game : MonoBehaviour
                 }
                 player.energy = Mathf.Min(player.energy + energy, 100);
                 Tile tile = world.CurrentTile;
-                Enemy enemy = Enemy.GetRandom(tile.type, tile.difficulty);
+                Enemy enemy = Enemy.GetRandom(tile.type, tile.difficulty, lastEnemy);
                 restCombat = true;
                 restCombatHeal = heal;
                 restCombatEnergy = energy;
@@ -1974,7 +1975,7 @@ public class Game : MonoBehaviour
         player.energy -= energy;
 
         Enemy enemy;
-        if (!tile.clear && Utility.Rand % 10 == 0 && (enemy = Enemy.GetRandom(tile.type, tile.difficulty)) != null)
+        if (!tile.clear && Utility.Rand % 10 == 0 && (enemy = Enemy.GetRandom(tile.type, tile.difficulty, lastEnemy)) != null)
         {
             StartCombat(enemy, (tile.type == TileType.Forest || tile.type == TileType.EnchantedForest) ? "forage in" : "prospect");
             return;

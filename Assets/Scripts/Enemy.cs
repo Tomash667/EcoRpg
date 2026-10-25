@@ -53,12 +53,16 @@ public class Enemy
         return enemies.FirstOrDefault(x => x.name == name);
     }
 
-    public static Enemy GetRandom(TileType tileType, int difficulty)
+    public static Enemy GetRandom(TileType tileType, int difficulty, string lastEnemy = null)
     {
         Enemy[] matchingEnemies = enemies.Where(x => x.locations != null && x.locations.Any(y => y.tileType == tileType && y.difficulty == difficulty)).ToArray();
         if (matchingEnemies.Length == 0)
             return null;
-        return matchingEnemies.RandomItem();
+
+        if (lastEnemy == null || matchingEnemies.Length == 1 || Utility.Rand % 2 == 0)
+            return matchingEnemies.RandomItem();
+        else
+            return matchingEnemies.RandomItem(x => x.name != lastEnemy);
     }
 
     public static Enemy GetRandom(int difficulty)

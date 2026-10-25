@@ -101,12 +101,21 @@ public class SkipTimeScreen : GameDialog
             switch (action)
             {
             case "Train":
-                foreach (Hero hero in game.team.heroes)
                 {
-                    if (hero.AddExp(100))
+                    int highestLevel = game.team.heroes.Max(x => x.level);
+                    foreach (Hero hero in game.team.heroes)
                     {
-                        levelups ??= new();
-                        levelups.Add(hero);
+                        int exp;
+                        if (hero.level == highestLevel)
+                            exp = 100;
+                        else
+                            exp = 100 + 10 * (highestLevel - hero.level);
+
+                        if (hero.AddExp(exp))
+                        {
+                            levelups ??= new();
+                            levelups.Add(hero);
+                        }
                     }
                 }
                 break;
