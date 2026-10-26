@@ -1105,7 +1105,7 @@ public class Game : MonoBehaviour
             Property inn = properties.First(x => x.name == "Inn" && x.cityIndex == 1);
             player.properties.Add(inn);
             properties.Remove(inn);
-            team.PayForProperty(player, inn.value / 2);
+            team.PayForProperty(player, inn.Value / 2);
             text.Set($"You travel to the {tile.Name}. Inn owner is thankful for defeating the spider queen and hands over the deed to <b>inn</b>.");
         }
         else

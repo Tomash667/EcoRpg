@@ -57,13 +57,13 @@ public class PropertiesScreen : GameDialog
 
         int cityIndex = game.world.CityIndex;
         Property[] propertiesToBuy = game.properties.Where(x => x.status != Property.Status.None && (x.cityIndex == -1 || x.cityIndex == cityIndex))
-            .OrderBy(x => x.value).ThenBy(x => x.Name).ToArray();
+            .OrderBy(x => x.Value).ThenBy(x => x.Name).ToArray();
 
         // player properties
         if (player.properties.Count > 0)
         {
             ui.AddTextHeader("Your properties:", content);
-            foreach (Property property in player.properties.OrderBy(x => x.value).ThenBy(x => x.Name))
+            foreach (Property property in player.properties.OrderBy(x => x.Value).ThenBy(x => x.Name))
             {
                 ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
                 itemEntry.SetImage(ui.propertyIcons[(int)property.GetImage()]);
@@ -81,14 +81,14 @@ public class PropertiesScreen : GameDialog
                     itemEntry.Init(property.ToString(Property.DescStatus.Sell), "Sell", () =>
                     {
                         game.properties.Add(property);
-                        player.AddGold(property.value / 2);
+                        player.AddGold(property.Value / 2);
                         player.properties.Remove(property);
                         int locationIndex = game.GetLocationIndex(property);
                         Worker worker = game.hiredWorkers.FirstOrDefault(x => x.locationIndex == locationIndex);
                         if (worker != null)
                             worker.locationIndex = -1;
                         property.events.Clear();
-                        text.Set($"You sell {property.Name.ToLower()} for <color=#FFD700>{property.value / 2}</color> gold.");
+                        text.Set($"You sell {property.Name.ToLower()} for <color=#FFD700>{property.Value / 2}</color> gold.");
                         if (property.name == "House" || property.name == "Mansion" || (property.name == "Inn" && property.cityIndex == game.world.CityIndex))
                             game.UpdateButtons();
                         if (property.name == "Horses" || property.name == "Mansion")
@@ -119,7 +119,7 @@ public class PropertiesScreen : GameDialog
             ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
             itemEntry.Init(property.ToString(build ? Property.DescStatus.Build : Property.DescStatus.Buy), build ? "Build" : "Buy", () =>
             {
-                int cost = build ? property.BuildPrice : property.value;
+                int cost = build ? property.BuildPrice : property.Value;
                 if (player.gold < cost)
                 {
                     ui.ShowDialog($"You need {cost} gold to {(build ? "build" : "buy")} {property.Name.ToLower()}.");

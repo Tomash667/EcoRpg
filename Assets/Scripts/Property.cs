@@ -61,6 +61,14 @@ public class Property
     public int value, infestedCost, infestedDifficulty, income, upkeep, upkeepDiscount, buildPrice, buildPriceDiscount, buildTime, locationIndex, cityIndex, efficiency, lastManaged;
     public bool multi, producer, farmedToday;
 
+    public int Value
+    {
+        get
+        {
+            int val = (int)(value * (0.9f + 0.2f * efficiency / 100));
+            return Utility.Round(val);
+        }
+    }
     public int Income
     {
         get
@@ -193,10 +201,10 @@ public class Property
     {
         return status switch
         {
-            DescStatus.Sell or DescStatus.Infested => $"{Name} ({Desc}, {value / 2} gold)",
+            DescStatus.Sell or DescStatus.Infested => $"{Name} ({Desc}, {Value / 2} gold)",
             DescStatus.Build => $"{Name} ({buildTime} days to build, {Desc}, {BuildPrice} gold)",
             DescStatus.Building => $"{Name} ({Utility.Plural("day", buildTime)} left, {Desc})",
-            _ => $"{Name} ({Desc}, {value} gold)"
+            _ => $"{Name} ({Desc}, {Value} gold)"
         };
     }
 

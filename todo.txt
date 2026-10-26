@@ -79,7 +79,6 @@ investments:
 	expand farm to extra tile
 + difference what player earn by working vs upkeep from workers
 + office upgrade
-+ efficiency affects value !!!
 + changing worker assignment takes travel time
 + higher upkeep for better workers
 + toggle - don't pay for gardener
