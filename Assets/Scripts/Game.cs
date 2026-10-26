@@ -12,6 +12,7 @@ public class Game : MonoBehaviour
     public enum DragonStatus
     {
         None,
+        Found,
         Defeated,
         Win
     }
@@ -1112,7 +1113,15 @@ public class Game : MonoBehaviour
         if (tile.boss)
         {
             if (tile.difficulty == 3)
+            {
+                if(dragonStatus == DragonStatus.None)
+                {
+                    dragonStatus = DragonStatus.Found;
+                    Quest quest = activeQuests.First(x => x.type == Quest.Type.UniqueDragon);
+                    quest.location = world.CurrentLocationIndex;
+                }
                 text.Append("There are <b>dragon engravings</b> near entrance.");
+            }
             else
                 text.Append("There are more <b>cobwebs</b> then in an usual cave.");
         }
@@ -2352,7 +2361,7 @@ public class Game : MonoBehaviour
 
     public void EnterPortal()
     {
-        if (dragonStatus == DragonStatus.None)
+        if (dragonStatus <= DragonStatus.Found)
         {
             text.Set("The portal is sealed by dragon seal.");
             UpdateText();

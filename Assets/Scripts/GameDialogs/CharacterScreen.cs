@@ -3,12 +3,21 @@ using System.Linq;
 using System.Text;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class CharacterScreen : GameDialog
 {
     public CraftScreen craftScreen;
 
     private readonly StringBuilder sb = new();
+
+    public override void Show()
+    {
+        Image image = transform.Find("TextScroll/Viewport/Content/Image").GetComponent<Image>();
+        image.sprite = player.GetPortrait();
+
+        base.Show();
+    }
 
     public override void Refresh()
     {
@@ -36,6 +45,12 @@ public class CharacterScreen : GameDialog
             if (game.team.freshHorses > 0)
                 sb.Append($"  Fresh horses ({Utility.Plural("day", game.team.freshHorses, true)})\n");
         }
+        sb.Append("Random text\n");
+        sb.Append("Random text\n");
+        sb.Append("Random text\n");
+        sb.Append("Random text\n");
+        sb.Append("Random text\n");
+        sb.Append("Random text\n");
         charText.text = sb.ToString();
 
         RefreshItems();

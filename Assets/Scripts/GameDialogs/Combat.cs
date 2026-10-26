@@ -89,7 +89,7 @@ public class Combat : GameDialog
         foreach (Hero hero in heroes)
         {
             CharacterCard card = Instantiate(characterCardPrefab, container).GetComponent<CharacterCard>();
-            card.Init(hero.name, hero.hpp, false, Resources.Load<Sprite>(hero.Portrait));
+            card.Init(hero.name, hero.hpp, false, hero.GetPortrait());
             RectTransform transform = card.GetComponent<RectTransform>();
             Vector2 pos = GetCardPosition(index, true);
             if (multiRow && !hero.BackRow)

@@ -26,6 +26,8 @@ public class Hero : ISerializationCallbackReceiver
     [NonSerialized]
     public bool canBlock;
 
+    private Sprite portrait;
+
     public int Attack
     {
         get
@@ -77,7 +79,6 @@ public class Hero : ISerializationCallbackReceiver
     public string himself => female ? "herself" : "himself";
     public string His => female ? "Her" : "His";
     public virtual string isAre => "is";
-    public string Portrait => $"Portraits/{(female ? "female" : "male")} {clas.AsString()}";
 
     public void Init(int startLevel = 0)
     {
@@ -786,5 +787,15 @@ public class Hero : ISerializationCallbackReceiver
             lastGift = affectionGain;
             ChangeAffection(actualAffectionGain, text);
         }
+    }
+
+    public Sprite GetPortrait()
+    {
+        if(portrait == null)
+        {
+            string imageName = $"Portraits/{(female ? "female" : "male")} {clas.AsString()}";
+            portrait = Resources.Load<Sprite>(imageName);
+        }
+        return portrait;
     }
 }

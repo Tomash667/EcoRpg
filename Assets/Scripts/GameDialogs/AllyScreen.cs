@@ -2,6 +2,7 @@ using System.Linq;
 using System.Text;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class AllyScreen : GameDialog
 {
@@ -13,6 +14,10 @@ public class AllyScreen : GameDialog
     public void Show(int index)
     {
         ally = game.team.heroes[index + 1];
+
+        Image image = transform.Find("TextScroll/Viewport/Content/Image").GetComponent<Image>();
+        image.sprite = ally.GetPortrait();
+
         base.Show();
     }
 

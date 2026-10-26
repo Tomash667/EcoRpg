@@ -41,7 +41,6 @@ hero:
 + stronger enemies at lower dungeon levels
 + training required to level up?
 + specialized trainers that are better for archer/warrior
-+ update journal text and point at location after discovering dragon lair !!!
 ? is tent useful
 
 events:
@@ -49,7 +48,6 @@ events:
 + negative event for decreased income (bad weather, slow "season", bad ore quality)
 
 ui:
-+ interact portair !!!
 + permanent action confirm (drop, ?)
 + player healthbar, fixed top ui
 + move map - cursor stays in place

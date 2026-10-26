@@ -47,7 +47,7 @@ public class Quest : ISerializationCallbackReceiver
                 Type.Clear => $"Clear {GetLocationName()} - {Mathf.Min(100 * count / max, 100)}%",
                 Type.Gather => $"Gather {Global.Player.CountItem(item)}/{max} {Utility.Plural(item.name)}",
                 Type.Artifact => count == 0 ? $"Find artifact in {GetLocationName()}" : $"Bring artifact from {GetLocationName()} to guild",
-                Type.UniqueDragon => "Defeat dragon in far cave",
+                Type.UniqueDragon => location == -1 ? "Defeat dragon in far cave" : $"Defeat dragon in {GetLocationName()}",
                 Type.UniqueSpider => count == 0 ? $"Defeat spider queen in {GetLocationName()}" : $"Return to {GetLocationName()} and get your reward",
                 _ => string.Empty
             };
