@@ -92,6 +92,7 @@ public class Map : GameDialog
             if (newZoom != zoom)
             {
                 zoom = newZoom;
+                game.mapZoom = zoom;
                 tilesContainer.parent.localScale = new(zoom, zoom, zoom);
                 CenterOnPlayer();
             }
@@ -361,5 +362,11 @@ public class Map : GameDialog
         MapIcon mapIcon = iconsContainer.GetComponentsInChildren<MapIcon>().FirstOrDefault(x => x.pt == pt);
         if (mapIcon != null)
             Destroy(mapIcon.gameObject);
+    }
+
+    public void SetZoom(float newZoom)
+    {
+        zoom = newZoom;
+        tilesContainer.parent.localScale = new(zoom, zoom, zoom);
     }
 }

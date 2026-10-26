@@ -51,7 +51,6 @@ ui:
 + permanent action confirm (drop, ?)
 + player healthbar, fixed top ui
 + move map - cursor stays in place
-+ s&l map zoom !!!
 + open journal on map?
 + auto position buttons in smart way
 + smoother travel

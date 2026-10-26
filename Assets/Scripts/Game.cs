@@ -36,6 +36,7 @@ public class Game : MonoBehaviour
     public List<Worker> availableWorkers, hiredWorkers;
     public DragonStatus dragonStatus;
     public SpiderStatus spiderStatus;
+    public float mapZoom;
     public int day, hour, minute;
 
     private GameUI ui;
@@ -1114,7 +1115,7 @@ public class Game : MonoBehaviour
         {
             if (tile.difficulty == 3)
             {
-                if(dragonStatus == DragonStatus.None)
+                if (dragonStatus == DragonStatus.None)
                 {
                     dragonStatus = DragonStatus.Found;
                     Quest quest = activeQuests.First(x => x.type == Quest.Type.UniqueDragon);
@@ -1654,6 +1655,7 @@ public class Game : MonoBehaviour
         string json = global.GetSaveData();
         JsonUtility.FromJsonOverwrite(json, this);
         map.Build();
+        map.SetZoom(mapZoom);
         foreach (Property property in player.properties.Where(x => x.status == Property.Status.Building))
             map.AddIcon(World.IndexToPoint(property.locationIndex));
         ui.UpdateBackground((int)world.Location);
