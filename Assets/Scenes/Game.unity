@@ -5470,6 +5470,283 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 50}
   m_Pivot: {x: 0.5, y: 1}
+--- !u!1 &212646226
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 212646227}
+  - component: {fileID: 212646230}
+  - component: {fileID: 212646229}
+  - component: {fileID: 212646228}
+  m_Layer: 5
+  m_Name: Text
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &212646227
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 212646226}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 503156609}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 0, y: -0}
+  m_SizeDelta: {x: 1277.3921, y: 8807.6}
+  m_Pivot: {x: 0, y: 1}
+--- !u!114 &212646228
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 212646226}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3245ec927659c4140ac4f8d17403cc18, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_HorizontalFit: 0
+  m_VerticalFit: 2
+--- !u!114 &212646229
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 212646226}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_text: "- manage mansion/sawmill text cutoff\n- things that look bad in bottom
+    text: work garden, train\n\nv3\nhero:\n+ longer main quest that require investing\n\tlessen
+    infinite supply of quests & treasure\n+ classes - cleric\n+ races\n\tplayer desc\n\taffect
+    stats\n+ quests\n\tquests in village, no guild?\n\tdefeat x enemies in region\n\tcapture
+    bandits leader in forest\n+ damage type\n\tholy vs undead\n\thero fire/poison
+    weapon\n\tunholy\n\tfire/poison resistance/immunity\n\t\texploding trap deal
+    fire damage\n* tavern -> celebrate finished quest\n+ more enemies\n\tgoblin instead
+    of elf\n\t???\n+ class perks/attacks\n\tbash\n\tdouble-shot/multishoot\n\textra
+    attack after defeating enemy\n\t???\n+ combat\n\tspecial attacks\n\t\ttentacle
+    monster - grab attack\n\t\tspider - web (slow)\n\t\tdryad - charm\n\t\tguard
+    - extra block and def\n\t\t???\n\tsummoned enemies disappear instantly?\n+ romance\n+
+    talk with allies random events\n+ stronger enemies at lower dungeon levels\n+
+    training required to level up?\n+ specialized trainers that are better for archer/warrior\n?
+    is tent useful\n\nevents:\n+ spotted enemy\n+ negative event for decreased income
+    (bad weather, slow \"season\", bad ore quality)\n\nui:\n+ permanent action confirm
+    (drop, ?)\n+ player healthbar, fixed top ui\n+ move map - cursor stays in place\n+
+    open journal on map?\n+ auto position buttons in smart way\n+ smoother travel\n+
+    ok/confirm dialog auto size\n\t- recruit text too long\n\t- join guild text too
+    long\n+ Utility.Plural should inclue a/an (sometimes?)\n+ show item value on
+    character screen (and other places?)\n+ new game class description\n+ tooltips
+    (for owed gold info)\n+ status bar at bottom with lastAction, click to show previous
+    !!!\n+ player healthbar\n+ visible shortcuts\n\tcraft in house/mansion shortcut?\n+
+    better button naming for Properties/Manage if there a people there too\n+ move
+    map speed vs zoom\n+ train -> show progress !!!\n\ninvestments:\n+ workers skill\n+
+    upgrades takes time\n+ undo upgrades\n+ foreman -> trains others over time\n+
+    farm\n\tfree food\n\texpand farm to extra tile\n+ difference what player earn
+    by working vs upkeep from workers\n+ office upgrade\n+ changing worker assignment
+    takes travel time\n+ higher upkeep for better workers\n+ toggle - don't pay for
+    gardener\n\nskills:\n+ alchemy - mana potions\n+ strength\n+ endurance\n+ intelligence\n+
+    charm\n+ attributes training\n+ skills training from foreman\n+ it's too easy
+    to get skill from 0->100\n\nwork:\n+ inn\n\nworld:\n+ second region with city
+    and villages\n+ desert\n+ number of enemies in dungeon depends on defeatedEnemies
+    not on treasureFound\n+ month, year\n\n---------------------------------------------------------------------------------------------------\n+
+    save & load game\n\nhero:\n+ tutorial\n+ classes\n\ttank\n\trogue\n\tmage\n\tmerchant\n\tfarmer\n\tminer\n\tmonk/martial
+    artist/brawler\n+ more races\n+ inventory max weight\n\tallies\n\thorse\n\twagon\n\tmagic\n+
+    cursed (bad luck, impotence, reduced stats)\n+ hire npc for skills, not combat
+    (like M&M)\n+ luxury\n+ interactive combat\n+ player history\n\tisekaied\n\tnoble\n\tchosen
+    hero summoned (potential, rewards, reputation)\n+ currency 1 gold = 10 silver
+    = 100 copper\n+ quests\n\tmore types\n\t\tclear dungeon/crypt\n\t\tenemy camp\n\t\trescue\n\t\tbandits
+    captured caravan\n\t\tthieves stole family hairloom\n\ttimed\n\tinfo where to
+    find quest enemy (forest/swamp etc)\n+ allies\n\tsoft limit\n\tleave and take
+    from guild\n\tally guild rank\n\ttraits\n\t\tadventurous -> dislike not doing
+    anything\n\t\tlazy -> likes doing nothing, ignores weapon/armor maintaince (-atk/def)\n+
+    damage type\n\tacid\n+ adventurers potential (1-broken x0.25, 3-commoner x1,
+    5-adventurer x1.5, 7-hero x2.25, 10-chosen one x5)\n\tsoft skill cap\n* major
+    kingdom quest -> feast\n+ more enemies\n\tslime\n\twererat\n\tCarrion crawler\n\tboar\n\tfay\n\tcorrupted
+    animals\n\tdemon prince, greater demon\n\tvampire lord\n\tancient dragon\n\tsealed
+    horror\n\tghost\n\tswamp dragon, bog titan, bog rats, swamp leeches, mud crab,
+    swamp hag, bog zombie, will-o-wisps, snake\n\tenchanted forest -> fairy, pegasus,
+    unicorn?\n\twyvern\n\togre\n\tarmored lizard\n+ guild rank benefits (cheaper
+    hire for quests, shop, sleep)\n+ hunt for deers etc\n+ light/heavy armor\n+ hero
+    sword/spear/bow/shield\n+ unskilled weapon use\n+ auto collect herbs and create
+    potions when traveling\n+ combat\n\tescape chance\n\tenemy escape\n\tspecial
+    attacks\n\t\tpurple worm - engulf\n\t\theal\n\tenemy use potion\n\tboss second
+    phase\n+ more interesting dungeon exploring - random d20 rooms, explored%\n+
+    dungeon types - less/more traps, less/more monsters, trap types\n+ life of alchemist\n\tstarting
+    class/history\n\tsell at marketplace booth\n\thire people to gather herbs, sell
+    potions\n+ harasher lose consequences\n\tstolen equipment\n\tslavery (escape
+    or have investments liquidated)\n\tdeath\n+ recruit hero chance (reputation,
+    charm)\n+ alignment good/neutral/evil\n+ recruit hero from list\n+ look for specific
+    hero\n+ race skills (dwarves higher chance to know mining or always have some,
+    elf -> forage, etc)\n+ quiver (poison, magic, fire)\n+ skip time do two things
+    (work & train etc)\n\nunits:\n+ last name\n+ traits\n\timposter -> skill values
+    lie\n+ common class for Hero/Worker/Combat.Unit?\n\nevents:\n+ free person for
+    hire (foreman, geomancer etc)\n+ mine\n\tgood (mother lode, gems, new vein, technology/tools
+    efficiency, veteran miner training)\n\tneutral (surge of workers, royal inspection,
+    ancient ruins)\n\tbad (tunnel collapse, flooding, forged deed, cursed -> bad
+    luck)\n+ travel events\n+ events based on something that happened not random
+    stuff\n+ world events\n\twar\n\tmonsters invasion\n\tfamine\n\tdrought\n\tsomething
+    positive?\n\t\nui:\n+ combat sounds\n+ combat different attacks anim\n+ better
+    UI for two button ItemEntry\n+ cancel quest confirm\n+ background music\n+ shop
+    tabs?, separate shops\n+ animate datetime, gold\n+ race/class portraits\n+ map
+    hight max zoom out\n+ map zoom out relative to mouse position\n+ button/key to
+    switch to prev/next ally screen\n+ click on enemy to remove target\n+ skills
+    tooltip desc\n+ text when ally drinks potion\n+ log paying debt\n+ store/buy/sell/give/drop
+    show max count in dialog\n+ log ally buy/enchant items\n+ remove upper text??\n\nrefactoring:\n+
+    store worker assigned property as reference\n+ move code to Location classes
+    for explore/work/forage/available buttons\n+ DoAlchemy move to GiveItemsScreen\n\ninvestments:\n+
+    cottage/big house\n+ manage mine/sawmill\n\tskill\n\tsafety\n\tcorruption\n+
+    sawmill upgrades\n\tmake charcoal\n\triver powered saw\n\treplanting\n+ mine
+    upgrades\n\tbloomery\n\tblast furnace\n\tengineer overseer\n\tgeomancer\n+ no
+    instant sell -> get offers\n+ news/events travel speed\n+ send city guards to
+    clear mine -> need influence\n+ supply & demand\n+ resources: wood, iron, silver,
+    gold\n\tbuy & sell\n+ old mansion/mine -> need repairs\n+ brewery/vineyard ->
+    inn bonus\n+ hire mercenaries that you can move between locations\n+ bureaucracy
+    (manager needs to work more)\n+ monsters destroying property\n+ merchant guild
+    to buy/sell properties\n+ farm\n\thire druid/dryad/farm hero\n+ build farms on
+    plains, sawmills on forest, multiple mines\n+ build mansion in village\n+ send
+    caravan\n\tpersonal\n\tsell and buy\n\tbandits\n\thire guards/adventurers\n\tmerchant
+    guild\n\t\testablish trade route\n\t\tothers join caravan (lower costs)\n+ border
+    taxes\n+ stats/graphs of profit/upkeep/totals\n+ grid for properties, details
+    on right, buttons in details\n+ work in office, workers\n+ win game as merchant\n\thire
+    adventurers to scout, clear locations\n\tfund expeditions\n+ extra guards ->
+    fortifications (use wood)\n+ amazing efficiency can't prevent infestation but
+    can better defend itself (need combat and different invastion types)\n+ infested
+    property can be bought/sell at discount, no automatic clearing\n+ close property\n+
+    mansion upgrades -> training room(s)\n+ can click at available buildings and
+    see text/upgrades (but no manage/people/buy upgrades)\n+ disaster -> not enough
+    people -> increase payment or work at less eficiency\n+ assign worker to garden\n+
+    buildings have storage (0/10 wood), producers and consumers, it takes travel
+    time\n\tbuilding/upgrades require wood/stones\n+ quarry\n+ manager don't work
+    if he doesn't need to? but trains at 50%\n+ assign multiple managers to office\n+
+    vending machine\n+ property events don't always start on 10th day\n\nskills:\n+
+    haggle\n+ alchemy - more recipes\n\tpermanent attribute increase herbs/potions\n+
+    crafting\n\tdragon hide -> armor\n+ theory vs practice soft cap\n+ training from
+    books/trainers\n+ survival - hunting, bad terrain\n+ leadership\n+ cooking\n+
+    artifacts that increase skill (self writing pen, golden pickaxe/axe, etc)\n+
+    swimming\n+ beauty\n+ university to train skills\n\nwork:\n+ fishing\n\nmagic:\n+
+    fire (fire lance, fireball)\n+ earth (stone skin, stone wall - global)\n+ production
+    (turn resources -> item/buildings)\n\ntechnology:\n+ blast furnace\n+ printing
+    press\n+ sewers\n+ paper money\n\nraces:\n+ demons (export sex toys, lube, sex
+    skill teachers)\n\nworld:\n+ regions (difficulty)\n+ king -> duke -> baron ->
+    village elder\n+ countries\n+ continents\n+ buy region map\n+ sell region map
+    after 100% discovery\n+ region statistics: safety, population\n+ rain -> flood
+    (depends on rain strength, paved roads, sewers, dungeons)\n+ roads, rivers, bridges,
+    sea, difficult terrain\n+ travel speed (faster horse/beast, magic)\n\tbad terrain
+    -> mountains, swamp\n+ teleport\n+ harder to find locations - need explore\n+
+    locations that require exploring to discover\n+ hamlet spawning next to mine\n+
+    capitol\n+ swamp names\n\tmarsh, bog, Fen, Wetlands\n\tMire, Quagmire, Morass,
+    Blackwater, Rotfen, Blight Bog\n+ fog \"of war\" around swamp\n+ spawn biomes\n+
+    laylines\n\thttps://chatgpt.com/g/g-p-699b357f41e08191be6bf11fa9b7de95-ecorpg/c/69d61c1d-aae0-8396-a8da-0410db050de5\n\thttps://aistudio.google.com/prompts/1fGhK85Ij3nwgBj3ToL7wBvXHap5_Pgxh\n\thttps://grok.com/c/794e217a-21f5-49e3-ba34-761dfa270b31?rid=bec1eec2-cbb4-4806-b4d8-204d0b74029f\n+
+    travel over lake\n+ sea/ocean/big lake\n+ plane of water/fire etc\n+ elven village\n+
+    city siege/destruction\n+ kingdom alignment lawful/chaotic good/evil\n\tchaotic
+    - random taxes, low bureaucracy\n\tlawful - stable taxes, high bureaucracy\n+
+    seasons\n+ region safety/corruption/economy\n\taffects bandits\n\tthieves guild\n+
+    dwarf (any race) city/kingdom\n\tmixed, pure kingdoms (some percentage)\n"
+  m_isRightToLeft: 0
+  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontSharedMaterials: []
+  m_fontMaterial: {fileID: 0}
+  m_fontMaterials: []
+  m_fontColor32:
+    serializedVersion: 2
+    rgba: 4278190080
+  m_fontColor: {r: 0, g: 0, b: 0, a: 1}
+  m_enableVertexGradient: 0
+  m_colorMode: 3
+  m_fontColorGradient:
+    topLeft: {r: 1, g: 1, b: 1, a: 1}
+    topRight: {r: 1, g: 1, b: 1, a: 1}
+    bottomLeft: {r: 1, g: 1, b: 1, a: 1}
+    bottomRight: {r: 1, g: 1, b: 1, a: 1}
+  m_fontColorGradientPreset: {fileID: 0}
+  m_spriteAsset: {fileID: 0}
+  m_tintAllSprites: 0
+  m_StyleSheet: {fileID: 0}
+  m_TextStyleHashCode: -1183493901
+  m_overrideHtmlColors: 0
+  m_faceColor:
+    serializedVersion: 2
+    rgba: 4294967295
+  m_fontSize: 20
+  m_fontSizeBase: 20
+  m_fontWeight: 400
+  m_enableAutoSizing: 0
+  m_fontSizeMin: 18
+  m_fontSizeMax: 72
+  m_fontStyle: 0
+  m_HorizontalAlignment: 1
+  m_VerticalAlignment: 256
+  m_textAlignment: 65535
+  m_characterSpacing: 0
+  m_characterHorizontalScale: 1
+  m_wordSpacing: 0
+  m_lineSpacing: 0
+  m_lineSpacingMax: 0
+  m_paragraphSpacing: 0
+  m_charWidthMaxAdj: 0
+  m_TextWrappingMode: 1
+  m_wordWrappingRatios: 0.4
+  m_overflowMode: 0
+  m_linkedTextComponent: {fileID: 0}
+  parentLinkedComponent: {fileID: 0}
+  m_enableKerning: 0
+  m_ActiveFontFeatures: 6e72656b
+  m_enableExtraPadding: 0
+  checkPaddingRequired: 0
+  m_isRichText: 1
+  m_EmojiFallbackSupport: 1
+  m_parseCtrlCharacters: 1
+  m_isOrthographic: 1
+  m_isCullingEnabled: 0
+  m_horizontalMapping: 0
+  m_verticalMapping: 0
+  m_uvLineOffset: 0
+  m_geometrySortingOrder: 0
+  m_IsTextObjectScaleStatic: 0
+  m_VertexBufferAutoSizeReduction: 0
+  m_useMaxVisibleDescender: 1
+  m_pageToDisplay: 1
+  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_isUsingLegacyAnimationComponent: 0
+  m_isVolumetricText: 0
+  m_hasFontAssetChanged: 0
+  m_baseMaterial: {fileID: 0}
+  m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!222 &212646230
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 212646226}
+  m_CullTransparentMesh: 1
 --- !u!1 &214760742
 GameObject:
   m_ObjectHideFlags: 0
@@ -10825,6 +11102,84 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 498813698}
   m_CullTransparentMesh: 1
+--- !u!1 &503156608
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 503156609}
+  - component: {fileID: 503156611}
+  - component: {fileID: 503156610}
+  m_Layer: 5
+  m_Name: Content
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &503156609
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 503156608}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 212646227}
+  m_Father: {fileID: 1228777436}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 616, y: 8807.6}
+  m_Pivot: {x: 0, y: 1}
+--- !u!114 &503156610
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 503156608}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 59f8146938fff824cb5fd77236b75775, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Padding:
+    m_Left: 0
+    m_Right: 0
+    m_Top: 0
+    m_Bottom: 0
+  m_ChildAlignment: 0
+  m_Spacing: 0
+  m_ChildForceExpandWidth: 0
+  m_ChildForceExpandHeight: 0
+  m_ChildControlWidth: 0
+  m_ChildControlHeight: 0
+  m_ChildScaleWidth: 0
+  m_ChildScaleHeight: 0
+  m_ReverseArrangement: 0
+--- !u!114 &503156611
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 503156608}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3245ec927659c4140ac4f8d17403cc18, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_HorizontalFit: 0
+  m_VerticalFit: 2
 --- !u!1 &510089163
 GameObject:
   m_ObjectHideFlags: 0
@@ -12885,6 +13240,42 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: -20, y: -20}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &590280523
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 590280524}
+  m_Layer: 5
+  m_Name: Sliding Area
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &590280524
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 590280523}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1517905697}
+  m_Father: {fileID: 716740147}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: -20, y: -20}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &591179675
 GameObject:
   m_ObjectHideFlags: 0
@@ -14401,6 +14792,114 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 657210995}
   m_CullTransparentMesh: 1
+--- !u!1 &660255176
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 660255177}
+  - component: {fileID: 660255180}
+  - component: {fileID: 660255179}
+  - component: {fileID: 660255178}
+  m_Layer: 5
+  m_Name: BottomTextExpanded
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!224 &660255177
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 660255176}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1228777436}
+  - {fileID: 716740147}
+  m_Father: {fileID: 1380054794}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 0.000030994, y: -44.99994}
+  m_SizeDelta: {x: 1280, y: 675.07}
+  m_Pivot: {x: 0, y: 1}
+--- !u!114 &660255178
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 660255176}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1aa08ab6e0800fa44ae55d278d1423e3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Content: {fileID: 503156609}
+  m_Horizontal: 0
+  m_Vertical: 1
+  m_MovementType: 2
+  m_Elasticity: 0.1
+  m_Inertia: 0
+  m_DecelerationRate: 0.135
+  m_ScrollSensitivity: 10
+  m_Viewport: {fileID: 1228777436}
+  m_HorizontalScrollbar: {fileID: 0}
+  m_VerticalScrollbar: {fileID: 716740148}
+  m_HorizontalScrollbarVisibility: 2
+  m_VerticalScrollbarVisibility: 2
+  m_HorizontalScrollbarSpacing: -3
+  m_VerticalScrollbarSpacing: -3
+  m_OnValueChanged:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &660255179
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 660255176}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.5019608}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
+  m_Type: 1
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &660255180
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 660255176}
+  m_CullTransparentMesh: 1
 --- !u!1 &668477423
 GameObject:
   m_ObjectHideFlags: 0
@@ -14912,6 +15411,132 @@ CanvasRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 693581747}
+  m_CullTransparentMesh: 1
+--- !u!1 &716740146
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 716740147}
+  - component: {fileID: 716740150}
+  - component: {fileID: 716740149}
+  - component: {fileID: 716740148}
+  m_Layer: 5
+  m_Name: Scrollbar Vertical
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &716740147
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 716740146}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 590280524}
+  m_Father: {fileID: 660255177}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 1, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 20, y: -0.000061035}
+  m_Pivot: {x: 1, y: 1}
+--- !u!114 &716740148
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 716740146}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2a4db7a114972834c8e4117be1d82ba3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Navigation:
+    m_Mode: 3
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 1
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
+    m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.1
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 1517905698}
+  m_HandleRect: {fileID: 1517905697}
+  m_Direction: 2
+  m_Value: 1
+  m_Size: 0.07664632
+  m_NumberOfSteps: 0
+  m_OnValueChanged:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &716740149
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 716740146}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
+  m_Type: 1
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &716740150
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 716740146}
   m_CullTransparentMesh: 1
 --- !u!1 &722361657
 GameObject:
@@ -25571,6 +26196,96 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1224879312}
   m_CullTransparentMesh: 1
+--- !u!1 &1228777435
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1228777436}
+  - component: {fileID: 1228777439}
+  - component: {fileID: 1228777438}
+  - component: {fileID: 1228777437}
+  m_Layer: 5
+  m_Name: Viewport
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1228777436
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1228777435}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 503156609}
+  m_Father: {fileID: 660255177}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: -17, y: 0}
+  m_Pivot: {x: 0, y: 1}
+--- !u!114 &1228777437
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1228777435}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 31a19414c41e5ae4aae2af33fee712f6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_ShowMaskGraphic: 0
+--- !u!114 &1228777438
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1228777435}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 10917, guid: 0000000000000000f000000000000000, type: 0}
+  m_Type: 1
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &1228777439
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1228777435}
+  m_CullTransparentMesh: 1
 --- !u!1 &1229134892
 GameObject:
   m_ObjectHideFlags: 0
@@ -29019,6 +29734,7 @@ RectTransform:
   - {fileID: 1873666000}
   - {fileID: 879523453}
   - {fileID: 1876982167}
+  - {fileID: 660255177}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -29058,6 +29774,7 @@ MonoBehaviour:
   hiredWorkers: []
   dragonStatus: 0
   spiderStatus: 0
+  mapZoom: 0
   day: 0
   hour: 0
   minute: 0
@@ -31651,6 +32368,81 @@ CanvasRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1514142640}
+  m_CullTransparentMesh: 1
+--- !u!1 &1517905696
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1517905697}
+  - component: {fileID: 1517905699}
+  - component: {fileID: 1517905698}
+  m_Layer: 5
+  m_Name: Handle
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1517905697
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1517905696}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 590280524}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0.9233537}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 20, y: 20}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1517905698
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1517905696}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
+  m_Type: 1
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!222 &1517905699
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1517905696}
   m_CullTransparentMesh: 1
 --- !u!1 &1523392303
 GameObject:
