@@ -1525,7 +1525,7 @@ public class Game : MonoBehaviour
             else
             {
                 foreach (var plant in property.gardenPlants.Where(x => !string.IsNullOrEmpty(x)).GroupBy(x => x).Select(x => (name: x.Key, count: x.Count())))
-                    property.AddStoredItem(GardenScreen.PlantNameToItem(plant.name), plant.count);
+                    property.AddStoredItem(Item.Get(plant.name), plant.count);
             }
         }
 
@@ -2297,6 +2297,8 @@ public class Game : MonoBehaviour
                 hero.weapon = Item.Get("magic bow");
             hero.armor = Item.Get("magic armor");
             hero.AddItem(Item.Get("elixir"), 100);
+            if (hero.mpMax > 0)
+                hero.AddItem(Item.Get("magic elixir"), 100);
             hero.AddItem(Item.Get("ration"), 1000 - hero.CountItem(Item.Get("ration")));
             hero.gold = Mathf.Max(hero.gold, 100000);
             hero.owedGold = 0;

@@ -34,6 +34,21 @@ public class Recipe
             ingredientCount = 2,
             trainMod = 0.4f,
             requiredSkill = 25
-        }
+        },
+        new()
+        {
+            result = Item.Get("mana potion"),
+            ingredient = Item.Get("mana herb"),
+            ingredientCount = 2,
+            trainMod = 0.2f
+        },
+        new()
+        {
+            result = Item.Get("mana elixir"),
+            ingredient = Item.Get("magic crystal"),
+            ingredientCount = 2,
+            trainMod = 0.4f,
+            requiredSkill = 25
+        },
     };
 }

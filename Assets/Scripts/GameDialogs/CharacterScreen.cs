@@ -154,12 +154,24 @@ public class CharacterScreen : GameDialog
                 {
                     itemEntry.Init2(itemSlot.ToString(Price.None), "Use", () =>
                     {
-                        // TODO: mana potion
                         text.Append($"You {(itemSlot.item.drink ? "drink" : "eat")} {Utility.A(itemSlot.item.name)}.");
-                        if (player.hp != player.hpMax)
-                            text.Append("Your wounds heal.");
+                        if (itemSlot.item.subtype == Item.Subtype.Heal)
+                        {
+                            if (player.hp != player.hpMax)
+                            {
+                                text.Append("Your wounds heal.");
+                                player.hp = Mathf.Min(player.hp + itemSlot.item.power, player.hpMax);
+                            }
+                        }
+                        else if (itemSlot.item.subtype == Item.Subtype.Mana)
+                        {
+                            if (player.mp != player.mpMax)
+                            {
+                                text.Append("Your mana replenish.");
+                                player.mp = Mathf.Min(player.mp + itemSlot.item.power, player.mpMax);
+                            }
+                        }
                         game.AddText(text.Flush());
-                        player.hp = Mathf.Min(player.hp + itemSlot.item.power, player.hpMax);
                         player.RemoveItem(itemSlot);
                         Refresh();
                         game.UpdateText();

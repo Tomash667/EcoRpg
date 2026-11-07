@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using static UnityEngine.GraphicsBuffer;
 
 [Serializable]
 public class Hero : ISerializationCallbackReceiver
@@ -246,7 +245,7 @@ public class Hero : ISerializationCallbackReceiver
 
     public ItemSlot FindHealingItem()
     {
-        return items.Where(x => x.item.type == Item.Type.Usable).OrderByDescending(x => x.item.power).FirstOrDefault();
+        return items.Where(x => x.item.type == Item.Type.Usable && x.item.subtype == Item.Subtype.Heal).OrderByDescending(x => x.item.power).FirstOrDefault();
     }
 
     public bool HaveItem(Item item)
@@ -354,7 +353,7 @@ public class Hero : ISerializationCallbackReceiver
             Item.Type.Weapon => CanEquip(item) && (weapon == null || weapon.power < item.power),
             Item.Type.Armor => CanEquip(item) && (armor == null || armor.power < item.power),
             Item.Type.Shield => CanEquip(item) && (shield == null || shield.power < item.power),
-            Item.Type.Usable => item.subtype == Item.Subtype.None || HaveItem("alchemy set"),
+            Item.Type.Usable => (item.ingredient && HaveItem("alchemy set")) || (!item.ingredient && (item.subtype == Item.Subtype.Heal || (item.subtype == Item.Subtype.Mana && mpMax > 0))),
             Item.Type.Other => item.name == "ration",
             _ => false
         };
@@ -417,7 +416,7 @@ public class Hero : ISerializationCallbackReceiver
             break;
         case Item.Type.Usable:
             AddItem(item, count);
-            if (item.subtype == Item.Subtype.Ingredient)
+            if (item.ingredient)
                 Global.Game.DoAlchemy(this, item, text);
             break;
         default:
@@ -787,7 +786,7 @@ public class Hero : ISerializationCallbackReceiver
 
     public void IncreaseAffectionFromValue(Item item, int count, TextBuilder text)
     {
-        if (item.type == Item.Type.Usable && item.subtype == Item.Subtype.Ingredient)
+        if (item.type == Item.Type.Usable && item.ingredient)
             return; // ingredients are turned into potion and given back
         IncreaseAffectionFromValue(item.value * count, text);
     }

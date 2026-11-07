@@ -10,7 +10,7 @@ public class CraftScreen : GameDialog
         foreach (Transform child in content)
             Destroy(child.gameObject);
 
-        foreach (ItemSlot itemSlot in player.items.Where(x => x.item.subtype == Item.Subtype.Ingredient))
+        foreach (ItemSlot itemSlot in player.items.Where(x => x.item.ingredient))
         {
             ItemEntry itemEntry = Instantiate(ui.itemEntryPrefab, content).GetComponent<ItemEntry>();
             itemEntry.Init(itemSlot.ToStringShort());

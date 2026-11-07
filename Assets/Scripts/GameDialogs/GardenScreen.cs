@@ -4,6 +4,26 @@ using UnityEngine;
 
 public class GardenScreen : GameDialog
 {
+    private static readonly Item[] plantChoices = new[]
+    {
+        null, // empty
+        Item.Get("ration"), // vegetables
+        Item.Get("herb"),
+        Item.Get("mana herb"),
+        Item.Get("rare herb")
+    };
+
+    private static readonly string[] plantChoicesString = plantChoices.Select(plant =>
+    {
+        if (plant == null)
+            return "---";
+
+        if (plant.name == "ration")
+            return "Vegetables (10 gold)";
+
+        return $"{Utility.Plural(plant.name.ToUpper1())} (10 herbs)";
+    }).ToArray();
+
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.W))
@@ -17,22 +37,29 @@ public class GardenScreen : GameDialog
             Destroy(child.gameObject);
 
         Property property = game.GetPropertyInside();
-        string[] choices = new string[] { "---", "Vegetables (10 gold)", "Herbs (10 herbs)", "Rare herbs (10 herbs)" };
 
         for (int i = 0; i < property.gardenPlants.Count; ++i)
         {
             int index = i;
-            string plant = property.gardenPlants[i];
-            if (plant == "")
-                plant = "Empty";
+            string currentPlant = property.gardenPlants[i];
+            if (currentPlant == "")
+                currentPlant = "Empty";
+            else if (currentPlant == "ration")
+                currentPlant = "Vegetables";
+            else
+                currentPlant = Utility.Plural(currentPlant.ToUpper1());
+
             DropdownEntry dropdownEntry = Instantiate(ui.dropdownEntryPrefab, content).GetComponent<DropdownEntry>();
-            dropdownEntry.Init($"Plot {i + 1}: {plant}", "Change", choices, x =>
+            dropdownEntry.Init($"Plot {i + 1}: {currentPlant}", "Change", plantChoicesString, x =>
             {
-                switch (x)
+                Item newPlant = plantChoices[x];
+                if (newPlant == null)
+                    return; // empty - do nothing
+
+                if (newPlant.name == "ration")
                 {
-                case 1:
                     // vegetables
-                    if (plant == "Vegetables")
+                    if (property.gardenPlants[index] == "ration")
                         ui.ShowDialog("Vegetables are already planted here.");
                     else if (player.gold < 10)
                         ui.ShowDialog("You need 10 gold.");
@@ -40,41 +67,25 @@ public class GardenScreen : GameDialog
                     {
                         game.AddText("You plant vegetables.");
                         player.AddGold(-10);
-                        property.gardenPlants[index] = "Vegetables";
+                        property.gardenPlants[index] = "ration";
                         Refresh();
                         game.UpdateText();
                     }
-                    break;
-                case 2:
-                    // herbs
-                    Item herb = Item.Get("herb");
-                    if (plant == "Herbs")
-                        ui.ShowDialog("Herbs are already planted here.");
-                    else if (player.CountItem(herb) < 10)
-                        ui.ShowDialog("You need 10 herbs.");
+                }
+                else
+                {
+                    // some herb
+                    if (property.gardenPlants[index] == newPlant.name)
+                        ui.ShowDialog($"{Utility.Plural(newPlant.name.ToUpper1())} are already planted here.");
+                    else if (player.CountItem(newPlant) < 10)
+                        ui.ShowDialog($"You need 10 {Utility.Plural(newPlant.name)}.");
                     else
                     {
-                        game.AddText("You plant herbs.");
-                        player.RemoveItem(herb, 10);
-                        property.gardenPlants[index] = "Herbs";
+                        game.AddText($"You plant {Utility.Plural(newPlant.name)}.");
+                        player.RemoveItem(newPlant, 10);
+                        property.gardenPlants[index] = newPlant.name;
                         Refresh();
                     }
-                    break;
-                case 3:
-                    // rare herbs
-                    Item rareHerb = Item.Get("rare herb");
-                    if (plant == "Rare herbs")
-                        ui.ShowDialog("Rare herbs are already planted here.");
-                    else if (player.CountItem(rareHerb) < 10)
-                        ui.ShowDialog("You need 10 rare herbs.");
-                    else
-                    {
-                        game.AddText("You plant rare herbs.");
-                        player.RemoveItem(rareHerb, 10);
-                        property.gardenPlants[index] = "Rare herbs";
-                        Refresh();
-                    }
-                    break;
                 }
             });
         }
@@ -117,7 +128,7 @@ public class GardenScreen : GameDialog
         foreach (var plant in property.gardenPlants.Where(x => !string.IsNullOrEmpty(x)).GroupBy(x => x).Select(x => (name: x.Key, count: x.Count())))
         {
             int count = (int)(mod * plant.count);
-            Item item = PlantNameToItem(plant.name);
+            Item item = Item.Get(plant.name);
             player.AddItem(item, count);
             if (produceList != null)
             {
@@ -145,16 +156,5 @@ public class GardenScreen : GameDialog
         }
         player.energy -= 50;
         property.farmedToday = true;
-    }
-
-    public static Item PlantNameToItem(string name)
-    {
-        return name switch
-        {
-            "Vegetables" => Item.Get("ration"),
-            "Herbs" => Item.Get("herb"),
-            "Rare herbs" => Item.Get("rare herb"),
-            _ => null
-        };
     }
 }

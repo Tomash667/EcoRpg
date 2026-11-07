@@ -25,9 +25,16 @@ public class Item
     public enum Subtype
     {
         None,
+
+        // weapon types
         Melee,
         Bow,
-        Ingredient,
+
+        // consumable effects
+        Heal,
+        Mana,
+
+        // other
         Treasure
     }
 
@@ -52,7 +59,7 @@ public class Item
     public Type type;
     public Subtype subtype;
     public int level, power, value;
-    public bool drink;
+    public bool drink, ingredient;
 
     public bool CanEnchant()
     {
@@ -94,14 +101,14 @@ public class Item
         case Type.Armor:
             return Icon.Armor;
         case Type.Usable:
-            if (subtype == Subtype.Ingredient)
+            if (ingredient)
                 return Icon.Herb;
             else
                 return Icon.Potion;
         case Type.Tool:
             return Icon.Tool;
         default:
-            if (subtype == Subtype.Ingredient)
+            if (ingredient)
                 return Icon.Herb;
             else if (subtype == Subtype.Treasure)
                 return Icon.Treasure;
@@ -419,32 +426,45 @@ public class Item
             name = "herb",
             desc = "25 heal",
             type = Type.Usable,
-            subtype = Subtype.Ingredient,
+            subtype = Subtype.Heal,
             power = 25,
-            value = 5
+            value = 5,
+            ingredient = true
         },
         new()
         {
             name = "rare herb",
             desc = "50 heal",
             type = Type.Usable,
-            subtype = Subtype.Ingredient,
+            subtype = Subtype.Heal,
             power = 50,
-            value = 10
+            value = 10,
+            ingredient = true
+        },
+        new()
+        {
+            name = "mana herb",
+            desc = "25 mana",
+            type = Type.Usable,
+            subtype = Subtype.Mana,
+            power = 25,
+            value = 5,
+            ingredient = true
         },
         new()
         {
             name = "magic crystal",
             desc = "quest item",
             type = Type.Other,
-            subtype = Subtype.Ingredient,
-            value = 5
+            value = 10,
+            ingredient = true
         },
         new()
         {
             name = "potion",
             desc = "100 heal",
             type = Type.Usable,
+            subtype = Subtype.Heal,
             power = 100,
             value = 10,
             drink = true
@@ -454,6 +474,27 @@ public class Item
             name = "elixir",
             desc = "200 heal",
             type = Type.Usable,
+            subtype = Subtype.Heal,
+            power = 200,
+            value = 20,
+            drink = true
+        },
+        new()
+        {
+            name = "mana potion",
+            desc = "100 mana",
+            type = Type.Usable,
+            subtype = Subtype.Mana,
+            power = 100,
+            value = 10,
+            drink = true
+        },
+        new()
+        {
+            name = "mana elixir",
+            desc = "200 mana",
+            type = Type.Usable,
+            subtype = Subtype.Mana,
             power = 200,
             value = 20,
             drink = true
@@ -540,6 +581,8 @@ public class Item
         Get("ration"),
         Get("potion"),
         Get("elixir"),
+        Get("mana potion"),
+        Get("mana elixir"),
         Get("tent"),
         Get("pickaxe"),
         Get("alchemy set")
@@ -562,6 +605,7 @@ public class Item
         Get("steel shield"),
         Get("ration"),
         Get("potion"),
+        Get("mana potion"),
         Get("tent"),
         Get("pickaxe")
     };

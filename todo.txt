@@ -2,8 +2,15 @@
 - things that look bad in bottom text: work garden, train
 - bad map zoom on new game
 
+mana herb
+	find
+	quest
+
 + cleric
 	mana potion
+		use in combat
+		ai buy
+		ai use in combat
 	spells (buttons in combat + ai use, option if player should autouse?)
 		heal
 		holy damage spell
@@ -92,7 +99,6 @@ investments:
 + toggle - don't pay for gardener
 
 skills:
-+ alchemy - mana potions
 + strength
 + endurance
 + intelligence
@@ -256,6 +262,7 @@ refactoring:
 + store worker assigned property as reference
 + move code to Location classes for explore/work/forage/available buttons
 + DoAlchemy move to GiveItemsScreen
++ move PostCombat to Combat
 
 investments:
 + cottage/big house
