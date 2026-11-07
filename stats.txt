@@ -1,7 +1,9 @@
+# Locations difficulty
 city/sewers (0) -> forest (0-1) -> mountains (2) -> cave/dungeon(3)
 -> forest 2 (2-3) -> mountains 2 (4) -> cave/dungeon 2 (5-6)
 -> forest 3 (5-6) -> mountains 3 (7) -> cave/dungeon 3 (8+)
 
+# Location enemies difficulty
 forest
 	1 - wolf (0), elf (1)
 	2 - orc (2), dryad (3)
@@ -22,6 +24,7 @@ swamp
 	2 - crocodile (6)
 	3 - hydra (9)
 	
+# Enemy level stats
 lvl	hp  atk	def dex gold	w
 0	60	15	3	6	10-15	1
 1	80	20	4	8	20-30
@@ -46,7 +49,7 @@ lvl	hp  atk	def dex gold	w
 20	460	115	22	46	210-315
 
 
-Quest rewards
+# Quest rewards
 1
 herbs - 250, 0
 clear sewers - 250, 10x0 (no gold)            25 per enemy
