@@ -23,6 +23,23 @@ public class CharacterCard : MonoBehaviour, IPointerClickHandler
         Move
     }
 
+    private enum ChildIndex
+    {
+        Image,
+        TextBackground,
+        Health,
+        Mana,
+        Block,
+        Blood,
+        Heal,
+        Effects,
+        Poison,
+        Confused
+    }
+
+    private const float BarWidth = 141.87f;
+    private const float BarHeight = 6f;
+
     public Sprite[] effectSprites;
     public GameObject effectPrefab;
     public object owner;
@@ -36,13 +53,25 @@ public class CharacterCard : MonoBehaviour, IPointerClickHandler
 
     public Vector2 position => (transform as RectTransform).anchoredPosition;
 
-    public void Init(string text, float hp, bool enemy, Sprite sprite)
+    public void Init(string text, float hp, float mp, bool enemy, Sprite sprite)
     {
         dir = enemy ? -1 : 1;
-        transform.GetChild(1).GetChild(0).GetComponent<TMP_Text>().text = text;
+        transform.GetChild((int)ChildIndex.TextBackground).GetChild(0).GetComponent<TMP_Text>().text = text;
         if (hp != 1)
             SetHp(hp);
-        transform.GetChild(0).GetComponent<Image>().sprite = sprite;
+        if (mp >= 0)
+        {
+            // if character use mana show mana bar and move health bar and text up
+            transform.GetChild((int)ChildIndex.Mana).gameObject.SetActive(true);
+            SetMp(mp);
+
+            RectTransform rectTransform = transform.GetChild((int)ChildIndex.Health).transform as RectTransform;
+            rectTransform.anchoredPosition = new Vector2(rectTransform.anchoredPosition.x, rectTransform.anchoredPosition.y + BarHeight);
+
+            rectTransform = transform.GetChild((int)ChildIndex.TextBackground).transform as RectTransform;
+            rectTransform.anchoredPosition = new Vector2(rectTransform.anchoredPosition.x, rectTransform.anchoredPosition.y + BarHeight);
+        }
+        transform.GetChild((int)ChildIndex.Image).GetComponent<Image>().sprite = sprite;
     }
 
     public void SetHp(float hp)
@@ -51,16 +80,25 @@ public class CharacterCard : MonoBehaviour, IPointerClickHandler
             hp = 0;
         else if (hp > 0 && hp < 0.01f)
             hp = 0.01f;
-        transform.GetChild(0).GetComponent<Image>().color = hp > 0 ? Color.white : new(0.25f, 0, 0);
-        RectTransform rectTransform = transform.GetChild(2).GetComponent<RectTransform>();
-        rectTransform.sizeDelta = new Vector2(141.87f * hp, 6.0632f);
+        RectTransform rectTransform = transform.GetChild((int)ChildIndex.Health) as RectTransform;
+        rectTransform.sizeDelta = new Vector2(BarWidth * hp, BarHeight);
+
+        // turn image grayscale when defeated
+        transform.GetChild((int)ChildIndex.Image).GetComponent<Image>().color = hp > 0 ? Color.white : new(0.25f, 0, 0);
+
+        // remove all effects when defeated
         if (hp <= 0)
         {
-            // remove all effects when defeated
-            Transform effects = transform.GetChild(6);
+            Transform effects = transform.GetChild((int)ChildIndex.Effects);
             for (int i = 0; i < effects.childCount; ++i)
                 Destroy(effects.GetChild(i).gameObject);
         }
+    }
+
+    public void SetMp(float mp)
+    {
+        RectTransform rectTransform = transform.GetChild((int)ChildIndex.Mana) as RectTransform;
+        rectTransform.sizeDelta = new Vector2(BarWidth * mp, BarHeight);
     }
 
     private void Update()
@@ -76,7 +114,7 @@ public class CharacterCard : MonoBehaviour, IPointerClickHandler
                     if (nextHp > 0)
                     {
                         // heal on attack
-                        transform.GetChild(5).gameObject.SetActive(true);
+                        transform.GetChild((int)ChildIndex.Heal).gameObject.SetActive(true);
                         SetHp(nextHp);
                     }
                     actionState = 1;
@@ -92,7 +130,7 @@ public class CharacterCard : MonoBehaviour, IPointerClickHandler
                     if (nextHp > 0)
                     {
                         // heal on attack
-                        transform.GetChild(5).gameObject.SetActive(false);
+                        transform.GetChild((int)ChildIndex.Heal).gameObject.SetActive(false);
                     }
                 }
                 RectTransform rectTransform = transform as RectTransform;
@@ -127,7 +165,7 @@ public class CharacterCard : MonoBehaviour, IPointerClickHandler
             {
                 if (timer >= 0.15f)
                 {
-                    transform.GetChild(4).gameObject.SetActive(true);
+                    transform.GetChild((int)ChildIndex.Blood).gameObject.SetActive(true);
                     SetHp(nextHp);
                     if (addEffect != Effect.None)
                         AddEffect();
@@ -138,7 +176,7 @@ public class CharacterCard : MonoBehaviour, IPointerClickHandler
             {
                 if (timer >= 0.35f)
                 {
-                    transform.GetChild(4).gameObject.SetActive(false);
+                    transform.GetChild((int)ChildIndex.Blood).gameObject.SetActive(false);
                     action = Action.None;
                 }
             }
@@ -151,10 +189,10 @@ public class CharacterCard : MonoBehaviour, IPointerClickHandler
                 if (timer >= 0.15f)
                 {
                     actionState = 1;
-                    transform.GetChild(3).gameObject.SetActive(true);
+                    transform.GetChild((int)ChildIndex.Block).gameObject.SetActive(true);
                     if (action == Action.BlockDamage)
                     {
-                        transform.GetChild(4).gameObject.SetActive(true);
+                        transform.GetChild((int)ChildIndex.Blood).gameObject.SetActive(true);
                         SetHp(nextHp);
                         if (addEffect != Effect.None)
                             AddEffect();
@@ -168,8 +206,8 @@ public class CharacterCard : MonoBehaviour, IPointerClickHandler
                 if (timer >= 0.35f)
                 {
                     if (action == Action.BlockDamage)
-                        transform.GetChild(4).gameObject.SetActive(false);
-                    transform.GetChild(3).gameObject.SetActive(false);
+                        transform.GetChild((int)ChildIndex.Blood).gameObject.SetActive(false);
+                    transform.GetChild((int)ChildIndex.Block).gameObject.SetActive(false);
                     action = Action.None;
                 }
                 RectTransform rectTransform = transform as RectTransform;
@@ -194,7 +232,7 @@ public class CharacterCard : MonoBehaviour, IPointerClickHandler
             {
                 if (timer >= 0.15f)
                 {
-                    transform.GetChild(5).gameObject.SetActive(true);
+                    transform.GetChild((int)ChildIndex.Heal).gameObject.SetActive(true);
                     if (removeEffect != Effect.None)
                         RemoveEffect();
                     SetHp(nextHp);
@@ -205,7 +243,7 @@ public class CharacterCard : MonoBehaviour, IPointerClickHandler
             {
                 if (timer >= 0.35f)
                 {
-                    transform.GetChild(5).gameObject.SetActive(false);
+                    transform.GetChild((int)ChildIndex.Heal).gameObject.SetActive(false);
                     action = Action.None;
                 }
             }
@@ -215,7 +253,7 @@ public class CharacterCard : MonoBehaviour, IPointerClickHandler
             timer += Time.deltaTime;
             if (timer >= 0.2f)
             {
-                transform.GetChild(action == Action.PoisonDamage ? 7 : 8).gameObject.SetActive(false);
+                transform.GetChild((int)(action == Action.PoisonDamage ? ChildIndex.Poison : ChildIndex.Confused)).gameObject.SetActive(false);
                 if (removeEffect != Effect.None)
                     RemoveEffect();
                 action = Action.None;
@@ -277,7 +315,7 @@ public class CharacterCard : MonoBehaviour, IPointerClickHandler
     {
         SetHp(nextHp);
         action = Action.PoisonDamage;
-        transform.GetChild(7).gameObject.SetActive(true);
+        transform.GetChild((int)ChildIndex.Poison).gameObject.SetActive(true);
         actionState = 0;
         timer = 0;
     }
@@ -321,7 +359,7 @@ public class CharacterCard : MonoBehaviour, IPointerClickHandler
 
     private void AddEffect()
     {
-        Transform effects = transform.GetChild(6);
+        Transform effects = transform.GetChild((int)ChildIndex.Effects);
         for (int i = 0; i < effects.childCount; ++i)
         {
             if (effects.GetChild(i).GetComponent<EffectIcon>().effect == addEffect)
@@ -344,7 +382,7 @@ public class CharacterCard : MonoBehaviour, IPointerClickHandler
 
     private void RemoveEffect()
     {
-        Transform effects = transform.GetChild(6);
+        Transform effects = transform.GetChild((int)ChildIndex.Effects);
         for (int i = 0; i < effects.childCount; ++i)
         {
             Transform child = effects.GetChild(i);
@@ -357,7 +395,7 @@ public class CharacterCard : MonoBehaviour, IPointerClickHandler
     public void Confused()
     {
         action = Action.Confused;
-        transform.GetChild(8).gameObject.SetActive(true);
+        transform.GetChild((int)ChildIndex.Confused).gameObject.SetActive(true);
         timer = 0;
     }
 

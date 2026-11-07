@@ -89,7 +89,7 @@ public class Combat : GameDialog
         foreach (Hero hero in heroes)
         {
             CharacterCard card = Instantiate(characterCardPrefab, container).GetComponent<CharacterCard>();
-            card.Init(hero.name, hero.hpp, false, hero.GetPortrait());
+            card.Init(hero.name, hero.hpp, hero.mpp, false, hero.GetPortrait());
             RectTransform transform = card.GetComponent<RectTransform>();
             Vector2 pos = GetCardPosition(index, true);
             if (multiRow && !hero.BackRow)
@@ -110,7 +110,7 @@ public class Combat : GameDialog
         {
             Enemy enemy = enemyList[i];
             CharacterCard card = Instantiate(characterCardPrefab, container).GetComponent<CharacterCard>();
-            card.Init(enemy.name, 1f, true, Resources.Load<Sprite>(enemy.Portrait));
+            card.Init(enemy.name, 1f, -1f, true, Resources.Load<Sprite>(enemy.Portrait));
             RectTransform transform = card.GetComponent<RectTransform>();
             Vector2 pos = GetCardPosition(i, false);
             if (multiRow && enemy.blocks)
@@ -671,7 +671,7 @@ public class Combat : GameDialog
     {
         Enemy enemy = Enemy.Get(me.enemy.summonMummy ? "mummy" : "giant spider");
         CharacterCard card = Instantiate(characterCardPrefab, transform.GetChild(1)).GetComponent<CharacterCard>();
-        card.Init(enemy.name, 1f, true, Resources.Load<Sprite>(enemy.Portrait));
+        card.Init(enemy.name, 1f, -1f, true, Resources.Load<Sprite>(enemy.Portrait));
         RectTransform rectTransform = card.GetComponent<RectTransform>();
         int emptySlot = -1;
         if (enemies.Count < maxEnemiesCount)

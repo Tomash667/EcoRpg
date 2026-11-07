@@ -30,8 +30,10 @@ public class AllyScreen : GameDialog
             $"Level: {ally.level} {ally.clas.AsString()} ({ally.ExpP}%)\n" +
             $"Attack: {ally.Attack}\n" +
             $"Defense: {ally.Defense}\n" +
-            $"Health: {ally.hp}/{ally.hpMax}\n" +
-            $"Gold: {ally.gold}");
+            $"Health: {ally.hp}/{ally.hpMax}\n");
+        if (ally.mpMax > 0)
+            sb.Append($"Mana: {ally.mp}/{ally.mpMax}\n");
+        sb.Append($"Gold: {ally.gold}");
         if (ally.owedGold > 0)
             sb.Append($" (owes {ally.owedGold} gold)\n");
         else

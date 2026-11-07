@@ -12,7 +12,7 @@ public class ClassInfo
 {
     public string name;
     public int attack, defense, dex;
-    public bool backRow;
+    public bool backRow, useMana;
 }
 
 public static class ClassMethods
@@ -43,7 +43,8 @@ public static class ClassMethods
             name = "cleric",
             attack = 20,
             defense = 4,
-            dex = 8
+            dex = 8,
+            useMana = true
         }
     };
 

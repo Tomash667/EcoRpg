@@ -29058,6 +29058,7 @@ MonoBehaviour:
   hiredWorkers: []
   dragonStatus: 0
   spiderStatus: 0
+  mapZoom: 0
   day: 0
   hour: 0
   minute: 0

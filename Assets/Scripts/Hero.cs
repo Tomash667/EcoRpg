@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using static UnityEngine.GraphicsBuffer;
 
 [Serializable]
 public class Hero : ISerializationCallbackReceiver
@@ -16,7 +17,7 @@ public class Hero : ISerializationCallbackReceiver
     public string name, weaponName, armorName, shieldName;
     public Class clas;
     public Race race;
-    public int level, exp, hp, hpMax, attack, defense, dex, gold, owedGold, rested, affection, bored, lastGift;
+    public int level, exp, hp, hpMax, mp, mpMax, attack, defense, dex, gold, owedGold, rested, affection, bored, lastGift;
     public bool female, winToday, complained;
 
     [NonSerialized]
@@ -69,6 +70,7 @@ public class Hero : ISerializationCallbackReceiver
             return result;
         }
     }
+    public float mpp => mpMax == 0 ? -1 : ((float)mp) / mpMax;
     public bool BackRow => clas.GetInfo().backRow;
     public char GenderSign => female ? '♀' : '♂';
     public virtual string nameYou => name;
@@ -132,11 +134,12 @@ public class Hero : ISerializationCallbackReceiver
 
         skills = new();
         level = 1;
-        hpMax = 100;
-        hp = hpMax;
+        hp = hpMax = 100;
         attack = classInfo.attack;
         defense = classInfo.defense;
         dex = classInfo.dex;
+        if (classInfo.useMana)
+            mp = mpMax = 100;
 
         if (!classInfo.backRow)
         {
@@ -165,6 +168,12 @@ public class Hero : ISerializationCallbackReceiver
         float hpRatio = hpp;
         hpMax += dif * 20;
         hp = (int)(hpRatio * hpMax);
+        if (mpMax > 0)
+        {
+            float mpRatio = mpp;
+            mpMax += dif * 10;
+            hp = (int)(mpRatio * mpMax);
+        }
         attack += dif * 5;
         defense += dif;
         dex += dif * 2;
@@ -200,6 +209,12 @@ public class Hero : ISerializationCallbackReceiver
             float hpRatio = hpp;
             hpMax += 20;
             hp = (int)(hpRatio * hpMax);
+            if (mpMax > 0)
+            {
+                float mpRatio = mpp;
+                mpMax += 10;
+                mp = (int)(mpRatio * mpMax);
+            }
             attack += 5;
             defense++;
             dex += 2;
@@ -643,6 +658,15 @@ public class Hero : ISerializationCallbackReceiver
                 break;
             }
         }
+    }
+
+    public void TakeDamageOutsideCombat(int dmg)
+    {
+        hp -= dmg;
+        if (hp < 1)
+            hp = 1;
+        if (this is not Player)
+            ApplyHealing();
     }
 
     public void ApplyHealing()

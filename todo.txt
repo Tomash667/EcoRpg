@@ -1,14 +1,14 @@
 - manage mansion/sawmill text cutoff
 - things that look bad in bottom text: work garden, train
+- bad map zoom on new game
 
 + cleric
-	mana
 	mana potion
 	spells (buttons in combat + ai use, option if player should autouse?)
 		heal
 		holy damage spell
 		better spell to unlock
-	healing in background on rest/travel
+	cast heal after combat
 
 v3
 hero:
@@ -209,6 +209,7 @@ hero:
 + skip time do two things (work & train etc)
 + races with multiple favorite/disliked classes
 + cleric -> use maces, warrior -> use swords
++ enemies with mana
 
 units:
 + last name

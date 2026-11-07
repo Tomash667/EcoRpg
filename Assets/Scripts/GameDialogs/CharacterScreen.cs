@@ -29,6 +29,8 @@ public class CharacterScreen : GameDialog
             $"Attack: {player.Attack}\n" +
             $"Defense: {player.Defense}\n" +
             $"Health: {player.hp}/{player.hpMax}\n");
+        if (player.mpMax > 0)
+            sb.Append($"Mana: {player.mp}/{player.mpMax}\n");
         if (player.owedGold > 0)
             sb.Append($"Owed gold: {player.owedGold}\n");
         if (player.skills.Count > 0)
@@ -152,6 +154,7 @@ public class CharacterScreen : GameDialog
                 {
                     itemEntry.Init2(itemSlot.ToString(Price.None), "Use", () =>
                     {
+                        // TODO: mana potion
                         text.Append($"You {(itemSlot.item.drink ? "drink" : "eat")} {Utility.A(itemSlot.item.name)}.");
                         if (player.hp != player.hpMax)
                             text.Append("Your wounds heal.");

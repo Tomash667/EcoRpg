@@ -668,8 +668,12 @@ public class World
             game.team.RemoveItem(rationsItem, teamSize);
             rations -= teamSize;
             speed = RationsToSpeed(rations, teamSize);
+            // always full heal -> eat rations or forage for food
             foreach (Hero hero in game.team.heroes)
+            {
                 hero.hp = hero.hpMax;
+                hero.mp = hero.mpMax;
+            }
             game.player.energy = Mathf.Min(game.player.energy + (haveTent ? 100 : 75), 100);
             if (freshHorses > 0)
             {

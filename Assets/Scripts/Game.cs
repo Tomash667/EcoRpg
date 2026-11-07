@@ -315,12 +315,8 @@ public class Game : MonoBehaviour
             {
                 if (Combat.AttackChance(10, target.dex))
                 {
-                    target.hp -= Utility.Random(20, 25);
-                    if (target.hp < 1)
-                        target.hp = 1;
+                    target.TakeDamageOutsideCombat(Utility.Random(20, 25));
                     text.Append($"A shooting arrow hits {target.him}.");
-                    if (target != player)
-                        target.ApplyHealing();
                 }
                 else
                     text.Append($"{target.He} {Utility.S("dodge", target != player)} a shooting arrow.");
@@ -332,11 +328,7 @@ public class Game : MonoBehaviour
                 {
                     if (Combat.AttackChance(15, hero.dex))
                     {
-                        hero.hp -= Utility.Random(25, 30);
-                        if (hero.hp < 1)
-                            hero.hp = 1;
-                        if (hero != player)
-                            hero.ApplyHealing();
+                        hero.TakeDamageOutsideCombat(Utility.Random(25, 30));
                         hit.Add(hero);
                     }
                     else
@@ -373,11 +365,7 @@ public class Game : MonoBehaviour
                 {
                     if (Combat.AttackChance(20, hero.dex))
                     {
-                        hero.hp -= Utility.Random(30, 40);
-                        if (hero.hp < 1)
-                            hero.hp = 1;
-                        if (hero != player)
-                            hero.ApplyHealing();
+                        hero.TakeDamageOutsideCombat(Utility.Random(30, 40));
                         hit.Add(hero);
                     }
                     else
@@ -847,7 +835,10 @@ public class Game : MonoBehaviour
                 if (restCombatHeal != 0)
                 {
                     foreach (Hero hero in team.heroes)
+                    {
                         hero.hp = Mathf.Min(hero.hp + (int)(restCombatHeal * hero.hpMax), hero.hpMax);
+                        hero.mp = Mathf.Min(hero.mp + (int)(restCombatHeal * hero.mpMax), hero.mpMax);
+                    }
                 }
                 player.energy = Mathf.Min(player.energy + restCombatEnergy, 100);
                 text.Append("You finish your rest.");
@@ -1209,7 +1200,10 @@ public class Game : MonoBehaviour
         string name = world.CurrentTile.Name.ToUpper1();
         if (world.level != 0)
             name += $", level {world.level + 1}";
-        sb.Append($"{name}   Day: {day} {hour}:{minute:00}   HP: {player.hp}/{player.hpMax}   Energy: {player.energy}/100   Gold: {player.gold}");
+        sb.Append($"{name}   Day: {day} {hour}:{minute:00}   HP: {player.hp}/{player.hpMax}   ");
+        if (player.mpMax > 0)
+            sb.Append($"MP: {player.mp}/{player.mpMax}   ");
+        sb.Append($"Energy: {player.energy}/100   Gold: {player.gold}");
         if (player.goldReceived != 0)
         {
             sb.Append($"({player.goldReceived:+0;-0})");
@@ -1261,7 +1255,10 @@ public class Game : MonoBehaviour
         {
             player.energy = 100;
             foreach (Hero hero in team.heroes)
+            {
                 hero.hp = hero.hpMax;
+                hero.mp = hero.mpMax;
+            }
         }
 
         TileType location = world.Location;
@@ -1386,7 +1383,10 @@ public class Game : MonoBehaviour
                 if (heal != 0)
                 {
                     foreach (Hero hero in team.heroes)
+                    {
                         hero.hp = Mathf.Min(hero.hp + (int)(heal * hero.hpMax), hero.hpMax);
+                        hero.mp = Mathf.Min(hero.mp + (int)(heal * hero.mpMax), hero.mpMax);
+                    }
                 }
                 player.energy = Mathf.Min(player.energy + energy, 100);
                 Tile tile = world.CurrentTile;
@@ -1402,12 +1402,18 @@ public class Game : MonoBehaviour
                 if (heal == 1)
                 {
                     foreach (Hero hero in team.heroes)
+                    {
                         hero.hp = hero.hpMax;
+                        hero.mp = hero.mpMax;
+                    }
                 }
                 else if (heal > 0)
                 {
                     foreach (Hero hero in team.heroes)
+                    {
                         hero.hp = Mathf.Min(hero.hp + (int)(heal * hero.hpMax), hero.hpMax);
+                        hero.mp = Mathf.Min(hero.mp + (int)(heal * hero.mpMax), hero.mpMax);
+                    }
                 }
                 player.energy = Mathf.Min(player.energy + energy, 100);
             }
