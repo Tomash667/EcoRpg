@@ -69,7 +69,7 @@ public class Hero : ISerializationCallbackReceiver
             return result;
         }
     }
-    public bool BackRow => clas == Class.Archer;
+    public bool BackRow => clas.GetInfo().backRow;
     public char GenderSign => female ? '♀' : '♂';
     public virtual string nameYou => name;
     public virtual string nameYour => name;
@@ -128,24 +128,17 @@ public class Hero : ISerializationCallbackReceiver
 
     protected void InitCommon()
     {
+        ClassInfo classInfo = clas.GetInfo();
+
         skills = new();
         level = 1;
         hpMax = 100;
         hp = hpMax;
-        if (clas == Class.Warrior)
-        {
-            attack = 25;
-            defense = 5;
-            dex = 10;
-        }
-        else
-        {
-            attack = 30;
-            defense = 3;
-            dex = 15;
-        }
+        attack = classInfo.attack;
+        defense = classInfo.defense;
+        dex = classInfo.dex;
 
-        if (clas == Class.Warrior)
+        if (!classInfo.backRow)
         {
             weapon = Item.Get("club");
             shield = Item.Get("wooden shield");
@@ -163,10 +156,7 @@ public class Hero : ISerializationCallbackReceiver
         potionsUsed = 0;
         poison = 0;
         confused = 0;
-        if (clas == Class.Warrior)
-            canBlock = true;
-        else
-            canBlock = false;
+        canBlock = !BackRow;
     }
 
     public void SetLevel(int newLevel)
@@ -360,12 +350,12 @@ public class Hero : ISerializationCallbackReceiver
         switch (item.type)
         {
         case Item.Type.Weapon:
-            if (clas == Class.Warrior)
+            if (!BackRow)
                 return item.subtype == Item.Subtype.Melee;
             else
                 return item.subtype == Item.Subtype.Bow;
         case Item.Type.Shield:
-            return clas == Class.Warrior;
+            return !BackRow;
         case Item.Type.Armor:
             return true;
         default:
@@ -481,7 +471,7 @@ public class Hero : ISerializationCallbackReceiver
         int weaponLevel = weapon?.level ?? 0, armorLevel = armor?.level ?? 0, shieldLevel = shield?.level ?? 0;
         bool boughtWeapon = false, boughtArmor = false, boughtShield = false;
         Item.Subtype weaponSubtype;
-        if (clas == Class.Warrior)
+        if (!BackRow)
             weaponSubtype = Item.Subtype.Melee;
         else
         {
@@ -791,7 +781,7 @@ public class Hero : ISerializationCallbackReceiver
 
     public Sprite GetPortrait()
     {
-        if(portrait == null)
+        if (portrait == null)
         {
             string imageName = $"Portraits/{(female ? "female" : "male")} {clas.AsString()}";
             portrait = Resources.Load<Sprite>(imageName);

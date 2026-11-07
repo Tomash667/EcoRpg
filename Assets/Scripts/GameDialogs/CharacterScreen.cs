@@ -45,12 +45,6 @@ public class CharacterScreen : GameDialog
             if (game.team.freshHorses > 0)
                 sb.Append($"  Fresh horses ({Utility.Plural("day", game.team.freshHorses, true)})\n");
         }
-        sb.Append("Random text\n");
-        sb.Append("Random text\n");
-        sb.Append("Random text\n");
-        sb.Append("Random text\n");
-        sb.Append("Random text\n");
-        sb.Append("Random text\n");
         charText.text = sb.ToString();
 
         RefreshItems();

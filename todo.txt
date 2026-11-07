@@ -1,11 +1,19 @@
 - manage mansion/sawmill text cutoff
 - things that look bad in bottom text: work garden, train
 
++ cleric
+	mana
+	mana potion
+	spells (buttons in combat + ai use, option if player should autouse?)
+		heal
+		holy damage spell
+		better spell to unlock
+	healing in background on rest/travel
+
 v3
 hero:
 + longer main quest that require investing
 	lessen infinite supply of quests & treasure
-+ classes - cleric
 + races
 	player desc
 	affect stats
@@ -170,7 +178,7 @@ hero:
 	armored lizard
 + guild rank benefits (cheaper hire for quests, shop, sleep)
 + hunt for deers etc
-+ light/heavy armor
++ light (robe)/medium/heavy armor
 + hero sword/spear/bow/shield
 + unskilled weapon use
 + auto collect herbs and create potions when traveling
@@ -199,6 +207,8 @@ hero:
 + race skills (dwarves higher chance to know mining or always have some, elf -> forage, etc)
 + quiver (poison, magic, fire)
 + skip time do two things (work & train etc)
++ races with multiple favorite/disliked classes
++ cleric -> use maces, warrior -> use swords
 
 units:
 + last name

@@ -24,4 +24,14 @@ public static class RaceMethods
             _ => $"[ERROR race {race}]"
         };
     }
+
+    public static Class GetFavoriteClass(this Race race)
+    {
+        return race switch
+        {
+            Race.Elf => Class.Archer,
+            Race.Dwarf => Class.Warrior,
+            _ => Class.None
+        };
+    }
 }

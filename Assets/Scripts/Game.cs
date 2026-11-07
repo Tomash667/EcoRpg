@@ -2282,7 +2282,7 @@ public class Game : MonoBehaviour
         {
             if (hero.level < 10)
                 hero.SetLevel(10);
-            if (hero.clas == Class.Warrior)
+            if (!hero.BackRow)
             {
                 hero.weapon = Item.Get("magic sword");
                 hero.shield = Item.Get("magic shield");
