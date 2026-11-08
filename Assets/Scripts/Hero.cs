@@ -243,9 +243,14 @@ public class Hero : ISerializationCallbackReceiver
         };
     }
 
-    public ItemSlot FindHealingItem()
+    public ItemSlot FindHealingPotion()
     {
         return items.Where(x => x.item.type == Item.Type.Usable && x.item.subtype == Item.Subtype.Heal).OrderByDescending(x => x.item.power).FirstOrDefault();
+    }
+
+    public ItemSlot FindManaPotion()
+    {
+        return items.Where(x => x.item.type == Item.Type.Usable && x.item.subtype == Item.Subtype.Mana).OrderByDescending(x => x.item.power).FirstOrDefault();
     }
 
     public bool HaveItem(Item item)
@@ -683,17 +688,30 @@ public class Hero : ISerializationCallbackReceiver
         if (hp < 1)
             hp = 1;
         if (this is not Player)
-            ApplyHealing();
+            UseHealPotionIfRequired();
     }
 
-    public void ApplyHealing()
+    public void UseHealPotionIfRequired()
     {
         if (hpp < 0.5f)
         {
-            ItemSlot potion = FindHealingItem();
+            ItemSlot potion = FindHealingPotion();
             if (potion != null)
             {
                 hp = Mathf.Min(hp + potion.item.power, hpMax);
+                RemoveItem(potion);
+            }
+        }
+    }
+
+    public void UseManaPotionIfRequired()
+    {
+        if (mpMax > 0 && mpp < 0.5f)
+        {
+            ItemSlot potion = FindManaPotion();
+            if (potion != null)
+            {
+                mp = Mathf.Min(mp + potion.item.power, mpMax);
                 RemoveItem(potion);
             }
         }

@@ -26,7 +26,7 @@ public class Enemy
     public int level, hp, attack, def, dex, difficulty, extraGold;
     public AttackType attackType;
     public Pronoun pronoun;
-    public bool blocks, fireball, firebreath, darkbolt, summonMummy, summonSpider;
+    public bool blocks, fireball, firebreath, darkbolt, summonMummy, summonSpider, holyDmgSus;
 
     public string him
     {
@@ -272,7 +272,8 @@ public class Enemy
             def = 6,
             dex = 12,
             gold = new(40, 60),
-            pronoun = Pronoun.It
+            pronoun = Pronoun.It,
+            holyDmgSus = true
         },
         new()
         {
@@ -287,7 +288,8 @@ public class Enemy
             dex = 8,
             gold = new(40, 60),
             pronoun = Pronoun.It,
-            blocks = true
+            blocks = true,
+            holyDmgSus = true
         },
         new()
         {
@@ -302,7 +304,8 @@ public class Enemy
             dex = 10,
             gold = new(60, 90),
             pronoun = Pronoun.It,
-            blocks = true
+            blocks = true,
+            holyDmgSus = true
         },
         new()
         {
@@ -317,7 +320,8 @@ public class Enemy
             dex = 20,
             gold = new(70, 105),
             attackType = AttackType.LifeSteal,
-            pronoun = Pronoun.He
+            pronoun = Pronoun.He,
+            holyDmgSus = true
         },
         new()
         {
@@ -331,7 +335,8 @@ public class Enemy
             dex = 24,
             gold = new(100, 150),
             pronoun = Pronoun.He,
-            fireball = true
+            fireball = true,
+            holyDmgSus = true
         },
         new()
         {
@@ -346,7 +351,8 @@ public class Enemy
             gold = new(110, 165),
             pronoun = Pronoun.He,
             darkbolt = true,
-            summonMummy = true
+            summonMummy = true,
+            holyDmgSus = true
         },
         new()
         {
@@ -412,7 +418,8 @@ public class Enemy
             dex = 40,
             gold = new(140, 210),
             attackType = AttackType.LifeSteal,
-            pronoun = Pronoun.It
+            pronoun = Pronoun.It,
+            holyDmgSus = true
         },
         new()
         {
@@ -425,7 +432,8 @@ public class Enemy
             dex = 32,
             gold = new(140, 210),
             pronoun = Pronoun.It,
-            blocks = true
+            blocks = true,
+            holyDmgSus = true
         },
         new()
         {
@@ -438,7 +446,8 @@ public class Enemy
             dex = 32,
             gold = new(140, 210),
             attackType = AttackType.Poison,
-            pronoun = Pronoun.It
+            pronoun = Pronoun.It,
+            holyDmgSus = true
         },
         new()
         {
@@ -450,7 +459,8 @@ public class Enemy
             dex = 46,
             gold = new(420, 630),
             attackType = AttackType.Confuse,
-            pronoun = Pronoun.It
+            pronoun = Pronoun.It,
+            holyDmgSus = true
         }
     };
 }

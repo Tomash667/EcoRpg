@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Combat : GameDialog
 {
@@ -19,7 +20,9 @@ public class Combat : GameDialog
     {
         None,
         Escape,
-        Heal
+        Heal,
+        Mana,
+        Spell
     }
 
     private class Unit
@@ -40,7 +43,7 @@ public class Combat : GameDialog
 
     public const int MaxEnemies = 5;
 
-    public GameObject characterCardPrefab, arrowPrefab;
+    public GameObject characterCardPrefab, arrowPrefab, buttonPrefab;
 
     private const float alliesY = -125f;
     private const float enemiesY = 200f;
@@ -53,6 +56,7 @@ public class Combat : GameDialog
     private List<Hero> heroes;
     private List<Enemy> enemyList;
     private List<object> order = new();
+    private List<(Action, float)> actionButtonYs;
     private TMP_Text textLog;
     private GameObject arrow;
     private Unit playerTarget;
@@ -141,7 +145,46 @@ public class Combat : GameDialog
         effectTick = 0;
         playerTarget = null;
 
-        transform.Find("BtHeal").GetComponentInChildren<TMP_Text>().text = "Heal";
+        // create buttons
+        Transform buttons = transform.Find("Buttons");
+        foreach (Transform child in buttons)
+            Destroy(child.gameObject);
+
+        List<RectTransform> buttonsRect = new();
+        actionButtonYs = new();
+
+        GameObject obj = Instantiate(buttonPrefab, buttons);
+        obj.GetComponentInChildren<TMP_Text>().text = "Healing p.";
+        obj.GetComponent<Button>().onClick.AddListener(() => PickAction(Action.Heal));
+        buttonsRect.Add(obj.transform as RectTransform);
+        actionButtonYs.Add((Action.Heal, 0));
+
+        if (player.mpMax > 0)
+        {
+            obj = Instantiate(buttonPrefab, buttons);
+            obj.GetComponentInChildren<TMP_Text>().text = "Mana p.";
+            obj.GetComponent<Button>().onClick.AddListener(() => PickAction(Action.Mana));
+            buttonsRect.Add(obj.transform as RectTransform);
+            actionButtonYs.Add((Action.Mana, 0));
+        }
+
+        obj = Instantiate(buttonPrefab, buttons);
+        obj.GetComponentInChildren<TMP_Text>().text = "Escape";
+        obj.GetComponent<Button>().onClick.AddListener(() => PickAction(Action.Escape));
+        buttonsRect.Add(obj.transform as RectTransform);
+        actionButtonYs.Add((Action.Escape, 0));
+
+        // position buttons
+        const float buttonsGap = 35f;
+        float totalWidth = (buttonsRect.Count - 1) * buttonsGap;
+        float y = totalWidth * 0.5f;
+        for (int i = 0; i < buttonsRect.Count; ++i)
+        {
+            buttonsRect[i].anchoredPosition = new(-540, y);
+            actionButtonYs[i] = (actionButtonYs[i].Item1, y);
+            y -= buttonsGap;
+        }
+
         transform.parent.Find("Buttons").gameObject.SetActive(false);
         text.Clear();
         string str;
@@ -163,9 +206,11 @@ public class Combat : GameDialog
 #endif
 
         if (Input.GetKeyDown(KeyCode.H))
-            Heal();
+            PickAction(Action.Heal);
+        if (player.mpMax > 0 && Input.GetKeyDown(KeyCode.M))
+            PickAction(Action.Mana);
         if (Input.GetKeyDown(KeyCode.E))
-            Escape();
+            PickAction(Action.Escape);
 
         delayedTexts.RemoveAll(delayedText =>
         {
@@ -239,15 +284,16 @@ public class Combat : GameDialog
             {
                 --hero.potionTimer;
                 if (hero == player)
-                    transform.Find("BtHeal").GetComponentInChildren<TMP_Text>().text = $"Heal ({hero.potionTimer})";
+                    transform.Find("Buttons").GetChild(0).GetComponentInChildren<TMP_Text>().text = $"Healing p. ({hero.potionTimer})";
             }
         }
 
         if (hero == player && action != Action.None && (hero.confused == 0 || Utility.Rand % 2 == 0))
         {
-            if (action == Action.Escape)
+            ItemSlot potion;
+            switch (action)
             {
-                // escape from combat
+            case Action.Escape:
                 result = Result.Escape;
                 timer = 1f;
                 foreach (Hero hero2 in heroes)
@@ -255,17 +301,24 @@ public class Combat : GameDialog
                 arrow.SetActive(false);
                 action = Action.None;
                 return false;
-            }
-            else if (action == Action.Heal)
-            {
-                ItemSlot potion;
-                if (hero.potionTimer == 0 && (hero.hp > 0 || hero.potionTimer == 0) && (potion = hero.FindHealingItem()) != null && hero.hp + potion.item.power > 0)
+            case Action.Heal:
+                if (hero.potionTimer == 0 && (hero.hp > 0 || hero.potionTimer == 0) && (potion = hero.FindHealingPotion()) != null && hero.hp + potion.item.power > 0)
                 {
-                    HeroUsePotion(hero, potion);
+                    HeroUseHealingPotion(hero, potion);
                     arrow.SetActive(false);
                     action = Action.None;
                     return true;
                 }
+                break;
+            case Action.Mana:
+                if (hero.hp > 0 && (potion = hero.FindManaPotion()) != null)
+                {
+                    HeroUseManaPotion(hero, potion);
+                    arrow.SetActive(false);
+                    action = Action.None;
+                    return true;
+                }
+                break;
             }
         }
 
@@ -353,7 +406,7 @@ public class Combat : GameDialog
 
             if (HeroShouldUsePotion(hero))
             {
-                HeroUsePotion(hero);
+                HeroUseHealingPotion(hero);
                 return true;
             }
 
@@ -417,8 +470,8 @@ public class Combat : GameDialog
         else if (hero.potionTimer == 0)
         {
             ItemSlot potion;
-            if ((potion = hero.FindHealingItem()) != null && hero.hp + potion.item.power > 0)
-                HeroUsePotion(hero, potion);
+            if ((potion = hero.FindHealingPotion()) != null && hero.hp + potion.item.power > 0)
+                HeroUseHealingPotion(hero, potion);
         }
 
         return true;
@@ -432,7 +485,7 @@ public class Combat : GameDialog
             || heroes.Count(x => x.hp > 0) > 1) // if there are other heroes attack and heal when defeated
             return false;
 
-        ItemSlot potion = hero.FindHealingItem();
+        ItemSlot potion = hero.FindHealingPotion();
         if (potion == null)
             return false;
 
@@ -453,9 +506,9 @@ public class Combat : GameDialog
         return false;
     }
 
-    private void HeroUsePotion(Hero hero, ItemSlot potion = null)
+    private void HeroUseHealingPotion(Hero hero, ItemSlot potion = null)
     {
-        potion ??= hero.FindHealingItem();
+        potion ??= hero.FindHealingPotion();
         int prevHp = hero.hp;
         hero.hp = Mathf.Min(hero.hp + potion.item.power, hero.hpMax);
         hero.RemoveItem(potion);
@@ -466,7 +519,17 @@ public class Combat : GameDialog
         hero.card.Heal(hero.hpp);
         hero.card.RemoveEffect(Effect.Poison);
         if (hero == player)
-            transform.Find("BtHeal").GetComponentInChildren<TMP_Text>().text = $"Heal ({hero.potionTimer})";
+            transform.Find("Buttons").GetChild(0).GetComponentInChildren<TMP_Text>().text = $"Healing p. ({hero.potionTimer})";
+        timer = 0.5f;
+    }
+
+    private void HeroUseManaPotion(Hero hero, ItemSlot potion)
+    {
+        int prevMp = hero.mp;
+        hero.mp = Mathf.Min(hero.mp + potion.item.power, hero.mpMax);
+        hero.RemoveItem(potion);
+        AppendText($"{hero.NameYou} {hero.S("use")} {potion.item.name} and {hero.S("restore")} {hero.mp - prevMp} mana.", 0.15f);
+        hero.card.RestoreMana(hero.mpp);
         timer = 0.5f;
     }
 
@@ -750,34 +813,18 @@ public class Combat : GameDialog
         }
     }
 
-    public void Escape()
+    private void PickAction(Action newAction)
     {
-        if (action == Action.Escape)
+        if (action == newAction)
         {
             action = Action.None;
             arrow.SetActive(false);
         }
         else
         {
-            action = Action.Escape;
+            action = newAction;
             RectTransform rectTransform = arrow.transform as RectTransform;
-            rectTransform.anchoredPosition = new(rectTransform.anchoredPosition.x, -37.03653f);
-            arrow.SetActive(true);
-        }
-    }
-
-    public void Heal()
-    {
-        if (action == Action.Heal)
-        {
-            action = Action.None;
-            arrow.SetActive(false);
-        }
-        else
-        {
-            action = Action.Heal;
-            RectTransform rectTransform = arrow.transform as RectTransform;
-            rectTransform.anchoredPosition = new(rectTransform.anchoredPosition.x, 2.96347f);
+            rectTransform.anchoredPosition = new(rectTransform.anchoredPosition.x, actionButtonYs.First(x => x.Item1 == newAction).Item2);
             arrow.SetActive(true);
         }
     }

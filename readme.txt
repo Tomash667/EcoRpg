@@ -35,7 +35,8 @@ X - exit building
 
 Combat:
 Left button - focus on enemy
-H - order heal
+H - order using healing potion
+M - order using mana potion
 E - order escape
 
 Shop/Craft:

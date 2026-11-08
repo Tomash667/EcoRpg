@@ -825,7 +825,10 @@ public class Game : MonoBehaviour
             if (hero.hp < 1)
                 hero.hp = 1;
             if (hero is not Player)
-                hero.ApplyHealing();
+            {
+                hero.UseHealPotionIfRequired();
+                hero.UseManaPotionIfRequired();
+            }
         }
 
         if (restCombat)
