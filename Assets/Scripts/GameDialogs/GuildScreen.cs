@@ -24,6 +24,11 @@ public class GuildScreen : GameDialog
                 Recruit();
             if (Input.GetKeyDown(KeyCode.T))
                 Train();
+
+#if UNITY_EDITOR
+            if (Input.GetKeyDown(KeyCode.F5))
+                game.RefreshQuests();
+#endif
         }
     }
 

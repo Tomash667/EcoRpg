@@ -41,6 +41,11 @@ public static class Utility
         return UnityEngine.Random.Range(a, b + 1);
     }
 
+    public static T Random<T>(params T[] items)
+    {
+        return items[Rand % items.Length];
+    }
+
     public static int Round(int value)
     {
         if (value < 100)

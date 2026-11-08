@@ -1,15 +1,11 @@
 - manage mansion/sawmill text cutoff
 - things that look bad in bottom text: work garden, train
 - bad map zoom on new game
-
-mana herb
-	find
-	quest
+- guild shortcuts work when you have guild->craft open
 
 + cleric
 	mana potion
 		use in combat
-		ai buy
 		ai use in combat
 	spells (buttons in combat + ai use, option if player should autouse?)
 		heal
@@ -371,6 +367,8 @@ world:
 + roads, rivers, bridges, sea, difficult terrain
 + travel speed (faster horse/beast, magic)
 	bad terrain -> mountains, swamp
+	sky ship
+	floating island
 + teleport
 + harder to find locations - need explore
 + locations that require exploring to discover

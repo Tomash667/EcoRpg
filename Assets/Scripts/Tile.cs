@@ -133,8 +133,8 @@ public class Tile
     {
         string herbName = difficulty switch
         {
-            1 => "herb",
-            2 => Utility.Rand % 2 == 0 ? "herb" : "rare herb",
+            1 => Utility.Rand % 2 == 0 ? "herb" : "mana herb",
+            2 => Utility.Random("herb", "mana herb", "rare herb"),
             _ => "rare herb"
         };
         return Item.Get(herbName);

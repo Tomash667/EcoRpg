@@ -83,7 +83,7 @@ public class CharacterCard : MonoBehaviour, IPointerClickHandler
         RectTransform rectTransform = transform.GetChild((int)ChildIndex.Health) as RectTransform;
         rectTransform.sizeDelta = new Vector2(BarWidth * hp, BarHeight);
 
-        // turn image grayscale when defeated
+        // turn image red when defeated
         transform.GetChild((int)ChildIndex.Image).GetComponent<Image>().color = hp > 0 ? Color.white : new(0.25f, 0, 0);
 
         // remove all effects when defeated

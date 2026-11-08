@@ -443,15 +443,26 @@ public class Hero : ISerializationCallbackReceiver
 
         // buy rations/potions
         Item ration = Item.Get("ration"), potion = Item.Get(hpMax >= 200 ? "elixir" : "potion"), elixir = Item.Get("elixir");
-        Item healingItem = (hpMax >= 200 && isCity) ? elixir : potion;
-        int rationsCount = CountItem(ration), potionsCount = CountItem(potion), elixirCount = CountItem(elixir);
-        int healingItemCount = potionsCount + elixirCount;
+        Item healingItem = (hpMax >= 200 && isCity) ? elixir : potion, manaItem;
+        int rationsCount = CountItem(ration);
+        int healingItemCount = CountItem(potion) + CountItem(elixir), manaItemCount;
         int requiredRations = 5 + level / 2;
         int playerRations = Global.Player.CountItem(ration);
         if (playerRations > requiredRations)
             requiredRations = playerRations;
+        if (mpMax > 0)
+        {
+            Item manaPotion = Item.Get("mana potion"), manaElixir = Item.Get("mana elixir");
+            manaItem = (mpMax >= 200 && isCity) ? manaElixir : manaPotion;
+            manaItemCount = CountItem(manaPotion) + CountItem(manaElixir);
+        }
+        else
+        {
+            manaItem = null;
+            manaItemCount = 999;
+        }
 
-        while ((rationsCount < requiredRations && gold >= ration.value) || (healingItemCount < 5 && gold >= healingItem.value))
+        while ((rationsCount < requiredRations && gold >= ration.value) || (healingItemCount < 5 && gold >= healingItem.value) || (manaItemCount < 5 && gold >= manaItem.value))
         {
             if (rationsCount < requiredRations)
             {
@@ -465,6 +476,13 @@ public class Hero : ISerializationCallbackReceiver
                 gold -= healingItem.value;
                 AddItem(healingItem);
                 ++healingItemCount;
+            }
+
+            if (manaItemCount < 5 && gold >= manaItem.value)
+            {
+                gold -= manaItem.value;
+                AddItem(manaItem);
+                ++manaItemCount;
             }
         }
 

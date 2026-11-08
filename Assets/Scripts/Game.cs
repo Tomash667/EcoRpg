@@ -1839,7 +1839,7 @@ public class Game : MonoBehaviour
                 case 1:
                     // 12.5%
                     quest.type = Quest.Type.Gather;
-                    quest.item = Item.Get(Utility.Rand % 2 == 0 ? "herb" : "magic crystal");
+                    quest.item = Item.Get(Utility.Random("herb", "mana herb", "magic crystal"));
                     quest.max = 20;
                     quest.location = -1;
                     quest.locationDifficulty = 1;
@@ -2262,7 +2262,7 @@ public class Game : MonoBehaviour
     }
 
     [ContextMenu("Refresh quests")]
-    private void RefreshQuests()
+    public void RefreshQuests()
     {
         foreach (Quest quest in availableQuests.Where(x => x.type == Quest.Type.Clear))
         {
