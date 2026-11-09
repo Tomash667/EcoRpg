@@ -3,7 +3,7 @@ using UnityEngine.UI;
 
 public class Arrow2 : MonoBehaviour
 {
-    public Sprite fireSprite, darkSprite;
+    public Sprite fireSprite, darkSprite, holySprite;
 
     private Vector2 from, to;
     private float timer;
@@ -25,6 +25,13 @@ public class Arrow2 : MonoBehaviour
     public void SetDark()
     {
         GetComponent<Image>().sprite = darkSprite;
+    }
+
+    public void SetDamageType(DamageType damageType)
+    {
+        Image image = GetComponent<Image>();
+        if (damageType == DamageType.Holy)
+            image.sprite = holySprite;
     }
 
     private void Update()

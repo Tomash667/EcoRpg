@@ -1,3 +1,5 @@
+using System.Linq;
+
 public class Spell
 {
     public enum Type
@@ -10,6 +12,11 @@ public class Spell
     public Type type;
     public DamageType damageType;
     public int mana;
+
+    public static Spell Get(string name)
+    {
+        return spells.First(x => x.name == name);
+    }
 
     public static readonly Spell[] spells = new Spell[]
     {

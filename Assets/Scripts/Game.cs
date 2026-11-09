@@ -2301,7 +2301,7 @@ public class Game : MonoBehaviour
             hero.armor = Item.Get("magic armor");
             hero.AddItem(Item.Get("elixir"), 100);
             if (hero.mpMax > 0)
-                hero.AddItem(Item.Get("magic elixir"), 100);
+                hero.AddItem(Item.Get("mana elixir"), 100);
             hero.AddItem(Item.Get("ration"), 1000 - hero.CountItem(Item.Get("ration")));
             hero.gold = Mathf.Max(hero.gold, 100000);
             hero.owedGold = 0;

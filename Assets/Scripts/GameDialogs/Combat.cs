@@ -168,6 +168,21 @@ public class Combat : GameDialog
             actionButtonYs.Add((Action.Mana, 0));
         }
 
+        if (player.spells != null)
+        {
+            index = 0;
+            foreach (Spell spell in player.spells)
+            {
+                Action action = Action.Spell + index;
+                obj = Instantiate(buttonPrefab, buttons);
+                obj.GetComponentInChildren<TMP_Text>().text = spell.name.ToUpper1();
+                obj.GetComponent<Button>().onClick.AddListener(() => PickAction(action));
+                buttonsRect.Add(obj.transform as RectTransform);
+                actionButtonYs.Add((action, 0));
+                ++index;
+            }
+        }
+
         obj = Instantiate(buttonPrefab, buttons);
         obj.GetComponentInChildren<TMP_Text>().text = "Escape";
         obj.GetComponent<Button>().onClick.AddListener(() => PickAction(Action.Escape));
@@ -275,6 +290,8 @@ public class Combat : GameDialog
 
     private bool HeroAction(Hero hero)
     {
+        Spell castSpell = null;
+
         if (effectTick == 0)
         {
             effectTick = 1;
@@ -317,6 +334,14 @@ public class Combat : GameDialog
                     arrow.SetActive(false);
                     action = Action.None;
                     return true;
+                }
+                break;
+            default:
+                {
+                    int index = action - Action.Spell;
+                    Spell spell = hero.spells[index];
+                    if (spell.mana <= hero.mp)
+                        castSpell = spell;
                 }
                 break;
             }
@@ -429,9 +454,23 @@ public class Combat : GameDialog
                 }
             }
 
+            if (castSpell != null)
+            {
+                hero.mp -= castSpell.mana;
+                hero.card.SetMp(hero.mpp);
+                if(hero is Player && action >= Action.Spell)
+                {
+                    arrow.SetActive(false);
+                    action = Action.None;
+                }
+            }
+
             if (AttackChance(hero.dex, target.enemy.dex))
             {
-                int dmg = Mathf.Max(hero.Attack - target.enemy.def, 0);
+                int dmg = hero.Attack;
+                if (castSpell != null && castSpell.damageType == DamageType.Holy && target.enemy.holyDmgSus)
+                    dmg *= 2;
+                dmg = Mathf.Max(dmg - target.enemy.def, 0);
                 target.hp -= dmg;
                 if (isBlocking)
                     target.card.Block(target.hpp);
@@ -440,7 +479,9 @@ public class Combat : GameDialog
 
                 if (target.hp <= 0)
                 {
-                    AppendText($"{hero.NameYou} {hero.S("hit")} {target.enemy.name} for {dmg} damage and {hero.S("defeat")} {target.enemy.him}.", 0.15f);
+                    AppendText(castSpell != null
+                        ? $"{hero.NameYou} {hero.S("shoot")} {castSpell.name} at {target.enemy.name} for {dmg} damage and {hero.S("defeat")} {target.enemy.him}."
+                        : $"{hero.NameYou} {hero.S("hit")} {target.enemy.name} for {dmg} damage and {hero.S("defeat")} {target.enemy.him}.", 0.15f);
                     if (enemies.All(x => x.hp <= 0))
                     {
                         timer = 0.5f;
@@ -448,18 +489,30 @@ public class Combat : GameDialog
                     }
                 }
                 else
-                    AppendText($"{hero.NameYou} {hero.S("hit")} {target.enemy.name} for {dmg} damage.", 0.15f);
+                {
+                    AppendText(castSpell != null
+                        ? $"{hero.NameYou} {hero.S("shoot")} {castSpell.name} at {target.enemy.name} for {dmg} damage."
+                        : $"{hero.NameYou} {hero.S("hit")} {target.enemy.name} for {dmg} damage.", 0.15f);
+                }
             }
             else
             {
-                AppendText($"{hero.NameYou} {hero.S("miss", "misses")} {target.enemy.name}.", 0.15f);
+                AppendText(castSpell != null
+                    ? $"{hero.NameYou} {hero.S("shoot")} {castSpell.name} at {target.enemy.name} but {hero.S("miss", "misses")}."
+                    : $"{hero.NameYou} {hero.S("miss", "misses")} {target.enemy.name}.", 0.15f);
                 if (isBlocking)
                     target.card.Block();
                 else
                     target.card.Dodge();
             }
 
-            if (hero.weapon != null && hero.weapon.subtype == Item.Subtype.Bow)
+            if (castSpell != null)
+            {
+                Arrow2 arrow = Instantiate(arrowPrefab, transform).GetComponent<Arrow2>();
+                arrow.Shoot(hero.card.position, target.card.position);
+                arrow.SetDamageType(castSpell.damageType);
+            }
+            else if (hero.weapon != null && hero.weapon.subtype == Item.Subtype.Bow)
             {
                 Arrow2 arrow = Instantiate(arrowPrefab, transform).GetComponent<Arrow2>();
                 arrow.Shoot(hero.card.position, target.card.position);

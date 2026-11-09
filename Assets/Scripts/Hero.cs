@@ -12,6 +12,8 @@ public class Hero : ISerializationCallbackReceiver
     public Dictionary<Skill, SkillEntry> skills;
     public List<ItemSlot> items = new();
     public List<SavedSkillEntry> savedSkills;
+    public List<Spell> spells;
+    public List<string> savedSpells;
     public Item weapon, armor, shield;
     public string name, weaponName, armorName, shieldName;
     public Class clas;
@@ -139,6 +141,8 @@ public class Hero : ISerializationCallbackReceiver
         dex = classInfo.dex;
         if (classInfo.useMana)
             mp = mpMax = 100;
+        if (classInfo.spells != null)
+            spells = classInfo.spells.ToList();
 
         if (!classInfo.backRow)
         {
@@ -171,7 +175,7 @@ public class Hero : ISerializationCallbackReceiver
         {
             float mpRatio = mpp;
             mpMax += dif * 10;
-            hp = (int)(mpRatio * mpMax);
+            mp = (int)(mpRatio * mpMax);
         }
         attack += dif * 5;
         defense += dif;
@@ -338,6 +342,7 @@ public class Hero : ISerializationCallbackReceiver
         armorName = armor?.name;
         shieldName = shield?.name;
         savedSkills = skills?.Select(kvp => new SavedSkillEntry { skill = kvp.Key, level = kvp.Value.level, train = kvp.Value.train }).ToList();
+        savedSpells = spells?.Select(x => x.name).ToList();
     }
 
     public virtual void OnAfterDeserialize()
@@ -349,6 +354,7 @@ public class Hero : ISerializationCallbackReceiver
         if (!string.IsNullOrEmpty(shieldName))
             shield = Item.Get(shieldName);
         skills = savedSkills?.ToDictionary(x => x.skill, x => new SkillEntry { level = x.level, train = x.train });
+        spells = savedSpells?.Select(x => Spell.Get(x)).ToList();
     }
 
     public bool WillTakeItem(Item item)

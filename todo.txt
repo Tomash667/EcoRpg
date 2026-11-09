@@ -2,15 +2,19 @@
 - things that look bad in bottom text: work garden, train
 - bad map zoom on new game
 - guild shortcuts work when you have guild->craft open
+-? being confused and optionaly poisoned allow player to have multiple action v confusion checks
+-? combat player action is done before poison damage
 
 + cleric
 	mana potion
 		ai use in combat
-	spells (buttons in combat + ai use, option if player should autouse?)
+	spells
+		ai use
+		player autouse?
 		heal
 		holy damage spell
-		better spell to unlock
 	cast heal after combat
+	view spells in char/ally screen
 
 v3
 hero:
@@ -37,6 +41,7 @@ hero:
 	bash
 	double-shot/multishoot
 	extra attack after defeating enemy
+	better cleric spell to unlock
 	???
 + combat
 	special attacks
@@ -52,6 +57,7 @@ hero:
 + training required to level up?
 + specialized trainers that are better for archer/warrior
 ? is tent useful
++ GiveAll better team layout
 
 events:
 + spotted enemy

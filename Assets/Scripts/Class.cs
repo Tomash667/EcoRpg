@@ -11,6 +11,7 @@ public enum Class
 public class ClassInfo
 {
     public string name;
+    public Spell[] spells;
     public int attack, defense, dex;
     public bool backRow, useMana;
 }
@@ -41,6 +42,10 @@ public static class ClassMethods
         [Class.Cleric] = new()
         {
             name = "cleric",
+            spells = new Spell[]
+            {
+                Spell.Get("holy bolt")
+            },
             attack = 20,
             defense = 4,
             dex = 8,
