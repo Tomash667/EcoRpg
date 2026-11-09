@@ -19,6 +19,7 @@ public class Combat : GameDialog
     private enum Action
     {
         None,
+        Attack,
         Escape,
         Heal,
         Mana,
@@ -61,7 +62,7 @@ public class Combat : GameDialog
     private GameObject arrow;
     private Unit playerTarget;
     private Result result;
-    private Action action;
+    private Action playerAction;
     private float timer;
     private int combatIndex, attacks, effectTick, maxAlliesCount, maxEnemiesCount;
 
@@ -141,7 +142,7 @@ public class Combat : GameDialog
         result = 0;
         timer = 0.5f;
         arrow.SetActive(false);
-        action = Action.None;
+        playerAction = Action.None;
         effectTick = 0;
         playerTarget = null;
 
@@ -305,10 +306,10 @@ public class Combat : GameDialog
             }
         }
 
-        if (hero == player && action != Action.None && (hero.confused == 0 || Utility.Rand % 2 == 0))
+        if (hero == player && playerAction != Action.None && (hero.confused == 0 || Utility.Rand % 2 == 0))
         {
             ItemSlot potion;
-            switch (action)
+            switch (playerAction)
             {
             case Action.Escape:
                 result = Result.Escape;
@@ -316,14 +317,14 @@ public class Combat : GameDialog
                 foreach (Hero hero2 in heroes)
                     hero2.card.Escape();
                 arrow.SetActive(false);
-                action = Action.None;
+                playerAction = Action.None;
                 return false;
             case Action.Heal:
                 if (hero.potionTimer == 0 && (hero.hp > 0 || hero.potionTimer == 0) && (potion = hero.FindHealingPotion()) != null && hero.hp + potion.item.power > 0)
                 {
                     HeroUseHealingPotion(hero, potion);
                     arrow.SetActive(false);
-                    action = Action.None;
+                    playerAction = Action.None;
                     return true;
                 }
                 break;
@@ -332,13 +333,13 @@ public class Combat : GameDialog
                 {
                     HeroUseManaPotion(hero, potion);
                     arrow.SetActive(false);
-                    action = Action.None;
+                    playerAction = Action.None;
                     return true;
                 }
                 break;
             default:
                 {
-                    int index = action - Action.Spell;
+                    int index = playerAction - Action.Spell;
                     Spell spell = hero.spells[index];
                     if (spell.mana <= hero.mp)
                         castSpell = spell;
@@ -429,6 +430,38 @@ public class Combat : GameDialog
                 }
             }
 
+            Unit target;
+            if (castSpell == null)
+            {
+                (Action action, Unit newTarget) = HeroThink(hero);
+                switch (action)
+                {
+                case Action.Heal:
+                    HeroUseHealingPotion(hero);
+                    return true;
+                case Action.Mana:
+                    HeroUseManaPotion(hero);
+                    return true;
+                case Action.Attack:
+                    target = newTarget;
+                    break;
+                default:
+                    {
+                        int spellIndex = action - Action.Spell;
+                        castSpell = hero.spells[spellIndex];
+                        target = newTarget;
+                    }
+                    break;
+                }
+            }
+            else
+            {
+                if (playerTarget != null && playerTarget.hp > 0 && (hero == player || Utility.Rand % 2 == 0))
+                    target = playerTarget;
+                else
+                    target = enemies.RandomItem(x => x.hp > 0);
+            }
+
             if (HeroShouldUsePotion(hero))
             {
                 HeroUseHealingPotion(hero);
@@ -436,11 +469,6 @@ public class Combat : GameDialog
             }
 
             timer = 0.5f;
-            Unit target;
-            if (playerTarget != null && playerTarget.hp > 0 && (hero == player || Utility.Rand % 2 == 0))
-                target = playerTarget;
-            else
-                target = enemies.RandomItem(x => x.hp > 0);
             bool isBlocking = false;
             if (!target.enemy.blocks)
             {
@@ -458,10 +486,10 @@ public class Combat : GameDialog
             {
                 hero.mp -= castSpell.mana;
                 hero.card.SetMp(hero.mpp);
-                if(hero is Player && action >= Action.Spell)
+                if (hero is Player && playerAction >= Action.Spell)
                 {
                     arrow.SetActive(false);
-                    action = Action.None;
+                    playerAction = Action.None;
                 }
             }
 
@@ -469,8 +497,13 @@ public class Combat : GameDialog
             {
                 int dmg = hero.Attack;
                 if (castSpell != null && castSpell.damageType == DamageType.Holy && target.enemy.holyDmgSus)
+                {
+                    dmg -= target.enemy.def / 2;
                     dmg *= 2;
-                dmg = Mathf.Max(dmg - target.enemy.def, 0);
+                }
+                else
+                    dmg -= target.enemy.def;
+                dmg = Mathf.Max(dmg, 0);
                 target.hp -= dmg;
                 if (isBlocking)
                     target.card.Block(target.hpp);
@@ -530,6 +563,69 @@ public class Combat : GameDialog
         return true;
     }
 
+    /*
+    AI priority
+    1. heal yourself
+    2. heal others - TODO
+    3. if spell is better then attacks
+        3a. drink mana if required
+        3b. cast spell
+    4. normal attack
+    */
+    private (Action action, Unit target) HeroThink(Hero hero)
+    {
+        if (HeroShouldUsePotion(hero))
+            return (Action.Heal, null);
+
+        Unit target;
+        if (hero.spells != null)
+        {
+            int bestSpell = -1;
+            int bestSpellMod = 0;
+            int bestSpellCost = 0;
+            for (int i = 0; i < hero.spells.Count; ++i)
+            {
+                Spell spell = hero.spells[i];
+                int mod;
+                if (spell.damageType == DamageType.Holy && enemies.Any(x => x.hp > 0 && x.enemy.holyDmgSus))
+                    mod = 2;
+                else
+                    mod = 1;
+
+                if (mod > bestSpellMod)
+                {
+                    bestSpell = i;
+                    bestSpellMod = mod;
+                    bestSpellCost = spell.mana;
+                }
+            }
+
+            if (bestSpell != -1 && bestSpellMod > 1)
+            {
+                if (hero.mp >= bestSpellCost)
+                {
+                    if (playerTarget != null && playerTarget.hp > 0 && playerTarget.enemy.holyDmgSus && (hero == player || Utility.Rand % 2 == 0))
+                        target = playerTarget;
+                    else
+                        target = enemies.RandomItem(x => x.hp > 0 && x.enemy.holyDmgSus);
+                    return (Action.Spell + bestSpell, target);
+                }
+                else
+                {
+                    ItemSlot potion = hero.FindManaPotion();
+                    if (potion != null)
+                        return (Action.Mana, null);
+                }
+            }
+        }
+
+        if (playerTarget != null && playerTarget.hp > 0 && (hero == player || Utility.Rand % 2 == 0))
+            target = playerTarget;
+        else
+            target = enemies.RandomItem(x => x.hp > 0);
+        return (Action.Attack, target);
+    }
+
     private bool HeroShouldUsePotion(Hero hero)
     {
         if (hero == player
@@ -576,8 +672,9 @@ public class Combat : GameDialog
         timer = 0.5f;
     }
 
-    private void HeroUseManaPotion(Hero hero, ItemSlot potion)
+    private void HeroUseManaPotion(Hero hero, ItemSlot potion = null)
     {
+        potion ??= hero.FindManaPotion();
         int prevMp = hero.mp;
         hero.mp = Mathf.Min(hero.mp + potion.item.power, hero.mpMax);
         hero.RemoveItem(potion);
@@ -868,14 +965,14 @@ public class Combat : GameDialog
 
     private void PickAction(Action newAction)
     {
-        if (action == newAction)
+        if (playerAction == newAction)
         {
-            action = Action.None;
+            playerAction = Action.None;
             arrow.SetActive(false);
         }
         else
         {
-            action = newAction;
+            playerAction = newAction;
             RectTransform rectTransform = arrow.transform as RectTransform;
             rectTransform.anchoredPosition = new(rectTransform.anchoredPosition.x, actionButtonYs.First(x => x.Item1 == newAction).Item2);
             arrow.SetActive(true);

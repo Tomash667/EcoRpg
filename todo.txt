@@ -4,13 +4,12 @@
 - guild shortcuts work when you have guild->craft open
 -? being confused and optionaly poisoned allow player to have multiple action v confusion checks
 -? combat player action is done before poison damage
+- efficiency affects property buy/sell price for house/mansion/horses and other places that start with 0
+- property upkeep desc show unmodified upkeep
+? RegnerateProperties vs garden/upgrades/items
 
 + cleric
-	mana potion
-		ai use in combat
 	spells
-		ai use
-		player autouse?
 		heal
 		holy damage spell
 	cast heal after combat

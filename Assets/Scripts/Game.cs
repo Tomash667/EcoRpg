@@ -2192,162 +2192,6 @@ public class Game : MonoBehaviour
         choiceAction(choice);
     }
 
-    [ContextMenu("Regenerate world")]
-    private void RegenerateWorld()
-    {
-        // remember properties assigned to workers
-        Dictionary<Worker, Property> workerPropertyMap = new();
-        foreach (Worker worker in hiredWorkers)
-        {
-            Property property = GetProperty(worker.locationIndex);
-            if (property != null)
-                workerPropertyMap[worker] = property;
-        }
-
-        world.Init();
-
-        // reassign property locationIndex, update map with built properties
-        foreach (Property property in Property.properties)
-        {
-            if (property.locationIndexFunc != null)
-            {
-                Property copy = properties.Union(player.properties).FirstOrDefault(x => x.name == property.name && x.cityIndex == property.cityIndex);
-                if (copy != null)
-                {
-                    copy.locationIndex = property.locationIndexFunc(world);
-#if UNITY_EDITOR
-                    if (copy.locationIndex == -1)
-                    {
-                        Debug.LogWarning($"Failed to find location index for '{property.Name}'.");
-                        continue;
-                    }
-#endif
-                    Tile tile = world.GetLocation(copy.locationIndex);
-                    if (tile.type == TileType.Mountains && copy.status >= Property.Status.Building)
-                    {
-                        tile.type = TileType.Cave;
-                        tile.hidden = TileType.None;
-                        tile.image = TileImage.Cave;
-                        tile.clear = true;
-                    }
-                    if (tile.type == TileType.Cave && copy.status == Property.Status.Active)
-                    {
-                        tile.type = TileType.Mine;
-                        tile.image = TileImage.Mine;
-                    }
-                    if (tile.type == TileType.Plains && copy.status == Property.Status.Active)
-                    {
-                        tile.type = TileType.Farm;
-                        tile.image = TileImage.Farm;
-                        tile.name = world.GetCityTile(2).name.Split(' ')[0] + " farm";
-                        tile.difficulty = 3;
-                        tile.clear = true;
-                    }
-                }
-            }
-        }
-
-        // reassign workers properties
-        foreach ((Worker worker, Property property) in workerPropertyMap)
-            worker.locationIndex = GetLocationIndex(property);
-
-        // remove quests for locations
-        activeQuests.RemoveAll(x => x.type == Quest.Type.Artifact || x.type == Quest.Type.Clear);
-        availableQuests.RemoveAll(x => x.type == Quest.Type.Artifact || x.type == Quest.Type.Clear);
-
-        map.Regenerate();
-    }
-
-    [ContextMenu("Reveal world")]
-    private void RevealWorld()
-    {
-        world.RevealAllAreas();
-    }
-
-    [ContextMenu("Refresh quests")]
-    public void RefreshQuests()
-    {
-        foreach (Quest quest in availableQuests.Where(x => x.type == Quest.Type.Clear))
-        {
-            Tile tile = world.GetLocation(quest.location);
-            if (tile.type.IsProperty())
-            {
-                tile.clear = true;
-                tile.timer = 0;
-            }
-        }
-        availableQuests.Clear();
-        GenerateInitialQuests();
-        guildScreen.RefreshIfOpen();
-    }
-
-    [ContextMenu("Give all")]
-    private void GiveAll()
-    {
-        while (team.heroes.Count < Team.MaxSize)
-            team.heroes.Add(SpawnHero());
-
-        foreach (Hero hero in team.heroes)
-        {
-            if (hero.level < 10)
-                hero.SetLevel(10);
-            if (!hero.BackRow)
-            {
-                hero.weapon = Item.Get("magic sword");
-                hero.shield = Item.Get("magic shield");
-            }
-            else
-                hero.weapon = Item.Get("magic bow");
-            hero.armor = Item.Get("magic armor");
-            hero.AddItem(Item.Get("elixir"), 100);
-            if (hero.mpMax > 0)
-                hero.AddItem(Item.Get("mana elixir"), 100);
-            hero.AddItem(Item.Get("ration"), 1000 - hero.CountItem(Item.Get("ration")));
-            hero.gold = Mathf.Max(hero.gold, 100000);
-            hero.owedGold = 0;
-        }
-
-        player.AddItemIfMissing("tent");
-        player.AddItemIfMissing("pickaxe");
-
-        if (!player.HaveProperty("Horses"))
-        {
-            Property property = properties.First(x => x.name == "Horses");
-            player.properties.Add(property);
-            properties.Remove(property);
-        }
-
-        ui.RefreshGameDialogIfOpen();
-        UpdateText();
-        UpdateButtons();
-    }
-
-    [ContextMenu("Regenerate properties")]
-    private void RegenerateProperties()
-    {
-        foreach (Property property in Property.properties)
-        {
-            Property copy = properties.Union(player.properties).FirstOrDefault(x => x.name == property.name && x.cityIndex == property.cityIndex);
-            if (copy != null)
-                copy.Update(property);
-            else
-            {
-                copy = property.Copy();
-                if (property.locationIndexFunc != null)
-                {
-                    copy.locationIndex = property.locationIndexFunc(world);
-#if UNITY_EDITOR
-                    if (copy.locationIndex == -1)
-                        Debug.LogWarning($"Failed to find location index for '{property.Name}'.");
-#endif
-                }
-                else
-                    copy.locationIndex = -1;
-                properties.Add(copy);
-            }
-        }
-    }
-
     public void Cook()
     {
         Item meat = Item.Get("meat");
@@ -2395,83 +2239,6 @@ public class Game : MonoBehaviour
         AddTime(minutes: 15);
     }
 
-    [ContextMenu("Test images")]
-    private void TestImages()
-    {
-        foreach (Class clas in ClassMethods.all)
-        {
-            string path = $"Portraits/male {clas.AsString()}";
-            if (Resources.Load<Sprite>(path) == null)
-                Debug.LogError($"Missing '{path}'.");
-
-            path = $"Portraits/female {clas.AsString()}";
-            if (Resources.Load<Sprite>(path) == null)
-                Debug.LogError($"Missing '{path}'.");
-        }
-
-        foreach (Enemy enemy in Enemy.enemies)
-        {
-            string path = $"Portraits/{enemy.name}";
-            if (Resources.Load<Sprite>(path) == null)
-                Debug.LogError($"Missing '{path}'.");
-        }
-    }
-
-    [ContextMenu("Test combat")]
-    private void TestCombat()
-    {
-        ui.ShowInput("Test combat vs:", TestCombat, lastTestCombat);
-    }
-
-    private bool TestCombat(string enemiesStr)
-    {
-        string[] parts = enemiesStr.Split(',', System.StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim()).ToArray();
-        if (parts.Length == 0)
-            return false;
-
-        List<Enemy> enemyList = new();
-        foreach (string part in parts)
-        {
-            string[] innerParts = part.Split(' ', System.StringSplitOptions.RemoveEmptyEntries);
-            string name;
-            if (innerParts.Length > 1 && int.TryParse(innerParts[0], out int count))
-                name = string.Join(' ', innerParts.Skip(1));
-            else
-            {
-                name = part;
-                count = 1;
-            }
-
-            Enemy enemy = Enemy.TryGet(name);
-            if (enemy == null)
-            {
-                ui.ShowDialog($"Invalid enemy '{name}'.");
-                return false;
-            }
-            for (int i = 0; i < count; ++i)
-                enemyList.Add(enemy);
-        }
-
-        if (enemyList.Count == 0)
-        {
-            ui.ShowDialog("Empty list.");
-            return false;
-        }
-
-        if (enemyList.Count > Combat.MaxEnemies)
-        {
-            ui.ShowDialog("Too many enemies.");
-            return false;
-        }
-
-        ui.CloseDialog();
-        lastTestCombat = enemiesStr;
-        combatScreen.Init(enemyList, "explore", false);
-        ui.lockDialog = true;
-        ui.ShowDialog(combatScreen.gameObject);
-        return true;
-    }
-
     public Property GetPropertyInside()
     {
         TileType location = world.Location;
@@ -2503,44 +2270,6 @@ public class Game : MonoBehaviour
                 property = player.properties.FirstOrDefault(x => x.name == "Inn" && x.cityIndex == cityIndex);
         }
         return property;
-    }
-
-    [ContextMenu("Give item")]
-    private void GiveItem()
-    {
-        ui.ShowInput("Give item:", GiveItem);
-    }
-
-    private bool GiveItem(string str)
-    {
-        bool team;
-        if (str.StartsWith("team "))
-        {
-            team = true;
-            str = str["team ".Length..];
-        }
-        else
-            team = false;
-
-        string[] parts = str.Split(' ', System.StringSplitOptions.RemoveEmptyEntries);
-        if (int.TryParse(parts[0], out int count))
-            str = string.Join(' ', parts.Skip(1));
-        else
-            count = 1;
-
-        Item item = Item.TryGet(str);
-        if (item == null)
-        {
-            ui.ShowDialog($"Invalid item '{str}'.");
-            return false;
-        }
-
-        if (count > 0)
-        {
-            player.AddItem(item, count, team);
-            ui.RefreshGameDialogIfOpen();
-        }
-        return true;
     }
 
     private void GenerateInitialQuests()
@@ -2703,4 +2432,277 @@ public class Game : MonoBehaviour
     {
         bottomText.text = str;
     }
+
+#if UNITY_EDITOR
+    [ContextMenu("Regenerate world")]
+    private void RegenerateWorld()
+    {
+        // remember properties assigned to workers
+        Dictionary<Worker, Property> workerPropertyMap = new();
+        foreach (Worker worker in hiredWorkers)
+        {
+            Property property = GetProperty(worker.locationIndex);
+            if (property != null)
+                workerPropertyMap[worker] = property;
+        }
+
+        world.Init();
+
+        // reassign property locationIndex, update map with built properties
+        foreach (Property property in Property.properties)
+        {
+            if (property.locationIndexFunc != null)
+            {
+                Property copy = properties.Union(player.properties).FirstOrDefault(x => x.name == property.name && x.cityIndex == property.cityIndex);
+                if (copy != null)
+                {
+                    copy.locationIndex = property.locationIndexFunc(world);
+#if UNITY_EDITOR
+                    if (copy.locationIndex == -1)
+                    {
+                        Debug.LogWarning($"Failed to find location index for '{property.Name}'.");
+                        continue;
+                    }
+#endif
+                    Tile tile = world.GetLocation(copy.locationIndex);
+                    if (tile.type == TileType.Mountains && copy.status >= Property.Status.Building)
+                    {
+                        tile.type = TileType.Cave;
+                        tile.hidden = TileType.None;
+                        tile.image = TileImage.Cave;
+                        tile.clear = true;
+                    }
+                    if (tile.type == TileType.Cave && copy.status == Property.Status.Active)
+                    {
+                        tile.type = TileType.Mine;
+                        tile.image = TileImage.Mine;
+                    }
+                    if (tile.type == TileType.Plains && copy.status == Property.Status.Active)
+                    {
+                        tile.type = TileType.Farm;
+                        tile.image = TileImage.Farm;
+                        tile.name = world.GetCityTile(2).name.Split(' ')[0] + " farm";
+                        tile.difficulty = 3;
+                        tile.clear = true;
+                    }
+                }
+            }
+        }
+
+        // reassign workers properties
+        foreach ((Worker worker, Property property) in workerPropertyMap)
+            worker.locationIndex = GetLocationIndex(property);
+
+        // remove quests for locations
+        activeQuests.RemoveAll(x => x.type == Quest.Type.Artifact || x.type == Quest.Type.Clear);
+        availableQuests.RemoveAll(x => x.type == Quest.Type.Artifact || x.type == Quest.Type.Clear);
+
+        map.Regenerate();
+    }
+
+    [ContextMenu("Reveal world")]
+    private void RevealWorld()
+    {
+        world.RevealAllAreas();
+    }
+
+    [ContextMenu("Refresh quests")]
+    public void RefreshQuests()
+    {
+        foreach (Quest quest in availableQuests.Where(x => x.type == Quest.Type.Clear))
+        {
+            Tile tile = world.GetLocation(quest.location);
+            if (tile.type.IsProperty())
+            {
+                tile.clear = true;
+                tile.timer = 0;
+            }
+        }
+        availableQuests.Clear();
+        GenerateInitialQuests();
+        guildScreen.RefreshIfOpen();
+    }
+
+    [ContextMenu("Give all")]
+    private void GiveAll()
+    {
+        while (team.heroes.Count < Team.MaxSize)
+            team.heroes.Add(SpawnHero());
+
+        foreach (Hero hero in team.heroes)
+        {
+            if (hero.level < 10)
+                hero.SetLevel(10);
+            if (!hero.BackRow)
+            {
+                hero.weapon = Item.Get("magic sword");
+                hero.shield = Item.Get("magic shield");
+            }
+            else
+                hero.weapon = Item.Get("magic bow");
+            hero.armor = Item.Get("magic armor");
+            hero.AddItem(Item.Get("elixir"), 100);
+            if (hero.mpMax > 0)
+                hero.AddItem(Item.Get("mana elixir"), 100);
+            hero.AddItem(Item.Get("ration"), 1000 - hero.CountItem(Item.Get("ration")));
+            hero.gold = Mathf.Max(hero.gold, 100000);
+            hero.owedGold = 0;
+        }
+
+        player.AddItemIfMissing("tent");
+        player.AddItemIfMissing("pickaxe");
+
+        if (!player.HaveProperty("Horses"))
+        {
+            Property property = properties.First(x => x.name == "Horses");
+            player.properties.Add(property);
+            properties.Remove(property);
+        }
+
+        ui.RefreshGameDialogIfOpen();
+        UpdateText();
+        UpdateButtons();
+    }
+
+    [ContextMenu("Regenerate properties")]
+    private void RegenerateProperties()
+    {
+        foreach (Property property in Property.properties)
+        {
+            Property copy = properties.Union(player.properties).FirstOrDefault(x => x.name == property.name && x.cityIndex == property.cityIndex);
+            if (copy != null)
+                copy.Update(property);
+            else
+            {
+                copy = property.Copy();
+                if (property.locationIndexFunc != null)
+                {
+                    copy.locationIndex = property.locationIndexFunc(world);
+                    if (copy.locationIndex == -1)
+                        Debug.LogWarning($"Failed to find location index for '{property.Name}'.");
+                }
+                else
+                    copy.locationIndex = -1;
+                properties.Add(copy);
+            }
+        }
+    }
+
+    [ContextMenu("Test images")]
+    private void TestImages()
+    {
+        foreach (Class clas in ClassMethods.all)
+        {
+            string path = $"Portraits/male {clas.AsString()}";
+            if (Resources.Load<Sprite>(path) == null)
+                Debug.LogError($"Missing '{path}'.");
+
+            path = $"Portraits/female {clas.AsString()}";
+            if (Resources.Load<Sprite>(path) == null)
+                Debug.LogError($"Missing '{path}'.");
+        }
+
+        foreach (Enemy enemy in Enemy.enemies)
+        {
+            string path = $"Portraits/{enemy.name}";
+            if (Resources.Load<Sprite>(path) == null)
+                Debug.LogError($"Missing '{path}'.");
+        }
+    }
+
+    [ContextMenu("Test combat")]
+    private void TestCombat()
+    {
+        ui.ShowInput("Test combat vs:", TestCombat, lastTestCombat);
+        EditorApplication.ExecuteMenuItem("Window/General/Game");
+    }
+
+    private bool TestCombat(string enemiesStr)
+    {
+        string[] parts = enemiesStr.Split(',', System.StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim()).ToArray();
+        if (parts.Length == 0)
+            return false;
+
+        List<Enemy> enemyList = new();
+        foreach (string part in parts)
+        {
+            string[] innerParts = part.Split(' ', System.StringSplitOptions.RemoveEmptyEntries);
+            string name;
+            if (innerParts.Length > 1 && int.TryParse(innerParts[0], out int count))
+                name = string.Join(' ', innerParts.Skip(1));
+            else
+            {
+                name = part;
+                count = 1;
+            }
+
+            Enemy enemy = Enemy.TryGet(name);
+            if (enemy == null)
+            {
+                ui.ShowDialog($"Invalid enemy '{name}'.");
+                return false;
+            }
+            for (int i = 0; i < count; ++i)
+                enemyList.Add(enemy);
+        }
+
+        if (enemyList.Count == 0)
+        {
+            ui.ShowDialog("Empty list.");
+            return false;
+        }
+
+        if (enemyList.Count > Combat.MaxEnemies)
+        {
+            ui.ShowDialog("Too many enemies.");
+            return false;
+        }
+
+        ui.CloseDialog();
+        lastTestCombat = enemiesStr;
+        combatScreen.Init(enemyList, "explore", false);
+        ui.lockDialog = true;
+        ui.ShowDialog(combatScreen.gameObject);
+        return true;
+    }
+
+    [ContextMenu("Give item")]
+    private void GiveItem()
+    {
+        ui.ShowInput("Give item:", GiveItem);
+        EditorApplication.ExecuteMenuItem("Window/General/Game");
+    }
+
+    private bool GiveItem(string str)
+    {
+        bool team;
+        if (str.StartsWith("team "))
+        {
+            team = true;
+            str = str["team ".Length..];
+        }
+        else
+            team = false;
+
+        string[] parts = str.Split(' ', System.StringSplitOptions.RemoveEmptyEntries);
+        if (int.TryParse(parts[0], out int count))
+            str = string.Join(' ', parts.Skip(1));
+        else
+            count = 1;
+
+        Item item = Item.TryGet(str);
+        if (item == null)
+        {
+            ui.ShowDialog($"Invalid item '{str}'.");
+            return false;
+        }
+
+        if (count > 0)
+        {
+            player.AddItem(item, count, team);
+            ui.RefreshGameDialogIfOpen();
+        }
+        return true;
+    }
+#endif
 }
