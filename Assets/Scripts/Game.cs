@@ -1878,8 +1878,6 @@ public class Game : MonoBehaviour
             }
             else
             {
-                string mineName = (difficulty == 2 ? "Silver mine" : "Gold mine");
-                bool allowMine = properties.Any(x => x.name == mineName && x.status == Property.Status.Active);
                 switch (Utility.Rand % 8)
                 {
                 case 0:
@@ -1914,7 +1912,7 @@ public class Game : MonoBehaviour
                 case 4:
                     // 12.5%
                     if (difficulty == 3)
-                        goto case default;
+                        goto default;
                     quest.type = Quest.Type.Gather;
                     if (Utility.Rand % 2 == 0)
                     {
