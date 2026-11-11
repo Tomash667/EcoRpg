@@ -54,6 +54,8 @@ public class GameUI : MonoBehaviour
                 if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
                     ConfirmDialog();
             }
+            else if (currentDialog.TryGetComponent<GameDialog>(out GameDialog gameDialog))
+                gameDialog.UpdateDialog();
 
             if (Input.GetKeyDown(escKey))
                 CloseDialog();

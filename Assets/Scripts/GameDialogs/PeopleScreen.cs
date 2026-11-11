@@ -9,7 +9,7 @@ public class PeopleScreen : GameDialog
 
     private bool recruitWorkers;
 
-    private void Update()
+    public override void UpdateDialog()
     {
         if (Input.GetKeyDown(KeyCode.P) && !recruitWorkers)
             propertiesScreen.Show();

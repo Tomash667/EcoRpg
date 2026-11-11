@@ -128,7 +128,7 @@ public class Property
                 return name;
         }
     }
-    public string Desc => desc.Replace("PROFIT", Profit.ToString()).Replace("UPKEEP", upkeep.ToString());
+    public string Desc => desc.Replace("PROFIT", Profit.ToString()).Replace("UPKEEP", Upkeep.ToString());
     public string Efficiency
     {
         get
@@ -318,6 +318,7 @@ public class Property
             name = "House",
             desc = "don't pay for inn",
             value = 500,
+            efficiency = 50,
             status = Status.Active,
             cityIndex = 0,
             upgrades = new Upgrade[]
@@ -343,6 +344,7 @@ public class Property
             name = "House",
             desc = "don't pay for inn",
             value = 400,
+            efficiency = 50,
             status = Status.Active,
             cityIndex = 1,
             upgrades = new Upgrade[]
@@ -368,6 +370,7 @@ public class Property
             name = "House",
             desc = "don't pay for inn",
             value = 400,
+            efficiency = 50,
             status = Status.Active,
             cityIndex = 2,
             upgrades = new Upgrade[]
@@ -394,6 +397,7 @@ public class Property
             desc = "don't pay for inn, better rest, UPKEEP upkeep",
             value = 10000,
             upkeep = 5,
+            efficiency = 50,
             status = Status.Active,
             cityIndex = 0,
             upgrades = new Upgrade[]
@@ -432,6 +436,7 @@ public class Property
             name = "Horses",
             desc = "+25% travel speel",
             value = 500,
+            efficiency = 50,
             status = Status.Active,
             cityIndex = -1
         },
@@ -721,6 +726,7 @@ public class Property
             desc = "Increase income of producers by 10%, UPKEEP upkeep",
             value = 5000,
             upkeep = 5,
+            efficiency = 50,
             status = Status.Active,
             cityIndex = 0
         }

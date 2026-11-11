@@ -1,12 +1,5 @@
 - manage mansion/sawmill text cutoff
 - things that look bad in bottom text: work garden, train
-- bad map zoom on new game
-- guild shortcuts work when you have guild->craft open
--? being confused and optionaly poisoned allow player to have multiple action v confusion checks
--? combat player action is done before poison damage
-- efficiency affects property buy/sell price for house/mansion/horses and other places that start with 0
-- property upkeep desc show unmodified upkeep
-? RegnerateProperties vs garden/upgrades/items
 
 + cleric
 	cast heal after combat

@@ -13,7 +13,7 @@ public class SkipTimeScreen : GameDialog
 
     public override bool Autoclose => false;
 
-    private void Update()
+    public override void UpdateDialog()
     {
         if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
             DoSkipTime();

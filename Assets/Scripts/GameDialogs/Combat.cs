@@ -212,7 +212,7 @@ public class Combat : GameDialog
         AppendText(str);
     }
 
-    private void Update()
+    public override void UpdateDialog()
     {
 #if UNITY_EDITOR
         if (Input.GetKeyDown(KeyCode.Space))
@@ -306,46 +306,15 @@ public class Combat : GameDialog
             }
         }
 
-        if (hero == player && playerAction != Action.None && (hero.confused == 0 || Utility.Rand % 2 == 0))
+        // escape
+        if (playerAction == Action.Escape && hero == player)
         {
-            ItemSlot potion;
-            switch (playerAction)
-            {
-            case Action.Escape:
-                result = Result.Escape;
-                timer = 1f;
-                foreach (Hero hero2 in heroes)
-                    hero2.card.Escape();
-                arrow.SetActive(false);
-                playerAction = Action.None;
-                return false;
-            case Action.Heal:
-                if (hero.potionTimer == 0 && (hero.hp > 0 || hero.potionTimer == 0) && (potion = hero.FindHealingPotion()) != null && hero.hp + potion.item.power > 0)
-                {
-                    HeroUseHealingPotion(hero, potion);
-                    arrow.SetActive(false);
-                    playerAction = Action.None;
-                    return true;
-                }
-                break;
-            case Action.Mana:
-                if (hero.hp > 0 && (potion = hero.FindManaPotion()) != null)
-                {
-                    HeroUseManaPotion(hero, potion);
-                    arrow.SetActive(false);
-                    playerAction = Action.None;
-                    return true;
-                }
-                break;
-            default:
-                {
-                    int index = playerAction - Action.Spell;
-                    Spell spell = hero.spells[index];
-                    if (spell.mana <= hero.mp)
-                        castSpell = spell;
-                }
-                break;
-            }
+            result = Result.Escape;
+            timer = 1f;
+            foreach (Hero hero2 in heroes)
+                hero2.card.Escape();
+            PickAction(Action.None);
+            return false;
         }
 
         if (hero.hp > 0)
@@ -430,6 +399,40 @@ public class Combat : GameDialog
                 }
             }
 
+            // player selected action
+            if (hero == player && playerAction != Action.None)
+            {
+                ItemSlot potion;
+                switch (playerAction)
+                {
+                case Action.Heal:
+                    if (hero.potionTimer == 0 && (potion = hero.FindHealingPotion()) != null)
+                    {
+                        HeroUseHealingPotion(hero, potion);
+                        PickAction(Action.None);
+                        return true;
+                    }
+                    break;
+                case Action.Mana:
+                    if ((potion = hero.FindManaPotion()) != null)
+                    {
+                        HeroUseManaPotion(hero, potion);
+                        PickAction(Action.None);
+                        return true;
+                    }
+                    break;
+                default:
+                    {
+                        int index = playerAction - Action.Spell;
+                        Spell spell = hero.spells[index];
+                        if (spell.mana <= hero.mp)
+                            castSpell = spell;
+                    }
+                    break;
+                }
+            }
+
+            // ai auto action
             Unit target = null;
             Hero heroTarget = null;
             if (castSpell == null)
@@ -581,9 +584,14 @@ public class Combat : GameDialog
         }
         else if (hero.potionTimer == 0)
         {
+            // defeated heroes automatically drink potion
             ItemSlot potion;
             if ((potion = hero.FindHealingPotion()) != null && hero.hp + potion.item.power > 0)
+            {
                 HeroUseHealingPotion(hero, potion);
+                if (hero == player && playerAction == Action.Heal)
+                    PickAction(Action.None);
+            }
         }
 
         return true;
@@ -651,7 +659,7 @@ public class Combat : GameDialog
                                 newTarget = enemies.RandomItem(x => x.hp > 0 && x.enemy.holyDmgSus);
                             AddWithPriority(Action.Spell + i, 2, newTarget);
                         }
-                        else if(Utility.Rand % 4 != 0)
+                        else if (Utility.Rand % 4 != 0)
                             AddWithPriority(Action.Mana, 2, null);
                     }
                 }
@@ -1034,7 +1042,7 @@ public class Combat : GameDialog
 
     private void PickAction(Action newAction)
     {
-        if (playerAction == newAction)
+        if (playerAction == newAction || newAction == Action.None)
         {
             playerAction = Action.None;
             arrow.SetActive(false);

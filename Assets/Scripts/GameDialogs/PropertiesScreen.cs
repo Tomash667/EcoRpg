@@ -13,7 +13,7 @@ public class PropertiesScreen : GameDialog
 
     public Property SelectedProperty => selectedProperty;
 
-    private void Update()
+    public override void UpdateDialog()
     {
         bool canManage = manageProperty || ((game.world.Location == TileType.City || game.world.Location == TileType.Mansion)
             && selectedProperty != null && selectedProperty.income > 0 && player.HavePropertyUpgrade("Mansion", "Office"));

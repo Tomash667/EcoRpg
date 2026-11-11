@@ -24,7 +24,7 @@ public class GardenScreen : GameDialog
         return $"{Utility.Plural(plant.name.ToUpper1())} (10 herbs)";
     }).ToArray();
 
-    private void Update()
+    public override void UpdateDialog()
     {
         if (Input.GetKeyDown(KeyCode.W))
             Work();

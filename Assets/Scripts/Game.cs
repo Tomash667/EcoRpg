@@ -1541,6 +1541,7 @@ public class Game : MonoBehaviour
         if (day % 10 == 0)
         {
             // decrease efficiency if none manage property
+            // properties without income don't need to be managed
             foreach (Property property in player.properties.Where(x => x.income > 0 && x.status == Property.Status.Active && (day - x.lastManaged) >= 10))
             {
                 int maxDecrease = 1 + property.efficiency / 20;
@@ -1615,6 +1616,7 @@ public class Game : MonoBehaviour
         world = new();
         world.Init();
         map.Build();
+        map.SetZoom(1f);
         day = 1;
         hour = 8;
         activeQuests = new()

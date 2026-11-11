@@ -49,4 +49,8 @@ public abstract class GameDialog : MonoBehaviour
         }
         game.UpdateText();
     }
+
+    public virtual void UpdateDialog()
+    {
+    }
 }

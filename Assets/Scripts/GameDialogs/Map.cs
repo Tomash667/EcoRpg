@@ -84,7 +84,7 @@ public class Map : GameDialog
         ui.ShowDialog(gameObject);
     }
 
-    private void Update()
+    public override void UpdateDialog()
     {
         if (Input.mouseScrollDelta != Vector2.zero && RectTransformUtility.RectangleContainsScreenPoint(rectTransform, Input.mousePosition))
         {

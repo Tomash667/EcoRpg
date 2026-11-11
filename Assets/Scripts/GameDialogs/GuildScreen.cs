@@ -12,7 +12,7 @@ public class GuildScreen : GameDialog
 
     public CraftScreen craftScreen;
 
-    private void Update()
+    public override void UpdateDialog()
     {
         if (player.guildRank != 0)
         {
