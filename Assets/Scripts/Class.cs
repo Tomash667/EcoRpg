@@ -44,6 +44,7 @@ public static class ClassMethods
             name = "cleric",
             spells = new Spell[]
             {
+                Spell.Get("heal"),
                 Spell.Get("holy bolt")
             },
             attack = 20,

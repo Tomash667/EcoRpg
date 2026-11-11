@@ -31,6 +31,8 @@ public class CharacterScreen : GameDialog
             $"Health: {player.hp}/{player.hpMax}\n");
         if (player.mpMax > 0)
             sb.Append($"Mana: {player.mp}/{player.mpMax}\n");
+        if (player.spells != null && player.spells.Count > 0)
+            sb.Append($"Spells: {string.Join(", ", player.spells.Select(x => x.name))}\n");
         if (player.owedGold > 0)
             sb.Append($"Owed gold: {player.owedGold}\n");
         if (player.skills.Count > 0)

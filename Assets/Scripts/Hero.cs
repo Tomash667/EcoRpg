@@ -79,7 +79,7 @@ public class Hero : ISerializationCallbackReceiver
     public virtual string NameYou => name;
     public virtual string He => female ? "She" : "He";
     public virtual string him => female ? "her" : "him";
-    public string himself => female ? "herself" : "himself";
+    public virtual string himself => female ? "herself" : "himself";
     public string His => female ? "Her" : "His";
     public virtual string isAre => "is";
 

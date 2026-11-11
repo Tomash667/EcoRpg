@@ -9,6 +9,7 @@ public class CharacterCard : MonoBehaviour, IPointerClickHandler
     {
         None,
         Attack,
+        Cast,
         Dodge,
         Damage,
         Block,
@@ -137,6 +138,31 @@ public class CharacterCard : MonoBehaviour, IPointerClickHandler
                 }
                 RectTransform rectTransform = transform as RectTransform;
                 rectTransform.anchoredPosition = new Vector2(rectTransform.anchoredPosition.x, Mathf.Lerp(prevPos + 50f * dir, prevPos, (timer - 0.15f) / 0.2f));
+            }
+            break;
+        case Action.Cast:
+            timer += Time.deltaTime;
+            if (actionState == 0)
+            {
+                // move forward a bit
+                if (timer >= 0.15f)
+                    actionState = 1;
+                RectTransform rectTransform = transform as RectTransform;
+                rectTransform.anchoredPosition = new Vector2(rectTransform.anchoredPosition.x, Mathf.Lerp(prevPos, prevPos + 25f * dir, timer / 0.15f));
+            }
+            else if (actionState == 1)
+            {
+                // wait
+                if (timer >= 0.25f)
+                    actionState = 2;
+            }
+            else
+            {
+                // go back to start position
+                if (timer >= 0.4f)
+                    action = Action.None;
+                RectTransform rectTransform = transform as RectTransform;
+                rectTransform.anchoredPosition = new Vector2(rectTransform.anchoredPosition.x, Mathf.Lerp(prevPos + 25f * dir, prevPos, (timer - 0.25f) / 0.15f));
             }
             break;
         case Action.Dodge:
@@ -314,6 +340,14 @@ public class CharacterCard : MonoBehaviour, IPointerClickHandler
     {
         nextValue = nextHp;
         action = Action.Attack;
+        actionState = 0;
+        timer = 0;
+        prevPos = (transform as RectTransform).anchoredPosition.y;
+    }
+
+    public void Cast()
+    {
+        action = Action.Cast;
         actionState = 0;
         timer = 0;
         prevPos = (transform as RectTransform).anchoredPosition.y;

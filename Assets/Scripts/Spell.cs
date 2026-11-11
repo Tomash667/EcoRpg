@@ -5,7 +5,7 @@ public class Spell
     public enum Type
     {
         Damage,
-        //Heal
+        Heal
     }
 
     public string name;
@@ -20,11 +20,12 @@ public class Spell
 
     public static readonly Spell[] spells = new Spell[]
     {
-        /*new()
+        new()
         {
             name = "heal",
-            type = Type.Heal
-        },*/
+            type = Type.Heal,
+            mana = 25
+        },
         new()
         {
             name = "holy bolt",

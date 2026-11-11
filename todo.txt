@@ -9,11 +9,7 @@
 ? RegnerateProperties vs garden/upgrades/items
 
 + cleric
-	spells
-		heal
-		holy damage spell
 	cast heal after combat
-	view spells in char/ally screen
 
 v3
 hero:
@@ -97,6 +93,7 @@ investments:
 + changing worker assignment takes travel time
 + higher upkeep for better workers
 + toggle - don't pay for gardener
++ mansion office -> office room?
 
 skills:
 + strength
@@ -224,6 +221,7 @@ hero:
 + spells use different formula then normal attacks (wisdom/inteligence/magic items)
 + ally drink given potion if needed
 + Find(Healing|Mana)Item -> don't use elixir if potion is enough
++ hero randomise spell priority to not always use best?
 
 units:
 + last name

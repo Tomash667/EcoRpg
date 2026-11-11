@@ -430,10 +430,11 @@ public class Combat : GameDialog
                 }
             }
 
-            Unit target;
+            Unit target = null;
+            Hero heroTarget = null;
             if (castSpell == null)
             {
-                (Action action, Unit newTarget) = HeroThink(hero);
+                (Action action, object newTarget) = HeroThink(hero);
                 switch (action)
                 {
                 case Action.Heal:
@@ -443,34 +444,47 @@ public class Combat : GameDialog
                     HeroUseManaPotion(hero);
                     return true;
                 case Action.Attack:
-                    target = newTarget;
+                    target = (Unit)newTarget;
                     break;
                 default:
                     {
                         int spellIndex = action - Action.Spell;
                         castSpell = hero.spells[spellIndex];
-                        target = newTarget;
+                        if (castSpell.type == Spell.Type.Heal)
+                            heroTarget = (Hero)newTarget;
+                        else
+                            target = (Unit)newTarget;
                     }
                     break;
                 }
             }
             else
             {
-                if (playerTarget != null && playerTarget.hp > 0 && (hero == player || Utility.Rand % 2 == 0))
-                    target = playerTarget;
+                if (castSpell.type == Spell.Type.Heal)
+                    heroTarget = heroes.OrderBy(x => x.hpp).First();
                 else
-                    target = enemies.RandomItem(x => x.hp > 0);
-            }
+                {
+                    if (castSpell.damageType == DamageType.Holy)
+                    {
+                        if (playerTarget != null && playerTarget.enemy.holyDmgSus && playerTarget.hp > 0)
+                            target = playerTarget;
+                        else
+                            target = enemies.RandomItem(x => x.hp > 0 && x.enemy.holyDmgSus);
+                    }
 
-            if (HeroShouldUsePotion(hero))
-            {
-                HeroUseHealingPotion(hero);
-                return true;
+                    if (target == null)
+                    {
+                        if (playerTarget != null && playerTarget.hp > 0)
+                            target = playerTarget;
+                        else
+                            target = enemies.RandomItem(x => x.hp > 0);
+                    }
+                }
             }
 
             timer = 0.5f;
             bool isBlocking = false;
-            if (!target.enemy.blocks)
+            if (target != null && !target.enemy.blocks)
             {
                 // front row enemies can block attack once per round
                 Unit blockingEnemy = enemies.RandomItem(x => x.hp > 0 && x.canBlock);
@@ -490,6 +504,20 @@ public class Combat : GameDialog
                 {
                     arrow.SetActive(false);
                     playerAction = Action.None;
+                }
+
+                if (castSpell.type == Spell.Type.Heal)
+                {
+                    int heal = 100 + hero.level * 10;
+                    int missingHp = heroTarget.hpMax - heroTarget.hp;
+                    heal = Mathf.Min(heal, missingHp);
+                    heroTarget.hp += heal;
+
+                    AppendText($"{hero.NameYou} {hero.S("cast")} {castSpell.name} at {(hero == heroTarget ? hero.himself : heroTarget.name)} and {hero.S("heal")} {heal} damage.", 0.15f);
+                    hero.card.Cast();
+                    heroTarget.card.Heal(heroTarget.hpp);
+
+                    return true;
                 }
             }
 
@@ -513,25 +541,22 @@ public class Combat : GameDialog
                 if (target.hp <= 0)
                 {
                     AppendText(castSpell != null
-                        ? $"{hero.NameYou} {hero.S("shoot")} {castSpell.name} at {target.enemy.name} for {dmg} damage and {hero.S("defeat")} {target.enemy.him}."
+                        ? $"{hero.NameYou} {hero.S("cast")} {castSpell.name} at {target.enemy.name} for {dmg} damage and {hero.S("defeat")} {target.enemy.him}."
                         : $"{hero.NameYou} {hero.S("hit")} {target.enemy.name} for {dmg} damage and {hero.S("defeat")} {target.enemy.him}.", 0.15f);
                     if (enemies.All(x => x.hp <= 0))
-                    {
-                        timer = 0.5f;
                         result = Result.WinWait;
-                    }
                 }
                 else
                 {
                     AppendText(castSpell != null
-                        ? $"{hero.NameYou} {hero.S("shoot")} {castSpell.name} at {target.enemy.name} for {dmg} damage."
+                        ? $"{hero.NameYou} {hero.S("cast")} {castSpell.name} at {target.enemy.name} for {dmg} damage."
                         : $"{hero.NameYou} {hero.S("hit")} {target.enemy.name} for {dmg} damage.", 0.15f);
                 }
             }
             else
             {
                 AppendText(castSpell != null
-                    ? $"{hero.NameYou} {hero.S("shoot")} {castSpell.name} at {target.enemy.name} but {hero.S("miss", "misses")}."
+                    ? $"{hero.NameYou} {hero.S("cast")} {castSpell.name} at {target.enemy.name} but {hero.S("miss", "misses")}."
                     : $"{hero.NameYou} {hero.S("miss", "misses")} {target.enemy.name}.", 0.15f);
                 if (isBlocking)
                     target.card.Block();
@@ -541,6 +566,7 @@ public class Combat : GameDialog
 
             if (castSpell != null)
             {
+                hero.card.Cast();
                 Arrow2 arrow = Instantiate(arrowPrefab, transform).GetComponent<Arrow2>();
                 arrow.Shoot(hero.card.position, target.card.position);
                 arrow.SetDamageType(castSpell.damageType);
@@ -566,70 +592,110 @@ public class Combat : GameDialog
     /*
     AI priority
     1. heal yourself
-    2. heal others - TODO
-    3. if spell is better then attacks
+        1a. healing spell if have mana
+        1b. healing potion
+        1c. healing spell after drinking mana
+    2. heal others
+        2a. now
+        2b. after drinking mana
+    3. if spell is better then normal attacks
         3a. drink mana if required
         3b. cast spell
     4. normal attack
     */
-    private (Action action, Unit target) HeroThink(Hero hero)
+    private (Action action, object target) HeroThink(Hero hero)
     {
-        if (HeroShouldUsePotion(hero))
-            return (Action.Heal, null);
+        Action action = Action.None;
+        object target = null;
+        int actionPriority = 1;
 
-        Unit target;
+        void AddWithPriority(Action newAction, int newPriority, object newTarget)
+        {
+            if (newPriority > actionPriority)
+            {
+                action = newAction;
+                actionPriority = newPriority;
+                target = newTarget;
+            }
+        }
+
+        if (HeroShouldUsePotion(hero))
+            AddWithPriority(Action.Heal, 100, null);
+
         if (hero.spells != null)
         {
-            int bestSpell = -1;
-            int bestSpellMod = 0;
-            int bestSpellCost = 0;
+            int possibleMana = hero.mp;
+            if (hero.mp != hero.mpMax)
+            {
+                ItemSlot potion = hero.FindManaPotion();
+                if (potion != null)
+                    possibleMana = Mathf.Min(hero.mp + potion.item.value, hero.mpMax);
+            }
+
             for (int i = 0; i < hero.spells.Count; ++i)
             {
                 Spell spell = hero.spells[i];
-                int mod;
-                if (spell.damageType == DamageType.Holy && enemies.Any(x => x.hp > 0 && x.enemy.holyDmgSus))
-                    mod = 2;
-                else
-                    mod = 1;
+                if (spell.mana > possibleMana)
+                    continue;
 
-                if (mod > bestSpellMod)
+                if (spell.type == Spell.Type.Damage)
                 {
-                    bestSpell = i;
-                    bestSpellMod = mod;
-                    bestSpellCost = spell.mana;
+                    if (spell.damageType == DamageType.Holy && enemies.Any(x => x.hp > 0 && x.enemy.holyDmgSus))
+                    {
+                        if (hero.mp >= spell.mana)
+                        {
+                            Unit newTarget;
+                            if (playerTarget != null && playerTarget.hp > 0 && playerTarget.enemy.holyDmgSus && (hero == player || Utility.Rand % 2 == 0))
+                                newTarget = playerTarget;
+                            else
+                                newTarget = enemies.RandomItem(x => x.hp > 0 && x.enemy.holyDmgSus);
+                            AddWithPriority(Action.Spell + i, 2, newTarget);
+                        }
+                        else if(Utility.Rand % 4 != 0)
+                            AddWithPriority(Action.Mana, 2, null);
+                    }
                 }
-            }
-
-            if (bestSpell != -1 && bestSpellMod > 1)
-            {
-                if (hero.mp >= bestSpellCost)
+                else if (spell.type == Spell.Type.Heal)
                 {
-                    if (playerTarget != null && playerTarget.hp > 0 && playerTarget.enemy.holyDmgSus && (hero == player || Utility.Rand % 2 == 0))
-                        target = playerTarget;
+                    if (hero.hpp < 0.5f)
+                    {
+                        // heal yourself
+                        if (hero.mp >= spell.mana)
+                            AddWithPriority(Action.Spell + i, 150, hero);
+                        else
+                            AddWithPriority(Action.Mana, 75, null);
+                    }
                     else
-                        target = enemies.RandomItem(x => x.hp > 0 && x.enemy.holyDmgSus);
-                    return (Action.Spell + bestSpell, target);
-                }
-                else
-                {
-                    ItemSlot potion = hero.FindManaPotion();
-                    if (potion != null)
-                        return (Action.Mana, null);
+                    {
+                        // heal ally
+                        Hero targetAlly = heroes.Where(x => x.hpp < 0.5f).OrderBy(x => x.hpp).FirstOrDefault();
+                        if (targetAlly != null)
+                        {
+                            if (hero.mp >= spell.mana)
+                                AddWithPriority(Action.Spell + i, 50, targetAlly);
+                            else
+                                AddWithPriority(Action.Mana, 25, null);
+                        }
+                    }
                 }
             }
         }
 
-        if (playerTarget != null && playerTarget.hp > 0 && (hero == player || Utility.Rand % 2 == 0))
-            target = playerTarget;
-        else
-            target = enemies.RandomItem(x => x.hp > 0);
-        return (Action.Attack, target);
+        if (actionPriority == 1)
+        {
+            action = Action.Attack;
+            if (playerTarget != null && playerTarget.hp > 0 && (hero == player || Utility.Rand % 2 == 0))
+                target = playerTarget;
+            else
+                target = enemies.RandomItem(x => x.hp > 0);
+        }
+
+        return (action, target);
     }
 
     private bool HeroShouldUsePotion(Hero hero)
     {
-        if (hero == player
-            || hero.hpp > 0.5f
+        if (hero.hpp > 0.5f
             || hero.potionTimer != 0
             || heroes.Count(x => x.hp > 0) > 1) // if there are other heroes attack and heal when defeated
             return false;
@@ -825,6 +891,7 @@ public class Combat : GameDialog
 
         if (spellName != null)
         {
+            me.card.Cast();
             Arrow2 arrow = Instantiate(arrowPrefab, transform).GetComponent<Arrow2>();
             arrow.Shoot(me.card.position, hero.card.position);
             if (spellName == "fireball")
@@ -848,6 +915,7 @@ public class Combat : GameDialog
 
     private void EnemyFirebreath(Unit me)
     {
+        me.card.Cast();
         me.cooldown = 2;
         foreach (Hero hero in heroes.Where(x => x.hp > 0))
         {
@@ -915,6 +983,7 @@ public class Combat : GameDialog
         AppendText($"{me.enemy.name.ToUpper1()} summons {enemy.name}.", 0.15f);
         timer = 0.5f;
         me.cooldown2 = 3;
+        me.card.Cast();
     }
 
     public static bool AttackChance(int myDex, int targetDex)
