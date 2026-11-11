@@ -12,6 +12,7 @@ public class ClassInfo
 {
     public string name;
     public Spell[] spells;
+    public (Spell spell, int level)[] unlockableSpells;
     public int attack, defense, dex;
     public bool backRow, useMana;
 }
@@ -46,6 +47,10 @@ public static class ClassMethods
             {
                 Spell.Get("heal"),
                 Spell.Get("holy bolt")
+            },
+            unlockableSpells = new (Spell, int)[]
+            {
+                (Spell.Get("holy wave"), 10)
             },
             attack = 20,
             defense = 4,

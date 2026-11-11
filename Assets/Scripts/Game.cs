@@ -708,6 +708,7 @@ public class Game : MonoBehaviour
 
             // exp
             List<Hero> levelups = null;
+            List<Spell> learnedSpells = null;
             float ratio;
             if (team.heroes.Count == 1)
                 ratio = 1f;
@@ -715,7 +716,8 @@ public class Game : MonoBehaviour
                 ratio = 1f / team.heroes.Count;
             foreach (Hero hero in team.heroes)
             {
-                if (hero.AddExp(enemyList, ratio))
+                if (hero.AddExp(enemyList, ratio, hero == player ? spell => { learnedSpells ??= new(); learnedSpells.Add(spell); }
+                : null))
                 {
                     levelups ??= new();
                     levelups.Add(hero);
@@ -728,6 +730,9 @@ public class Game : MonoBehaviour
                     string isAre = group.Count() > 1 || group.First() == player ? "are" : "is";
                     text.Append($"{Utility.PrettyList(group.Select(x => x.nameYou)).ToUpper1()} {isAre} now level {group.Key}.");
                 }
+
+                if (learnedSpells != null)
+                    text.Append($"You learn {Utility.PrettyList(learnedSpells.Select(x => x.name))} {Utility.Plural("spell", learnedSpells.Count > 1)}.");
             }
 
             // quest

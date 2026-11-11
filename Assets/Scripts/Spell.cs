@@ -12,6 +12,7 @@ public class Spell
     public Type type;
     public DamageType damageType;
     public int mana;
+    public bool aoe;
 
     public static Spell Get(string name)
     {
@@ -32,6 +33,14 @@ public class Spell
             type = Type.Damage,
             damageType = DamageType.Holy,
             mana = 25
+        },
+        new()
+        {
+            name = "holy wave",
+            type = Type.Damage,
+            damageType = DamageType.Holy,
+            mana = 50,
+            aoe = true
         }
     };
 }

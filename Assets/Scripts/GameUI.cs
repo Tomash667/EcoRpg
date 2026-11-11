@@ -26,6 +26,7 @@ public class GameUI : MonoBehaviour
     private Action<bool> confirmAction2;
     private Action confirmAction;
     private GameObject okDialog, confirmDialog, inputDialog;
+    private bool justOpened;
 
     public bool HasDialog => dialogs.Count > 0;
     public GameObject CurrentDialog => dialogs.Count > 0 ? dialogs[^1] : null;
@@ -41,6 +42,12 @@ public class GameUI : MonoBehaviour
 
     private void Update()
     {
+        if (justOpened)
+        {
+            justOpened = false;
+            return;
+        }
+
         if (HasDialog)
         {
             GameObject currentDialog = dialogs[^1];
@@ -74,6 +81,7 @@ public class GameUI : MonoBehaviour
     {
         dialog.SetActive(true);
         dialogs.Add(dialog);
+        justOpened = true;
     }
 
     public void ShowInput(string text, Func<int, bool> func)

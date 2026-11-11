@@ -43,6 +43,11 @@ public class Enemy
     }
     public string Portrait => $"Portraits/{name}";
 
+    public bool IsSusceptible(DamageType damageType)
+    {
+        return damageType == DamageType.Holy && holyDmgSus;
+    }
+
     public static Enemy Get(string name)
     {
         return enemies.First(x => x.name == name);

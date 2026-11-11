@@ -181,9 +181,10 @@ public class Hero : ISerializationCallbackReceiver
         defense += dif;
         dex += dif * 2;
         level = newLevel;
+        LearnSpells(null);
     }
 
-    public bool AddExp(List<Enemy> enemyList, float mod)
+    public bool AddExp(List<Enemy> enemyList, float mod, Action<Spell> learnedSpellsCallback)
     {
         if (rested > 0)
             mod *= 1.1f;
@@ -191,17 +192,17 @@ public class Hero : ISerializationCallbackReceiver
         foreach (Enemy enemy in enemyList)
             newExp += GetExpReward(enemy.level);
         newExp = (int)(newExp * mod);
-        return AddExpInternal(newExp);
+        return AddExpInternal(newExp, learnedSpellsCallback);
     }
 
-    public bool AddExp(int value)
+    public bool AddExp(int value, Action<Spell> learnedSpellsCallback)
     {
         if (rested > 0)
             value = value * 11 / 10;
-        return AddExpInternal(value);
+        return AddExpInternal(value, learnedSpellsCallback);
     }
 
-    private bool AddExpInternal(int value)
+    private bool AddExpInternal(int value, Action<Spell> learnedSpellsCallback)
     {
         exp += value;
         bool gainedLevel = false;
@@ -221,6 +222,7 @@ public class Hero : ISerializationCallbackReceiver
             attack += 5;
             defense++;
             dex += 2;
+            LearnSpells(learnedSpellsCallback);
             gainedLevel = true;
         }
         return gainedLevel;
@@ -245,6 +247,19 @@ public class Hero : ISerializationCallbackReceiver
             9 => 1,
             _ => 0
         };
+    }
+
+    private void LearnSpells(Action<Spell> callback)
+    {
+        ClassInfo classInfo = clas.GetInfo();
+        if (classInfo.unlockableSpells != null)
+        {
+            foreach (Spell spell in classInfo.unlockableSpells.Where(x => level >= x.level && !spells.Contains(x.spell)).Select(x => x.spell))
+            {
+                spells.Add(spell);
+                callback?.Invoke(spell);
+            }
+        }
     }
 
     public ItemSlot FindHealingPotion()

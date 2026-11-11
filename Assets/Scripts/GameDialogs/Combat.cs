@@ -465,23 +465,12 @@ public class Combat : GameDialog
             {
                 if (castSpell.type == Spell.Type.Heal)
                     heroTarget = heroes.OrderBy(x => x.hpp).First();
-                else
+                else if (!castSpell.aoe)
                 {
-                    if (castSpell.damageType == DamageType.Holy)
-                    {
-                        if (playerTarget != null && playerTarget.enemy.holyDmgSus && playerTarget.hp > 0)
-                            target = playerTarget;
-                        else
-                            target = enemies.RandomItem(x => x.hp > 0 && x.enemy.holyDmgSus);
-                    }
-
-                    if (target == null)
-                    {
-                        if (playerTarget != null && playerTarget.hp > 0)
-                            target = playerTarget;
-                        else
-                            target = enemies.RandomItem(x => x.hp > 0);
-                    }
+                    if (playerTarget != null && playerTarget.hp > 0)
+                        target = playerTarget;
+                    else
+                        target = enemies.RandomItem(x => x.hp > 0 && x.enemy.IsSusceptible(castSpell.damageType)) ?? enemies.RandomItem(x => x.hp > 0);
                 }
             }
 
@@ -522,15 +511,50 @@ public class Combat : GameDialog
 
                     return true;
                 }
+                else if (castSpell.aoe)
+                {
+                    hero.card.Cast();
+                    foreach (Unit unit in enemies)
+                    {
+                        if (AttackChance(hero.dex, unit.enemy.dex))
+                        {
+                            int dmg = hero.Attack - unit.enemy.def / 2;
+                            if (unit.enemy.IsSusceptible(castSpell.damageType))
+                                dmg *= 2;
+                            dmg = Mathf.Max(dmg, 0);
+                            unit.hp -= dmg;
+                            unit.card.Damage(unit.hpp);
+                            if (unit.hp <= 0)
+                            {
+                                AppendText($"{hero.NameYou} {hero.S("cast")} {castSpell.name} at {unit.enemy.name} for {dmg} damage and {hero.S("defeat")} {unit.enemy.him}.", 0.15f);
+                                if (enemies.All(x => x.hp <= 0))
+                                    result = Result.WinWait;
+                            }
+                            else
+                                AppendText($"{hero.NameYou} {hero.S("cast")} {castSpell.name} at {unit.enemy.name} for {dmg} damage.", 0.15f);
+                        }
+                        else
+                        {
+                            AppendText($"{hero.NameYou} {hero.S("cast")} {castSpell.name} at {unit.enemy.name} but {hero.S("miss", "misses")}.", 0.15f);
+                            unit.card.Dodge();
+                        }
+
+                        Arrow2 arrow = Instantiate(arrowPrefab, transform).GetComponent<Arrow2>();
+                        arrow.Shoot(hero.card.position, unit.card.position);
+                        arrow.SetDamageType(castSpell.damageType);
+                    }
+                    return true;
+                }
             }
 
             if (AttackChance(hero.dex, target.enemy.dex))
             {
                 int dmg = hero.Attack;
-                if (castSpell != null && castSpell.damageType == DamageType.Holy && target.enemy.holyDmgSus)
+                if (castSpell != null && castSpell.damageType != DamageType.Normal)
                 {
                     dmg -= target.enemy.def / 2;
-                    dmg *= 2;
+                    if (target.enemy.IsSusceptible(castSpell.damageType))
+                        dmg *= 2;
                 }
                 else
                     dmg -= target.enemy.def;
@@ -615,7 +639,7 @@ public class Combat : GameDialog
     {
         Action action = Action.None;
         object target = null;
-        int actionPriority = 1;
+        int actionPriority = 10;
 
         void AddWithPriority(Action newAction, int newPriority, object newTarget)
         {
@@ -648,19 +672,38 @@ public class Combat : GameDialog
 
                 if (spell.type == Spell.Type.Damage)
                 {
-                    if (spell.damageType == DamageType.Holy && enemies.Any(x => x.hp > 0 && x.enemy.holyDmgSus))
+                    if (spell.aoe)
                     {
-                        if (hero.mp >= spell.mana)
+                        int prio = 0;
+                        foreach (Unit unit in enemies.Where(x => x.hp > 0))
                         {
-                            Unit newTarget;
-                            if (playerTarget != null && playerTarget.hp > 0 && playerTarget.enemy.holyDmgSus && (hero == player || Utility.Rand % 2 == 0))
-                                newTarget = playerTarget;
+                            if (unit.enemy.IsSusceptible(spell.damageType))
+                                prio += 20;
                             else
-                                newTarget = enemies.RandomItem(x => x.hp > 0 && x.enemy.holyDmgSus);
-                            AddWithPriority(Action.Spell + i, 2, newTarget);
+                                prio += 10;
                         }
-                        else if (Utility.Rand % 4 != 0)
-                            AddWithPriority(Action.Mana, 2, null);
+
+                        if (hero.hp >= spell.mana)
+                            AddWithPriority(Action.Spell + i, prio, null);
+                        else
+                            AddWithPriority(Action.Mana, prio * 3 / 4, null);
+                    }
+                    else
+                    {
+                        if (enemies.Any(x => x.hp > 0 && x.enemy.IsSusceptible(spell.damageType)))
+                        {
+                            if (hero.mp >= spell.mana)
+                            {
+                                Unit newTarget;
+                                if (playerTarget != null && playerTarget.hp > 0 && playerTarget.enemy.holyDmgSus && (hero == player || Utility.Rand % 2 == 0))
+                                    newTarget = playerTarget;
+                                else
+                                    newTarget = enemies.RandomItem(x => x.hp > 0 && x.enemy.holyDmgSus);
+                                AddWithPriority(Action.Spell + i, 20, newTarget);
+                            }
+                            else
+                                AddWithPriority(Action.Mana, 15, null);
+                        }
                     }
                 }
                 else if (spell.type == Spell.Type.Heal)
@@ -689,7 +732,9 @@ public class Combat : GameDialog
             }
         }
 
-        if (actionPriority == 1)
+        // attack if nothing better to do
+        // also sometimes attack even if there is better option
+        if (actionPriority <= 10 || (actionPriority < 100 && Utility.Rand % (actionPriority + 10) < 10))
         {
             action = Action.Attack;
             if (playerTarget != null && playerTarget.hp > 0 && (hero == player || Utility.Rand % 2 == 0))

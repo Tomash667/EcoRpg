@@ -98,6 +98,14 @@ public static class Utility
         return word + 's';
     }
 
+    public static string Plural(string word, bool pluralize)
+    {
+        if (pluralize)
+            return Plural(word);
+        else
+            return word;
+    }
+
     public static string Plural(string word, int count, bool alwaysShowNumber = false)
     {
         if (count == 1)

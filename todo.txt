@@ -1,9 +1,6 @@
 - manage mansion/sawmill text cutoff
 - things that look bad in bottom text: work garden, train
 
-+ cleric
-	cast heal after combat
-
 v3
 hero:
 + longer main quest that require investing
@@ -29,7 +26,6 @@ hero:
 	bash
 	double-shot/multishoot
 	extra attack after defeating enemy
-	better cleric spell to unlock
 	???
 + combat
 	special attacks
@@ -215,6 +211,7 @@ hero:
 + ally drink given potion if needed
 + Find(Healing|Mana)Item -> don't use elixir if potion is enough
 + hero randomise spell priority to not always use best?
++ cast spells outside of combat by player (manual) or ai (after combat/someone being hurt)
 
 units:
 + last name
@@ -256,6 +253,8 @@ ui:
 + store/buy/sell/give/drop show max count in dialog
 + log ally buy/enchant items
 + remove upper text??
++ debug command to add/remove spell
++ don't show blood in combat damage when zero
 
 refactoring:
 + store worker assigned property as reference

@@ -62,6 +62,7 @@ public class SkipTimeScreen : GameDialog
         lastDays = days;
 
         List<Hero> levelups = null;
+        List<Spell> learnedSpells = null;
         List<ItemSlot> produce = null;
         Dictionary<Skill, int> prevSkills = player.skills.ToDictionary(x => x.Key, x => x.Value.level);
         Tile tile = game.world.CurrentTile;
@@ -111,7 +112,8 @@ public class SkipTimeScreen : GameDialog
                         else
                             exp = 100 + 10 * (highestLevel - hero.level);
 
-                        if (hero.AddExp(exp))
+                        if (hero.AddExp(exp, hero == player ? spell => { learnedSpells ??= new(); learnedSpells.Add(spell); }
+                        : null))
                         {
                             levelups ??= new();
                             levelups.Add(hero);
@@ -160,6 +162,9 @@ public class SkipTimeScreen : GameDialog
                 string isAre = group.Count() > 1 || group.First() == player ? "are" : "is";
                 text.Append($"{Utility.PrettyList(group.Select(x => x.nameYou)).ToUpper1()} {isAre} now level {group.Key}.");
             }
+
+            if (learnedSpells != null)
+                text.Append($"You learn {Utility.PrettyList(learnedSpells.Select(x => x.name))} {Utility.Plural("spell", learnedSpells.Count > 1)}.");
         }
 
         if (property != null)

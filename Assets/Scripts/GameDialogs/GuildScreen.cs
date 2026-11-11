@@ -242,6 +242,7 @@ public class GuildScreen : GameDialog
         text.Set("You train fighting.");
         int highestLevel = game.team.heroes.Max(x => x.level);
         List<Hero> levelups = null;
+        List<Spell> learnedSpells = null;
         foreach (Hero hero in game.team.heroes)
         {
             int exp;
@@ -250,7 +251,8 @@ public class GuildScreen : GameDialog
             else
                 exp = 100 + 10 * (highestLevel - hero.level);
 
-            if (hero.AddExp(exp))
+            if (hero.AddExp(exp, hero == player ? spell => { learnedSpells ??= new(); learnedSpells.Add(spell); }
+            : null))
             {
                 levelups ??= new();
                 levelups.Add(hero);
@@ -264,6 +266,9 @@ public class GuildScreen : GameDialog
                 string isAre = group.Count() > 1 || group.First() == player ? "are" : "is";
                 text.Append($"{Utility.PrettyList(group.Select(x => x.nameYou)).ToUpper1()} {isAre} now level {group.Key}.");
             }
+
+            if (learnedSpells != null)
+                text.Append($"You learn {Utility.PrettyList(learnedSpells.Select(x => x.name))} {Utility.Plural("spell", learnedSpells.Count > 1)}.");
         }
 
         AddTimeAndRefresh(hours: 8);
