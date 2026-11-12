@@ -514,7 +514,7 @@ public class Combat : GameDialog
                 else if (castSpell.aoe)
                 {
                     hero.card.Cast();
-                    foreach (Unit unit in enemies)
+                    foreach (Unit unit in enemies.Where(x => x.hp > 0))
                     {
                         if (AttackChance(hero.dex, unit.enemy.dex))
                         {

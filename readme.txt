@@ -5,14 +5,14 @@ Goal:
 Defeat dragon, get rich.
 
 Tips:
-* Treasure found (trophy, gold nuggets, equipment) is considered a team property, when you sell gold is split between party members.
+* Treasure found (trophy, gold nuggets, equipment) is considered a team property, when you sell it, gold is split between party members.
 * Equiping/storing team item makes player owe gold to allies which is repaid when you receive gold.
 * Ally with skill helps & trains your skill when working.
 * You can give herbs to ally with alchemist set to make potions.
 * High property efficiency increase income and chance for positive events.
 
 Shortcuts:
-1-2 - manage ally
+1-3 - manage ally
 C - character screen
 C - craft (guild)
 D - go down

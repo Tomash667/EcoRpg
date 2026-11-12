@@ -254,6 +254,7 @@ public class Hero : ISerializationCallbackReceiver
         ClassInfo classInfo = clas.GetInfo();
         if (classInfo.unlockableSpells != null)
         {
+            spells ??= new();
             foreach (Spell spell in classInfo.unlockableSpells.Where(x => level >= x.level && !spells.Contains(x.spell)).Select(x => x.spell))
             {
                 spells.Add(spell);
