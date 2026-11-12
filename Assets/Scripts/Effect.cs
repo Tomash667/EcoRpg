@@ -1,13 +1,13 @@
-using UnityEngine;
-
-public enum Effect
+public class Effect
 {
-    None,
-    Poison,
-    Confused
-}
+    public enum Type
+    {
+        None,
+        Poison,
+        Confused,
+        Guard
+    }
 
-public class EffectIcon : MonoBehaviour
-{
-    public Effect effect;
+    public Type type;
+    public int timer, value;
 }

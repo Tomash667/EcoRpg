@@ -304,6 +304,19 @@ public class Combat : GameDialog
                 if (hero == player)
                     transform.Find("Buttons").GetChild(0).GetComponentInChildren<TMP_Text>().text = $"Healing p. ({hero.potionTimer})";
             }
+            hero.effects.RemoveAll(e =>
+            {
+                if (e.timer > 0 && e.type != Effect.Type.Confused)
+                {
+                    --e.timer;
+                    if (e.timer == 0)
+                    {
+                        hero.card.RemoveEffect(e.type);
+                        return true;
+                    }
+                }
+                return false;
+            });
         }
 
         // escape
@@ -319,17 +332,20 @@ public class Combat : GameDialog
 
         if (hero.hp > 0)
         {
+            Effect effect;
+
             // poison damage
-            if (effectTick < 2 && hero.poison > 0)
+            if (effectTick < 2 && (effect = hero.GetEffect(Effect.Type.Poison)) != null)
             {
                 timer = 0.3f;
-                hero.hp -= hero.poison;
-                hero.card.PoisonDamage(hero.hpp);
+                hero.hp -= effect.value;
+                hero.card.SetHp(hero.hpp);
+                hero.card.PoisonDamage();
                 if (hero.hp <= 0)
                 {
-                    hero.confused = 0;
-                    hero.poison = 0;
-                    AppendText($"{hero.NameYou} {hero.S("take")} {hero.poison} poison damage and {hero.isAre} defeated.");
+                    AppendText($"{hero.NameYou} {hero.S("take")} {effect.value} poison damage and {hero.isAre} defeated.");
+                    hero.effects.Clear();
+                    hero.card.RemoveAllEffects();
                     if (heroes.All(x => x.hp <= 0))
                     {
                         result = Result.DefeatWait;
@@ -337,25 +353,28 @@ public class Combat : GameDialog
                     }
                 }
                 else
-                    AppendText($"{hero.NameYou} {hero.S("take")} {hero.poison} poison damage.");
+                    AppendText($"{hero.NameYou} {hero.S("take")} {effect.value} poison damage.");
                 effectTick = 2;
                 return false;
             }
 
             // confused
-            if (hero.confused > 0)
+            if (effectTick < 4 && (effect = hero.GetEffect(Effect.Type.Confused)) != null)
             {
+                // show confused image over player
                 if (effectTick < 3)
                 {
                     timer = 0.3f;
                     hero.card.Confused();
-                    if (hero.confused == 1)
-                        hero.card.RemoveEffect(Effect.Confused);
                     effectTick = 3;
                     return false;
                 }
 
-                --hero.confused;
+                // chance to attack allly or do nothing
+                --effect.timer;
+                if (effect.timer == 0)
+                    player.effects.Remove(effect);
+
                 if (Utility.Rand % 2 == 0)
                 {
                     // attack ally
@@ -363,6 +382,8 @@ public class Combat : GameDialog
                     if (targetHero == hero)
                     {
                         AppendText($"{hero.NameYou} {hero.S("don't", "doesn't")} know what to do.");
+                        if (effect.timer == 0)
+                            hero.card.RemoveEffect(Effect.Type.Confused, 0.1f);
                         timer = 0.1f;
                         return true;
                     }
@@ -370,11 +391,12 @@ public class Combat : GameDialog
                     if (AttackChance(hero.dex, targetHero.dex))
                     {
                         int dmg = Mathf.Max(hero.Attack - targetHero.Defense, 0);
-                        targetHero.card.Damage(targetHero.hpp);
+                        targetHero.card.Damage();
+                        targetHero.card.SetHp(targetHero.hpp, 0.15f);
                         if (targetHero.hp <= 0)
                         {
-                            targetHero.confused = 0;
-                            targetHero.poison = 0;
+                            targetHero.effects.Clear();
+                            targetHero.card.RemoveAllEffects(0.15f);
                             AppendText($"{hero.NameYou} {hero.S("hit")} {targetHero.name} for {dmg} damage and {hero.S("defeat")} {targetHero.him}.", 0.15f);
                         }
                         else
@@ -394,9 +416,15 @@ public class Combat : GameDialog
                     else
                         hero.card.Attack();
 
+                    if (effect.timer == 0)
+                        hero.card.RemoveEffect(Effect.Type.Confused, 0.5f);
                     timer = 0.5f;
                     return true;
                 }
+
+                if (effect.timer == 0)
+                    hero.card.RemoveEffect(Effect.Type.Confused);
+                effectTick = 4;
             }
 
             // player selected action
@@ -491,7 +519,7 @@ public class Combat : GameDialog
             if (castSpell != null)
             {
                 hero.mp -= castSpell.mana;
-                hero.card.SetMp(hero.mpp);
+                hero.card.SetMp(hero.mpp, 0.15f);
                 if (hero is Player && playerAction >= Action.Spell)
                 {
                     arrow.SetActive(false);
@@ -504,10 +532,13 @@ public class Combat : GameDialog
                     int missingHp = heroTarget.hpMax - heroTarget.hp;
                     heal = Mathf.Min(heal, missingHp);
                     heroTarget.hp += heal;
+                    heroTarget.RemoveEffect(Effect.Type.Poison);
 
                     AppendText($"{hero.NameYou} {hero.S("cast")} {castSpell.name} at {(hero == heroTarget ? hero.himself : heroTarget.name)} and {hero.S("heal")} {heal} damage.", 0.15f);
                     hero.card.Cast();
-                    heroTarget.card.Heal(heroTarget.hpp);
+                    heroTarget.card.Heal();
+                    heroTarget.card.RemoveEffect(Effect.Type.Poison, 0.15f);
+                    heroTarget.card.SetHp(heroTarget.hpp, 0.15f);
 
                     return true;
                 }
@@ -523,7 +554,8 @@ public class Combat : GameDialog
                                 dmg *= 2;
                             dmg = Mathf.Max(dmg, 0);
                             unit.hp -= dmg;
-                            unit.card.Damage(unit.hpp);
+                            unit.card.Damage();
+                            unit.card.SetHp(unit.hpp, 0.15f);
                             if (unit.hp <= 0)
                             {
                                 AppendText($"{hero.NameYou} {hero.S("cast")} {castSpell.name} at {unit.enemy.name} for {dmg} damage and {hero.S("defeat")} {unit.enemy.him}.", 0.15f);
@@ -561,9 +593,9 @@ public class Combat : GameDialog
                 dmg = Mathf.Max(dmg, 0);
                 target.hp -= dmg;
                 if (isBlocking)
-                    target.card.Block(target.hpp);
-                else
-                    target.card.Damage(target.hpp);
+                    target.card.Block();
+                target.card.Damage();
+                target.card.SetHp(target.hpp, 0.15f);
 
                 if (target.hp <= 0)
                 {
@@ -782,10 +814,11 @@ public class Combat : GameDialog
         hero.RemoveItem(potion);
         hero.potionsUsed++;
         hero.potionTimer = hero.potionsUsed + 1;
-        hero.poison = 0;
+        hero.RemoveEffect(Effect.Type.Poison);
         AppendText($"{hero.NameYou} {hero.S("use")} {potion.item.name} and {hero.S("get")} healed for {hero.hp - prevHp}.", 0.15f);
-        hero.card.Heal(hero.hpp);
-        hero.card.RemoveEffect(Effect.Poison);
+        hero.card.Heal();
+        hero.card.SetHp(hero.hpp, 0.15f);
+        hero.card.RemoveEffect(Effect.Type.Poison, 0.15f);
         if (hero == player)
             transform.Find("Buttons").GetChild(0).GetComponentInChildren<TMP_Text>().text = $"Healing p. ({hero.potionTimer})";
         timer = 0.5f;
@@ -798,7 +831,8 @@ public class Combat : GameDialog
         hero.mp = Mathf.Min(hero.mp + potion.item.power, hero.mpMax);
         hero.RemoveItem(potion);
         AppendText($"{hero.NameYou} {hero.S("use")} {potion.item.name} and {hero.S("restore")} {hero.mp - prevMp} mana.", 0.15f);
-        hero.card.RestoreMana(hero.mpp);
+        hero.card.RestoreMana();
+        hero.card.SetMp(hero.mpp, 0.15f);
         timer = 0.5f;
     }
 
@@ -870,7 +904,6 @@ public class Combat : GameDialog
             }
         }
 
-        bool lifesteal = false;
         if (AttackChance(me.enemy.dex, hero.dex))
         {
             hitHeroes.Add(hero);
@@ -882,14 +915,14 @@ public class Combat : GameDialog
             hero.hp -= dmg;
 
             if (isBlocking)
-                hero.card.Block(hero.hpp);
-            else
-                hero.card.Damage(hero.hpp);
+                hero.card.Block();
+            hero.card.Damage();
+            hero.card.SetHp(hero.hpp, 0.15f);
 
             if (hero.hp <= 0)
             {
-                hero.confused = 0;
-                hero.poison = 0;
+                hero.effects.Clear();
+                hero.card.RemoveAllEffects(0.15f);
                 AppendText(spellName != null
                     ? $"{me.enemy.name.ToUpper1()} shoots {spellName} at {hero.nameYou} for {dmg} damage and defeats {hero.him}."
                     : $"{me.enemy.name.ToUpper1()} hits {hero.nameYou} for {dmg} damage and defeats {hero.him}.", 0.15f);
@@ -904,18 +937,27 @@ public class Combat : GameDialog
                     int poison = dmg / 5;
                     if (poison == 0)
                         poison = 1;
-                    if (hero.poison == 0)
+                    Effect effect = hero.GetEffect(Effect.Type.Poison);
+                    if (effect == null)
                     {
                         str += $" {hero.NameYou} {hero.isAre} poisoned.";
-                        hero.card.AddEffect(Effect.Poison);
+                        hero.card.AddEffect(Effect.Type.Poison, 0.15f);
+                        hero.effects.Add(new Effect { type = Effect.Type.Poison, value = poison });
                     }
-                    hero.poison += poison;
+                    else
+                        effect.value += poison;
                 }
                 else if (me.enemy.attackType == Enemy.AttackType.Confuse)
                 {
-                    str += $" {hero.NameYou} {hero.isAre} confused.";
-                    hero.confused = 2;
-                    hero.card.AddEffect(Effect.Confused);
+                    Effect effect = hero.GetEffect(Effect.Type.Confused);
+                    if (effect == null)
+                    {
+                        str += $" {hero.NameYou} {hero.isAre} confused.";
+                        hero.effects.Add(new Effect { type = Effect.Type.Confused, timer = 2 });
+                        hero.card.AddEffect(Effect.Type.Confused, 0.15f);
+                    }
+                    else
+                        effect.timer = 2;
                 }
 
                 AppendText(str, 0.15f);
@@ -928,7 +970,8 @@ public class Combat : GameDialog
                 me.hp = Mathf.Min(me.hp + heal, me.enemy.hp);
                 heal = me.hp - prev;
                 AppendText($"{me.enemy.name.ToUpper1()} is healed for {heal}.", 0.15f);
-                lifesteal = true;
+                me.card.Heal();
+                me.card.SetHp(me.hpp, 0.15f);
             }
         }
         else
@@ -957,8 +1000,6 @@ public class Combat : GameDialog
             Arrow2 arrow = Instantiate(arrowPrefab, transform).GetComponent<Arrow2>();
             arrow.Shoot(me.card.position, hero.card.position);
         }
-        else if (lifesteal)
-            me.card.Attack(me.hpp);
         else
             me.card.Attack();
 
@@ -977,11 +1018,12 @@ public class Combat : GameDialog
                 int def = hero.Defense / 2;
                 int dmg = Mathf.Max(me.enemy.attack - def, 0);
                 hero.hp -= dmg;
-                hero.card.Damage(hero.hpp);
+                hero.card.Damage();
+                hero.card.SetHp(hero.hpp, 0.15f);
                 if (hero.hp <= 0)
                 {
-                    hero.confused = 0;
-                    hero.poison = 0;
+                    hero.effects.Clear();
+                    hero.card.RemoveAllEffects(0.15f);
                     AppendText($"{me.enemy.name.ToUpper1()} breaths fire at {hero.nameYou} for {dmg} damage and defeats {hero.him}.", 0.15f);
                     if (heroes.All(x => x.hp <= 0))
                         result = Result.DefeatWait;

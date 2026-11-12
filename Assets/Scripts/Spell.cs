@@ -5,13 +5,15 @@ public class Spell
     public enum Type
     {
         Damage,
-        Heal
+        Heal,
+        Buff
     }
 
     public string name;
     public Type type;
     public DamageType damageType;
-    public int mana;
+    public Effect.Type effectType;
+    public int mana, duration;
     public bool aoe;
 
     public static Spell Get(string name)
@@ -41,6 +43,13 @@ public class Spell
             damageType = DamageType.Holy,
             mana = 50,
             aoe = true
+        },
+        new()
+        {
+            name = "guard",
+            type = Type.Buff,
+            effectType = Effect.Type.Guard,
+            duration = 2
         }
     };
 }

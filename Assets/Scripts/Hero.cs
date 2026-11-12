@@ -21,10 +21,13 @@ public class Hero : ISerializationCallbackReceiver
     public int level, exp, hp, hpMax, mp, mpMax, attack, defense, dex, gold, owedGold, rested, affection, bored, lastGift;
     public bool female, winToday, complained;
 
+    // combat only
+    [NonSerialized]
+    public List<Effect> effects;
     [NonSerialized]
     public CharacterCard card;
     [NonSerialized]
-    public int potionTimer, potionsUsed, poison, confused;
+    public int potionTimer, potionsUsed;
     [NonSerialized]
     public bool canBlock;
 
@@ -160,9 +163,8 @@ public class Hero : ISerializationCallbackReceiver
     {
         potionTimer = 0;
         potionsUsed = 0;
-        poison = 0;
-        confused = 0;
         canBlock = !BackRow;
+        effects = new();
     }
 
     public void SetLevel(int newLevel)
@@ -868,5 +870,15 @@ public class Hero : ISerializationCallbackReceiver
             portrait = Resources.Load<Sprite>(imageName);
         }
         return portrait;
+    }
+
+    public Effect GetEffect(Effect.Type type)
+    {
+        return effects.FirstOrDefault(e => e.type == type);
+    }
+
+    public void RemoveEffect(Effect.Type type)
+    {
+        effects.RemoveFirst(e => e.type == type);
     }
 }

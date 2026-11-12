@@ -261,6 +261,7 @@ refactoring:
 + move code to Location classes for explore/work/forage/available buttons
 + DoAlchemy move to GiveItemsScreen
 + move PostCombat to Combat
++ potionTimer, potionsUsed -> hidden Effect
 
 investments:
 + cottage/big house
