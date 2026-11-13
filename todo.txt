@@ -255,6 +255,7 @@ ui:
 + remove upper text??
 + debug command to add/remove spell
 + don't show blood in combat damage when zero
++ show spell mana cost/description
 
 refactoring:
 + store worker assigned property as reference

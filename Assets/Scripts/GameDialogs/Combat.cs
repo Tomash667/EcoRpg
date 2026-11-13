@@ -180,6 +180,8 @@ public class Combat : GameDialog
                 obj.GetComponent<Button>().onClick.AddListener(() => PickAction(action));
                 buttonsRect.Add(obj.transform as RectTransform);
                 actionButtonYs.Add((action, 0));
+                if (spell.requireShield && player.shield == null)
+                    obj.GetComponent<Button>().interactable = false;
                 ++index;
             }
         }
@@ -493,7 +495,7 @@ public class Combat : GameDialog
             {
                 if (castSpell.type == Spell.Type.Heal)
                     heroTarget = heroes.OrderBy(x => x.hpp).First();
-                else if (!castSpell.aoe)
+                else if (!castSpell.aoe && castSpell.type != Spell.Type.Buff)
                 {
                     if (playerTarget != null && playerTarget.hp > 0)
                         target = playerTarget;
@@ -539,6 +541,24 @@ public class Combat : GameDialog
                     heroTarget.card.Heal();
                     heroTarget.card.RemoveEffect(Effect.Type.Poison, 0.15f);
                     heroTarget.card.SetHp(heroTarget.hpp, 0.15f);
+
+                    return true;
+                }
+                else if (castSpell.type == Spell.Type.Buff)
+                {
+                    Effect existingEffect = heroTarget.GetEffect(castSpell.effectType);
+                    if (existingEffect != null)
+                    {
+                        if (castSpell.duration > existingEffect.timer)
+                            existingEffect.timer = castSpell.duration;
+                    }
+                    else
+                        hero.effects.Add(new Effect { type = castSpell.effectType, timer = castSpell.duration });
+
+                    AppendText($"{hero.NameYou} {hero.S("guard")} against incoming attacks.");
+                    hero.card.Cast();
+                    hero.card.BlockImage();
+                    hero.card.AddEffect(Effect.Type.Guard);
 
                     return true;
                 }
@@ -699,7 +719,7 @@ public class Combat : GameDialog
             for (int i = 0; i < hero.spells.Count; ++i)
             {
                 Spell spell = hero.spells[i];
-                if (spell.mana > possibleMana)
+                if (spell.mana > possibleMana || (spell.requireShield && hero.shield == null))
                     continue;
 
                 if (spell.type == Spell.Type.Damage)
@@ -759,6 +779,13 @@ public class Combat : GameDialog
                             else
                                 AddWithPriority(Action.Mana, 25, null);
                         }
+                    }
+                }
+                else if (spell.type == Spell.Type.Buff)
+                {
+                    if (!hero.HaveEffect(spell.effectType))
+                    {
+                        // when to use??
                     }
                 }
             }

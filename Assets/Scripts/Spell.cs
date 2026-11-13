@@ -14,7 +14,7 @@ public class Spell
     public DamageType damageType;
     public Effect.Type effectType;
     public int mana, duration;
-    public bool aoe;
+    public bool aoe, requireShield;
 
     public static Spell Get(string name)
     {
@@ -49,7 +49,8 @@ public class Spell
             name = "guard",
             type = Type.Buff,
             effectType = Effect.Type.Guard,
-            duration = 2
+            duration = 2,
+            requireShield = true
         }
     };
 }

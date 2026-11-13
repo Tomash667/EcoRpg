@@ -56,6 +56,8 @@ public class Hero : ISerializationCallbackReceiver
                 value += shield.power;
             float affectionMod = 1f + 0.05f * (affection / 25);
             value = (int)(value * affectionMod);
+            if (HaveEffect(Effect.Type.Guard))
+                value *= 2;
             return value;
         }
     }
@@ -870,6 +872,11 @@ public class Hero : ISerializationCallbackReceiver
             portrait = Resources.Load<Sprite>(imageName);
         }
         return portrait;
+    }
+
+    public bool HaveEffect(Effect.Type type)
+    {
+        return effects.Any(x => x.type == type);
     }
 
     public Effect GetEffect(Effect.Type type)

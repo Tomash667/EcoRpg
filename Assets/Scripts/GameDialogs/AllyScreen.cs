@@ -34,7 +34,7 @@ public class AllyScreen : GameDialog
         if (ally.mpMax > 0)
             sb.Append($"Mana: {ally.mp}/{ally.mpMax}\n");
         if (ally.spells != null && ally.spells.Count > 0)
-            sb.Append($"Spells: {string.Join(", ", ally.spells.Select(x => x.name))}\n");
+            sb.Append($"{(ally.mpMax > 0 ? "Spells" : "Abilities")}: {string.Join(", ", ally.spells.Select(x => x.name))}\n");
         sb.Append($"Gold: {ally.gold}");
         if (ally.owedGold > 0)
             sb.Append($" (owes {ally.owedGold} gold)\n");

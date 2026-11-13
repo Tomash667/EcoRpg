@@ -30,7 +30,11 @@ public static class ClassMethods
             name = "warrior",
             attack = 25,
             defense = 5,
-            dex = 10
+            dex = 10,
+            spells = new Spell[]
+            {
+                Spell.Get("guard")
+            }
         },
         [Class.Archer] = new()
         {

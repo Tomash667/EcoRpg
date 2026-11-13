@@ -18,6 +18,7 @@ public class CharacterCard : MonoBehaviour, IPointerClickHandler
         Dodge,
         Damage,
         Block,
+        BlockImage,
         Escape,
         Approach,
         Heal,
@@ -254,6 +255,14 @@ public class CharacterCard : MonoBehaviour, IPointerClickHandler
                 }
             }
             break;
+        case Action.BlockImage:
+            sub.timer += Time.deltaTime;
+            if (sub.timer >= 0.2f)
+            {
+                transform.GetChild((int)ChildIndex.Block).gameObject.SetActive(false);
+                return true;
+            }
+            break;
         case Action.Escape:
             {
                 RectTransform rectTransform = transform as RectTransform;
@@ -408,6 +417,12 @@ public class CharacterCard : MonoBehaviour, IPointerClickHandler
             action = Action.Block,
             prevPos = (transform as RectTransform).anchoredPosition.y
         });
+    }
+
+    public void BlockImage()
+    {
+        subactions.Add(new Subaction { action = Action.BlockImage });
+        transform.GetChild((int)ChildIndex.Block).gameObject.SetActive(true);
     }
 
     public void Escape()

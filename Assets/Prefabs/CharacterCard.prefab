@@ -177,6 +177,7 @@ MonoBehaviour:
   effectSprites:
   - {fileID: -1382644998, guid: 571545d05be90ff4f972999adbf41bf6, type: 3}
   - {fileID: 97364921, guid: 571545d05be90ff4f972999adbf41bf6, type: 3}
+  - {fileID: -904563459, guid: 571545d05be90ff4f972999adbf41bf6, type: 3}
   healSprite: {fileID: 21300000, guid: fc896057e2b3d5b45bccf7b6c49db5c0, type: 3}
   manaSprite: {fileID: 21300000, guid: f51b66f64ac169840a8627c2b1008e03, type: 3}
   effectPrefab: {fileID: 4408351827543952735, guid: 3458631ca4436f24380aac2eeb02c0af, type: 3}
